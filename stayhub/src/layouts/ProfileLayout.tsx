@@ -1,12 +1,11 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users, Briefcase } from 'lucide-react';
+import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users } from 'lucide-react';
 import { PATH } from '../config/routes/route';
 
 export const ProfileLayout: React.FC = () => {
   const navItems = [
     { name: 'My Profile', path: PATH.CUSTOMER.PROFILE, icon: User },
-    { name: 'Partner Profile', path: PATH.CUSTOMER.TOUR_OPERATOR_PROFILE, icon: Briefcase },
     { name: 'Friends', path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
     { name: 'My Bookings', path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
     { name: 'Wishlist', path: PATH.CUSTOMER.WISHLIST, icon: Heart },

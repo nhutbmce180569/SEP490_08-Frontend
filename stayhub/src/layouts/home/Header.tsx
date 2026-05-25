@@ -8,7 +8,7 @@ import { useToast } from "../../contexts/ToastContext";
 // IMPORT THÊM CONTEXT VÀ SERVICE
 import { AuthContext } from "../../contexts/AuthContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
-import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, Briefcase } from "lucide-react";
+import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users } from "lucide-react";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
 
 // TÌM ĐÚNG ĐƯỜNG DẪN IMPORT CỦA BẠN VÀ ĐẶT VÀO ĐÂY
@@ -300,17 +300,6 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
                 </ActionButton>
               )}
               
-              {!upperRoles.includes("OPERATOR") && upperRoles.includes("CUSTOMER") && (
-                <ActionButton 
-                  variant="outline" 
-                  onClick={() => navigate(PATH.CUSTOMER.UPGRADE_TOUR_OPERATOR)} 
-                  title="Upgrade to Tour Operator" 
-                  className="hidden md:flex !w-auto px-4 gap-2 !border-[#EB662B] !text-[#EB662B] hover:!bg-[#EB662B]/10"
-                >
-                  <Briefcase className="h-4 w-4" />
-                  <span>Become a Partner</span>
-                </ActionButton>
-              )}
               
               <button
                 onClick={() => navigate("/social/moments")}

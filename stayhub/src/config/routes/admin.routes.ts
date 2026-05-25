@@ -1,0 +1,24 @@
+export const ADMIN_ROUTES = {
+  DASHBOARD: '/admin',
+  USER_MANAGEMENT: '/admin/users',
+  PARTNER_APPROVAL: '/admin/partners',
+  TOUR_MODERATION: '/admin/tours',
+  ADMIN_TOUR_DETAIL: (id: string | number = ':id') => `/admin/tours/${id}`,
+  CATEGORY_MANAGEMENT: '/admin/categories',
+  SYSTEM_VOUCHERS: '/admin/vouchers',
+  CREATE_ADMIN_VOUCHER: '/admin/vouchers/create',
+  ADMIN_VOUCHER_DETAIL: (id: string | number = ':id') => `/admin/vouchers/${id}`,
+  EDIT_ADMIN_VOUCHER: (id: string | number = ':id') => `/admin/vouchers/${id}/edit`,
+  DELETE_ADMIN_VOUCHER: (id: string | number = ':id') => `/admin/vouchers/${id}/delete`,
+  WITHDRAWALS: '/admin/withdrawals',
+  BANNER_MANAGEMENT: '/admin/banners',
+  REPORT_MODERATION: '/admin/reports',
+  SYSTEM_SETTINGS: '/admin/settings',
+
+  // Dynamic Routes & Delete Confirms
+  DELETE_CATEGORY: (id: string | number = ':id') => `/admin/categories/${id}/delete`,
+  DELETE_BANNER: (id: string | number = ':id') => `/admin/banners/${id}/delete`,
+  CREATE_USER: '/admin/users/create',
+  EDIT_USER: (id: string | number = ':id') => `/admin/users/${id}/edit`,
+  DELETE_USER: (id: string | number = ':id') => `/admin/users/${id}/delete`,
+} as const;

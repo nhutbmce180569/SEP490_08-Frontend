@@ -1,122 +1,308 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 
-function App() {
-  const [count, setCount] = useState(0)
+import ScrollToTop from "./components/ScrollToTop";
+import { PATH } from "./config/routes/route";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ToastProvider } from "./contexts/ToastContext";
+import { AdminLayout } from "./layouts/AdminLayout";
+import { DashboardLayout } from "./layouts/DashboardLayout";
+import { MainLayout } from "./layouts/MainLayout";
+import { ProfileLayout } from "./layouts/ProfileLayout";
+import Unauthorized from "./pages/Unauthorized";
+import Home from "./pages/Home";
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+
+const pageCopy: Record<string, string> = {
+  "Sign In": "Mock login screen for the new source setup.",
+  Register: "Mock registration screen for the new source setup.",
+  "Forgot Password": "Mock password recovery flow.",
+  "Reset Password": "Mock password reset flow.",
+  "Change Password": "Mock authenticated password change screen.",
+  "Tour Search": "Mock tour catalog and search results.",
+  "Tour Detail": "Mock public tour detail page.",
+  Checkout: "Mock checkout flow.",
+  Profile: "Mock customer profile page.",
+  "My Bookings": "Mock booking history.",
+  "Booking Detail": "Mock booking detail page.",
+  Wishlist: "Mock wishlist page.",
+  "Partner Profile": "Mock tour operator profile page.",
+  Vouchers: "Mock customer vouchers page.",
+  Reviews: "Mock reviews page.",
+  Settings: "Mock account settings page.",
+  Notifications: "Mock notification center.",
+  Friends: "Mock social friends page.",
+  Moments: "Mock travel moments feed.",
+  "Social Profile": "Mock social profile page.",
+  "Upgrade Partner": "Mock partner upgrade form.",
+};
+
+const MockPage: React.FC<{ title: string; section?: string }> = ({
+  title,
+  section = "Mock UI",
+}) => (
+  <div className="mx-auto w-full max-w-6xl px-4 py-10">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+          <p className="text-xs font-bold uppercase tracking-wider text-[#EB662B]">
+            {section}
+          </p>
+          <h1 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
+            {title}
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
+            {pageCopy[title] ??
+              "Temporary placeholder screen. Route is kept so navigation can be wired back later."}
           </p>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
+          route-ready
+        </span>
+      </div>
 
-      <div className="ticks"></div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {["Overview", "Data", "Actions"].map((label, index) => (
+          <div
+            key={label}
+            className="min-h-32 rounded-xl border border-slate-100 bg-slate-50 p-4"
+          >
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-black text-[#EB662B] shadow-sm">
+              {index + 1}
+            </div>
+            <h2 className="text-sm font-bold text-slate-800">{label}</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Mock content block for layout testing while the real feature is
+              being migrated.
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+const mock = (title: string, section?: string) => (
+  <MockPage title={title} section={section} />
+);
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
+const childPath = (path: string) =>
+  path.replace(`${PATH.MANAGER.DASHBOARD}/`, "").replace(`${PATH.ADMIN.DASHBOARD}/`, "");
 
-export default App
+const App: React.FC = () => {
+  return (
+    <ToastProvider>
+      <AuthProvider>
+        <Router>
+          <ScrollToTop />
+          <Routes>
+            <Route path={PATH.PUBLIC.LOGIN} element={mock("Sign In", "Auth")} />
+            <Route path={PATH.PUBLIC.REGISTER} element={mock("Register", "Auth")} />
+            <Route
+              path={PATH.PUBLIC.FORGOT_PASSWORD}
+              element={mock("Forgot Password", "Auth")}
+            />
+            <Route
+              path={PATH.PUBLIC.RESET_PASSWORD}
+              element={mock("Reset Password", "Auth")}
+            />
+            <Route
+              path={PATH.PUBLIC.CHANGE_PASSWORD}
+              element={mock("Change Password", "Auth")}
+            />
+            <Route path={PATH.PUBLIC.UNAUTHORIZED} element={<Unauthorized />} />
+
+            <Route element={<MainLayout />}>
+              <Route path={PATH.PUBLIC.HOME} element={<Home />} />
+              <Route path={PATH.PUBLIC.TOURS} element={mock("Tour Search", "Tours")} />
+              <Route path={PATH.PUBLIC.TOUR_SEARCH} element={mock("Tour Search", "Tours")} />
+              <Route
+                path={PATH.PUBLIC.TOUR_DETAIL()}
+                element={mock("Tour Detail", "Tours")}
+              />
+              <Route path={PATH.CUSTOMER.CHECKOUT()} element={mock("Checkout", "Booking")} />
+              <Route
+                path={PATH.CUSTOMER.UPGRADE_TOUR_OPERATOR}
+                element={mock("Upgrade Partner", "Customer")}
+              />
+              <Route
+                path={PATH.CUSTOMER.UPDATE_TOUR_OPERATOR}
+                element={mock("Upgrade Partner", "Customer")}
+              />
+              <Route path={PATH.CUSTOMER.SOCIAL_MOMENTS} element={mock("Moments", "Social")} />
+              <Route path="/social/profile/:id" element={mock("Social Profile", "Social")} />
+
+              <Route element={<ProfileLayout />}>
+                <Route path={PATH.CUSTOMER.PROFILE} element={mock("Profile", "Customer")} />
+                <Route
+                  path={PATH.CUSTOMER.MY_BOOKINGS}
+                  element={mock("My Bookings", "Customer")}
+                />
+                <Route
+                  path={PATH.CUSTOMER.BOOKING_DETAIL()}
+                  element={mock("Booking Detail", "Customer")}
+                />
+                <Route path={PATH.CUSTOMER.WISHLIST} element={mock("Wishlist", "Customer")} />
+                <Route
+                  path={PATH.CUSTOMER.TOUR_OPERATOR_PROFILE}
+                  element={mock("Partner Profile", "Customer")}
+                />
+                <Route path={PATH.CUSTOMER.VOUCHERS} element={mock("Vouchers", "Customer")} />
+                <Route path={PATH.CUSTOMER.MY_REVIEWS} element={mock("Reviews", "Customer")} />
+                <Route path={PATH.CUSTOMER.SETTINGS} element={mock("Settings", "Customer")} />
+                <Route
+                  path={PATH.CUSTOMER.NOTIFICATIONS}
+                  element={mock("Notifications", "Customer")}
+                />
+                <Route path={PATH.CUSTOMER.SOCIAL_FRIENDS} element={mock("Friends", "Social")} />
+              </Route>
+            </Route>
+
+            <Route path={PATH.MANAGER.DASHBOARD} element={<DashboardLayout />}>
+              <Route index element={mock("Partner Dashboard", "Partner")} />
+              <Route path={childPath(PATH.MANAGER.MY_TOURS)} element={mock("My Tours", "Partner")} />
+              <Route
+                path={childPath(PATH.MANAGER.CREATE_TOUR)}
+                element={mock("Create Tour", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.TOUR_DETAIL())}
+                element={mock("Tour Detail", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.EDIT_TOUR())}
+                element={mock("Edit Tour", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.DELETE_TOUR())}
+                element={mock("Delete Tour", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.CREATE_ITINERARY())}
+                element={mock("Create Itinerary", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.EDIT_ITINERARY())}
+                element={mock("Edit Itinerary", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.DELETE_ITINERARY())}
+                element={mock("Delete Itinerary", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
+                element={mock("Schedules", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
+                element={mock("Create Schedule", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
+                element={mock("Schedule Detail", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
+                element={mock("Edit Schedule", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
+                element={mock("Delete Schedule", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
+                element={mock("Create Schedule Itinerary", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
+                element={mock("Edit Schedule Itinerary", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
+                element={mock("Delete Schedule Itinerary", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}
+                element={mock("Schedule Orders", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.SCHEDULE_CHECKIN())}
+                element={mock("Schedule Check-in", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.BOOKING_MANAGEMENT)}
+                element={mock("Booking Management", "Partner")}
+              />
+              <Route
+                path={childPath(PATH.MANAGER.CHECK_IN)}
+                element={mock("Check-in", "Partner")}
+              />
+              <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
+                <Route index element={mock("MANAGER Vouchers", "Partner")} />
+                <Route path="create" element={mock("Create Voucher", "Partner")} />
+                <Route path=":id" element={mock("Voucher Detail", "Partner")} />
+                <Route path=":id/edit" element={mock("Edit Voucher", "Partner")} />
+                <Route path=":id/delete" element={mock("Delete Voucher", "Partner")} />
+              </Route>
+              <Route path={childPath(PATH.MANAGER.REVIEWS)} element={mock("Reviews", "Partner")} />
+              <Route path={childPath(PATH.MANAGER.PAYOUT)} element={mock("Payout", "Partner")} />
+            </Route>
+
+            <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
+              <Route index element={mock("Admin Dashboard", "Admin")} />
+              <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
+                <Route index element={mock("Users", "Admin")} />
+                <Route path="create" element={mock("Create User", "Admin")} />
+                <Route path=":id/edit" element={mock("Edit User", "Admin")} />
+                <Route path=":id/delete" element={mock("Delete User", "Admin")} />
+              </Route>
+              <Route
+                path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
+                element={mock("Partner Approvals", "Admin")}
+              />
+              <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
+                <Route index element={mock("Tours", "Admin")} />
+                <Route path=":id" element={mock("Admin Tour Detail", "Admin")} />
+              </Route>
+              <Route
+                path={childPath(PATH.ADMIN.REPORT_MODERATION)}
+                element={mock("Violation Reports", "Admin")}
+              />
+              <Route
+                path={childPath(PATH.ADMIN.WITHDRAWALS)}
+                element={mock("Withdrawals", "Admin")}
+              />
+              <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
+                <Route index element={mock("System Vouchers", "Admin")} />
+                <Route path="create" element={mock("Create Voucher", "Admin")} />
+                <Route path=":id" element={mock("Voucher Detail", "Admin")} />
+                <Route path=":id/edit" element={mock("Edit Voucher", "Admin")} />
+                <Route path=":id/delete" element={mock("Delete Voucher", "Admin")} />
+              </Route>
+              <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
+                <Route index element={mock("Banners", "Admin")} />
+                <Route path="create" element={mock("Create Banner", "Admin")} />
+                <Route path=":id/edit" element={mock("Edit Banner", "Admin")} />
+                <Route path=":id/delete" element={mock("Delete Banner", "Admin")} />
+              </Route>
+              <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
+                <Route index element={mock("Categories", "Admin")} />
+                <Route path="create" element={mock("Create Category", "Admin")} />
+                <Route path=":id/edit" element={mock("Edit Category", "Admin")} />
+                <Route path=":id/delete" element={mock("Delete Category", "Admin")} />
+              </Route>
+              <Route
+                path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
+                element={mock("System Settings", "Admin")}
+              />
+            </Route>
+
+            <Route path="*" element={mock("404 - Page Not Found", "System")} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
+  );
+};
+
+export default App;

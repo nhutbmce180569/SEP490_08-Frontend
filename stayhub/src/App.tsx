@@ -1,9 +1,10 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import React, { useContext } from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import ScrollToTop from "./components/ScrollToTop";
 import { PATH } from "./config/routes/route";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, AuthContext } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { AdminLayout } from "./layouts/AdminLayout";
 import { DashboardLayout } from "./layouts/DashboardLayout";
@@ -12,6 +13,21 @@ import { ProfileLayout } from "./layouts/ProfileLayout";
 import Unauthorized from "./pages/Unauthorized";
 import Home from "./pages/Home";
 
+import Login from "./features/auth/pages/Login";
+import Register from "./features/auth/pages/Register";
+import ForgotPassword from "./features/auth/pages/ForgotPassword";
+import ResetPassword from "./features/auth/pages/ResetPassword";
+import ChangePassword from "./features/auth/pages/ChangePassword";
+import { Profile } from "./features/auth/pages/Profile";
+
+// Components dành cho Quản lý User (Admin)
+import UserList from "./features/auth/pages/UserList";
+import CreateUser from "./features/auth/pages/CreateUser";
+import UpdateUser from "./features/auth/pages/UpdateUser";
+import DeleteUserConfirm from "./features/auth/pages/DeleteUser";
+
+
+const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
   "Sign In": "Mock login screen for the new source setup.",
@@ -89,33 +105,67 @@ const mock = (title: string, section?: string) => (
 const childPath = (path: string) =>
   path.replace(`${PATH.MANAGER.DASHBOARD}/`, "").replace(`${PATH.ADMIN.DASHBOARD}/`, "");
 
+// Component bảo vệ các tuyến đường yêu cầu đăng nhập và phân quyền (RBAC)
+const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles }) => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#EB662B] border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to={PATH.PUBLIC.LOGIN} replace />;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRoles = Array.isArray(user.roles)
+      ? user.roles
+      : typeof user.roles === "string"
+      ? [user.roles]
+      : [];
+    const upperRoles = userRoles.map((r: string) => r.toUpperCase());
+    const hasAccess = allowedRoles.some((role) => upperRoles.includes(role.toUpperCase()));
+
+    if (!hasAccess) {
+      return <Navigate to={PATH.PUBLIC.UNAUTHORIZED} replace />;
+    }
+  }
+
+  return <Outlet />;
+};
+
 const App: React.FC = () => {
   return (
-    <ToastProvider>
-      <AuthProvider>
-        <Router>
-          <ScrollToTop />
-          <Routes>
-            <Route path={PATH.PUBLIC.LOGIN} element={mock("Sign In", "Auth")} />
-            <Route path={PATH.PUBLIC.REGISTER} element={mock("Register", "Auth")} />
-            <Route
-              path={PATH.PUBLIC.FORGOT_PASSWORD}
-              element={mock("Forgot Password", "Auth")}
-            />
-            <Route
-              path={PATH.PUBLIC.RESET_PASSWORD}
-              element={mock("Reset Password", "Auth")}
-            />
-            <Route
-              path={PATH.PUBLIC.CHANGE_PASSWORD}
-              element={mock("Change Password", "Auth")}
-            />
-            <Route path={PATH.PUBLIC.UNAUTHORIZED} element={<Unauthorized />} />
+    <QueryClientProvider client={queryClient}>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <ScrollToTop />
+            <Routes>
+              <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
+              <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+              <Route
+                path={PATH.PUBLIC.FORGOT_PASSWORD}
+                element={<ForgotPassword />}
+              />
+              <Route
+                path={PATH.PUBLIC.RESET_PASSWORD}
+                element={<ResetPassword />}
+              />
+              <Route
+                path={PATH.PUBLIC.CHANGE_PASSWORD}
+                element={<ChangePassword />}
+              />
+              <Route path={PATH.PUBLIC.UNAUTHORIZED} element={<Unauthorized />} />
 
-            <Route element={<MainLayout />}>
-              <Route path={PATH.PUBLIC.HOME} element={<Home />} />
-              <Route path={PATH.PUBLIC.TOURS} element={mock("Tour Search", "Tours")} />
-              <Route path={PATH.PUBLIC.TOUR_SEARCH} element={mock("Tour Search", "Tours")} />
+              <Route element={<MainLayout />}>
+                <Route path={PATH.PUBLIC.HOME} element={<Home />} />
+                <Route path={PATH.PUBLIC.TOURS} element={mock("Tour Search", "Tours")} />
+                <Route path={PATH.PUBLIC.TOUR_SEARCH} element={mock("Tour Search", "Tours")} />
               <Route
                 path={PATH.PUBLIC.TOUR_DETAIL()}
                 element={mock("Tour Detail", "Tours")}
@@ -132,8 +182,10 @@ const App: React.FC = () => {
               <Route path={PATH.CUSTOMER.SOCIAL_MOMENTS} element={mock("Moments", "Social")} />
               <Route path="/social/profile/:id" element={mock("Social Profile", "Social")} />
 
-              <Route element={<ProfileLayout />}>
-                <Route path={PATH.CUSTOMER.PROFILE} element={mock("Profile", "Customer")} />
+              {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
+              <Route element={<ProtectedRoute />}>
+                <Route element={<ProfileLayout />}>
+                <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
                 <Route
                   path={PATH.CUSTOMER.MY_BOOKINGS}
                   element={mock("My Bookings", "Customer")}
@@ -156,9 +208,12 @@ const App: React.FC = () => {
                 />
                 <Route path={PATH.CUSTOMER.SOCIAL_FRIENDS} element={mock("Friends", "Social")} />
               </Route>
+              </Route>
             </Route>
 
-            <Route path={PATH.MANAGER.DASHBOARD} element={<DashboardLayout />}>
+            {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
+            <Route element={<ProtectedRoute allowedRoles={["OPERATOR", "MANAGER", "STAFF"]} />}>
+              <Route path={PATH.MANAGER.DASHBOARD} element={<DashboardLayout />}>
               <Route index element={mock("Partner Dashboard", "Partner")} />
               <Route path={childPath(PATH.MANAGER.MY_TOURS)} element={mock("My Tours", "Partner")} />
               <Route
@@ -247,14 +302,17 @@ const App: React.FC = () => {
               <Route path={childPath(PATH.MANAGER.REVIEWS)} element={mock("Reviews", "Partner")} />
               <Route path={childPath(PATH.MANAGER.PAYOUT)} element={mock("Payout", "Partner")} />
             </Route>
+            </Route>
 
-            <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
+            {/* Phân hệ Quản trị viên cấp cao (Admin) */}
+            <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+              <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
               <Route index element={mock("Admin Dashboard", "Admin")} />
               <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
-                <Route index element={mock("Users", "Admin")} />
-                <Route path="create" element={mock("Create User", "Admin")} />
-                <Route path=":id/edit" element={mock("Edit User", "Admin")} />
-                <Route path=":id/delete" element={mock("Delete User", "Admin")} />
+                <Route index element={<UserList />} />
+                <Route path="create" element={<CreateUser />} />
+                <Route path=":id/edit" element={<UpdateUser />} />
+                <Route path=":id/delete" element={<DeleteUserConfirm />} />
               </Route>
               <Route
                 path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
@@ -296,12 +354,14 @@ const App: React.FC = () => {
                 element={mock("System Settings", "Admin")}
               />
             </Route>
+            </Route>
 
             <Route path="*" element={mock("404 - Page Not Found", "System")} />
           </Routes>
-        </Router>
-      </AuthProvider>
-    </ToastProvider>
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
+    </QueryClientProvider>
   );
 };
 

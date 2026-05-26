@@ -32,6 +32,15 @@ import { UpdateTour } from "./features/tour/pages/UpdateTour";
 import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
 import PartnerDashboard from "./pages/PartnerDashboard";
 
+// Components dành cho Quản lý nội dung (Admin)
+import { CategoryList } from "./features/content/pages/CategoryList";
+import { CreateCategory } from "./features/content/pages/CreateCategory";
+import { UpdateCategory } from "./features/content/pages/UpdateCategory";
+import { DeleteCategoryConfirm } from "./features/content/pages/DeleteCategory";
+import { BannerList } from "./features/content/pages/BannerList";
+import { CreateBanner } from "./features/content/pages/CreateBanner";
+import { UpdateBanner } from "./features/content/pages/UpdateBanner";
+import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
 
 const queryClient = new QueryClient();
 
@@ -177,14 +186,6 @@ const App: React.FC = () => {
                 element={mock("Tour Detail", "Tours")}
               />
               <Route path={PATH.CUSTOMER.CHECKOUT()} element={mock("Checkout", "Booking")} />
-              <Route
-                path={PATH.CUSTOMER.UPGRADE_TOUR_OPERATOR}
-                element={mock("Upgrade Partner", "Customer")}
-              />
-              <Route
-                path={PATH.CUSTOMER.UPDATE_TOUR_OPERATOR}
-                element={mock("Upgrade Partner", "Customer")}
-              />
               <Route path={PATH.CUSTOMER.SOCIAL_MOMENTS} element={mock("Moments", "Social")} />
               <Route path="/social/profile/:id" element={mock("Social Profile", "Social")} />
 
@@ -201,10 +202,6 @@ const App: React.FC = () => {
                   element={mock("Booking Detail", "Customer")}
                 />
                 <Route path={PATH.CUSTOMER.WISHLIST} element={mock("Wishlist", "Customer")} />
-                <Route
-                  path={PATH.CUSTOMER.TOUR_OPERATOR_PROFILE}
-                  element={mock("Partner Profile", "Customer")}
-                />
                 <Route path={PATH.CUSTOMER.VOUCHERS} element={mock("Vouchers", "Customer")} />
                 <Route path={PATH.CUSTOMER.MY_REVIEWS} element={mock("Reviews", "Customer")} />
                 <Route path={PATH.CUSTOMER.SETTINGS} element={mock("Settings", "Customer")} />
@@ -344,16 +341,16 @@ const App: React.FC = () => {
                 <Route path=":id/delete" element={mock("Delete Voucher", "Admin")} />
               </Route>
               <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
-                <Route index element={mock("Banners", "Admin")} />
-                <Route path="create" element={mock("Create Banner", "Admin")} />
-                <Route path=":id/edit" element={mock("Edit Banner", "Admin")} />
-                <Route path=":id/delete" element={mock("Delete Banner", "Admin")} />
+                <Route index element={<BannerList />} />
+                <Route path="create" element={<CreateBanner />} />
+                <Route path=":id/edit" element={<UpdateBanner />} />
+                <Route path=":id/delete" element={<DeleteBannerConfirm />} />
               </Route>
               <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
-                <Route index element={mock("Categories", "Admin")} />
-                <Route path="create" element={mock("Create Category", "Admin")} />
-                <Route path=":id/edit" element={mock("Edit Category", "Admin")} />
-                <Route path=":id/delete" element={mock("Delete Category", "Admin")} />
+                <Route index element={<CategoryList />} />
+                <Route path="create" element={<CreateCategory />} />
+                <Route path=":id/edit" element={<UpdateCategory />} />
+                <Route path=":id/delete" element={<DeleteCategoryConfirm />} />
               </Route>
               <Route
                 path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}

@@ -19,10 +19,119 @@ import { ActionButton } from "../components/home/ActionButton";
 import { TourCard, type TourCardProps } from "../components/home/TourCard";
 import { usePublicTours } from "../hooks/usePublicTours";
 import type { Tour } from "../features/tour/types/tour";
+import { getImg } from "../config/api/api";
+import { useActiveBanners } from "../features/content/hooks/useActiveBanners";
+import type { ReadBannerDTO } from "../features/content/types/banner";
 import { PATH } from "../config/routes/route";
 
 const getFreeApiImage = (seed: string, width: number, height: number) =>
   `https://picsum.photos/seed/${seed}/${width}/${height}`;
+
+
+
+// ─── DYNAMIC BANNER SECTION ──────────────────────────────────────────────────
+
+const DynamicBannerSection = () => {
+  const { data, isLoading, error } = useActiveBanners(5);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const navigate = useNavigate();
+
+  const banners: ReadBannerDTO[] = Array.isArray(data) ? data : data?.data || [];
+
+  // Tự động chuyển Banner mỗi 6 giây
+  useEffect(() => {
+    if (!banners || banners.length <= 1) return;
+    const timer = setInterval(() => setCurrentIndex((p) => (p + 1) % banners.length), 6000);
+    return () => clearInterval(timer);
+  }, [banners]);
+
+  if (isLoading || error || banners.length === 0) return null;
+
+  const handleBannerClick = (url?: string) => {
+    if (!url) return;
+    if (url.startsWith("http")) {
+      window.open(url, "_blank");
+    } else {
+      navigate(url);
+    }
+  };
+
+  return (
+    <section className="pt-16 pb-8 bg-white">
+      <div className="container mx-auto px-4 lg:px-8">
+        <SectionHeader
+          eyebrow="Special Offers"
+          title="Promotions & Updates"
+          subtitle="Discover our latest deals and featured events."
+        />
+
+        <div className="relative w-full rounded-[2.5rem] overflow-hidden group shadow-xl bg-slate-900 aspect-[16/9] md:aspect-[21/9] max-h-[480px]">
+          {banners.map((banner, i) => (
+            <div
+              key={banner.id}
+              className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer"
+              style={{ opacity: currentIndex === i ? 1 : 0, zIndex: currentIndex === i ? 10 : 0 }}
+              onClick={() => handleBannerClick(banner.targetUrl)}
+            >
+              <img
+                src={getImg(banner.imageUrl)}
+                alt={banner.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = "https://placehold.co/1200x400/f8fafc/94a3b8?text=Promotion+Banner";
+                }}
+              />
+              {/* Gradient Overlay & Title */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/20 to-transparent pointer-events-none" />
+              <div className="absolute bottom-6 left-6 right-6 md:bottom-12 md:left-12 md:right-12 pointer-events-none text-white">
+                <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>{banner.title}</h3>
+              </div>
+            </div>
+          ))}
+
+          {/* Slider Controls */}
+          {banners.length > 1 && (
+            <>
+              <div className="absolute top-1/2 -translate-y-1/2 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ActionButton
+                  variant="icon"
+                  onClick={(e) => { e.stopPropagation(); setCurrentIndex((p) => (p === 0 ? banners.length - 1 : p - 1)); }}
+                  className="!w-10 !h-10 md:!w-12 md:!h-12 !bg-white/20 backdrop-blur-md border border-white/20 !text-white hover:!bg-white hover:!text-slate-900 transition-all"
+                >
+                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+                </ActionButton>
+              </div>
+              <div className="absolute top-1/2 -translate-y-1/2 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                <ActionButton
+                  variant="icon"
+                  onClick={(e) => { e.stopPropagation(); setCurrentIndex((p) => (p + 1) % banners.length); }}
+                  className="!w-10 !h-10 md:!w-12 md:!h-12 !bg-white/20 backdrop-blur-md border border-white/20 !text-white hover:!bg-white hover:!text-slate-900 transition-all"
+                >
+                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+                </ActionButton>
+              </div>
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 md:gap-2">
+                {banners.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
+                    className="transition-all duration-300 shadow-sm"
+                    style={{
+                      width: currentIndex === i ? 24 : 8,
+                      height: 8,
+                      borderRadius: 999,
+                      background: currentIndex === i ? "#EB662B" : "rgba(255,255,255,0.5)",
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 // ─── SECTION HEADER ─────────────────────────────────────────────────────────
 
@@ -1002,6 +1111,9 @@ export default function Home() {
 
       {/* 2. Trust signals — thin bar */}
       <TrustBar />
+
+      {/* 2.5 Dynamic Banners (Mới thêm) */}
+      <DynamicBannerSection />
 
       {/* 3. Featured / Spotlight — full-bleed carousel card */}
       <FeaturedTourSection />

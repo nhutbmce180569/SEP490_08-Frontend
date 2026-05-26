@@ -8,6 +8,8 @@ export const CONTENT_API = {
     CREATE: `${FULL_API}/Categories`,
     UPDATE: (id: string | number) => `${FULL_API}/Categories/${id}`,
     DELETE: (id: string | number) => `${FULL_API}/Categories/${id}`,
+    ACTIVATE: (id: string | number) => `${FULL_API}/Categories/${id}/activate`,
+    DEACTIVATE: (id: string | number) => `${FULL_API}/Categories/${id}/deactivate`,
   },
   
   BANNERS: {
@@ -17,5 +19,7 @@ export const CONTENT_API = {
     CREATE: `${FULL_API}/Banners`,
     UPDATE: (id: string | number) => `${FULL_API}/Banners/${id}`,
     DELETE: (id: string | number) => `${FULL_API}/Banners/${id}`,
+    ACTIVATE: (id: string | number) => `${FULL_API}/Banners/${id}/activate`,
+    DEACTIVATE: (id: string | number) => `${FULL_API}/Banners/${id}/deactivate`,
   }
 };

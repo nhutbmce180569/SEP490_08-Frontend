@@ -67,7 +67,7 @@ export const useLogin = () => {
       if (upperRoles.includes("ADMIN")) {
         navigate(PATH.ADMIN.DASHBOARD);
       } else if (upperRoles.includes("OPERATOR") || upperRoles.includes("STAFF")) {
-        navigate(PATH.OPERATOR.DASHBOARD);
+        navigate(PATH.MANAGER.DASHBOARD);
       } else {
         navigate(PATH.PUBLIC.HOME);
       }

@@ -25,6 +25,12 @@ import UserList from "./features/auth/pages/UserList";
 import CreateUser from "./features/auth/pages/CreateUser";
 import UpdateUser from "./features/auth/pages/UpdateUser";
 import DeleteUserConfirm from "./features/auth/pages/DeleteUser";
+import { TourList } from "./features/tour/pages/TourList";
+import { CreateTour } from "./features/tour/pages/CreateTour";
+import { TourDetail } from "./features/tour/pages/TourDetail";
+import { UpdateTour } from "./features/tour/pages/UpdateTour";
+import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
+import PartnerDashboard from "./pages/PartnerDashboard";
 
 
 const queryClient = new QueryClient();
@@ -212,25 +218,25 @@ const App: React.FC = () => {
             </Route>
 
             {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
-            <Route element={<ProtectedRoute allowedRoles={["OPERATOR", "MANAGER", "STAFF"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["MANAGER", "STAFF"]} />}>
               <Route path={PATH.MANAGER.DASHBOARD} element={<DashboardLayout />}>
-              <Route index element={mock("Partner Dashboard", "Partner")} />
-              <Route path={childPath(PATH.MANAGER.MY_TOURS)} element={mock("My Tours", "Partner")} />
+              <Route index element={<PartnerDashboard />} />
+              <Route path={childPath(PATH.MANAGER.MY_TOURS)} element={<TourList />} />
               <Route
                 path={childPath(PATH.MANAGER.CREATE_TOUR)}
-                element={mock("Create Tour", "Partner")}
+                element={<CreateTour />}
               />
               <Route
                 path={childPath(PATH.MANAGER.TOUR_DETAIL())}
-                element={mock("Tour Detail", "Partner")}
+                element={<TourDetail />}
               />
               <Route
                 path={childPath(PATH.MANAGER.EDIT_TOUR())}
-                element={mock("Edit Tour", "Partner")}
+                element={<UpdateTour />}
               />
               <Route
                 path={childPath(PATH.MANAGER.DELETE_TOUR())}
-                element={mock("Delete Tour", "Partner")}
+                element={<DeleteTourConfirm />}
               />
               <Route
                 path={childPath(PATH.MANAGER.CREATE_ITINERARY())}

@@ -90,7 +90,7 @@ export default function Header() {
     if (upperRoles.includes("ADMIN")) {
       navigate(PATH.ADMIN.DASHBOARD);
     } else {
-      navigate(PATH.OPERATOR.DASHBOARD);
+      navigate(PATH.MANAGER.DASHBOARD);
     }
   };
 
@@ -267,7 +267,7 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
             gap: 10,
           }}
         >
-          <HeaderDropdown
+          {/* <HeaderDropdown
             label="Destinations"
             options={destinationOptions}
             value={destination}
@@ -284,7 +284,7 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
             options={currencyOptions}
             value={currency}
             onChange={setCurrency}
-          />
+          /> */}
 
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "10px" }}>

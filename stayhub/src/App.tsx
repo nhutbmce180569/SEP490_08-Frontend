@@ -37,7 +37,6 @@ import { TourDetail } from "./features/tour/pages/TourDetail";
 import { UpdateTour } from "./features/tour/pages/UpdateTour";
 import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
 import PartnerDashboard from "./pages/PartnerDashboard";
-
 // Components dành cho Quản lý nội dung (Admin)
 import { CategoryList } from "./features/content/pages/CategoryList";
 import { CreateCategory } from "./features/content/pages/CreateCategory";
@@ -55,6 +54,8 @@ import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
 import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
 import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
 import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
+import PublicTourDetail from "./pages/TourDetail";
+import TourSearch from "./pages/TourSearch";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -203,15 +204,15 @@ const App: React.FC = () => {
                 <Route path={PATH.PUBLIC.HOME} element={<Home />} />
                 <Route
                   path={PATH.PUBLIC.TOURS}
-                  element={mock("Tour Search", "Tours")}
+                  element={<TourSearch />}
                 />
                 <Route
                   path={PATH.PUBLIC.TOUR_SEARCH}
-                  element={mock("Tour Search", "Tours")}
+                  element={<TourSearch />}
                 />
                 <Route
                   path={PATH.PUBLIC.TOUR_DETAIL()}
-                  element={mock("Tour Detail", "Tours")}
+                  element={<PublicTourDetail />}
                 />
                 <Route
                   path={PATH.CUSTOMER.CHECKOUT()}

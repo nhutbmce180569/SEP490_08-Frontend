@@ -14,7 +14,7 @@ export const MainLayout: React.FC = () => {
           - flex-grow để đẩy Footer xuống đáy trang
           - padding-top để nội dung không bị Header (sticky) che mất 
       */}
-      <main className="flex-grow bg-white pt-20">
+      <main className="flex-grow bg-white">
         {/* Outlet là nơi React Router sẽ render các page con (Home, Tours, v.v.) */}
         <Outlet />
       </main>

@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { Pencil, Trash2, Plus, User as UserIcon, Lock, Unlock, Eye, X } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { Pencil, Trash2, Plus, User as UserIcon, Lock, Unlock, Eye, X, Search, Filter } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -9,9 +9,26 @@ import { type ReadUserDTO } from "../types/user";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 
 export const UserList: React.FC = () => {
-  const userHookData = useUsers();
+  const [searchInput, setSearchInput] = useState("");
+  const [roleInput, setRoleInput] = useState("");
+  const [filters, setFilters] = useState({ fullName: "", role: "" });
+
+  const userHookData = useUsers(filters);
   const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete } = userHookData;
   const refetch = (userHookData as any).refetch; // Dùng as any để lấy refetch nếu hook có cung cấp (từ react-query)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((prev) => {
+        if (prev.fullName !== searchInput || prev.role !== roleInput) {
+          setPage(1); // Trở về trang 1 khi áp dụng bộ lọc mới
+          return { fullName: searchInput, role: roleInput };
+        }
+        return prev;
+      });
+    }, 500); // 500ms debounce
+    return () => clearTimeout(timer);
+  }, [searchInput, roleInput, setPage]);
 
   const { executeStatusChange, updatingId } = useChangeUserStatus(refetch);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
@@ -141,6 +158,32 @@ export const UserList: React.FC = () => {
         <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
           <Plus className="h-4 w-4" /> Add User
         </ActionButton>
+      </div>
+
+      <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center">
+        <div className="relative flex-1 sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by full name..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+          />
+        </div>
+        <div className="relative w-full sm:w-48">
+          <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <select
+            value={roleInput}
+            onChange={(e) => setRoleInput(e.target.value)}
+            className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+          >
+            <option value="">All Roles</option>
+            <option value="Admin">Admin</option>
+            <option value="Customer">Customer</option>
+            <option value="Host">Host</option>
+          </select>
+        </div>
       </div>
 
       {isLoading ? (

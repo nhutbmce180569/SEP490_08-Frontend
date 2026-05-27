@@ -4,12 +4,24 @@ import type { ReadBannerDTO, CreateBannerDTO, UpdateBannerDTO } from "../types/b
 import type { PaginationDTO } from "../types/pagination";
 
 export const bannerService = {
-  getAll: async (page: number, pageSize: number): Promise<PaginationDTO<ReadBannerDTO>> => {
-    const response: any = await apiClient.get(CONTENT_API.BANNERS.GET_ALL, {
-      params: { page, pageSize },
-    });
-    // Nếu apiClient đã tự động unwrap, response chính là PaginationDTO
-    return response.totalPages !== undefined ? response : response.data;
+  getAll: async (page: number, pageSize: number, keyword?: string): Promise<PaginationDTO<ReadBannerDTO>> => {
+    if (keyword && keyword.trim() !== "") {
+      // Gọi search endpoint khi có keyword
+      const response: any = await apiClient.get(CONTENT_API.BANNERS.SEARCH, {
+        params: { q: keyword, page, pageSize },
+      });
+      
+      // Controller Search bọc data trong Ok(new { message, data })
+      if (response.data && response.data.totalPages !== undefined) {
+        return response.data;
+      }
+      return response.totalPages !== undefined ? response : response.data;
+    } else {
+      const response: any = await apiClient.get(CONTENT_API.BANNERS.GET_ALL, {
+        params: { page, pageSize },
+      });
+      return response.totalPages !== undefined ? response : response.data;
+    }
   },
 
   getActive: async (page: number, pageSize: number): Promise<PaginationDTO<ReadBannerDTO>> => {

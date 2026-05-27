@@ -16,6 +16,7 @@ export const AUTH_API = {
     
   // Admin - Users Management
   GET_ALL_USERS: `${FULL_API}/users`,
+  FILTER_USERS: `${FULL_API}/users/filter`,
   GET_USER_BY_ID: (id: string | number) => `${FULL_API}/users/${id}`,
   GET_USER_BY_EMAIL: (email: string) => `${FULL_API}/users/email/${email}`,
   CREATE_USER: `${FULL_API}/users`,

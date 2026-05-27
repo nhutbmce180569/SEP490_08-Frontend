@@ -4,15 +4,20 @@ import { useNavigate } from "react-router-dom";
 import { userService } from "../services/user.service";
 import { PATH } from "../../../config/routes/route";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
-export const useUsers = () => {
+export type UserFilters = {
+  fullName?: string;
+  role?: string;
+};
+
+export const useUsers = (filters?: UserFilters) => {
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
   const query = useQuery({
-    queryKey: ["users", page, PAGE_SIZE],
-    queryFn: () => userService.getAllUsers(page, PAGE_SIZE),
+    queryKey: ["users", page, PAGE_SIZE, filters],
+    queryFn: () => userService.filterUsers(page, PAGE_SIZE, filters?.fullName, filters?.role),
   });
 
   const handleCreate = () => navigate(PATH.ADMIN.CREATE_USER);
@@ -29,5 +34,6 @@ export const useUsers = () => {
     handleCreate,
     handleEdit,
     handleDelete,
+    refetch: query.refetch,
   };
 };

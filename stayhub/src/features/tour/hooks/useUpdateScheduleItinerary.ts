@@ -11,7 +11,13 @@ export const useUpdateScheduleItinerary = () => {
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
 
-  const { schedule, isLoading: isScheduleLoading } = useTourSchedule(scheduleId);
+  const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById } = useTourSchedule();
+
+  useEffect(() => {
+    if (scheduleId) {
+      fetchScheduleById(scheduleId);
+    }
+  }, [scheduleId, fetchScheduleById]);
 
   const [itinerary, setItinerary] = useState<TourScheduleItinerary | null>(null);
   const [isLoading, setIsLoading] = useState(true);

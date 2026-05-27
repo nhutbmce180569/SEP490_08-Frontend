@@ -11,7 +11,13 @@ export const useCreateScheduleItinerary = () => {
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
 
-  const { schedule, isLoading: isScheduleLoading } = useTourSchedule(scheduleId);
+  const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById } = useTourSchedule();
+
+  useEffect(() => {
+    if (scheduleId) {
+      fetchScheduleById(scheduleId);
+    }
+  }, [scheduleId, fetchScheduleById]);
   const { tour, isLoading: isTourLoading } = useTour(schedule?.tourId?.toString());
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -76,7 +82,7 @@ export const useCreateScheduleItinerary = () => {
       ...prev,
       {
         id: Date.now() + Math.random(),
-        dayNumber: lastDayNumber,
+        dayNumber: Number(lastDayNumber),
         itineraryDate: lastItineraryDate,
         title: "",
         description: "",
@@ -97,12 +103,13 @@ export const useCreateScheduleItinerary = () => {
     setItineraries((prev) => {
       const newItis = [...prev];
       const currentIti = newItis[index];
-      const updatedIti = { ...currentIti, [field]: value };
+      const parsedValue = field === "dayNumber" ? Number(value) : value;
+      const updatedIti = { ...currentIti, [field]: parsedValue };
       newItis[index] = updatedIti;
 
       // If the dayNumber is changed, check for an existing day and copy its date.
       if (field === "dayNumber") {
-        const newDayNumber = Number(value);
+        const newDayNumber = parsedValue;
         let foundDate = "";
         
         const existingDay = newItis.find(
@@ -240,13 +247,14 @@ export const useCreateScheduleItinerary = () => {
     }
   };
 
-  const handleCloneSingleDayFromTour = async (dayToClone: number, itemIndex: number) => {
+  const handleCloneSingleDayFromTour = async (dayToClone: number | string, itemIndex: number) => {
+    const numericDayToClone = Number(dayToClone);
     const tourItineraryToClone = tour?.tourItineraries?.find(
-      (iti) => iti.dayNumber === dayToClone,
+      (iti) => Number(iti.dayNumber) === numericDayToClone,
     );
 
     if (!tourItineraryToClone) {
-      showError(`Day ${dayToClone} does not exist in the original tour to be cloned.`);
+      showError(`Day ${numericDayToClone} does not exist in the original tour to be cloned.`);
       return;
     }
 
@@ -270,7 +278,7 @@ export const useCreateScheduleItinerary = () => {
         // Tạo date object ở múi giờ UTC để đảm bảo tính toán không bị lệch
         const depDate = new Date(Date.UTC(year, month - 1, day));
         // Thêm số ngày (an toàn trong UTC)
-        depDate.setUTCDate(depDate.getUTCDate() + (dayToClone - 1));
+        depDate.setUTCDate(depDate.getUTCDate() + (numericDayToClone - 1));
         dateString = depDate.toISOString().split("T")[0];
       }
 
@@ -286,9 +294,9 @@ export const useCreateScheduleItinerary = () => {
       };
 
       patchItinerary(itemIndex, patchData);
-      success(`Successfully cloned data for Day ${dayToClone}.`);
+      success(`Successfully cloned data for Day ${numericDayToClone}.`);
     } catch (e: any) {
-      showError(e.message || `Failed to clone data for Day ${dayToClone}.`);
+      showError(e.message || `Failed to clone data for Day ${numericDayToClone}.`);
     } finally {
       setCloningDayIndex(null);
     }
@@ -317,7 +325,7 @@ export const useCreateScheduleItinerary = () => {
 
       await createScheduleItineraryBatch(payload);
       success("Schedule itineraries created successfully!");
-      navigate(PATH.OPERATOR.SCHEDULE_DETAIL(scheduleId));
+      navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (error: any) {
       if (error.response?.status === 400 && error.response.data?.errors) {
         setServerErrors(error.response.data.errors);
@@ -336,7 +344,7 @@ export const useCreateScheduleItinerary = () => {
 
   const handleCancel = () => {
     if (scheduleId) {
-      navigate(PATH.OPERATOR.SCHEDULE_DETAIL(scheduleId));
+      navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } else {
       navigate(-1);
     }

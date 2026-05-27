@@ -47,7 +47,7 @@ export const useCreateItinerary = () => {
       ...prev,
       { 
         id: Date.now() + Math.random(),
-        dayNumber: lastDayNumber,
+        dayNumber: Number(lastDayNumber),
         title: "", 
         description: "", 
         startDuration: "",
@@ -66,7 +66,8 @@ export const useCreateItinerary = () => {
   const updateItinerary = (index: number, field: string, value: any) => {
     setItineraries((prev) => {
       const newItis = [...prev];
-      newItis[index] = { ...newItis[index], [field]: value };
+      const parsedValue = field === "dayNumber" ? Number(value) : value;
+      newItis[index] = { ...newItis[index], [field]: parsedValue };
       return newItis;
     });
   };

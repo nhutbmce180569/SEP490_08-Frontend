@@ -172,19 +172,17 @@ export const CreateScheduleItinerary: React.FC = () => {
     <div className="mx-auto max-w-4xl py-6">
       {/* Header Info */}
       <div className="mb-6 space-y-4 border-b border-slate-200 pb-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-extrabold text-slate-900">
-                Add Schedule Itineraries
-              </h1>
-            </div>
+        <div className="flex items-start justify-between gap-4">
+          <div className="w-6/12">
+            <h1 className="text-2xl font-extrabold text-slate-900">
+              Add Schedule Itineraries
+            </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
               Create multiple itinerary items for Schedule #{scheduleId}
               {schedule ? ` (Tour: ${schedule.tour.name})` : ""}
             </p>
           </div>
-          <div className="flex items-start gap-3">
+          <div className="flex w-4/12 shrink-0 justify-end gap-3">
             <ActionButton
               type="button"
               variant="secondary"

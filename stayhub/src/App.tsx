@@ -52,6 +52,9 @@ import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
 import { TourScheduleList } from "./features/tour/pages/TourScheduleList";
 import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
+import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
+import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
+import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -326,15 +329,15 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
-                    element={mock("Create Schedule Itinerary", "Partner")}
+                    element={<CreateScheduleItinerary />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
-                    element={mock("Edit Schedule Itinerary", "Partner")}
+                    element={<UpdateScheduleItinerary/>}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
-                    element={mock("Delete Schedule Itinerary", "Partner")}
+                    element={<DeleteScheduleItinerary />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}

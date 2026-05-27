@@ -1,5 +1,11 @@
 import React, { useContext } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import ScrollToTop from "./components/ScrollToTop";
@@ -44,7 +50,8 @@ import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
-
+import { TourScheduleList } from "./features/tour/pages/TourScheduleList";
+import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -121,10 +128,14 @@ const mock = (title: string, section?: string) => (
 );
 
 const childPath = (path: string) =>
-  path.replace(`${PATH.MANAGER.DASHBOARD}/`, "").replace(`${PATH.ADMIN.DASHBOARD}/`, "");
+  path
+    .replace(`${PATH.MANAGER.DASHBOARD}/`, "")
+    .replace(`${PATH.ADMIN.DASHBOARD}/`, "");
 
 // Component bảo vệ các tuyến đường yêu cầu đăng nhập và phân quyền (RBAC)
-const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles }) => {
+const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
+  allowedRoles,
+}) => {
   const { user, loading } = useContext(AuthContext);
 
   if (loading) {
@@ -143,10 +154,12 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({ allowedRoles })
     const userRoles = Array.isArray(user.roles)
       ? user.roles
       : typeof user.roles === "string"
-      ? [user.roles]
-      : [];
+        ? [user.roles]
+        : [];
     const upperRoles = userRoles.map((r: string) => r.toUpperCase());
-    const hasAccess = allowedRoles.some((role) => upperRoles.includes(role.toUpperCase()));
+    const hasAccess = allowedRoles.some((role) =>
+      upperRoles.includes(role.toUpperCase()),
+    );
 
     if (!hasAccess) {
       return <Navigate to={PATH.PUBLIC.UNAUTHORIZED} replace />;
@@ -178,191 +191,278 @@ const App: React.FC = () => {
                 path={PATH.PUBLIC.CHANGE_PASSWORD}
                 element={<ChangePassword />}
               />
-              <Route path={PATH.PUBLIC.UNAUTHORIZED} element={<Unauthorized />} />
+              <Route
+                path={PATH.PUBLIC.UNAUTHORIZED}
+                element={<Unauthorized />}
+              />
 
               <Route element={<MainLayout />}>
                 <Route path={PATH.PUBLIC.HOME} element={<Home />} />
-                <Route path={PATH.PUBLIC.TOURS} element={mock("Tour Search", "Tours")} />
-                <Route path={PATH.PUBLIC.TOUR_SEARCH} element={mock("Tour Search", "Tours")} />
-              <Route
-                path={PATH.PUBLIC.TOUR_DETAIL()}
-                element={mock("Tour Detail", "Tours")}
-              />
-              <Route path={PATH.CUSTOMER.CHECKOUT()} element={mock("Checkout", "Booking")} />
-              <Route path={PATH.CUSTOMER.SOCIAL_MOMENTS} element={mock("Moments", "Social")} />
-              <Route path="/social/profile/:id" element={mock("Social Profile", "Social")} />
-
-              {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
-              <Route element={<ProtectedRoute />}>
-                <Route element={<ProfileLayout />}>
-                <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
                 <Route
-                  path={PATH.CUSTOMER.MY_BOOKINGS}
-                  element={mock("My Bookings", "Customer")}
+                  path={PATH.PUBLIC.TOURS}
+                  element={mock("Tour Search", "Tours")}
                 />
                 <Route
-                  path={PATH.CUSTOMER.BOOKING_DETAIL()}
-                  element={mock("Booking Detail", "Customer")}
+                  path={PATH.PUBLIC.TOUR_SEARCH}
+                  element={mock("Tour Search", "Tours")}
                 />
-                <Route path={PATH.CUSTOMER.WISHLIST} element={mock("Wishlist", "Customer")} />
-                <Route path={PATH.CUSTOMER.VOUCHERS} element={mock("Vouchers", "Customer")} />
-                <Route path={PATH.CUSTOMER.MY_REVIEWS} element={mock("Reviews", "Customer")} />
-                <Route path={PATH.CUSTOMER.SETTINGS} element={mock("Settings", "Customer")} />
                 <Route
-                  path={PATH.CUSTOMER.NOTIFICATIONS}
-                  element={mock("Notifications", "Customer")}
+                  path={PATH.PUBLIC.TOUR_DETAIL()}
+                  element={mock("Tour Detail", "Tours")}
                 />
-                <Route path={PATH.CUSTOMER.SOCIAL_FRIENDS} element={mock("Friends", "Social")} />
-              </Route>
-              </Route>
-            </Route>
+                <Route
+                  path={PATH.CUSTOMER.CHECKOUT()}
+                  element={mock("Checkout", "Booking")}
+                />
+                <Route
+                  path={PATH.CUSTOMER.SOCIAL_MOMENTS}
+                  element={mock("Moments", "Social")}
+                />
+                <Route
+                  path="/social/profile/:id"
+                  element={mock("Social Profile", "Social")}
+                />
 
-            {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
-            <Route element={<ProtectedRoute allowedRoles={["MANAGER", "STAFF"]} />}>
-              <Route path={PATH.MANAGER.DASHBOARD} element={<DashboardLayout />}>
-              <Route index element={<PartnerDashboard />} />
-              <Route path={childPath(PATH.MANAGER.MY_TOURS)} element={<TourList />} />
-              <Route
-                path={childPath(PATH.MANAGER.CREATE_TOUR)}
-                element={<CreateTour />}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.TOUR_DETAIL())}
-                element={<TourDetail />}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.EDIT_TOUR())}
-                element={<UpdateTour />}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.DELETE_TOUR())}
-                element={<DeleteTourConfirm />}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.CREATE_ITINERARY())}
-                element={<CreateItinerary />}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.EDIT_ITINERARY())}
-                element={<UpdateItinerary />} />
-              <Route
-                path={childPath(PATH.MANAGER.DELETE_ITINERARY())}
-                element={<DeleteItineraryConfirm />}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
-                element={mock("Schedule Management", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
-                element={mock("Create Schedule", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
-                element={mock("Schedule Detail", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
-                element={mock("Edit Schedule", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
-                element={mock("Delete Schedule", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
-                element={mock("Create Schedule Itinerary", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
-                element={mock("Edit Schedule Itinerary", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
-                element={mock("Delete Schedule Itinerary", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}
-                element={mock("Schedule Orders", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.SCHEDULE_CHECKIN())}
-                element={mock("Schedule Check-in", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.BOOKING_MANAGEMENT)}
-                element={mock("Booking Management", "Partner")}
-              />
-              <Route
-                path={childPath(PATH.MANAGER.CHECK_IN)}
-                element={mock("Check-in", "Partner")}
-              />
-              <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
-                <Route index element={mock("MANAGER Vouchers", "Partner")} />
-                <Route path="create" element={mock("Create Voucher", "Partner")} />
-                <Route path=":id" element={mock("Voucher Detail", "Partner")} />
-                <Route path=":id/edit" element={mock("Edit Voucher", "Partner")} />
-                <Route path=":id/delete" element={mock("Delete Voucher", "Partner")} />
+                {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
+                <Route element={<ProtectedRoute />}>
+                  <Route element={<ProfileLayout />}>
+                    <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
+                    <Route
+                      path={PATH.CUSTOMER.MY_BOOKINGS}
+                      element={mock("My Bookings", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.BOOKING_DETAIL()}
+                      element={mock("Booking Detail", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.WISHLIST}
+                      element={mock("Wishlist", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.VOUCHERS}
+                      element={mock("Vouchers", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.MY_REVIEWS}
+                      element={mock("Reviews", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.SETTINGS}
+                      element={mock("Settings", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.NOTIFICATIONS}
+                      element={mock("Notifications", "Customer")}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                      element={mock("Friends", "Social")}
+                    />
+                  </Route>
+                </Route>
               </Route>
-              <Route path={childPath(PATH.MANAGER.REVIEWS)} element={mock("Reviews", "Partner")} />
-              <Route path={childPath(PATH.MANAGER.PAYOUT)} element={mock("Payout", "Partner")} />
-            </Route>
-            </Route>
 
-            {/* Phân hệ Quản trị viên cấp cao (Admin) */}
-            <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-              <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
-              <Route index element={mock("Admin Dashboard", "Admin")} />
-              <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
-                <Route index element={<UserList />} />
-                <Route path="create" element={<CreateUser />} />
-                <Route path=":id/edit" element={<UpdateUser />} />
-                <Route path=":id/delete" element={<DeleteUserConfirm />} />
-              </Route>
+              {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
               <Route
-                path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
-                element={mock("Partner Approvals", "Admin")}
-              />
-              <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
-                <Route index element={mock("Tours", "Admin")} />
-                <Route path=":id" element={mock("Admin Tour Detail", "Admin")} />
+                element={<ProtectedRoute allowedRoles={["MANAGER", "STAFF"]} />}
+              >
+                <Route
+                  path={PATH.MANAGER.DASHBOARD}
+                  element={<DashboardLayout />}
+                >
+                  <Route index element={<PartnerDashboard />} />
+                  <Route
+                    path={childPath(PATH.MANAGER.MY_TOURS)}
+                    element={<TourList />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CREATE_TOUR)}
+                    element={<CreateTour />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.TOUR_DETAIL())}
+                    element={<TourDetail />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.EDIT_TOUR())}
+                    element={<UpdateTour />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.DELETE_TOUR())}
+                    element={<DeleteTourConfirm />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CREATE_ITINERARY())}
+                    element={<CreateItinerary />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.EDIT_ITINERARY())}
+                    element={<UpdateItinerary />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.DELETE_ITINERARY())}
+                    element={<DeleteItineraryConfirm />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
+                    element={<TourScheduleList />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
+                    element={mock("Create Schedule", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
+                    element={<TourScheduleDetail />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
+                    element={mock("Edit Schedule", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
+                    element={mock("Delete Schedule", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
+                    element={mock("Create Schedule Itinerary", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
+                    element={mock("Edit Schedule Itinerary", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
+                    element={mock("Delete Schedule Itinerary", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}
+                    element={mock("Schedule Orders", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.SCHEDULE_CHECKIN())}
+                    element={mock("Schedule Check-in", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.BOOKING_MANAGEMENT)}
+                    element={mock("Booking Management", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CHECK_IN)}
+                    element={mock("Check-in", "Partner")}
+                  />
+                  <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
+                    <Route
+                      index
+                      element={mock("MANAGER Vouchers", "Partner")}
+                    />
+                    <Route
+                      path="create"
+                      element={mock("Create Voucher", "Partner")}
+                    />
+                    <Route
+                      path=":id"
+                      element={mock("Voucher Detail", "Partner")}
+                    />
+                    <Route
+                      path=":id/edit"
+                      element={mock("Edit Voucher", "Partner")}
+                    />
+                    <Route
+                      path=":id/delete"
+                      element={mock("Delete Voucher", "Partner")}
+                    />
+                  </Route>
+                  <Route
+                    path={childPath(PATH.MANAGER.REVIEWS)}
+                    element={mock("Reviews", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.PAYOUT)}
+                    element={mock("Payout", "Partner")}
+                  />
+                </Route>
               </Route>
-              <Route
-                path={childPath(PATH.ADMIN.REPORT_MODERATION)}
-                element={mock("Violation Reports", "Admin")}
-              />
-              <Route
-                path={childPath(PATH.ADMIN.WITHDRAWALS)}
-                element={mock("Withdrawals", "Admin")}
-              />
-              <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
-                <Route index element={mock("System Vouchers", "Admin")} />
-                <Route path="create" element={mock("Create Voucher", "Admin")} />
-                <Route path=":id" element={mock("Voucher Detail", "Admin")} />
-                <Route path=":id/edit" element={mock("Edit Voucher", "Admin")} />
-                <Route path=":id/delete" element={mock("Delete Voucher", "Admin")} />
-              </Route>
-              <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
-                <Route index element={<BannerList />} />
-                <Route path="create" element={<CreateBanner />} />
-                <Route path=":id/edit" element={<UpdateBanner />} />
-                <Route path=":id/delete" element={<DeleteBannerConfirm />} />
-              </Route>
-              <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
-                <Route index element={<CategoryList />} />
-                <Route path="create" element={<CreateCategory />} />
-                <Route path=":id/edit" element={<UpdateCategory />} />
-                <Route path=":id/delete" element={<DeleteCategoryConfirm />} />
-              </Route>
-              <Route
-                path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
-                element={mock("System Settings", "Admin")}
-              />
-            </Route>
-            </Route>
 
-            <Route path="*" element={mock("404 - Page Not Found", "System")} />
-          </Routes>
+              {/* Phân hệ Quản trị viên cấp cao (Admin) */}
+              <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
+                  <Route index element={mock("Admin Dashboard", "Admin")} />
+                  <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
+                    <Route index element={<UserList />} />
+                    <Route path="create" element={<CreateUser />} />
+                    <Route path=":id/edit" element={<UpdateUser />} />
+                    <Route path=":id/delete" element={<DeleteUserConfirm />} />
+                  </Route>
+                  <Route
+                    path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
+                    element={mock("Partner Approvals", "Admin")}
+                  />
+                  <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
+                    <Route index element={mock("Tours", "Admin")} />
+                    <Route
+                      path=":id"
+                      element={mock("Admin Tour Detail", "Admin")}
+                    />
+                  </Route>
+                  <Route
+                    path={childPath(PATH.ADMIN.REPORT_MODERATION)}
+                    element={mock("Violation Reports", "Admin")}
+                  />
+                  <Route
+                    path={childPath(PATH.ADMIN.WITHDRAWALS)}
+                    element={mock("Withdrawals", "Admin")}
+                  />
+                  <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
+                    <Route index element={mock("System Vouchers", "Admin")} />
+                    <Route
+                      path="create"
+                      element={mock("Create Voucher", "Admin")}
+                    />
+                    <Route
+                      path=":id"
+                      element={mock("Voucher Detail", "Admin")}
+                    />
+                    <Route
+                      path=":id/edit"
+                      element={mock("Edit Voucher", "Admin")}
+                    />
+                    <Route
+                      path=":id/delete"
+                      element={mock("Delete Voucher", "Admin")}
+                    />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
+                    <Route index element={<BannerList />} />
+                    <Route path="create" element={<CreateBanner />} />
+                    <Route path=":id/edit" element={<UpdateBanner />} />
+                    <Route
+                      path=":id/delete"
+                      element={<DeleteBannerConfirm />}
+                    />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
+                    <Route index element={<CategoryList />} />
+                    <Route path="create" element={<CreateCategory />} />
+                    <Route path=":id/edit" element={<UpdateCategory />} />
+                    <Route
+                      path=":id/delete"
+                      element={<DeleteCategoryConfirm />}
+                    />
+                  </Route>
+                  <Route
+                    path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
+                    element={mock("System Settings", "Admin")}
+                  />
+                </Route>
+              </Route>
+
+              <Route
+                path="*"
+                element={mock("404 - Page Not Found", "System")}
+              />
+            </Routes>
           </Router>
         </AuthProvider>
       </ToastProvider>

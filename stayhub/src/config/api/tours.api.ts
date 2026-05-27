@@ -26,6 +26,15 @@ export const TOURS_API = {
   SCHEDULES: `${FULL_API}/TourSchedules`,
   GET_SCHEDULE_BY_OPERATOR: `${FULL_API}/TourSchedules/operator`,
   // Schedules
+  GET_ALL_SCHEDULES: `${FULL_API}/TourSchedules`,
+  GET_SCHEDULE_DETAIL: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
+  CREATE_SCHEDULE: `${FULL_API}/TourSchedules`,
+  UPDATE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
+  DELETE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
+  
+  // Gọi từ Booking API / Luồng đặt vé qua Gateway
+  RESERVE_SEATS: (id: string | number) => `${FULL_API}/TourSchedules/${id}/reserve`,
+  RELEASE_SEATS: (id: string | number) => `${FULL_API}/TourSchedules/${id}/release`,
   // These are now handled by tourSchedules.api.ts
   // Staff
   MANAGE_STAFF: (sId: string | number) => `${FULL_API}/schedules/${sId}/staff`,

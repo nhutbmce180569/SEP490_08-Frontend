@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pencil, Trash2, Plus, User as UserIcon, Lock, Unlock } from "lucide-react";
+import { Pencil, Trash2, Plus, User as UserIcon, Lock, Unlock, Eye, X } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -16,11 +16,18 @@ export const UserList: React.FC = () => {
   const { executeStatusChange, updatingId } = useChangeUserStatus(refetch);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedUserForStatus, setSelectedUserForStatus] = useState<ReadUserDTO | null>(null);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [selectedUserForView, setSelectedUserForView] = useState<ReadUserDTO | null>(null);
 
   const users = data?.data || [];
   const totalPages = data?.totalPages || 1;
   const currentPage = data?.currentPage || 1;
   const totalItems = data?.total || 0;
+
+  const openViewDialog = (user: ReadUserDTO) => {
+    setSelectedUserForView(user);
+    setViewDialogOpen(true);
+  };
 
   const openStatusDialog = (user: ReadUserDTO) => {
     setSelectedUserForStatus(user);
@@ -94,6 +101,9 @@ export const UserList: React.FC = () => {
         header: "Action",
         render: (user) => (
           <div className="flex items-center gap-1.5">
+            <ActionButton variant="secondary" onClick={() => openViewDialog(user)} className="h-8 w-8" title="View Details">
+              <Eye className="h-3.5 w-3.5" />
+            </ActionButton>
             <ActionButton variant="secondary" onClick={() => handleEdit(user.id)} className="h-8 w-8">
               <Pencil className="h-3.5 w-3.5" />
             </ActionButton>
@@ -156,6 +166,50 @@ export const UserList: React.FC = () => {
             confirmText={selectedUserForStatus?.status === "Active" ? "Yes, Block" : "Yes, Activate"}
             variant={selectedUserForStatus?.status === "Active" ? "warning" : "primary"}
           />
+
+          {viewDialogOpen && selectedUserForView && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+              <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
+                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                  <h3 className="text-lg font-bold text-slate-800">User Details</h3>
+                  <button onClick={() => setViewDialogOpen(false)} className="text-slate-400 hover:text-slate-600 outline-none">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+                <div className="p-6">
+                  <div className="flex flex-col items-center gap-4 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-slate-100 border border-slate-200 text-slate-400">
+                      {selectedUserForView.avatarUrl ? (
+                        <img src={selectedUserForView.avatarUrl} alt={selectedUserForView.fullName} className="h-full w-full object-cover" />
+                      ) : (
+                        <UserIcon className="h-10 w-10" />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-xl font-bold text-slate-900">{selectedUserForView.fullName}</h4>
+                      <p className="text-sm text-slate-500">{selectedUserForView.email}</p>
+                    </div>
+                  </div>
+                  <div className="mt-6 space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Phone:</span><span className="font-medium">{selectedUserForView.phoneNumber || "N/A"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Gender:</span><span className="font-medium">{selectedUserForView.gender || "N/A"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Date of Birth:</span><span className="font-medium">{selectedUserForView.dateOfBirth ? new Date(selectedUserForView.dateOfBirth).toLocaleDateString() : "N/A"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Provider:</span><span className="font-medium">{selectedUserForView.provider || "Local"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Roles:</span><span className="font-medium">{selectedUserForView.roles?.join(", ") || "None"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Status:</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${selectedUserForView.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{selectedUserForView.status || "Unknown"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Last Online:</span><span className="font-medium">{selectedUserForView.lastOnline ? new Date(selectedUserForView.lastOnline).toLocaleString() : "N/A"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Created At:</span><span className="font-medium">{selectedUserForView.createdAt ? new Date(selectedUserForView.createdAt).toLocaleString() : "N/A"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Updated At:</span><span className="font-medium">{selectedUserForView.updatedAt ? new Date(selectedUserForView.updatedAt).toLocaleString() : "N/A"}</span></div>
+                  </div>
+                </div>
+                <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end">
+                  <ActionButton variant="secondary" onClick={() => setViewDialogOpen(false)} className="px-5 py-2 text-sm">
+                    Close
+                  </ActionButton>
+                </div>
+              </div>
+            </div>
+          )}
     </div>
   );
 };

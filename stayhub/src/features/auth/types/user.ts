@@ -10,6 +10,8 @@ export interface ReadUserDTO {
   status?: string | null;
   lastOnline?: string | null;
   roles: string[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface CreateUserDTO {

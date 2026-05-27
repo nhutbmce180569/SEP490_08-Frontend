@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { Pencil, Trash2, Plus, Image as ImageIcon, Lock, Unlock } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
+import { Pencil, Trash2, Plus, Image as ImageIcon, Lock, Unlock, Search } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -11,8 +11,21 @@ import { useChangeBannerStatus } from "../hooks/useChangeBannerStatus";
 const PAGE_SIZE = 5;
 
 export const BannerList: React.FC = () => {
-  const { data, isLoading, error, page, setPage, handleCreate, handleEdit, handleDelete } = useBanners(PAGE_SIZE);
+  const [searchInput, setSearchInput] = useState("");
+  const [keyword, setKeyword] = useState("");
+
+  const { data, isLoading, error, page, setPage, handleCreate, handleEdit, handleDelete } = useBanners(keyword);
   const { executeStatusChange, updatingId } = useChangeBannerStatus();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (keyword !== searchInput) {
+        setPage(1);
+        setKeyword(searchInput);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput, keyword, setPage]);
 
   const banners = data?.data || [];
   const totalPages = data?.totalPages || 1;
@@ -103,6 +116,19 @@ export const BannerList: React.FC = () => {
         <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
           <Plus className="h-4 w-4" /> Add Banner
         </ActionButton>
+      </div>
+
+      <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center">
+        <div className="relative flex-1 sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by title..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+          />
+        </div>
       </div>
 
       {isLoading ? <div className="flex justify-center p-10 text-slate-500">Loading banners...</div> 

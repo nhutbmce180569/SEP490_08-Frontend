@@ -3,6 +3,7 @@ import { FULL_API } from './api';
 export const CONTENT_API = {
   CATEGORIES: {
     GET_ALL: `${FULL_API}/Categories`,
+    SEARCH: `${FULL_API}/Categories/search`,
     GET_ACTIVE: `${FULL_API}/Categories/active`,
     GET_BY_ID: (id: string | number) => `${FULL_API}/Categories/${id}`,
     CREATE: `${FULL_API}/Categories`,
@@ -14,6 +15,7 @@ export const CONTENT_API = {
   
   BANNERS: {
     GET_ALL: `${FULL_API}/Banners`,
+    SEARCH: `${FULL_API}/Banners/search`,
     GET_ACTIVE: `${FULL_API}/Banners/active`,
     GET_BY_ID: (id: string | number) => `${FULL_API}/Banners/${id}`,
     CREATE: `${FULL_API}/Banners`,

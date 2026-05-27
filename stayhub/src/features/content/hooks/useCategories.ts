@@ -4,7 +4,7 @@ import { getAllCategories } from "../services/category.service";
 import { PATH } from "../../../config/routes/route";
 import type { ReadCategoryDTO, PaginationDTO } from "../types/category";
 
-export const useCategories = (pageSize: number = 5) => {
+export const useCategories = (pageSize: number = 5, keyword?: string) => {
   const [data, setData] = useState<PaginationDTO<ReadCategoryDTO> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,14 +16,14 @@ export const useCategories = (pageSize: number = 5) => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await getAllCategories(page, pageSize);
+      const res = await getAllCategories(page, pageSize, keyword);
       setData(res);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load categories.");
     } finally {
       setIsLoading(false);
     }
-  }, [page, pageSize]);
+  }, [page, pageSize, keyword]);
 
   useEffect(() => {
     fetchCategories();

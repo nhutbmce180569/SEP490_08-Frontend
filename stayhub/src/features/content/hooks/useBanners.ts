@@ -5,13 +5,13 @@ import { bannerService } from "../services/banner.service";
 
 const PAGE_SIZE = 5;
 
-export const useBanners = () => {
+export const useBanners = (keyword?: string) => {
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
 
   const query = useQuery({
-    queryKey: ["banners", page, PAGE_SIZE],
-    queryFn: () => bannerService.getAll(page, PAGE_SIZE),
+    queryKey: ["banners", page, PAGE_SIZE, keyword],
+    queryFn: () => bannerService.getAll(page, PAGE_SIZE, keyword),
   });
 
   // Thay thế đường dẫn này theo route chuẩn của dự án của bạn nếu cần

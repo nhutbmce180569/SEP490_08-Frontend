@@ -5,13 +5,25 @@ import type { ReadCategoryDTO, CreateCategoryDTO, UpdateCategoryDTO, PaginationD
 // Đường dẫn này có thể điều chỉnh lại nếu bạn quản lý trong file content.api.ts
 const CATEGORY_API = `${FULL_API}/categories`;
 
-export const getAllCategories = async (page: number = 1, pageSize: number = 10): Promise<PaginationDTO<ReadCategoryDTO>> => {
-  const response: any = await apiClient.get(`${CATEGORY_API}?page=${page}&pageSize=${pageSize}`);
-  return response.totalPages !== undefined ? response : response.data;
+export const getAllCategories = async (page: number = 1, pageSize: number = 10, keyword?: string): Promise<PaginationDTO<ReadCategoryDTO>> => {
+  if (keyword && keyword.trim() !== "") {
+    const response: any = await apiClient.get(`${CATEGORY_API}/search`, {
+      params: { q: keyword, page, pageSize },
+    });
+    if (response.data && response.data.totalPages !== undefined) {
+      return response.data;
+    }
+    return response.totalPages !== undefined ? response : response.data;
+  } else {
+    const response: any = await apiClient.get(CATEGORY_API, {
+      params: { page, pageSize },
+    });
+    return response.totalPages !== undefined ? response : response.data;
+  }
 };
 
 export const getActiveCategories = async (page: number = 1, pageSize: number = 10): Promise<PaginationDTO<ReadCategoryDTO>> => {
-  const response: any = await apiClient.get(`${CATEGORY_API}/active?page=${page}&pageSize=${pageSize}`);
+  const response: any = await apiClient.get(`${CATEGORY_API}/active`, { params: { page, pageSize } });
   return response.totalPages !== undefined ? response : response.data;
 };
 

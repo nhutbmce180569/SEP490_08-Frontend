@@ -11,6 +11,15 @@ export const userService = {
     return response.totalPages !== undefined ? response : response.data;
   },
 
+  filterUsers: async (page: number, pageSize: number, fullName?: string, role?: string): Promise<PaginationDTO<ReadUserDTO>> => {
+    const params: Record<string, any> = { page, pageSize };
+    if (fullName) params.FullName = fullName;
+    if (role) params.Roles = role;
+
+    const response: any = await apiClient.get(AUTH_API.FILTER_USERS, { params });
+    return response.totalPages !== undefined ? response : response.data;
+  },
+
   getUserById: async (id: number | string): Promise<ReadUserDTO> => {
     const response: any = await apiClient.get(AUTH_API.GET_USER_BY_ID(id));
     return response.id !== undefined ? response : response.data;

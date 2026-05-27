@@ -329,14 +329,14 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="sm:w-6/12">
           <h2 className="text-xl font-bold text-slate-800">{title}</h2>
           {description && (
             <p className="mt-1 text-sm text-slate-500">{description}</p>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center justify-end gap-3 sm:w-4/12">
           <ActionButton variant="secondary" onClick={onCancel} className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm">
             <X className="h-4 w-4" />
             {cancelText}

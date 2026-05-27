@@ -1,6 +1,7 @@
 import type { TourBasic } from "./tour";
 import type { TourScheduleItinerary } from "./tourScheduleItinerary";
 
+
 // Map theo ReadTourScheduleDTO
 export interface TourSchedule {
   id: number;

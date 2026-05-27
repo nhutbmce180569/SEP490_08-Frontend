@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { type Tour } from "../types/tour";
 import { getTourById, activeTour } from "../services/tour.service";
 import { useToast } from "../../../contexts/ToastContext";
-//import { categoryService } from "../../content/services/category.service";
+import { categoryService } from "../../content/services/category.service";
 
 export const useTour = (id: string | number | undefined) => {
   const [tour, setTour] = useState<Tour | null>(null);
@@ -23,8 +23,8 @@ export const useTour = (id: string | number | undefined) => {
 
       if (data.categoryId) {
         try {
-          // const categoryData = await categoryService.getCategoryById(data.categoryId);
-          //setCategoryName(categoryData.name);
+          const categoryData = await categoryService.getCategoryById(data.categoryId);
+          setCategoryName(categoryData.name);
         } catch (catErr) {
           console.error("Failed to fetch category details", catErr);
         }

@@ -67,7 +67,7 @@ export const useUpdateItinerary = () => {
 
       await updateItinerary(itineraryId, payload);
       success("Itinerary updated successfully!");
-      navigate(PATH.OPERATOR.TOUR_DETAIL(tourId));
+      navigate(PATH.MANAGER.TOUR_DETAIL(tourId));
     } catch (error: any) {
       if (error.response?.status === 400 && error.response.data?.errors) {
         setServerErrors(error.response.data.errors);
@@ -80,7 +80,7 @@ export const useUpdateItinerary = () => {
     }
   };
 
-  const handleCancel = () => navigate(PATH.OPERATOR.TOUR_DETAIL(tourId!));
+  const handleCancel = () => navigate(PATH.MANAGER.TOUR_DETAIL(tourId!));
 
   return { tourId, itineraryId, itinerary, tour, isTourLoading, isLoading, fetchError, handleSubmit, handleCancel, isSubmitting, serverErrors };
 };

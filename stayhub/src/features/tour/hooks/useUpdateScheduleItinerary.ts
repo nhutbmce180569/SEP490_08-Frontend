@@ -80,7 +80,7 @@ export const useUpdateScheduleItinerary = () => {
 
       await updateScheduleItinerary(itineraryId, payload);
       success("Schedule itinerary updated successfully!");
-      navigate(PATH.OPERATOR.SCHEDULE_DETAIL(scheduleId));
+      navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (error: any) {
       if (error.response?.status === 400 && error.response.data?.errors) {
         setServerErrors(error.response.data.errors);
@@ -95,7 +95,7 @@ export const useUpdateScheduleItinerary = () => {
 
   const handleCancel = () => {
     if (scheduleId) {
-      navigate(PATH.OPERATOR.SCHEDULE_DETAIL(scheduleId));
+      navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } else {
       navigate(-1);
     }

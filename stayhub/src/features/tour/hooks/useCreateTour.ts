@@ -5,7 +5,7 @@ import { type CreateTourRequest } from "../types/tour";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import { AuthContext } from "../../../contexts/AuthContext";
-// import { categoryService } from "../../content/services/category.service";
+import { categoryService } from "../../content/services/category.service";
 
 const buildCreateTourFormData = (data: CreateTourRequest): FormData => {
   const formData = new FormData();
@@ -43,13 +43,13 @@ export const useCreateTour = () => {
 
   const loadCategories = async () => {
     try {
-      // const res = await categoryService.getActive(1, 9999);
-      // const opts = (res.data || []).map((c: any) => ({
-      //   label: c.name,
-      //   value: c.id
-      // }));
-      // // opts.push({ label: "Not valid for test", value: 10 });
-      // setCategoryOptions(opts);
+      const res = await categoryService.getActiveCategories(1, 9999);
+      const opts = (res.data || []).map((c: any) => ({
+        label: c.name,
+        value: c.id
+      }));
+      // opts.push({ label: "Not valid for test", value: 10 });
+      setCategoryOptions(opts);
     } catch (error) {
       console.error("Failed to load categories", error);
     }

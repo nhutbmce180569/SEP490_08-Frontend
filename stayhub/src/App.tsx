@@ -41,6 +41,9 @@ import { BannerList } from "./features/content/pages/BannerList";
 import { CreateBanner } from "./features/content/pages/CreateBanner";
 import { UpdateBanner } from "./features/content/pages/UpdateBanner";
 import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
+import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
+import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
+import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
 
 const queryClient = new QueryClient();
 
@@ -237,19 +240,18 @@ const App: React.FC = () => {
               />
               <Route
                 path={childPath(PATH.MANAGER.CREATE_ITINERARY())}
-                element={mock("Create Itinerary", "Partner")}
+                element={<CreateItinerary />}
               />
               <Route
                 path={childPath(PATH.MANAGER.EDIT_ITINERARY())}
-                element={mock("Edit Itinerary", "Partner")}
-              />
+                element={<UpdateItinerary />} />
               <Route
                 path={childPath(PATH.MANAGER.DELETE_ITINERARY())}
-                element={mock("Delete Itinerary", "Partner")}
+                element={<DeleteItineraryConfirm />}
               />
               <Route
                 path={childPath(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
-                element={mock("Schedules", "Partner")}
+                element={mock("Schedule Management", "Partner")}
               />
               <Route
                 path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}

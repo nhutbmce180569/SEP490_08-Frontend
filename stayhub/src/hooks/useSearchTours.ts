@@ -4,7 +4,7 @@ import { TOURS_API } from "../config/api/tours.api";
 import type { PaginatedResponse } from "../features/tour/types/paginatedReponse";
 import type { Tour } from "../features/tour/types/tour";
 
-export const usePublicTours = (
+export const useSearchTours = (
   page = 1, 
   pageSize = 10,
   searchTerm?: string,
@@ -27,10 +27,20 @@ export const usePublicTours = (
     const fetchActiveTours = async () => {
       try {
         setIsLoading(true);
-        const res = await apiClient.get<any>(TOURS_API.GET_PUBLIC_TOURS, {
+        const res = await apiClient.get<any>(TOURS_API.SEARCH, {
           params: { 
             page, 
-            pageSize
+            pageSize,
+            searchTerm: searchTerm || undefined,
+            startDate: startDate || undefined,
+            categoryId: categoryId || undefined,
+            country: country || undefined,
+            city: city || undefined,
+            minPrice: minPrice || undefined,
+            maxPrice: maxPrice || undefined,
+            endDate: endDate || undefined,
+            duration: duration || undefined,
+            sortBy: sortBy || undefined
           }
         });
         

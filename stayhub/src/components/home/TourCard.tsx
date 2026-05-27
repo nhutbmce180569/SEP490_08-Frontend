@@ -2,7 +2,6 @@ import React from "react";
 import { MapPin, Clock, Star, Heart, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PATH } from "../../config/routes/route";
-import { useWishlist } from "../../features/wishlist/hooks/useWishlist";
 
 export interface TourCardProps {
   id: string | number;
@@ -16,8 +15,6 @@ export interface TourCardProps {
 }
 
 export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
-  const { isInWishlist, toggleWishlist, isSubmitting } = useWishlist();
-  const isWished = isInWishlist(Number(tour.id));
 
   return (
     <Link
@@ -66,30 +63,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
             )}
           </div>
 
-          {/* Wishlist */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              if (!isSubmitting) toggleWishlist(Number(tour.id));
-            }}
-            disabled={isSubmitting}
-            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center backdrop-blur-md shadow-sm transition-all duration-200"
-            style={{
-              borderRadius: 999,
-              background: isWished ? "#FFF1F2" : "rgba(255,255,255,0.96)",
-              color: isWished ? "#F43F5E" : "#94A3B8",
-            }}
-            onMouseEnter={(e) => {
-              if (!isWished)
-                (e.currentTarget as HTMLElement).style.color = "#F43F5E";
-            }}
-            onMouseLeave={(e) => {
-              if (!isWished)
-                (e.currentTarget as HTMLElement).style.color = "#94A3B8";
-            }}
-          >
-            <Heart size={17} className={isWished ? "fill-current" : ""} />
-          </button>
+         
 
           {/* Hover CTA */}
           <div className="absolute bottom-3 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">

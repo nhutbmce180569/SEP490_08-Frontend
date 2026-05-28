@@ -56,6 +56,7 @@ import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleIti
 import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
 import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
+import { BookingPage } from "./features/booking/pages/BookingPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -216,7 +217,7 @@ const App: React.FC = () => {
                 />
                 <Route
                   path={PATH.CUSTOMER.CHECKOUT()}
-                  element={mock("Checkout", "Booking")}
+                  element={<BookingPage />}
                 />
                 <Route
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}

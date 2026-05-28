@@ -548,7 +548,7 @@ export default function PublicTourDetail() {
                       {fmt(minPrice)}
                     </span>
                     <span className="text-orange-200 font-semibold ml-1">
-                      d
+                    đ
                     </span>
                     <span className="text-orange-200 text-sm ml-1">
                       / person

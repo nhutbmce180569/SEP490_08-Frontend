@@ -25,6 +25,64 @@ import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
 import { PATH } from "../../../config/routes/route";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useToast } from "../../../contexts/ToastContext";
+import type { TourSchedule } from "../types/tourSchedule";
+import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+
+const getNumberValue = (value?: number | string | null) => {
+  if (value === undefined || value === null || value === "") return null;
+
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+};
+
+const formatCurrency = (value: number) => `${value.toLocaleString("vi-VN")} đ`;
+
+const getTicketPrice = (ticket: TourScheduleTicket) => getNumberValue(ticket.price);
+
+const getTicketCapacity = (ticket: TourScheduleTicket) =>
+  getNumberValue(ticket.quantity ?? ticket.totalQuantity ?? ticket.maxCapacity);
+
+const getTicketAvailable = (ticket: TourScheduleTicket) =>
+  getNumberValue(
+    ticket.availableQuantity ??
+      ticket.availableSeats ??
+      ticket.quantity ??
+      ticket.totalQuantity ??
+      ticket.maxCapacity,
+  );
+
+const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
+
+const getSchedulePriceText = (schedule: TourSchedule) => {
+  const prices = getScheduleTickets(schedule)
+    .map(getTicketPrice)
+    .filter((price): price is number => price !== null);
+
+  if (prices.length === 0) return "No ticket price";
+
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  return minPrice === maxPrice
+    ? formatCurrency(minPrice)
+    : `From ${formatCurrency(minPrice)}`;
+};
+
+const getScheduleAvailabilityText = (schedule: TourSchedule) => {
+  const tickets = getScheduleTickets(schedule);
+  if (tickets.length === 0) return "No ticket setup";
+
+  const available = tickets.reduce(
+    (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
+    0,
+  );
+  const capacity = tickets.reduce(
+    (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
+    0,
+  );
+
+  return capacity > 0 ? `${available} / ${capacity}` : `${available} available`;
+};
 
 export const TourDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,15 +129,18 @@ export const TourDetail: React.FC = () => {
   }
 
   const scheduleCount = tour.tourSchedules?.length || 0;
-  const prices = tour.tourSchedules?.map((s) => s.price) || [];
+  const prices =
+    tour.tourSchedules
+      ?.flatMap((schedule) => getScheduleTickets(schedule).map(getTicketPrice))
+      .filter((price): price is number => price !== null) || [];
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
   const priceText =
     prices.length === 0
-      ? "Unscheduled"
+      ? "No ticket price"
       : minPrice === maxPrice
-        ? `${minPrice.toLocaleString("vi-VN")} ₫`
-        : `From ${minPrice.toLocaleString("vi-VN")} ₫`;
+        ? formatCurrency(minPrice)
+        : `From ${formatCurrency(minPrice)}`;
 
   return (
     <div className="mx-auto max-w-4xl py-6">
@@ -466,13 +527,13 @@ export const TourDetail: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500">Price</span>
                         <span className="font-semibold text-emerald-600">
-                          {schedule.price.toLocaleString("vi-VN")} ₫
+                          {getSchedulePriceText(schedule)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-slate-500">Availability</span>
                         <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-900">
-                          {schedule.availableSeats} / {schedule.maxCapacity}
+                          {getScheduleAvailabilityText(schedule)}
                         </span>
                       </div>
                     </div>

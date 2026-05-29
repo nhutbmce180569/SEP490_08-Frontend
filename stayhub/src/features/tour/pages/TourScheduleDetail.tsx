@@ -1,36 +1,105 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
+  Banknote,
   Calendar,
-  Clock,
-  Hash,
-  Pencil,
-  Trash2,
-  Ticket,
-  MapPin,
-  Plus,
   ChevronDown,
   ChevronUp,
+  Clock,
+  Hash,
+  MapPin,
+  Pencil,
+  Plus,
+  Ticket,
+  Trash2,
 } from "lucide-react";
-import { useTourSchedule } from "../hooks/useTourSchedule";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { useToast } from "../../../contexts/ToastContext";
+import { getApiErrorMessage } from "../../content/utils/apiError";
+import { ticketTypeService } from "../../content/services/ticketType.service";
+import type { ReadTicketTypeDTO } from "../../content/types/ticketType";
 import { PATH } from "../../../config/routes/route";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
+import { useTourSchedule } from "../hooks/useTourSchedule";
+import { tourScheduleTicketService } from "../services/tourScheduleTicket.service";
+import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+import {
+  formatTicketCurrency,
+  getScheduleTicketName,
+  getScheduleTicketTypeId,
+} from "../utils/tourScheduleTicket";
 
 export const TourScheduleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
-  const { currentSchedule: schedule, isLoading, error, fetchScheduleById, deleteSchedule } = useTourSchedule();
+  const { error: showError } = useToast();
+  const {
+    currentSchedule: schedule,
+    isLoading,
+    error,
+    fetchScheduleById,
+    deleteSchedule,
+  } = useTourSchedule();
+
+  const [tickets, setTickets] = React.useState<TourScheduleTicket[]>([]);
+  const [ticketTypeDetails, setTicketTypeDetails] = React.useState<
+    Record<number, ReadTicketTypeDTO>
+  >({});
+  const [isTicketsLoading, setIsTicketsLoading] = React.useState(false);
+
+  const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(
+    schedule?.tourScheduleItineraries,
+  );
+
+  const fetchTickets = React.useCallback(
+    async (scheduleId: number | string) => {
+      setIsTicketsLoading(true);
+      try {
+        const data = await tourScheduleTicketService.getBySchedule(scheduleId);
+        setTickets(data);
+
+        const ticketTypeIds = Array.from(
+          new Set(
+            data
+              .map(getScheduleTicketTypeId)
+              .filter((ticketTypeId): ticketTypeId is number => ticketTypeId !== null),
+          ),
+        );
+
+        const details = await Promise.all(
+          ticketTypeIds.map(async (ticketTypeId) => {
+            try {
+              const ticketType = await ticketTypeService.getById(ticketTypeId);
+              return [ticketTypeId, ticketType] as const;
+            } catch {
+              return null;
+            }
+          }),
+        );
+
+        setTicketTypeDetails(
+          Object.fromEntries(details.filter((detail): detail is readonly [number, ReadTicketTypeDTO] => detail !== null)),
+        );
+      } catch (err: unknown) {
+        setTickets([]);
+        setTicketTypeDetails({});
+        showError(getApiErrorMessage(err, "Failed to load schedule tickets."));
+      } finally {
+        setIsTicketsLoading(false);
+      }
+    },
+    [showError],
+  );
 
   React.useEffect(() => {
-    if (id) {
-      fetchScheduleById(id);
-    }
-  }, [id, fetchScheduleById]);
+    if (!id) return;
 
-  const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(schedule?.tourScheduleItineraries);
+    void Promise.resolve().then(() => {
+      fetchScheduleById(id);
+      fetchTickets(id);
+    });
+  }, [id, fetchScheduleById, fetchTickets]);
 
   if (isLoading) {
     return (
@@ -42,16 +111,16 @@ export const TourScheduleDetail: React.FC = () => {
 
   if (error || !schedule) {
     return (
-      <div className="flex h-64 items-center justify-center text-rose-500 font-semibold">
+      <div className="flex h-64 items-center justify-center font-semibold text-rose-500">
         {error || "Schedule not found."}
       </div>
     );
   }
 
-  // Tính toán dữ liệu ngày bị thiếu cho Schedule Itinerary
-  const itineraryDayNumbers = schedule.tourScheduleItineraries
-    ?.map((i) => Number(i.dayNumber))
-    .sort((a, b) => a - b) ?? [];
+  const itineraryDayNumbers =
+    schedule.tourScheduleItineraries
+      ?.map((item) => Number(item.dayNumber))
+      .sort((a, b) => a - b) ?? [];
   const missingItineraryDays = [] as number[];
   const maxDay = itineraryDayNumbers.length ? Math.max(...itineraryDayNumbers) : 0;
   for (let i = 1; i <= maxDay; i += 1) {
@@ -63,15 +132,14 @@ export const TourScheduleDetail: React.FC = () => {
       try {
         await deleteSchedule(schedule.id);
         navigate(-1);
-      } catch (err) {
-        // Lỗi hệ thống đã được xử lý bằng Toast inside Hook
+      } catch {
+        // Toast is handled by the hook.
       }
     }
   };
 
   return (
-    <div className="mx-auto max-w-4xl py-6 px-4">
-      {/* Back button */}
+    <div className="mx-auto max-w-4xl px-4 py-6">
       <button
         onClick={() => navigate(-1)}
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-blue-600"
@@ -80,9 +148,7 @@ export const TourScheduleDetail: React.FC = () => {
         Back to Schedules
       </button>
 
-      {/* Main Content Card */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        {/* Header Area - 💥 Chuyển sang tone Xanh Dương */}
         <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40">
           <Calendar className="h-16 w-16 text-white opacity-20" />
           <div className="absolute right-4 top-4">
@@ -92,7 +158,6 @@ export const TourScheduleDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Details Section */}
         <div className="p-6 sm:p-10">
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -103,14 +168,14 @@ export const TourScheduleDetail: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <Hash className="h-4 w-4 text-slate-400" />
                   <span className="font-semibold text-slate-700">Tour Name:</span>
-                  {/* 💥 Tone Xanh Dương */}
-                  <span className="text-blue-600 font-bold">{schedule.tour?.name || `ID: ${schedule.tourId}`}</span>
+                  <span className="font-bold text-blue-600">
+                    {schedule.tour?.name || `ID: ${schedule.tourId}`}
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons - 💥 Đã dọn dẹp class ép màu thừa */}
-            <div className="flex shrink-0 items-start gap-3 flex-wrap">
+            <div className="flex shrink-0 flex-wrap items-start gap-3">
               <ActionButton
                 variant="primary"
                 onClick={() => navigate(PATH.MANAGER.SCHEDULE_ORDERS(schedule.id))}
@@ -139,8 +204,7 @@ export const TourScheduleDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Information Grid - 💥 Đã xóa 2 cột Giá và Chỗ ngồi */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
+          <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
                 <Calendar className="h-4 w-4 text-emerald-500" />
@@ -166,7 +230,6 @@ export const TourScheduleDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Note Section */}
           <div className="mb-8">
             <h2 className="mb-3 text-base font-bold text-slate-900">Schedule Note</h2>
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 leading-relaxed text-slate-700">
@@ -180,14 +243,141 @@ export const TourScheduleDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Itinerary Section */}
+          <div className="mt-8 border-t border-slate-100 pt-8">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Schedule Tickets</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  {tickets.length > 0
+                    ? `${tickets.length} ticket ${tickets.length === 1 ? "type" : "types"} configured`
+                    : "No ticket setup for this schedule."}
+                </p>
+              </div>
+              <ActionButton
+                variant="primary"
+                onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
+                className="gap-2 px-4 py-2 text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                Add Ticket
+              </ActionButton>
+            </div>
+
+            {isTicketsLoading ? (
+              <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
+                Loading schedule tickets...
+              </div>
+            ) : tickets.length > 0 ? (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                <table className="w-full min-w-[520px] border-collapse bg-white">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50">
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Ticket Name
+                      </th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Price
+                      </th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tickets.map((ticket) => {
+                      const ticketTypeId = getScheduleTicketTypeId(ticket);
+                      const ticketType = ticketTypeId ? ticketTypeDetails[ticketTypeId] : undefined;
+
+                      return (
+                        <tr
+                          key={ticket.id}
+                          className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/70"
+                        >
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                                <Ticket className="h-4 w-4" />
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-semibold text-slate-800">
+                                  {getScheduleTicketName(ticket, ticketType)}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-2 font-semibold text-emerald-600">
+                              <Banknote className="h-4 w-4" />
+                              {formatTicketCurrency(ticket.price)}
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-1.5">
+                              <ActionButton
+                                variant="secondary"
+                                onClick={() =>
+                                  navigate(
+                                    PATH.MANAGER.EDIT_SCHEDULE_TICKET(
+                                      schedule.id,
+                                      ticket.id,
+                                    ),
+                                  )
+                                }
+                                className="h-8 w-8"
+                                title="Edit ticket"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </ActionButton>
+                              <ActionButton
+                                variant="warning"
+                                onClick={() =>
+                                  navigate(
+                                    PATH.MANAGER.DELETE_SCHEDULE_TICKET(
+                                      schedule.id,
+                                      ticket.id,
+                                    ),
+                                  )
+                                }
+                                className="h-8 w-8"
+                                title="Delete ticket"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </ActionButton>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                <Ticket className="mb-3 h-10 w-10 text-slate-400" />
+                <h3 className="mb-1 text-sm font-bold text-slate-900">
+                  No tickets configured
+                </h3>
+                <p className="mb-4 text-xs text-slate-500">
+                  Add ticket types, prices, and quantities for this schedule.
+                </p>
+                <ActionButton
+                  variant="primary"
+                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
+                  className="gap-2 px-4 py-2 text-sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Ticket
+                </ActionButton>
+              </div>
+            )}
+          </div>
+
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-6 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-bold text-slate-900">
                   Schedule Itinerary
                 </h2>
-                {/* 💥 Nút Add cũng dùng primary xanh dương chuẩn */}
                 <ActionButton
                   variant="primary"
                   onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
@@ -213,21 +403,34 @@ export const TourScheduleDetail: React.FC = () => {
                   .map((dayNumber) => {
                     const itemsForDay = groupedItineraries[dayNumber];
                     const dayDate = itemsForDay[0]?.itineraryDate;
+
                     return (
-                      <div key={dayNumber} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                      <div
+                        key={dayNumber}
+                        className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                      >
                         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-4">
                           <div>
-                            <h3 className="text-base font-bold text-slate-900">Day {dayNumber}</h3>
-                            {dayDate && <p className="text-xs font-medium text-slate-400 mt-0.5">{new Date(dayDate).toLocaleDateString()}</p>}
+                            <h3 className="text-base font-bold text-slate-900">
+                              Day {dayNumber}
+                            </h3>
+                            {dayDate && (
+                              <p className="mt-0.5 text-xs font-medium text-slate-400">
+                                {new Date(dayDate).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        
+
                         <div className="flex flex-col divide-y divide-slate-100">
-                          {itemsForDay.map((iti: any) => {
+                          {itemsForDay.map((iti) => {
                             const isExpanded = expandedItiIds.includes(iti.id);
-                            const timeStr = iti.startDuration && iti.endDuration
-                              ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
-                              : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                            const timeStr =
+                              iti.startDuration && iti.endDuration
+                                ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
+                                : iti.startDuration
+                                  ? iti.startDuration.substring(0, 5)
+                                  : "Any time";
 
                             return (
                               <div key={iti.id} className="flex flex-col">
@@ -240,27 +443,58 @@ export const TourScheduleDetail: React.FC = () => {
                                       <Clock className="mr-1.5 h-3.5 w-3.5" />
                                       {timeStr}
                                     </div>
-                                    <h4 className="text-sm font-semibold text-slate-800">{iti.title || "Untitled itinerary"}</h4>
+                                    <h4 className="text-sm font-semibold text-slate-800">
+                                      {iti.title || "Untitled itinerary"}
+                                    </h4>
                                   </div>
                                   <div className="flex items-center gap-4">
-                                    <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                                      <ActionButton variant="secondary" onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(schedule.id, iti.id))} className="h-8 w-8 text-blue-600 hover:bg-blue-50">
+                                    <div
+                                      className="flex gap-2"
+                                      onClick={(event) => event.stopPropagation()}
+                                    >
+                                      <ActionButton
+                                        variant="secondary"
+                                        onClick={() =>
+                                          navigate(
+                                            PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(
+                                              schedule.id,
+                                              iti.id,
+                                            ),
+                                          )
+                                        }
+                                        className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                                      >
                                         <Pencil className="h-3.5 w-3.5" />
                                       </ActionButton>
-                                      <ActionButton variant="warning" onClick={() => navigate(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY(schedule.id, iti.id))} className="h-8 w-8">
+                                      <ActionButton
+                                        variant="warning"
+                                        onClick={() =>
+                                          navigate(
+                                            PATH.MANAGER.DELETE_SCHEDULE_ITINERARY(
+                                              schedule.id,
+                                              iti.id,
+                                            ),
+                                          )
+                                        }
+                                        className="h-8 w-8"
+                                      >
                                         <Trash2 className="h-3.5 w-3.5" />
                                       </ActionButton>
                                     </div>
                                     <div className="text-slate-400">
-                                      {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                                      {isExpanded ? (
+                                        <ChevronUp className="h-5 w-5" />
+                                      ) : (
+                                        <ChevronDown className="h-5 w-5" />
+                                      )}
                                     </div>
                                   </div>
                                 </div>
 
                                 {isExpanded && (
-                                  <div className="bg-slate-50/40 px-5 pb-5 pt-2 sm:pl-[150px] border-t border-slate-50">
+                                  <div className="border-t border-slate-50 bg-slate-50/40 px-5 pb-5 pt-2 sm:pl-[150px]">
                                     {iti.description && (
-                                      <p className="mb-3 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
+                                      <p className="mb-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
                                         {iti.description}
                                       </p>
                                     )}

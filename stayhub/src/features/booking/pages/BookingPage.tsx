@@ -6,11 +6,50 @@ import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateBooking } from "../hooks/useCreateBooking";
 import { PATH } from "../../../config/routes/route";
 import { useToast } from "../../../contexts/ToastContext";
+import type { Tour } from "../../tour/types/tour";
+import type { TourSchedule } from "../../tour/types/tourSchedule";
+import {
+  getNumberValue,
+  getScheduleTicketAvailable,
+} from "../../tour/utils/tourScheduleTicket";
+
+type CheckoutSchedule = TourSchedule & {
+  price?: number | string | null;
+  availableSeats?: number | string | null;
+};
+
+type BookingLocationState = {
+  tour?: Tour;
+  schedule?: CheckoutSchedule;
+};
+
+const formatCurrency = (value: number) => `${value.toLocaleString("vi-VN")} đ`;
+
+const getCheckoutSchedulePrice = (schedule: CheckoutSchedule) => {
+  const directPrice = getNumberValue(schedule.price);
+  if (directPrice !== null) return directPrice;
+
+  const prices = (schedule.tourScheduleTickets ?? [])
+    .map((ticket) => getNumberValue(ticket.price))
+    .filter((price): price is number => price !== null);
+
+  return prices.length > 0 ? Math.min(...prices) : null;
+};
+
+const getCheckoutScheduleAvailableSeats = (schedule: CheckoutSchedule) => {
+  const directSeats = getNumberValue(schedule.availableSeats);
+  if (directSeats !== null) return directSeats;
+
+  return (schedule.tourScheduleTickets ?? []).reduce(
+    (sum, ticket) => sum + (getScheduleTicketAvailable(ticket) ?? 0),
+    0,
+  );
+};
 
 export const BookingPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { tour, schedule } = location.state || {};
+  const { tour, schedule } = (location.state || {}) as BookingLocationState;
 
   const { 
     handleCreateBooking, 
@@ -21,17 +60,23 @@ export const BookingPage: React.FC = () => {
     appliedVoucher,
     // handleApplyVoucher 
   } = useCreateBooking();
-  const { success, error: showError } = useToast();
+  const { error: showError } = useToast();
 
-  // State
   const [ticketCount, setTicketCount] = useState<number>(1);
   const [note, setNote] = useState<string>("");
   const [tickets, setTickets] = useState([{ attendeeName: "", idCard: "", dateOfBirth: "", gender: "Male", nationality: "Vietnam" }]);
   const [editingTicketIndex, setEditingTicketIndex] = useState<number | null>(null);
   const [ticketErrors, setTicketErrors] = useState<Record<string, string>>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState<boolean>(false);
+  const [currentTime] = useState(() => Date.now());
 
   const errorHandledRef = useRef(false);
+  const maxDate = new Date(currentTime).toISOString().split("T")[0];
+
+  const schedulePrice = schedule ? getCheckoutSchedulePrice(schedule) : null;
+  const scheduleAvailableSeats = schedule
+    ? getCheckoutScheduleAvailableSeats(schedule)
+    : 0;
 
   // Nếu không có tour hoặc schedule truyền sang thì cho quay lại
   useEffect(() => {
@@ -43,31 +88,38 @@ export const BookingPage: React.FC = () => {
     if (errorHandledRef.current) return;
 
     const departure = new Date(schedule.departureDate);
-    if (departure.getTime() < Date.now()) {
+    if (departure.getTime() < currentTime) {
       errorHandledRef.current = true;
       showError("This departure has expired and can no longer be booked.");
       navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id));
       return;
     }
 
-    if (!schedule.availableSeats || schedule.availableSeats <= 0) {
+    if (scheduleAvailableSeats <= 0) {
       errorHandledRef.current = true;
       showError("This departure is sold out.");
       navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id));
+      return;
     }
-  }, [tour, schedule, navigate, showError]);
+
+    if (schedulePrice === null) {
+      errorHandledRef.current = true;
+      showError("This departure does not have a ticket price.");
+      navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id));
+    }
+  }, [tour, schedule, scheduleAvailableSeats, schedulePrice, currentTime, navigate, showError]);
 
   if (!tour || !schedule) return null;
 
-  const isExpired = new Date(schedule.departureDate).getTime() < Date.now();
-  const isSoldOut = !schedule.availableSeats || schedule.availableSeats <= 0;
-  if (isExpired || isSoldOut) return null;
+  const isExpired = new Date(schedule.departureDate).getTime() < currentTime;
+  const isSoldOut = scheduleAvailableSeats <= 0;
+  if (isExpired || isSoldOut || schedulePrice === null) return null;
 
-  const totalPrice = ticketCount * schedule.price;
+  const totalPrice = ticketCount * schedulePrice;
   const finalPayable = appliedVoucher?.finalAmount ?? totalPrice;
 
   const handleTicketCountChange = (count: number) => {
-    const newCount = Math.max(1, Math.min(count, schedule.availableSeats));
+    const newCount = Math.max(1, Math.min(count, scheduleAvailableSeats));
     setTicketCount(newCount);
 
     // Cập nhật lại mảng thông tin hành khách tương ứng số vé
@@ -99,7 +151,7 @@ export const BookingPage: React.FC = () => {
       }
       if (field === 'dateOfBirth') {
         if (!value.trim()) errors.dateOfBirth = "Date of Birth is required.";
-        else if (new Date(value).getTime() > Date.now()) errors.dateOfBirth = "Date of Birth cannot be in the future.";
+        else if (new Date(value).getTime() > currentTime) errors.dateOfBirth = "Date of Birth cannot be in the future.";
         else delete errors.dateOfBirth;
       }
       if (field === 'nationality') {
@@ -117,7 +169,7 @@ export const BookingPage: React.FC = () => {
       if (!ticket.attendeeName.trim()) errors.attendeeName = "Name is required.";
       if (!ticket.idCard.trim()) errors.idCard = "ID Card / Passport is required.";
       if (!ticket.dateOfBirth.trim()) errors.dateOfBirth = "Date of Birth is required.";
-      else if (new Date(ticket.dateOfBirth).getTime() > Date.now()) errors.dateOfBirth = "Date of Birth cannot be in the future.";
+      else if (new Date(ticket.dateOfBirth).getTime() > currentTime) errors.dateOfBirth = "Date of Birth cannot be in the future.";
       if (!ticket.nationality.trim()) errors.nationality = "Nationality is required.";
       setTicketErrors(errors);
     } else {
@@ -129,13 +181,13 @@ export const BookingPage: React.FC = () => {
   const onSubmit = () => {
     setHasAttemptedSubmit(true);
 
-    if (new Date(schedule.departureDate).getTime() < Date.now()) {
+    if (new Date(schedule.departureDate).getTime() < currentTime) {
       showError("This departure has expired and can no longer be booked.");
       return;
     }
 
-    if (ticketCount > schedule.availableSeats) {
-      showError(`Only ${schedule.availableSeats} seat(s) available for this departure.`);
+    if (ticketCount > scheduleAvailableSeats) {
+      showError(`Only ${scheduleAvailableSeats} seat(s) available for this departure.`);
       return;
     }
 
@@ -144,7 +196,7 @@ export const BookingPage: React.FC = () => {
         showError(`Please fill in all required fields for Passenger ${i + 1}`);
         return;
       }
-      if (new Date(tickets[i].dateOfBirth).getTime() > Date.now()) {
+      if (new Date(tickets[i].dateOfBirth).getTime() > currentTime) {
         showError(`Date of Birth for Passenger ${i + 1} cannot be in the future.`);
         return;
       }
@@ -182,8 +234,8 @@ export const BookingPage: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <button onClick={() => handleTicketCountChange(ticketCount - 1)} disabled={ticketCount <= 1} className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-xl font-bold transition-colors">-</button>
                   <span className="text-xl font-bold w-8 text-center">{ticketCount}</span>
-                  <button onClick={() => handleTicketCountChange(ticketCount + 1)} disabled={ticketCount >= schedule.availableSeats} className="w-10 h-10 rounded-full flex items-center justify-center bg-[#EB662B] text-white hover:bg-orange-600 disabled:opacity-50 text-xl font-bold transition-colors">+</button>
-                  <span className="ml-4 text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-full">{schedule.availableSeats} seats remaining</span>
+                  <button onClick={() => handleTicketCountChange(ticketCount + 1)} disabled={ticketCount >= scheduleAvailableSeats} className="w-10 h-10 rounded-full flex items-center justify-center bg-[#EB662B] text-white hover:bg-orange-600 disabled:opacity-50 text-xl font-bold transition-colors">+</button>
+                  <span className="ml-4 text-sm text-slate-500 font-medium bg-slate-100 px-3 py-1.5 rounded-full">{scheduleAvailableSeats} seats remaining</span>
                 </div>
               </div>
 
@@ -202,7 +254,7 @@ export const BookingPage: React.FC = () => {
 
               <div className="space-y-3">
                 {tickets.map((ticket, index) => {
-                  const isComplete = ticket.attendeeName.trim() && ticket.idCard.trim() && ticket.dateOfBirth.trim() && ticket.nationality.trim() && new Date(ticket.dateOfBirth).getTime() <= Date.now();
+                  const isComplete = ticket.attendeeName.trim() && ticket.idCard.trim() && ticket.dateOfBirth.trim() && ticket.nationality.trim() && new Date(ticket.dateOfBirth).getTime() <= currentTime;
                   return (
                     <div key={index} 
                          onClick={() => openTicketModal(index)}
@@ -256,7 +308,7 @@ export const BookingPage: React.FC = () => {
                   <div className="space-y-2 text-sm text-slate-600 mb-6">
                     <div className="flex justify-between">
                       <span>Price per ticket</span>
-                      <span className="font-medium">{schedule.price.toLocaleString("vi-VN")} ₫</span>
+                      <span className="font-medium">{formatCurrency(schedulePrice)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Quantity</span>
@@ -285,14 +337,14 @@ export const BookingPage: React.FC = () => {
                     </div>
                     {appliedVoucher && (
                       <p className="mt-2 text-xs font-medium text-emerald-700">
-                        Applied {appliedVoucher.code}: -{appliedVoucher.discountAmount.toLocaleString("vi-VN")} ₫
+                        Applied {appliedVoucher.code}: -{formatCurrency(appliedVoucher.discountAmount)}
                       </p>
                     )}
                   </div>
 
                   <div className="border-t border-slate-200 pt-4 flex justify-between items-center mb-6">
                     <span className="font-bold text-slate-800">Total Price</span>
-                    <span className="text-2xl font-black text-[#EB662B]">{finalPayable.toLocaleString("vi-VN")} ₫</span>
+                    <span className="text-2xl font-black text-[#EB662B]">{formatCurrency(finalPayable)}</span>
                   </div>
 
                   <ActionButton variant="primary" onClick={onSubmit} className="w-full py-4 text-base shadow-lg shadow-orange-500/30 gap-2">
@@ -334,7 +386,7 @@ export const BookingPage: React.FC = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">Date of Birth *</label>
-                <input type="date" max={new Date().toISOString().split("T")[0]} value={tickets[editingTicketIndex].dateOfBirth} onChange={e => handleTicketFieldChange(editingTicketIndex, 'dateOfBirth', e.target.value)} className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${ticketErrors.dateOfBirth ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`} required />
+                <input type="date" max={maxDate} value={tickets[editingTicketIndex].dateOfBirth} onChange={e => handleTicketFieldChange(editingTicketIndex, 'dateOfBirth', e.target.value)} className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${ticketErrors.dateOfBirth ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`} required />
                 {ticketErrors.dateOfBirth && <p className="mt-1 text-xs text-rose-500">{ticketErrors.dateOfBirth}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">

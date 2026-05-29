@@ -265,10 +265,8 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.NOTIFICATIONS}
                       element={mock("Notifications", "Customer")}
                     />
-                    <Route
-                  path={PATH.CUSTOMER.SOCIAL_MOMENTS}
-                  element={<MomentsFeed scheduleId={1} />}
-                />
+                    <Route path="/social/moments" 
+                    element={<MomentsFeed scheduleId={1} />} />
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}

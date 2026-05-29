@@ -46,6 +46,9 @@ import { BannerList } from "./features/content/pages/BannerList";
 import { CreateBanner } from "./features/content/pages/CreateBanner";
 import { UpdateBanner } from "./features/content/pages/UpdateBanner";
 import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
+import { TicketTypeList } from "./features/content/pages/TicketTypeList";
+import { CreateTicketType } from "./features/content/pages/CreateTicketType";
+import { UpdateTicketType } from "./features/content/pages/UpdateTicketType";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
@@ -448,6 +451,11 @@ const App: React.FC = () => {
                       path=":id/delete"
                       element={<DeleteBannerConfirm />}
                     />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.TICKET_TYPE_MANAGEMENT)}>
+                    <Route index element={<TicketTypeList />} />
+                    <Route path="create" element={<CreateTicketType />} />
+                    <Route path=":id/edit" element={<UpdateTicketType />} />
                   </Route>
                   <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
                     <Route index element={<CategoryList />} />

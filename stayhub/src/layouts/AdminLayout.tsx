@@ -23,6 +23,7 @@ const ADMIN_SIDEBAR_ITEMS: AdminSidebarItem[] = [
   { label: 'Violation Reports', to: PATH.ADMIN.REPORT_MODERATION, icon: <ShieldAlert /> },
   { label: 'Withdrawal Requests', to: PATH.ADMIN.WITHDRAWALS, icon: <CreditCard /> },
   { label: 'System Vouchers', to: PATH.ADMIN.SYSTEM_VOUCHERS, icon: <Ticket /> },
+  { label: 'Ticket Types', to: PATH.ADMIN.TICKET_TYPE_MANAGEMENT, icon: <Ticket /> },
   { label: 'Banners', to: PATH.ADMIN.BANNER_MANAGEMENT, icon: <Image /> },
   { label: 'Tour Categories', to: PATH.ADMIN.CATEGORY_MANAGEMENT, icon: <Layers /> },
   { label: 'Global Settings', to: PATH.ADMIN.SYSTEM_SETTINGS, icon: <Settings /> },

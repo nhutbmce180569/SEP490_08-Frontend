@@ -23,5 +23,15 @@ export const CONTENT_API = {
     DELETE: (id: string | number) => `${FULL_API}/Banners/${id}`,
     ACTIVATE: (id: string | number) => `${FULL_API}/Banners/${id}/activate`,
     DEACTIVATE: (id: string | number) => `${FULL_API}/Banners/${id}/deactivate`,
-  }
+  },
+
+  TICKET_TYPES: {
+    GET_ALL: `${FULL_API}/TicketTypes`,
+    GET_ACTIVE: `${FULL_API}/TicketTypes/active`,
+    GET_BY_ID: (id: string | number) => `${FULL_API}/TicketTypes/${id}`,
+    CREATE: `${FULL_API}/TicketTypes`,
+    UPDATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}`,
+    ACTIVATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}/activate`,
+    DEACTIVATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}/deactivate`,
+  },
 };

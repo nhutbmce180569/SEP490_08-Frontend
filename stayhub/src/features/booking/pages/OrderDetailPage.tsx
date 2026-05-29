@@ -22,8 +22,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { PATH } from "../../../config/routes/route";
 import { useOrderDetail } from "../hooks/useOrderDetail";
 import { ActionButton } from "../../../components/home/ActionButton";
-// import { ReviewModal } from "../../review/components/ReviewModal"; 
 import { useGroupedItineraries } from "../../tour/hooks/useGroupedItineraries";
+import { ReviewForm } from "../../tour/pages/ReviewForm"; 
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -215,7 +215,7 @@ export const OrderDetailPage: React.FC = () => {
           </div>
 
           {/* ========================================== */}
-          {/* KHỐI HIỂN THỊ ĐÁNH GIÁ: ĐÃ CHỈNH STYLE GIỐNG TICKET */}
+          {/* KHỐI HIỂN THỊ ĐÁNH GIÁ (NÚT KÍCH HOẠT MODAL) */}
           {/* ========================================== */}
           {canReview && (
             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 animate-in fade-in duration-300">
@@ -284,19 +284,6 @@ export const OrderDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Invite Token
-          {order.inviteToken && (
-            <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-6 shadow-sm">
-              <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-indigo-900">
-                <QrCode className="h-5 w-5 text-indigo-500" /> Share Invite
-              </h4>
-              <p className="mb-3 text-sm text-indigo-700">Share this token with your group members.</p>
-              <div className="rounded border border-indigo-100 bg-white p-2 text-center font-mono text-sm font-bold text-indigo-600">
-                {order.inviteToken}
-              </div>
-            </div>
-          )} */}
-
           {/* Cancel Booking */}
           {order.status !== "Cancelled" &&
             order.schedule &&
@@ -336,7 +323,10 @@ export const OrderDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* MODALS */}
+      {/* ======================================================== */}
+      {/* MODALS SECTION */}
+      {/* ======================================================== */}
+
       {/* 1. Schedule Itinerary Modal */}
       {isItineraryModalOpen && order.schedule?.tourScheduleItineraries && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
@@ -560,23 +550,31 @@ export const OrderDetailPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal Popup Đánh giá
-      {order.tour && (
-        <ReviewModal
-          isOpen={isReviewModalOpen}
-          onClose={() => setIsReviewModalOpen(false)}
-          tourId={order.tour.id}
-          tourName={order.tour.name}
-          initialData={order.review ? {
-            id: order.review.id,
-            rating: order.review.rating,
-            comment: order.review.comment
-          } : null}
-          onSuccess={() => {
-            refetch();
-          }}
-        />
-      )} */}
+      {/* 💥 3. Review Modal Wrapper */}
+      {isReviewModalOpen && order.tour && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
+          onClick={() => setIsReviewModalOpen(false)}
+        >
+          <div 
+            className="w-full max-w-xl animate-in zoom-in-95 duration-200" 
+            onClick={(e) => e.stopPropagation()} // Chặn click xuyên thủng
+          >
+            {/* Vì ReviewForm đã tự có background, padding và bo góc rất đẹp, ta chỉ việc nhét thẳng vào đây */}
+            <ReviewForm
+              tourId={order.tour.id}
+              customerId={order.customerId} // Truyền customerId từ order
+              existingReview={order.review} // Tự động bật chế độ Edit nếu order đã có review
+              onSuccess={() => {
+                setIsReviewModalOpen(false); // Đóng Modal
+                refetch(); // Cập nhật lại data order (để hiện dòng "Your Review...")
+              }}
+              onCancel={() => setIsReviewModalOpen(false)} // Nút Hủy
+            />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

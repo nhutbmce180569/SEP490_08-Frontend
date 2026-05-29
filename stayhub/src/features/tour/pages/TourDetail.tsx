@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,9 +19,11 @@ import {
   ChevronDown,
   ChevronUp,
   User,
+  Loader2, // Import thêm icon Loading
 } from "lucide-react";
 import { useTour } from "../hooks/useTour";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
+import { useReview } from "../hooks/useReview"; // 💥 Import hook review
 import { PATH } from "../../../config/routes/route";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useToast } from "../../../contexts/ToastContext";
@@ -30,10 +32,27 @@ export const TourDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { error: showError } = useToast();
+  
+  // 1. Hook lấy chi tiết Tour
   const { tour, categoryName, isLoading, error, isToggling, toggleTourStatus } =
     useTour(id);
 
+  // 2. Hook xử lý lịch trình
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
+
+  // 3. 💥 Hook lấy danh sách Đánh giá
+  const { 
+    reviews: fetchedReviews, 
+    isLoading: isReviewsLoading, 
+    fetchReviewsByTour 
+  } = useReview();
+
+  // 💥 Tự động gọi API lấy Reviews khi có ID Tour
+  useEffect(() => {
+    if (id) {
+      fetchReviewsByTour(Number(id));
+    }
+  }, [id, fetchReviewsByTour]);
 
   if (isLoading) {
     return (
@@ -51,7 +70,6 @@ export const TourDetail: React.FC = () => {
     );
   }
 
-  // Tính toán dữ liệu Thống kê nhanh
   const itineraryCount = tour.tourItineraries?.length || 0;
   const durationText =
     itineraryCount > 0
@@ -71,15 +89,6 @@ export const TourDetail: React.FC = () => {
   }
 
   const scheduleCount = tour.tourSchedules?.length || 0;
-  const prices = tour.tourSchedules?.map((s) => s.price) || [];
-  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  const priceText =
-    prices.length === 0
-      ? "Unscheduled"
-      : minPrice === maxPrice
-        ? `${minPrice.toLocaleString("vi-VN")} ₫`
-        : `From ${minPrice.toLocaleString("vi-VN")} ₫`;
 
   return (
     <div className="mx-auto max-w-4xl py-6">
@@ -245,9 +254,6 @@ export const TourDetail: React.FC = () => {
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Lowest Price
                 </p>
-                <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
-                  {priceText}
-                </p>
               </div>
             </div>
 
@@ -317,12 +323,10 @@ export const TourDetail: React.FC = () => {
                   .sort((a, b) => a - b)
                   .map((dayNumber) => (
                     <div key={dayNumber} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                      {/* Day Header */}
                       <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-4">
                         <h3 className="text-lg font-bold text-slate-900">Day {dayNumber}</h3>
                       </div>
                       
-                      {/* Danh sách các khung giờ trong 1 ngày */}
                       <div className="flex flex-col divide-y divide-slate-100">
                         {groupedItineraries[dayNumber].map((iti) => {
                           const isExpanded = expandedItiIds.includes(iti.id);
@@ -332,7 +336,6 @@ export const TourDetail: React.FC = () => {
 
                           return (
                             <div key={iti.id} className="flex flex-col">
-                              {/* Dòng Tab Giờ (Bấm để xổ) */}
                               <div
                                 className="flex cursor-pointer items-center justify-between px-5 py-4 transition-colors hover:bg-slate-50"
                                 onClick={() => toggleIti(iti.id)}
@@ -361,7 +364,6 @@ export const TourDetail: React.FC = () => {
                                 </div>
                               </div>
 
-                              {/* Detail Mở Rộng */}
                               {isExpanded && (
                                 <div className="bg-slate-50/50 px-5 pb-5 pt-2 sm:pl-[150px]">
                                   {iti.description && (
@@ -463,18 +465,6 @@ export const TourDetail: React.FC = () => {
                           ).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Price</span>
-                        <span className="font-semibold text-emerald-600">
-                          {schedule.price.toLocaleString("vi-VN")} ₫
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Availability</span>
-                        <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-900">
-                          {schedule.availableSeats} / {schedule.maxCapacity}
-                        </span>
-                      </div>
                     </div>
                   </div>
                 ))}
@@ -492,43 +482,66 @@ export const TourDetail: React.FC = () => {
             )}
           </div>
 
-          {/* Reviews Section */}
+          {/* 💥 Reviews Section (Sử dụng dữ liệu từ hook) */}
           <div className="mt-8 border-t border-slate-100 pt-8">
-            <div className="mb-4">
-              <h2 className="text-lg font-bold text-slate-900">Reviews</h2>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-slate-900">Reviews ({fetchedReviews.length})</h2>
             </div>
 
-            {tour.reviews && tour.reviews.length > 0 ? (
+            {isReviewsLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <Loader2 className="mb-3 h-8 w-8 animate-spin text-indigo-500" />
+                <p className="text-sm font-medium">Loading reviews...</p>
+              </div>
+            ) : fetchedReviews.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {tour.reviews.map((review) => (
+                {fetchedReviews.map((review) => (
                   <div
                     key={review.id}
                     className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="mb-3 flex items-start justify-between">
-                      <div>
-                        <h3 className="font-semibold text-slate-900">
-                          {review.customerName || "Anonymous Customer"}
-                        </h3>
-                        <div className="mt-1 flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < (review.rating || 0)
-                                  ? "fill-amber-400 text-amber-400"
-                                  : "text-slate-300"
-                              }`}
-                            />
-                          ))}
-                          <span className="ml-2 text-sm font-medium text-slate-600">
-                            {review.rating || 0}/5
-                          </span>
+                      <div className="flex gap-3">
+                        {/* Hiển thị Avatar nếu có */}
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100">
+                          {review.customerAvatar ? (
+                            <img src={review.customerAvatar} alt={review.customerName || "Avatar"} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-600">
+                              <User className="h-5 w-5" />
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div>
+                          <h3 className="font-semibold text-slate-900">
+                            {review.customerName || "Anonymous Customer"}
+                          </h3>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="flex items-center">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3.5 w-3.5 ${
+                                    i < (review.rating || 0)
+                                      ? "fill-amber-400 text-amber-400"
+                                      : "text-slate-200"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            {/* Hiển thị ngày Review nếu BE có trả về */}
+                            {review.createdAt && (
+                              <span className="text-[11px] font-medium text-slate-400">
+                                • {new Date(review.createdAt).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                     {review.comment && (
-                      <p className="text-sm text-slate-700 leading-relaxed">
+                      <p className="mt-2 text-sm text-slate-700 leading-relaxed">
                         {review.comment}
                       </p>
                     )}
@@ -547,6 +560,7 @@ export const TourDetail: React.FC = () => {
               </div>
             )}
           </div>
+
         </div>
       </div>
     </div>

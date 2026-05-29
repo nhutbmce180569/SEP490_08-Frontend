@@ -62,6 +62,7 @@ import TourSearch from "./pages/TourSearch";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
+import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -255,7 +256,7 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.MY_REVIEWS}
-                      element={mock("Reviews", "Customer")}
+                      element={<MyReviewsPage />}
                     />
                     <Route
                       path={PATH.CUSTOMER.SETTINGS}

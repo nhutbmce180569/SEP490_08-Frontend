@@ -18,6 +18,7 @@ import {
   Tag,
   ChevronDown,
   ChevronUp,
+  User,
 } from "lucide-react";
 import { useTour } from "../hooks/useTour";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
@@ -151,6 +152,24 @@ export const TourDetail: React.FC = () => {
                     Category: {categoryName || `ID ${tour.categoryId}`}
                   </span>
                 </div>
+                {(tour.createdByName || tour.createdAt) && (
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-slate-400" />
+                    <span>
+                      Created{tour.createdByName && ` by ${tour.createdByName}`}
+                      {tour.createdAt && ` on ${new Date(tour.createdAt).toLocaleDateString()}`}
+                    </span>
+                  </div>
+                )}
+                {(tour.updatedByName || tour.updatedAt) && (
+                  <div className="flex items-center gap-1.5">
+                    <Pencil className="h-4 w-4 text-slate-400" />
+                    <span>
+                      Last updated{tour.updatedByName && ` by ${tour.updatedByName}`}
+                      {tour.updatedAt && ` on ${new Date(tour.updatedAt).toLocaleDateString()}`}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -189,58 +208,58 @@ export const TourDetail: React.FC = () => {
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-4">
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-colors hover:bg-slate-100/50">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                <Clock className="h-6 w-6" />
+          <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                <Clock className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Duration
                 </p>
-                <p className="text-lg font-bold text-slate-900">
+                <p className="break-words text-base font-bold text-slate-900 sm:text-lg">
                   {durationText}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-colors hover:bg-slate-100/50">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                <Calendar className="h-6 w-6" />
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                <Calendar className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Schedules
                 </p>
-                <p className="text-lg font-bold text-slate-900">
+                <p className="break-words text-base font-bold text-slate-900 sm:text-lg">
                   {scheduleCount} {scheduleCount === 1 ? "trip" : "trips"}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-colors hover:bg-slate-100/50">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <Banknote className="h-6 w-6" />
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                <Banknote className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Lowest Price
                 </p>
-                <p className="text-lg font-bold text-emerald-600">
+                <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
                   {priceText}
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 transition-colors hover:bg-slate-100/50">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                <Star className="h-6 w-6" />
+            <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                <Star className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Rating
                 </p>
-                <p className="text-lg font-bold text-amber-600">
+                <p className="break-words text-base font-bold text-amber-600 sm:text-lg">
                   {tour.averageStar && tour.averageStar > 0 ? `${tour.averageStar.toFixed(1)}/5` : "No ratings"}
                 </p>
               </div>

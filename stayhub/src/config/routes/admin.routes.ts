@@ -5,6 +5,7 @@ export const ADMIN_ROUTES = {
   TOUR_MODERATION: '/admin/tours',
   ADMIN_TOUR_DETAIL: (id: string | number = ':id') => `/admin/tours/${id}`,
   CATEGORY_MANAGEMENT: '/admin/categories',
+  TICKET_TYPE_MANAGEMENT: '/admin/ticket-types',
   SYSTEM_VOUCHERS: '/admin/vouchers',
   CREATE_ADMIN_VOUCHER: '/admin/vouchers/create',
   ADMIN_VOUCHER_DETAIL: (id: string | number = ':id') => `/admin/vouchers/${id}`,

@@ -14,6 +14,12 @@ export interface Tour {
   city?: string | null;
   address?: string | null;
   averageStar? : number | null;
+  createdBy: number;
+  createdByName?: string | null;
+  updatedBy?: number | null;
+  updatedByName?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
   tourItineraries?: TourItinerary[];
   tourSchedules?: TourSchedule[];
   reviews? : ReadReviewDTO[];

@@ -25,6 +25,9 @@ import ForgotPassword from "./features/auth/pages/ForgotPassword";
 import ResetPassword from "./features/auth/pages/ResetPassword";
 import ChangePassword from "./features/auth/pages/ChangePassword";
 import { Profile } from "./features/auth/pages/Profile";
+import { FriendsManagement } from "./features/social/friends/pages/FriendsManagement";
+import { MomentsFeed } from "./features/social/moments/components/MomentsFeed";
+import { SocialProfile } from "./features/social/profile/pages/SocialProfile";
 
 // Components dành cho Quản lý User (Admin)
 import UserList from "./features/auth/pages/UserList";
@@ -218,13 +221,13 @@ const App: React.FC = () => {
                   path={PATH.CUSTOMER.CHECKOUT()}
                   element={mock("Checkout", "Booking")}
                 />
-                <Route
+                {/* <Route
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
-                />
+                /> */}
                 <Route
                   path="/social/profile/:id"
-                  element={mock("Social Profile", "Social")}
+                  element={<SocialProfile />}
                 />
 
                 {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
@@ -260,8 +263,12 @@ const App: React.FC = () => {
                       element={mock("Notifications", "Customer")}
                     />
                     <Route
+                  path={PATH.CUSTOMER.SOCIAL_MOMENTS}
+                  element={<MomentsFeed scheduleId={1} />}
+                />
+                    <Route
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                      element={mock("Friends", "Social")}
+                      element={<FriendsManagement />}
                     />
                   </Route>
                 </Route>

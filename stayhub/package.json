@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@greatsumini/react-facebook-login": "^3.3.3",
+    "@microsoft/signalr": "^10.0.0",
+    "@react-google-maps/api": "^2.20.8",
     "@react-oauth/google": "^0.12.1",
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-query": "^5.66.0",
@@ -19,7 +21,9 @@
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1",
-    "tailwindcss": "^4.3.0"
+    "react-webcam": "^7.2.0",
+    "tailwindcss": "^4.3.0",
+    "use-supercluster": "^1.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

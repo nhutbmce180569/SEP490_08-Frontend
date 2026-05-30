@@ -19,6 +19,7 @@ import { ActionButton } from "../components/home/ActionButton";
 import { TourCard, type TourCardProps } from "../components/home/TourCard";
 import { usePublicTours } from "../hooks/usePublicTours";
 import type { Tour } from "../features/tour/types/tour";
+import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
 import { getImg } from "../config/api/api";
 import { useActiveBanners } from "../features/content/hooks/useActiveBanners";
 import type { ReadBannerDTO } from "../features/content/types/banner";
@@ -26,6 +27,16 @@ import { PATH } from "../config/routes/route";
 
 const getFreeApiImage = (seed: string, width: number, height: number) =>
   `https://picsum.photos/seed/${seed}/${width}/${height}`;
+
+const getTourLowestTicketPrice = (tour: Tour) => {
+  const prices =
+    tour.tourSchedules
+      ?.flatMap((schedule) => schedule.tourScheduleTickets ?? [])
+      .map((ticket) => getNumberValue(ticket.price))
+      .filter((price): price is number => price !== null) ?? [];
+
+  return prices.length > 0 ? Math.min(...prices) : null;
+};
 
 
 
@@ -510,8 +521,7 @@ const FeaturedTourSection = () => {
   if (error || !tours || tours.length === 0) return null;
 
   const tour = tours[currentIndex];
-  const prices = tour.tourSchedules?.map((s: any) => s.price) || [];
-  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const minPrice = getTourLowestTicketPrice(tour);
   const duration = tour.tourItineraries?.length
     ? `${tour.tourItineraries.length} day${tour.tourItineraries.length > 1 ? "s" : ""}`
     : "Flexible";
@@ -598,8 +608,8 @@ const FeaturedTourSection = () => {
                   className="text-3xl font-black text-white"
                   style={{ fontFamily: "'Sora', sans-serif" }}
                 >
-                  {minPrice > 0
-                    ? `${minPrice.toLocaleString("vi-VN")} ₫`
+                  {minPrice !== null
+                    ? `${minPrice.toLocaleString("vi-VN")} đ`
                     : "Contact us"}
                 </div>
               </div>
@@ -626,7 +636,7 @@ const FeaturedTourSection = () => {
               <ChevronLeft size={20} />
             </ActionButton>
             <div className="flex gap-1.5 px-3">
-              {tours.map((_: any, i: number) => (
+              {tours.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentIndex(i)}
@@ -664,8 +674,7 @@ const PopularToursSection = () => {
   const navigate = useNavigate();
 
   const toTourCardProps = (tour: Tour): TourCardProps => {
-    const prices = tour.tourSchedules?.map((s: any) => s.price) || [];
-    const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+    const minPrice = getTourLowestTicketPrice(tour);
     return {
       id: tour.id,
       title: tour.name,

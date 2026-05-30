@@ -69,6 +69,7 @@ import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
+import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -215,10 +216,7 @@ const App: React.FC = () => {
 
               <Route element={<MainLayout />}>
                 <Route path={PATH.PUBLIC.HOME} element={<Home />} />
-                <Route
-                  path={PATH.PUBLIC.TOURS}
-                  element={<TourSearch />}
-                />
+                <Route path={PATH.PUBLIC.TOURS} element={<TourSearch />} />
                 <Route
                   path={PATH.PUBLIC.TOUR_SEARCH}
                   element={<TourSearch />}
@@ -235,10 +233,7 @@ const App: React.FC = () => {
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
                 /> */}
-                <Route
-                  path="/social/profile/:id"
-                  element={<SocialProfile />}
-                />
+                <Route path="/social/profile/:id" element={<SocialProfile />} />
 
                 {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                 <Route element={<ProtectedRoute />}>
@@ -272,8 +267,10 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.NOTIFICATIONS}
                       element={mock("Notifications", "Customer")}
                     />
-                    <Route path="/social/moments" 
-                    element={<MomentsFeed scheduleId={1} />} />
+                    <Route
+                      path="/social/moments"
+                      element={<MomentsFeed scheduleId={1} />}
+                    />
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
@@ -349,7 +346,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
-                    element={<UpdateScheduleItinerary/>}
+                    element={<UpdateScheduleItinerary />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
@@ -407,7 +404,7 @@ const App: React.FC = () => {
                   </Route>
                   <Route
                     path={childPath(PATH.MANAGER.REVIEWS)}
-                    element={mock("Reviews", "Partner")}
+                    element={<DashboardReviewManager />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.PAYOUT)}

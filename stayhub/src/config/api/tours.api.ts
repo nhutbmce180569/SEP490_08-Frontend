@@ -26,11 +26,16 @@ export const TOURS_API = {
     `${FULL_API}/TourScheduleItineraries/schedule/${scheduleId}`,
   TOUR_SCHEDULE_STAFFS: `${FULL_API}/TourScheduleStaffs`,
   TOUR_SCHEDULE_TICKETS: `${FULL_API}/TourScheduleTickets`,
-  GET_TICKETS_BY_SCHEDULE: (scheduleId: string | number) => `${FULL_API}/TourScheduleTickets/schedule/${scheduleId}`,
-  GET_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}`,
-  UPDATE_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}`,
-  ACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}/activate`,
-  DEACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}/deactivate`,
+  GET_TICKETS_BY_SCHEDULE: (scheduleId: string | number) =>
+    `${FULL_API}/TourScheduleTickets/schedule/${scheduleId}`,
+  GET_TOUR_SCHEDULE_TICKET: (id: string | number) =>
+    `${FULL_API}/TourScheduleTickets/${id}`,
+  UPDATE_TOUR_SCHEDULE_TICKET: (id: string | number) =>
+    `${FULL_API}/TourScheduleTickets/${id}`,
+  ACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) =>
+    `${FULL_API}/TourScheduleTickets/${id}/activate`,
+  DEACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) =>
+    `${FULL_API}/TourScheduleTickets/${id}/deactivate`,
   SCHEDULES: `${FULL_API}/TourSchedules`,
   GET_SCHEDULE_BY_OPERATOR: `${FULL_API}/TourSchedules/operator`,
   // Schedules
@@ -55,9 +60,21 @@ export const TOURS_API = {
 
   GET_REVIEWS_BY_TOUR: (tourId: string | number) =>
     `${FULL_API}/reviews/tour/${tourId}`,
+  // Cập nhật vào danh sách API
+  GET_REVIEWS_BY_TOUR_ADMIN: (tourId: string | number) =>
+    `${FULL_API}/reviews/tour/${tourId}/admin`,
   GET_MY_REVIEW_BY_TOUR: (tourId: string | number) =>
     `${FULL_API}/reviews/tour/${tourId}/mine`,
   GET_MY_REVIEWS: `${FULL_API}/reviews/mine`,
   CREATE_REVIEW: `${FULL_API}/reviews`,
   UPDATE_REVIEW: (id: string | number) => `${FULL_API}/reviews/${id}`,
+
+  CREATE_REVIEW_REPLY: (reviewId: string | number) =>
+    `${FULL_API}/reviews/${reviewId}/replies`,
+  UPDATE_REVIEW_REPLY: (replyId: string | number) =>
+    `${FULL_API}/reviews/replies/${replyId}`,
+  DELETE_REVIEW_REPLY: (replyId: string | number) =>
+    `${FULL_API}/reviews/replies/${replyId}`,
+  HIDE_REVIEW: (reviewId: string | number, hidden: boolean) =>
+    `${FULL_API}/reviews/${reviewId}/hide?hidden=${hidden}`,
 };

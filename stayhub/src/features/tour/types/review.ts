@@ -19,6 +19,7 @@ export interface Review {
   comment?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  isHidden?: boolean;
   replies?: ReadReviewReply[] | null;
 }
 
@@ -35,4 +36,22 @@ export interface UpdateReviewRequest {
   customerId: number;
   rating: number; // Yêu cầu từ 1-5
   comment: string; // Bắt buộc ở BE (không được null)
+}
+
+
+export interface ReadReviewReply {
+  id: number;
+  reviewId: number;
+  content: string;
+  repliedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateReviewReplyRequest {
+  content: string;
+}
+
+export interface UpdateReviewReplyRequest {
+  content: string;
 }

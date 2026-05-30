@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { reviewService } from "../services/review.service";
 import type { Review, CreateReviewRequest, UpdateReviewRequest } from "../types/review";
+import axios from "axios";
+import { TOURS_API } from "../../../config/api/tours.api";
 
 export const useReview = () => {
   // States lưu trữ dữ liệu
@@ -100,21 +102,140 @@ export const useReview = () => {
     }
   };
 
+  // ==========================================
+  // MANAGER / STAFF ACTIONS
+  // ==========================================
+
+  const replyToReview = async (reviewId: number, content: string) => {
+    setIsLoading(true);
+    try {
+      const newReply = await reviewService.createReply(reviewId, { content });
+      setReviews((prev) =>
+        prev.map((r) => {
+          if (r.id === reviewId) {
+            return { ...r, replies: [...(r.replies || []), newReply] };
+          }
+          return r;
+        })
+      );
+      return newReply;
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || "Lỗi khi gửi phản hồi.";
+      throw new Error(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const editReply = async (reviewId: number, replyId: number, content: string) => {
+    setIsLoading(true);
+    try {
+      const updatedReply = await reviewService.updateReply(replyId, { content });
+      setReviews((prev) =>
+        prev.map((r) => {
+          if (r.id === reviewId) {
+            return {
+              ...r,
+              replies: r.replies?.map((rep) => (rep.id === replyId ? updatedReply : rep)),
+            };
+          }
+          return r;
+        })
+      );
+      return updatedReply;
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || "Lỗi khi sửa phản hồi.";
+      throw new Error(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const removeReply = async (reviewId: number, replyId: number) => {
+    setIsLoading(true);
+    try {
+      await reviewService.deleteReply(replyId);
+      
+      // Lọc bỏ cái reply vừa bị xóa ra khỏi UI
+      setReviews((prev) =>
+        prev.map((r) => {
+          if (r.id === reviewId) {
+            return {
+              ...r,
+              replies: r.replies?.filter((rep) => rep.id !== replyId),
+            };
+          }
+          return r;
+        })
+      );
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || "Lỗi khi xóa phản hồi.";
+      throw new Error(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleHideReview = async (reviewId: number, isHidden: boolean) => {
+    setIsLoading(true);
+    try {
+      await reviewService.hideReview(reviewId, isHidden);
+      
+      // Cập nhật lại trạng thái isHidden trên UI (Nếu Type Review của bạn chưa có isHidden thì nhớ bổ sung nhé)
+      setReviews((prev) =>
+        prev.map((r) => (r.id === reviewId ? { ...r, isHidden } : r))
+      );
+    } catch (err: any) {
+      const errMsg = err?.response?.data?.message || "Lỗi khi thay đổi trạng thái ẩn/hiện.";
+      throw new Error(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchReviewsForAdmin = useCallback(async (tourId: number) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("accessToken"); 
+      const response = await axios.get(
+        TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId), 
+        {
+          headers: {
+            Authorization: `Bearer ${token}` 
+          }
+        }
+      );
+      
+      setReviews(response.data);
+      return response.data;
+    } catch (err: any) {
+      console.error("Lỗi khi lấy review cho Admin", err);
+      setError(err?.response?.data?.message || "Lỗi khi lấy danh sách đánh giá.");
+      setReviews([]); 
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   return {
     // Data
     reviews,
     myReview,
     myAllReviews,
-    
     // Status
     isLoading,
     error,
-    
     // Actions
     fetchReviewsByTour,
     fetchMyReviewForTour,
     fetchAllMyReviews,
     submitReview,
     editReview,
+    replyToReview,
+    editReply,
+    removeReply,
+    toggleHideReview,
+    fetchReviewsForAdmin,
   };
 };

@@ -1,10 +1,13 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { GoogleMap, OverlayView, useJsApiLoader, Polygon } from "@react-google-maps/api";
 import useSupercluster from "use-supercluster";
-import { Users, X, Camera } from "lucide-react";
+import { Users, X, Camera, Layers, Navigation } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints } from "../hooks/useMoments"; 
 import { MomentCard } from "./MomentCard"; 
+import * as signalR from '@microsoft/signalr';
+import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
+import { locationService } from "../../locations/services/locationService";
 
 interface MomentsMapFeedProps {
   scheduleId: number;
@@ -31,12 +34,89 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [zoom, setZoom] = useState<number>(12);
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [center, setCenter] = useState(defaultCenter);
-
   const [activeClusterMoments, setActiveClusterMoments] = useState<Moment[] | null>(null);
+
+  // Giai đoạn 2: State quản lý Lớp (Layers) và Menu
+  const [showMoments, setShowMoments] = useState(true);
+  const [showLiveLocations, setShowLiveLocations] = useState(true); // State được thêm theo yêu cầu, nhưng chưa có nguồn dữ liệu riêng cho "Vị trí live"
+  const [showFootprints, setShowFootprints] = useState(false);
+  const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
+  const [friendLocations, setFriendLocations] = useState<any[]>([]);
+  const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
+
+  // Hook 1: Initial Load & SignalR Real-time
+  useEffect(() => {
+    if (!showLiveLocations) return;
+
+    let connection: signalR.HubConnection;
+
+    const initLocationService = async () => {
+      try {
+        const initialFriends = await locationService.getLiveFriends();
+        setFriendLocations(initialFriends?.data || initialFriends || []);
+      } catch (err) {
+        console.error("Lỗi lấy danh sách bạn bè live:", err);
+      }
+
+      const token = localStorage.getItem("accessToken");
+      if (!token) return;
+
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${SIGNALR_HUB_BASE}/friendship`, {
+          accessTokenFactory: () => token,
+        })
+        .withAutomaticReconnect()
+        .build();
+
+      connection
+        .start()
+        .then(() => {
+          connection.on("ReceiveFriendLocation", (data: any) => {
+            setFriendLocations((prev) => {
+              const index = prev.findIndex((f) => f.userId === data.userId);
+              if (index !== -1) {
+                const newFriends = [...prev];
+                newFriends[index] = { ...newFriends[index], lat: data.lat, lng: data.lng, lastUpdated: data.lastUpdated };
+                return newFriends;
+              }
+              return [...prev, data];
+            });
+          });
+        })
+        .catch((err) => console.error("Error connecting to SignalR:", err));
+    };
+
+    initLocationService();
+
+    return () => {
+      if (connection) connection.stop();
+    };
+  }, [showLiveLocations]);
+
+  // Hook 2: Ping GPS của chính mình lên Server
+  useEffect(() => {
+    if ("geolocation" in navigator) {
+      const watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          locationService.pingLocation(latitude, longitude, scheduleId)
+            .then(() => setLastPingTime(new Date()))
+            .catch((err) => console.error("Lỗi ping vị trí:", err));
+        },
+        (err) => console.warn("Lỗi lấy vị trí GPS:", err),
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      );
+      return () => navigator.geolocation.clearWatch(watchId);
+    }
+  }, [scheduleId]);
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
   }, []);
+
+  const handleMapClick = () => {
+    if (isLayerMenuOpen) setIsLayerMenuOpen(false);
+  };
 
   const onMapIdle = useCallback(() => {
     if (mapRef.current) {
@@ -157,6 +237,20 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     );
   }
 
+  function handleJumpToNewest(event: React.MouseEvent<HTMLButtonElement>): void {
+    event.stopPropagation();
+    if (points.length > 0 && mapRef.current) {
+      const [longitude, latitude] = points[0].geometry.coordinates;
+      const newCenter = {
+        lat: latitude,
+        lng: longitude,
+      };
+      setCenter(newCenter);
+      mapRef.current.panTo(newCenter);
+      mapRef.current.setZoom(16);
+    }
+  }
+
   return (
     <div className="relative w-full h-[80vh] overflow-hidden rounded-3xl shadow-xl border border-slate-200 bg-slate-100">
       <GoogleMap
@@ -166,23 +260,29 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         onLoad={onMapLoad}
         onIdle={onMapIdle}
         options={{
-          disableDefaultUI: true, 
-          zoomControl: true, 
-          clickableIcons: false, 
+          disableDefaultUI: true,
+          zoomControl: true,
+          clickableIcons: false,
         }}
+        onClick={handleMapClick}
       >
-        {/* ✨ MÀNG SƯƠNG MÙ VÀ LỖ THỦNG LỤC GIÁC */}
-        <Polygon
-          paths={fogPaths}
-          options={{
-            fillColor: "#a3b1c6", // Màu xám sương mù
-            fillOpacity: 0.35,    // Độ che phủ 35%
-            strokeOpacity: 0,     // Ẩn đường viền
-            clickable: false,
-          }}
-        />
+        {/* Lớp "Dấu chân" (Fog of War) - Render có điều kiện */}
+        {showFootprints && (
+          <Polygon
+            paths={fogPaths}
+            options={{
+              fillColor: "#a3b1c6", // Màu xám sương mù
+              fillOpacity: 0.35,    // Độ che phủ 35%
+              strokeOpacity: 0,     // Ẩn đường viền
+              clickable: false,
+            }}
+          />
+        )}
 
-        {clusters.map((cluster) => {
+        {/* Lớp "Khoảnh khắc" & "Vị trí" (Markers & Clusters) - Render có điều kiện */}
+        {/* Hiện tại, cả "Khoảnh khắc" và "Vị trí bạn bè" đều dùng chung nguồn dữ liệu `moments`.
+            Logic render sẽ dựa vào `showMoments` để tránh xung đột. `showLiveLocations` đã có sẵn để tích hợp trong tương lai. */}
+        {showMoments && clusters.map((cluster) => {
           const [longitude, latitude] = cluster.geometry.coordinates;
           const { cluster: isCluster, point_count: pointCount, momentId, avatarUrl, userFullName } = cluster.properties;
 
@@ -245,7 +345,85 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             </OverlayView>
           );
         })}
+
+        {/* Lớp Marker Avatar Bạn bè (Real-time Location) */}
+        {showLiveLocations && friendLocations.map((friend: any) => (
+          <OverlayView key={`friend-${friend.userId}`} position={{ lat: friend.lat, lng: friend.lng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
+            <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
+              <div className="w-12 h-12 rounded-full border-4 border-[#EB662B] overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
+                {friend.avatarUrl ? (
+                  <img src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[#EB662B] font-bold text-lg">{friend.fullName?.charAt(0)}</div>
+                )}
+              </div>
+              <span className="absolute top-full mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
+                {friend.fullName}
+              </span>
+            </div>
+          </OverlayView>
+        ))}
       </GoogleMap>
+
+      {/* Giai đoạn 2: Menu "Lớp hiển thị" */}
+      <div className="absolute top-4 right-4 z-20">
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLayerMenuOpen(!isLayerMenuOpen);
+            }}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition-all hover:scale-110 hover:text-[#EB662B] focus:outline-none focus:ring-2 focus:ring-[#EB662B] focus:ring-offset-2"
+            aria-label="Toggle Layers"
+          >
+            <Layers className="h-6 w-6" />
+          </button>
+          
+          {isLayerMenuOpen && (
+            <div 
+              className="absolute top-full right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/90 backdrop-blur-md p-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none animate-fade-in-down"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="py-1">
+                <div onClick={() => setShowMoments(!showMoments)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
+                  <span className="text-sm font-medium text-slate-800">Khoảnh khắc</span>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showMoments ? 'bg-[#EB662B]' : 'bg-slate-300'}`}>
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showMoments ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+                <div onClick={() => setShowLiveLocations(!showLiveLocations)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-slate-800">Vị trí bạn bè</span>
+                    {showLiveLocations && lastPingTime && (
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                        <span className="text-[10px] text-slate-500 font-medium leading-none">Cập nhật: {lastPingTime.toLocaleTimeString('vi-VN', { hour12: false })}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showLiveLocations ? 'bg-[#EB662B]' : 'bg-slate-300'}`}>
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showLiveLocations ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+                <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
+                  <span className="text-sm font-medium text-slate-800">Dấu chân</span>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showFootprints ? 'bg-[#EB662B]' : 'bg-slate-300'}`}>
+                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showFootprints ? 'translate-x-5' : 'translate-x-0'}`} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Giai đoạn 2: Nút "Đến ảnh mới nhất" */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
+        <button onClick={handleJumpToNewest} className="flex items-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-lg ring-1 ring-slate-900/5 transition-all hover:scale-105 hover:bg-slate-50 active:scale-95">
+          <Navigation className="h-4 w-4 text-[#EB662B]" />
+          Ảnh mới nhất
+        </button>
+      </div>
 
       {activeClusterMoments && (
         <div className="absolute inset-0 z-30 h-full w-full bg-white/5 backdrop-blur-sm flex flex-col animate-slide-up">

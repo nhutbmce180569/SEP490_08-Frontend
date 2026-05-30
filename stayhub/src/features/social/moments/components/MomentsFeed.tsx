@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useContext, useEffect, useCallback } from "react";
-import { Camera } from "lucide-react";
+import { Camera, LayoutList, Map, Globe, Users, Lock } from "lucide-react";
 import { useInfiniteMomentFeed, useToggleReaction } from "../hooks/useMoments"; 
 import { CreateMomentForm } from "./CreateMomentForm";
 import { MomentsMapFeed } from "./MomentsMapFeed";
@@ -19,6 +19,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
+  const [viewMode, setViewMode] = useState<'feed' | 'map'>('feed');
 
   const moments = useMemo(() => data?.pages.flat() || [], [data]);
 
@@ -69,29 +70,112 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
     });
   }, [selectedMoment, user, currentUserId, isLiked, toggleReaction, initialLikeCount, warning, error]);
 
+  const renderPrivacyBadge = (privacy: string) => {
+    switch (privacy?.toLowerCase()) {
+      case 'private':
+        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Lock className="h-3 w-3" /> Private</div>;
+      case 'friend':
+      case 'friends':
+        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Users className="h-3 w-3" /> Friend</div>;
+      default:
+        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Globe className="h-3 w-3" /> Public</div>;
+    }
+  };
+
   return (
-    <div className="relative w-full h-[80vh] bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
-      {isLoading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-100/50 backdrop-blur-sm">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#EB662B]"></div>
+    <div className="relative w-full h-[80vh] flex flex-col bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
+      {/* Header Toggle UI */}
+      <div className="relative z-30 flex-none bg-slate-900/80 p-4 backdrop-blur-md flex justify-center border-b border-slate-800">
+        <div className="flex items-center rounded-xl bg-slate-800 p-1 shadow-inner">
+          <button
+            onClick={() => setViewMode('feed')}
+            className={`flex items-center gap-2 rounded-lg px-6 py-2 text-sm font-bold transition-all duration-300 ${
+              viewMode === 'feed'
+                ? 'bg-[#EB662B] text-white shadow-md'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+            }`}
+          >
+            <LayoutList className="h-4 w-4" /> Feed
+          </button>
+          <button
+            onClick={() => setViewMode('map')}
+            className={`flex items-center gap-2 rounded-lg px-6 py-2 text-sm font-bold transition-all duration-300 ${
+              viewMode === 'map'
+                ? 'bg-[#EB662B] text-white shadow-md'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+            }`}
+          >
+            <Map className="h-4 w-4" /> Map
+          </button>
         </div>
-      )}
+      </div>
 
-      {isError && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-100/50 backdrop-blur-sm p-4">
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center text-sm font-medium text-rose-600 shadow-lg">
-            The map cannot be loaded at this time. Please try again later.
+      {/* Main Content Area */}
+      <div className="relative flex-1 overflow-hidden">
+        {isLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-[#EB662B]"></div>
           </div>
-        </div>
-      )}
+        )}
 
-      <MomentsMapFeed scheduleId={scheduleId} onMarkerClick={setSelectedMomentId} />
+        {isError && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+            <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-center text-sm font-medium text-rose-400 shadow-lg backdrop-blur-md">
+              The data cannot be loaded at this time. Please try again later.
+            </div>
+          </div>
+        )}
+
+        {viewMode === 'feed' ? (
+          <div className="h-full w-full overflow-y-auto p-4 custom-scrollbar">
+            {moments.length === 0 && !isLoading && !isError ? (
+              <div className="flex h-full flex-col items-center justify-center pb-20 text-center">
+                <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-800 shadow-inner">
+                  <Camera className="h-10 w-10 text-slate-500" />
+                </div>
+                <p className="text-sm font-semibold text-slate-400">
+                  Chưa có khoảnh khắc nào. Hãy là người đầu tiên chia sẻ!
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-24">
+                {moments.map((moment: any) => (
+                  <div
+                    key={moment.id || moment.Id}
+                    onClick={() => setSelectedMomentId(moment.id || moment.Id)}
+                    className="group relative overflow-hidden rounded-xl cursor-pointer bg-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+                  >
+                    <img
+                      src={moment.imageUrl || moment.ImageUrl}
+                      alt={moment.caption || "Travel moment"}
+                      className="h-full w-full object-cover aspect-[4/5] transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <div className="absolute right-3 top-3 z-10">
+                      {renderPrivacyBadge(moment.privacy || moment.Privacy)}
+                    </div>
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-4 pt-12 transition-opacity">
+                      <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm">
+                        {moment.caption || moment.Caption || ""}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="h-full w-full">
+            <MomentsMapFeed scheduleId={scheduleId} onMarkerClick={setSelectedMomentId} />
+          </div>
+        )}
+      </div>
 
       {/* FAB - Camera Button */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40">
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="group relative flex items-center justify-center w-16 h-16 bg-[#EB662B] text-white !rounded-full overflow-hidden shadow-[0_8px_32px_rgba(235,102,43,0.5)] border-4 border-white transition-all duration-300 hover:scale-110 active:scale-95"
+          className="group relative flex items-center justify-center w-16 h-16 bg-[#EB662B] text-white !rounded-full overflow-hidden shadow-[0_8px_32px_rgba(235,102,43,0.5)] border-4 border-slate-900 transition-all duration-300 hover:scale-110 active:scale-95"
         >
           <Camera className="w-7 h-7" />
           {/* Zenly style ping effect */}

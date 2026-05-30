@@ -1,4 +1,4 @@
-import type { ReadReviewDTO } from "../../review/types/review";
+import type { Review } from "../types/review";
 import type { TourItinerary } from "./tourItinerary";
 import type { TourSchedule } from "./tourSchedule";
 
@@ -22,7 +22,7 @@ export interface Tour {
   updatedAt?: string | null;
   tourItineraries?: TourItinerary[];
   tourSchedules?: TourSchedule[];
-  reviews? : ReadReviewDTO[];
+  reviews? : Review[];
 }
 export interface TourBasic {
   id: number;

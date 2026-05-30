@@ -264,6 +264,7 @@ export default function PublicTourDetail() {
           tourScheduleTickets: selectedCheckoutTickets,
         }
       : null;
+  
   const displayImageUrl = tour?.imageUrl || "";
   const displayName = tour?.name || "Loading details...";
   const availablePrices = availableSchedules
@@ -278,8 +279,16 @@ export default function PublicTourDetail() {
       : allPrices.length > 0
         ? Math.min(...allPrices)
         : null;
+
+  // 💥 BỘ LỌC REVIEW: Chỉ lấy những Review không bị ẩn
+  const visibleReviews = (tour?.reviews || []).filter((review) => {
+    const isHiddenValue = review.isHidden ?? (review as any).IsHidden;
+    return isHiddenValue !== true && isHiddenValue !== 1 && isHiddenValue !== "true";
+  });
+
   const rating = tour?.averageStar || 0;
-  const reviews = tour?.reviews?.length || 0;
+  // 💥 Số lượng review bây giờ sẽ dựa vào mảng đã lọc
+  const reviews = visibleReviews.length; 
   const days = tour?.tourItineraries?.length || 0;
 
   /* Loading */
@@ -693,10 +702,11 @@ export default function PublicTourDetail() {
                 </div>
                 <div className="flex-1 space-y-2">
                   {[5, 4, 3, 2, 1].map((star) => {
+                    // 💥 Tính số lượng cho từng mốc sao dựa trên mảng visibleReviews
                     const count =
-                      tour.reviews?.filter(
+                      visibleReviews.filter(
                         (r) => Math.round(r.rating || 0) === star,
-                      ).length || 0;
+                      ).length;
                     const pct = reviews > 0 ? (count / reviews) * 100 : 0;
                     return (
                       <div
@@ -724,8 +734,9 @@ export default function PublicTourDetail() {
 
               {/* Review list */}
               <div className="space-y-6">
-                {tour.reviews && tour.reviews.length > 0 ? (
-                  tour.reviews.map((review) => {
+                {/* 💥 Lặp qua mảng visibleReviews thay vì tour.reviews */}
+                {visibleReviews.length > 0 ? (
+                  visibleReviews.map((review) => {
                     const reviewerName = review.customerName || "Anonymous";
                     const initials =
                       reviewerName

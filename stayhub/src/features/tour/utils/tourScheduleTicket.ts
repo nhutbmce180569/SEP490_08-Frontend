@@ -48,10 +48,14 @@ export const buildScheduleTicketPayload = (
   ticketTypeId: number,
   price: number,
   quantity: number,
+  isActive: boolean = true,
+  note?: string | null,
 ) => ({
   scheduleId,
   tourScheduleId: scheduleId,
   ticketTypeId,
   price,
   quantity,
+  isActive,
+  note: note?.trim() ? note.trim() : null,
 });

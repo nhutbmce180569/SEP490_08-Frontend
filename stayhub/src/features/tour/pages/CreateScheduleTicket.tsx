@@ -25,6 +25,8 @@ export const CreateScheduleTicket: React.FC = () => {
   const [ticketTypeId, setTicketTypeId] = React.useState("");
   const [price, setPrice] = React.useState("");
   const [quantity, setQuantity] = React.useState("");
+  const [isActive, setIsActive] = React.useState(true);
+  const [note, setNote] = React.useState("");
   const [isLoadingTicketTypes, setIsLoadingTicketTypes] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -102,6 +104,8 @@ export const CreateScheduleTicket: React.FC = () => {
           parsedTicketTypeId,
           parsedPrice,
           parsedQuantity,
+          isActive,
+          note,
         ),
       );
       success("Schedule ticket created successfully.");
@@ -263,6 +267,34 @@ export const CreateScheduleTicket: React.FC = () => {
               </div>
             </div>
           </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Note
+            </label>
+            <textarea
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              rows={3}
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+              placeholder="Optional internal note for this schedule ticket"
+            />
+          </div>
+
+          <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <div>
+              <div className="text-sm font-semibold text-slate-800">Active</div>
+              <div className="text-xs font-medium text-slate-500">
+                Active tickets are visible to customers and can be booked.
+              </div>
+            </div>
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(event) => setIsActive(event.target.checked)}
+              className="h-5 w-5 rounded border-slate-300 text-[#4880ff] focus:ring-[#4880ff]"
+            />
+          </label>
         </div>
       </form>
 

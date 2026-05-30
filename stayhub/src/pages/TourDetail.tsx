@@ -49,7 +49,8 @@ const fmtDate = (d: string) =>
     year: "numeric",
   });
 
-const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
+const getScheduleTickets = (schedule: TourSchedule) =>
+  (schedule.tourScheduleTickets ?? []).filter((ticket) => ticket.isActive !== false);
 
 const getScheduleLowestPrice = (schedule: TourSchedule) => {
   const prices = getScheduleTickets(schedule)

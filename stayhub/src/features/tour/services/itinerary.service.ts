@@ -1,5 +1,5 @@
 import { TOURS_API } from "../../../config/api/tours.api";
-import { type CreateItineraryRequest, type UpdateItineraryRequest, type TourItinerary } from "../types/tourItinerary";
+import { type CreateItineraryBatchRequest, type CreateItineraryRequest, type UpdateItineraryRequest, type TourItinerary } from "../types/tourItinerary";
 import { apiClient } from "../../../utils/axiosClient";
 
 const ITINERARY_API = TOURS_API.ITINERARIES;
@@ -16,7 +16,7 @@ export const createItinerary = async (data: CreateItineraryRequest) => {
 };
 
 // POST: api/TourItineraries/batch
-export const createItineraryBatch = async (data: { itineraries: any[] }) => {
+export const createItineraryBatch = async (data: CreateItineraryBatchRequest) => {
   const response = await apiClient.post(TOURS_API.BATCH_ITINERARIES, data);
   return response;
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Calendar,
   Type,
@@ -18,6 +18,9 @@ import { useCreateScheduleItinerary } from "../hooks/useCreateScheduleItinerary"
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
 import { useToast } from "../../../contexts/ToastContext";
+import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import type { TourismInformation } from "../../content/types/tourismInformation";
 
 export const CreateScheduleItinerary: React.FC = () => {
   const {
@@ -30,6 +33,7 @@ export const CreateScheduleItinerary: React.FC = () => {
     serverErrors,
     itineraries,
     missingDayNumbers,
+    cloneableDayNumbers,
     handleAddItinerary,
     handleRemoveItinerary,
     updateItinerary,
@@ -42,10 +46,18 @@ export const CreateScheduleItinerary: React.FC = () => {
     isTourLoading,
   } = useCreateScheduleItinerary();
   const { error: showError } = useToast();
+  const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
 
   // --- STATE CHO MAP PICKER ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [pickingIndex, setPickingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    tourismInformationService
+      .getActiveList()
+      .then(setTourismInformationList)
+      .catch(() => setTourismInformationList([]));
+  }, []);
 
   const openMapModal = (index: number) => {
     setPickingIndex(index);
@@ -63,6 +75,19 @@ export const CreateScheduleItinerary: React.FC = () => {
       }
       patchItinerary(pickingIndex, patch);
     }
+  };
+
+  const handleChangeTourismInfo = (index: number, selectedTourismInfo: TourismInformation | null) => {
+    patchItinerary(index, {
+      tourismInfoId: selectedTourismInfo?.id ?? null,
+      ...(selectedTourismInfo
+        ? {
+            locationName: selectedTourismInfo.address || selectedTourismInfo.name,
+            locationLat: selectedTourismInfo.latitude ?? undefined,
+            locationLng: selectedTourismInfo.longitude ?? undefined,
+          }
+        : {}),
+    });
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -179,7 +204,7 @@ export const CreateScheduleItinerary: React.FC = () => {
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
               Create multiple itinerary items for Schedule #{scheduleId}
-              {schedule ? ` (Tour: ${schedule.tour.name})` : ""}
+              {schedule ? ` (Tour: ${schedule.tour?.name || `ID ${schedule.tourId}`})` : ""}
             </p>
           </div>
           <div className="flex w-4/12 shrink-0 justify-end gap-3">
@@ -233,7 +258,8 @@ export const CreateScheduleItinerary: React.FC = () => {
           </ActionButton>
         )}
         {itineraries.map((iti, index) => {
-          const currentDayNumber = iti.dayNumber;
+          const currentDayNumber = Number(iti.dayNumber);
+          const canCloneCurrentDay = cloneableDayNumbers.includes(currentDayNumber);
 
           const existsInDb = schedule?.tourScheduleItineraries?.some((i: any) => Number(i.dayNumber) === Number(currentDayNumber));
           const isFirstInForm = itineraries.findIndex((i) => Number(i.dayNumber) === Number(currentDayNumber)) === index;
@@ -268,7 +294,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                     <label className="text-[15px] font-bold text-slate-900">Day</label>
                     <input type="number" min="1" required value={iti.dayNumber} onChange={(e) => updateItinerary(index, "dayNumber", e.target.value)} className="w-16 rounded-md border border-slate-200 px-2 py-1 text-center font-bold text-slate-900 focus:border-indigo-500 focus:outline-none" />
                   </div>
-                  {missingDayNumbers.includes(currentDayNumber) && (
+                  {canCloneCurrentDay && (
                     <ActionButton
                       type="button"
                       variant="secondary"
@@ -439,6 +465,18 @@ export const CreateScheduleItinerary: React.FC = () => {
                   </div>
 
                   <div className="grid gap-6 sm:grid-cols-2 sm:col-span-2">
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                        Tourism Info
+                      </label>
+                      <TourismInformationSelector
+                        items={tourismInformationList}
+                        value={iti.tourismInfoId ?? null}
+                        onChange={(item) => handleChangeTourismInfo(index, item)}
+                        error={getError(index, "tourismInfoId")}
+                      />
+                    </div>
+
                     <div className="sm:col-span-2">
                       <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                         <MapPin className="h-4 w-4 text-emerald-500" /> Location Name

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   User,
+  ExternalLink,
   Loader2, // Import thêm icon Loading
 } from "lucide-react";
 import { useTour } from "../hooks/useTour";
@@ -29,6 +30,8 @@ import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useToast } from "../../../contexts/ToastContext";
 import type { TourSchedule } from "../types/tourSchedule";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import type { TourismInformation } from "../../content/types/tourismInformation";
 
 const getNumberValue = (value?: number | string | null) => {
   if (value === undefined || value === null || value === "") return null;
@@ -90,6 +93,7 @@ export const TourDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { error: showError } = useToast();
+  const [tourismInformationById, setTourismInformationById] = useState<Record<number, TourismInformation>>({});
   
   // 1. Hook lấy chi tiết Tour
   const { tour, categoryName, isLoading, error, isToggling, toggleTourStatus } =
@@ -111,6 +115,47 @@ export const TourDetail: React.FC = () => {
       fetchReviewsByTour(Number(id));
     }
   }, [id, fetchReviewsByTour]);
+
+  useEffect(() => {
+    const tourismInfoIds = Array.from(
+      new Set(
+        (tour?.tourItineraries ?? [])
+          .map((item) => item.tourismInfoId)
+          .filter(
+            (tourismInfoId): tourismInfoId is number =>
+              typeof tourismInfoId === "number" && Number.isFinite(tourismInfoId),
+          ),
+      ),
+    );
+
+    if (tourismInfoIds.length === 0) {
+      setTourismInformationById({});
+      return;
+    }
+
+    let isMounted = true;
+
+    Promise.all(
+      tourismInfoIds.map(async (tourismInfoId) => {
+        const tourismInfo = await tourismInformationService.getById(tourismInfoId);
+        return tourismInfo ? ([tourismInfoId, tourismInfo] as const) : null;
+      }),
+    ).then((entries) => {
+      if (!isMounted) return;
+
+      setTourismInformationById(
+        Object.fromEntries(
+          entries.filter(
+            (entry): entry is readonly [number, TourismInformation] => entry !== null,
+          ),
+        ),
+      );
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tour?.tourItineraries]);
 
   if (isLoading) {
     return (
@@ -324,6 +369,9 @@ export const TourDetail: React.FC = () => {
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Lowest Price
                 </p>
+                <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
+                  {priceText}
+                </p>
               </div>
             </div>
 
@@ -403,6 +451,9 @@ export const TourDetail: React.FC = () => {
                           const timeStr = iti.startDuration && iti.endDuration
                             ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
                             : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                          const tourismInfo = iti.tourismInfoId
+                            ? tourismInformationById[iti.tourismInfoId]
+                            : null;
 
                           return (
                             <div key={iti.id} className="flex flex-col">
@@ -445,6 +496,71 @@ export const TourDetail: React.FC = () => {
                                     <MapPin className="h-4 w-4 text-emerald-500" />
                                     <span>{iti.locationName || "N/A"}</span>
                                   </div>
+                                  {iti.tourismInfoId && (
+                                    <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
+                                      {tourismInfo ? (
+                                        <div className="grid sm:grid-cols-[180px_1fr]">
+                                          <div className="flex min-h-36 items-center justify-center bg-slate-100">
+                                            {tourismInfo.imageUrl ? (
+                                              <img
+                                                src={tourismInfo.imageUrl}
+                                                alt={tourismInfo.name}
+                                                className="h-full min-h-36 w-full object-cover"
+                                              />
+                                            ) : (
+                                              <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                <ImageIcon className="h-8 w-8" />
+                                                <span className="text-xs font-medium">No image</span>
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          <div className="space-y-2 p-4">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <h5 className="font-bold text-slate-900">{tourismInfo.name}</h5>
+                                              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-600">
+                                                {tourismInfo.type}
+                                              </span>
+                                            </div>
+                                            {tourismInfo.description && (
+                                              <p className="text-xs leading-relaxed text-slate-500">
+                                                {tourismInfo.description}
+                                              </p>
+                                            )}
+                                            <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
+                                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                                              <span>
+                                                {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
+                                                  .filter(Boolean)
+                                                  .join(", ") || "N/A"}
+                                              </span>
+                                            </div>
+                                            {(tourismInfo.latitude || tourismInfo.longitude) && (
+                                              <div className="text-xs font-medium text-slate-400">
+                                                Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                              </div>
+                                            )}
+                                            {tourismInfo.sourceUrl && (
+                                              <a
+                                                href={tourismInfo.sourceUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4880ff] hover:text-blue-700"
+                                              >
+                                                {tourismInfo.sourceName || "Source"}
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                              </a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
+                                          <Info className="h-4 w-4 text-indigo-500" />
+                                          Tourism info ID #{iti.tourismInfoId}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>

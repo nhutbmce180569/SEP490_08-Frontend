@@ -10,6 +10,7 @@ export interface TourScheduleItinerary {
   locationName?: string | null;
   locationLat?: number | null;
   locationLng?: number | null;
+  tourismInfoId?: number | null;
 }
 
 export interface CreateTourScheduleItineraryRequest {
@@ -23,6 +24,7 @@ export interface CreateTourScheduleItineraryRequest {
   locationName?: string | null;
   locationLat?: number | null;
   locationLng?: number | null;
+  tourismInfoId?: number | null;
 }
 
 export interface UpdateTourScheduleItineraryRequest extends CreateTourScheduleItineraryRequest { }

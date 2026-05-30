@@ -7,7 +7,9 @@ import {
   ChevronDown,
   ChevronUp,
   Clock,
+  ExternalLink,
   Hash,
+  Image as ImageIcon,
   MapPin,
   Pencil,
   Plus,
@@ -22,10 +24,14 @@ import { useToast } from "../../../contexts/ToastContext";
 import { getApiErrorMessage } from "../../content/utils/apiError";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import type { ReadTicketTypeDTO } from "../../content/types/ticketType";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import type { TourismInformation } from "../../content/types/tourismInformation";
 import { PATH } from "../../../config/routes/route";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
 import { useTourSchedule } from "../hooks/useTourSchedule";
+import { getScheduleItinerariesBySchedule } from "../services/tourScheduleItinerary.service";
 import { tourScheduleTicketService } from "../services/tourScheduleTicket.service";
+import type { TourScheduleItinerary } from "../types/tourScheduleItinerary";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
 import {
   formatTicketCurrency,
@@ -48,10 +54,15 @@ export const TourScheduleDetail: React.FC = () => {
   } = useTourSchedule();
 
   const [tickets, setTickets] = React.useState<TourScheduleTicket[]>([]);
+  const [scheduleItineraries, setScheduleItineraries] = React.useState<TourScheduleItinerary[]>([]);
   const [ticketTypeDetails, setTicketTypeDetails] = React.useState<
     Record<number, ReadTicketTypeDTO>
   >({});
+  const [tourismInformationById, setTourismInformationById] = React.useState<
+    Record<number, TourismInformation>
+  >({});
   const [isTicketsLoading, setIsTicketsLoading] = React.useState(false);
+  const [isItinerariesLoading, setIsItinerariesLoading] = React.useState(false);
   const [updatingTicketId, setUpdatingTicketId] = React.useState<number | null>(null);
   const [confirmAction, setConfirmAction] = React.useState<
     | { type: "deleteSchedule" }
@@ -59,8 +70,31 @@ export const TourScheduleDetail: React.FC = () => {
     | null
   >(null);
 
-  const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(
-    schedule?.tourScheduleItineraries,
+  const renderedItineraries = React.useMemo(
+    () =>
+      scheduleItineraries.length > 0
+        ? scheduleItineraries
+        : schedule?.tourScheduleItineraries ?? [],
+    [scheduleItineraries, schedule?.tourScheduleItineraries],
+  );
+
+  const { expandedItiIds, toggleIti, groupedItineraries } =
+    useGroupedItineraries(renderedItineraries);
+
+  const fetchItineraries = React.useCallback(
+    async (scheduleId: number | string) => {
+      setIsItinerariesLoading(true);
+      try {
+        const data = await getScheduleItinerariesBySchedule(scheduleId);
+        setScheduleItineraries(data);
+      } catch (err: unknown) {
+        setScheduleItineraries([]);
+        showError(getApiErrorMessage(err, "Failed to load schedule itineraries."));
+      } finally {
+        setIsItinerariesLoading(false);
+      }
+    },
+    [showError],
   );
 
   const fetchTickets = React.useCallback(
@@ -109,8 +143,46 @@ export const TourScheduleDetail: React.FC = () => {
     void Promise.resolve().then(() => {
       fetchScheduleById(id);
       fetchTickets(id);
+      fetchItineraries(id);
     });
-  }, [id, fetchScheduleById, fetchTickets]);
+  }, [id, fetchScheduleById, fetchTickets, fetchItineraries]);
+
+  React.useEffect(() => {
+    const tourismInfoIds = Array.from(
+      new Set(
+        renderedItineraries
+          .map((item) => item.tourismInfoId)
+          .filter(
+            (tourismInfoId): tourismInfoId is number =>
+              typeof tourismInfoId === "number" && Number.isFinite(tourismInfoId),
+          ),
+      ),
+    );
+
+    if (tourismInfoIds.length === 0) {
+      setTourismInformationById({});
+      return;
+    }
+
+    let isMounted = true;
+
+    tourismInformationService.getActiveList().then((activeTourismInformation) => {
+      if (!isMounted) return;
+
+      const neededIds = new Set(tourismInfoIds);
+      setTourismInformationById(
+        Object.fromEntries(
+          activeTourismInformation
+            .filter((item) => neededIds.has(item.id))
+            .map((item) => [item.id, item] as const),
+        ),
+      );
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [renderedItineraries]);
 
   if (isLoading) {
     return (
@@ -129,7 +201,7 @@ export const TourScheduleDetail: React.FC = () => {
   }
 
   const itineraryDayNumbers =
-    schedule.tourScheduleItineraries
+    renderedItineraries
       ?.map((item) => Number(item.dayNumber))
       .sort((a, b) => a - b) ?? [];
   const missingItineraryDays = [] as number[];
@@ -499,7 +571,11 @@ export const TourScheduleDetail: React.FC = () => {
               )}
             </div>
 
-            {schedule.tourScheduleItineraries && schedule.tourScheduleItineraries.length > 0 ? (
+            {isItinerariesLoading ? (
+              <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
+                Loading schedule itinerary...
+              </div>
+            ) : renderedItineraries.length > 0 ? (
               <div className="flex flex-col gap-6">
                 {Object.entries(groupedItineraries)
                   .map(([dayStr]) => Number(dayStr))
@@ -535,6 +611,9 @@ export const TourScheduleDetail: React.FC = () => {
                                 : iti.startDuration
                                   ? iti.startDuration.substring(0, 5)
                                   : "Any time";
+                            const tourismInfo = iti.tourismInfoId
+                              ? tourismInformationById[iti.tourismInfoId]
+                              : null;
 
                             return (
                               <div key={iti.id} className="flex flex-col">
@@ -606,6 +685,71 @@ export const TourScheduleDetail: React.FC = () => {
                                       <MapPin className="h-4 w-4 text-blue-500" />
                                       <span>{iti.locationName || "No location specification"}</span>
                                     </div>
+                                    {iti.tourismInfoId && (
+                                      <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
+                                        {tourismInfo ? (
+                                          <div className="grid sm:grid-cols-[180px_1fr]">
+                                            <div className="flex min-h-36 items-center justify-center bg-slate-100">
+                                              {tourismInfo.imageUrl ? (
+                                                <img
+                                                  src={tourismInfo.imageUrl}
+                                                  alt={tourismInfo.name}
+                                                  className="h-full min-h-36 w-full object-cover"
+                                                />
+                                              ) : (
+                                                <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                  <ImageIcon className="h-8 w-8" />
+                                                  <span className="text-xs font-medium">No image</span>
+                                                </div>
+                                              )}
+                                            </div>
+
+                                            <div className="space-y-2 p-4">
+                                              <div className="flex flex-wrap items-center gap-2">
+                                                <h5 className="font-bold text-slate-900">{tourismInfo.name}</h5>
+                                                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-600">
+                                                  {tourismInfo.type}
+                                                </span>
+                                              </div>
+                                              {tourismInfo.description && (
+                                                <p className="text-xs leading-relaxed text-slate-500">
+                                                  {tourismInfo.description}
+                                                </p>
+                                              )}
+                                              <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
+                                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
+                                                <span>
+                                                  {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
+                                                    .filter(Boolean)
+                                                    .join(", ") || "N/A"}
+                                                </span>
+                                              </div>
+                                              {(tourismInfo.latitude || tourismInfo.longitude) && (
+                                                <div className="text-xs font-medium text-slate-400">
+                                                  Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                                </div>
+                                              )}
+                                              {tourismInfo.sourceUrl && (
+                                                <a
+                                                  href={tourismInfo.sourceUrl}
+                                                  target="_blank"
+                                                  rel="noreferrer"
+                                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700"
+                                                >
+                                                  {tourismInfo.sourceName || "Source"}
+                                                  <ExternalLink className="h-3.5 w-3.5" />
+                                                </a>
+                                              )}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
+                                            <MapPin className="h-4 w-4 text-blue-500" />
+                                            Tourism info ID #{iti.tourismInfoId}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>

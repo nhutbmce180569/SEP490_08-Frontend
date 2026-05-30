@@ -49,6 +49,9 @@ import { BannerList } from "./features/content/pages/BannerList";
 import { CreateBanner } from "./features/content/pages/CreateBanner";
 import { UpdateBanner } from "./features/content/pages/UpdateBanner";
 import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
+import { TicketTypeList } from "./features/content/pages/TicketTypeList";
+import { CreateTicketType } from "./features/content/pages/CreateTicketType";
+import { UpdateTicketType } from "./features/content/pages/UpdateTicketType";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
@@ -62,6 +65,7 @@ import TourSearch from "./pages/TourSearch";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
+import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -255,7 +259,7 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.MY_REVIEWS}
-                      element={mock("Reviews", "Customer")}
+                      element={<MyReviewsPage />}
                     />
                     <Route
                       path={PATH.CUSTOMER.SETTINGS}
@@ -453,6 +457,11 @@ const App: React.FC = () => {
                       path=":id/delete"
                       element={<DeleteBannerConfirm />}
                     />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.TICKET_TYPE_MANAGEMENT)}>
+                    <Route index element={<TicketTypeList />} />
+                    <Route path="create" element={<CreateTicketType />} />
+                    <Route path=":id/edit" element={<UpdateTicketType />} />
                   </Route>
                   <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
                     <Route index element={<CategoryList />} />

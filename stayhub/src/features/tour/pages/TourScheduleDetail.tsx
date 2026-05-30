@@ -4,8 +4,6 @@ import {
   ArrowLeft,
   Calendar,
   Clock,
-  Banknote,
-  Users,
   Hash,
   Pencil,
   Trash2,
@@ -24,10 +22,8 @@ export const TourScheduleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Gọi hook quản lý schedule
   const { currentSchedule: schedule, isLoading, error, fetchScheduleById, deleteSchedule } = useTourSchedule();
 
-  // Tự động fetch data chi tiết của Schedule ID này khi mount trang
   React.useEffect(() => {
     if (id) {
       fetchScheduleById(id);
@@ -66,7 +62,7 @@ export const TourScheduleDetail: React.FC = () => {
     if (window.confirm("Are you sure you want to delete this schedule?")) {
       try {
         await deleteSchedule(schedule.id);
-        navigate(-1); // Xóa xong quay về trang danh sách
+        navigate(-1);
       } catch (err) {
         // Lỗi hệ thống đã được xử lý bằng Toast inside Hook
       }
@@ -78,7 +74,7 @@ export const TourScheduleDetail: React.FC = () => {
       {/* Back button */}
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-blue-600"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Schedules
@@ -86,8 +82,8 @@ export const TourScheduleDetail: React.FC = () => {
 
       {/* Main Content Card */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        {/* Header Area */}
-        <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-[#EB662B] to-orange-600 sm:h-40">
+        {/* Header Area - 💥 Chuyển sang tone Xanh Dương */}
+        <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40">
           <Calendar className="h-16 w-16 text-white opacity-20" />
           <div className="absolute right-4 top-4">
             <span className="inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md">
@@ -107,17 +103,18 @@ export const TourScheduleDetail: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <Hash className="h-4 w-4 text-slate-400" />
                   <span className="font-semibold text-slate-700">Tour Name:</span>
-                  <span className="text-[#EB662B] font-bold">{schedule.tour?.name || `ID: ${schedule.tourId}`}</span>
+                  {/* 💥 Tone Xanh Dương */}
+                  <span className="text-blue-600 font-bold">{schedule.tour?.name || `ID: ${schedule.tourId}`}</span>
                 </div>
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons - 💥 Đã dọn dẹp class ép màu thừa */}
             <div className="flex shrink-0 items-start gap-3 flex-wrap">
               <ActionButton
                 variant="primary"
                 onClick={() => navigate(PATH.MANAGER.SCHEDULE_ORDERS(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm !bg-indigo-600 !border-indigo-600 hover:!bg-indigo-700 hover:!border-indigo-700 text-white"
+                className="gap-2 px-4 py-2 text-sm"
               >
                 <Ticket className="h-4 w-4" />
                 View Orders
@@ -125,7 +122,7 @@ export const TourScheduleDetail: React.FC = () => {
               <ActionButton
                 variant="secondary"
                 onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm border-slate-200 text-slate-700 hover:bg-slate-50"
+                className="gap-2 px-4 py-2 text-sm"
               >
                 <Pencil className="h-4 w-4" />
                 Edit
@@ -133,9 +130,8 @@ export const TourScheduleDetail: React.FC = () => {
               <ActionButton
                 type="button"
                 variant="warning"
-                disabled={schedule.soldQuantity > 0}
                 onClick={handleDeleteSchedule}
-                className="gap-2 px-4 py-2 text-sm !bg-rose-600 !border-rose-600 hover:!bg-rose-700 text-white disabled:opacity-40"
+                className="gap-2 px-4 py-2 text-sm"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete
@@ -143,7 +139,7 @@ export const TourScheduleDetail: React.FC = () => {
             </div>
           </div>
 
-          {/* Information Grid */}
+          {/* Information Grid - 💥 Đã xóa 2 cột Giá và Chỗ ngồi */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8">
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
@@ -166,30 +162,6 @@ export const TourScheduleDetail: React.FC = () => {
                 {schedule.returnDate
                   ? new Date(schedule.returnDate).toLocaleString("en-US")
                   : "N/A"}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
-                <Banknote className="h-4 w-4 text-amber-500" />
-                Price
-              </div>
-              <div className="text-lg font-bold text-[#EB662B]">
-                {(schedule.price ?? 0).toLocaleString("vi-VN")} ₫
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
-                <Users className="h-4 w-4 text-indigo-500" />
-                Capacity & Sales
-              </div>
-              <div className="text-base font-bold text-slate-900">
-                <span className="text-emerald-600">{schedule.soldQuantity ?? 0} Sold</span> /{" "}
-                <span className="text-indigo-600">{schedule.availableSeats ?? 0} Available</span>
-              </div>
-              <div className="mt-1 text-xs font-semibold text-slate-400">
-                Max Capacity: {schedule.maxCapacity ?? 0} seats
               </div>
             </div>
           </div>
@@ -215,10 +187,11 @@ export const TourScheduleDetail: React.FC = () => {
                 <h2 className="text-base font-bold text-slate-900">
                   Schedule Itinerary
                 </h2>
+                {/* 💥 Nút Add cũng dùng primary xanh dương chuẩn */}
                 <ActionButton
                   variant="primary"
                   onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm !bg-[#EB662B] !border-[#EB662B] hover:!bg-[#d4531d] text-white"
+                  className="gap-2 px-4 py-2 text-sm"
                 >
                   <Plus className="h-4 w-4" />
                   Add Itineraries
@@ -263,7 +236,7 @@ export const TourScheduleDetail: React.FC = () => {
                                   onClick={() => toggleIti(iti.id)}
                                 >
                                   <div className="flex items-center gap-4">
-                                    <div className="flex min-w-[110px] items-center justify-center rounded-lg bg-indigo-50 px-3 py-1.5 text-xs font-bold text-indigo-600">
+                                    <div className="flex min-w-[110px] items-center justify-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600">
                                       <Clock className="mr-1.5 h-3.5 w-3.5" />
                                       {timeStr}
                                     </div>
@@ -292,7 +265,7 @@ export const TourScheduleDetail: React.FC = () => {
                                       </p>
                                     )}
                                     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                                      <MapPin className="h-4 w-4 text-emerald-500" />
+                                      <MapPin className="h-4 w-4 text-blue-500" />
                                       <span>{iti.locationName || "No location specification"}</span>
                                     </div>
                                   </div>

@@ -1,4 +1,4 @@
-import { FULL_API } from './api';
+import { FULL_API } from "./api";
 
 export const TOURS_API = {
   // Tours
@@ -17,24 +17,29 @@ export const TOURS_API = {
 
   // Itineraries
   ITINERARIES: `${FULL_API}/TourItineraries`,
-  CREATE_ITINERARY: (id: string | number) => `${FULL_API}/tours/${id}/itineraries`,
+  CREATE_ITINERARY: (id: string | number) =>
+    `${FULL_API}/tours/${id}/itineraries`,
   BATCH_ITINERARIES: `${FULL_API}/TourItineraries/batch`,
   TOUR_SCHEDULE_ITINERARIES: `${FULL_API}/TourScheduleItineraries`,
   BATCH_SCHEDULE_ITINERARIES: `${FULL_API}/TourScheduleItineraries/batch`,
-  GET_SCHEDULE_ITINERARIES_BY_SCHEDULE: (scheduleId: string | number) => `${FULL_API}/TourScheduleItineraries/schedule/${scheduleId}`,
+  GET_SCHEDULE_ITINERARIES_BY_SCHEDULE: (scheduleId: string | number) =>
+    `${FULL_API}/TourScheduleItineraries/schedule/${scheduleId}`,
   TOUR_SCHEDULE_STAFFS: `${FULL_API}/TourScheduleStaffs`,
   SCHEDULES: `${FULL_API}/TourSchedules`,
   GET_SCHEDULE_BY_OPERATOR: `${FULL_API}/TourSchedules/operator`,
   // Schedules
   GET_ALL_SCHEDULES: `${FULL_API}/TourSchedules`,
-  GET_SCHEDULE_DETAIL: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
+  GET_SCHEDULE_DETAIL: (id: string | number) =>
+    `${FULL_API}/TourSchedules/${id}`,
   CREATE_SCHEDULE: `${FULL_API}/TourSchedules`,
   UPDATE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
   DELETE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
-  
+
   // Gọi từ Booking API / Luồng đặt vé qua Gateway
-  RESERVE_SEATS: (id: string | number) => `${FULL_API}/TourSchedules/${id}/reserve`,
-  RELEASE_SEATS: (id: string | number) => `${FULL_API}/TourSchedules/${id}/release`,
+  RESERVE_SEATS: (id: string | number) =>
+    `${FULL_API}/TourSchedules/${id}/reserve`,
+  RELEASE_SEATS: (id: string | number) =>
+    `${FULL_API}/TourSchedules/${id}/release`,
   // These are now handled by tourSchedules.api.ts
   // Staff
   MANAGE_STAFF: (sId: string | number) => `${FULL_API}/schedules/${sId}/staff`,
@@ -42,7 +47,11 @@ export const TOURS_API = {
   /** Wishlists — GET list, POST `{ tourId, action: "add"|"rem" }` (via gateway `FULL_API`). */
   MANAGE_WISHLIST: `${FULL_API}/wishlists`,
 
+  GET_REVIEWS_BY_TOUR: (tourId: string | number) =>
+    `${FULL_API}/reviews/tour/${tourId}`,
+  GET_MY_REVIEW_BY_TOUR: (tourId: string | number) =>
+    `${FULL_API}/reviews/tour/${tourId}/mine`,
+  GET_MY_REVIEWS: `${FULL_API}/reviews/mine`,
   CREATE_REVIEW: `${FULL_API}/reviews`,
   UPDATE_REVIEW: (id: string | number) => `${FULL_API}/reviews/${id}`,
-  DELETE_REVIEW: (id: string | number) => `${FULL_API}/reviews/${id}`,
 };

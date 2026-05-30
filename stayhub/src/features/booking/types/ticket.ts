@@ -17,4 +17,9 @@ export interface CreateTicketRequest {
   dateOfBirth?: string; // Format: YYYY-MM-DD
   gender?: string;
   nationality?: string;
+  tourScheduleTicketId?: number;
+  scheduleTicketId?: number;
+  ticketTypeId?: number | null;
+  ticketTypeName?: string;
+  price?: number;
 }

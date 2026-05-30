@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Clock, Star, Heart, ArrowRight } from "lucide-react";
+import { MapPin, Clock, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PATH } from "../../config/routes/route";
 
@@ -10,7 +10,7 @@ export interface TourCardProps {
   rating: number;
   reviews: number;
   duration: string;
-  price: number;
+  price: number | null;
   imageUrl: string;
 }
 
@@ -129,9 +129,9 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
                 className="text-base font-black"
                 style={{ color: "#EB662B", fontFamily: "'Sora', sans-serif" }}
               >
-                {tour.price > 0
-                  ? `${tour.price.toLocaleString("vi-VN")} ₫`
-                  : "Free"}
+                {tour.price !== null
+                  ? `${tour.price.toLocaleString("vi-VN")} đ`
+                  : "Contact us"}
               </div>
             </div>
           </div>

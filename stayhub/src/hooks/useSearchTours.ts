@@ -1,8 +1,40 @@
 import { useState, useEffect } from "react";
 import { apiClient } from "../utils/axiosClient";
 import { TOURS_API } from "../config/api/tours.api";
-import type { PaginatedResponse } from "../features/tour/types/paginatedReponse";
 import type { Tour } from "../features/tour/types/tour";
+
+type SearchToursResponse =
+  | Tour[]
+  | {
+      data?: Tour[] | SearchToursResponse;
+      items?: Tour[];
+      totalPages?: number;
+      totalPage?: number;
+    };
+
+const normalizeSearchToursResponse = (response: SearchToursResponse) => {
+  const payload =
+    !Array.isArray(response) &&
+    response.data &&
+    !Array.isArray(response.data) &&
+    ("data" in response.data || "items" in response.data)
+      ? response.data
+      : response;
+
+  const items = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload.data)
+      ? payload.data
+      : Array.isArray(payload.items)
+        ? payload.items
+        : [];
+
+  const totalPages = Array.isArray(payload)
+    ? 1
+    : (payload.totalPages ?? payload.totalPage ?? 1);
+
+  return { items, totalPages };
+};
 
 export const useSearchTours = (
   page = 1, 
@@ -27,7 +59,7 @@ export const useSearchTours = (
     const fetchActiveTours = async () => {
       try {
         setIsLoading(true);
-        const res = await apiClient.get<any>(TOURS_API.SEARCH, {
+        const res = await apiClient.get<SearchToursResponse>(TOURS_API.SEARCH, {
           params: { 
             page, 
             pageSize,
@@ -45,11 +77,11 @@ export const useSearchTours = (
         });
         
         // Đọc dữ liệu linh hoạt tuỳ theo cấu trúc response trả về từ BE
-        const items = res.items || res.data || (Array.isArray(res) ? res : []);
+        const { items, totalPages } = normalizeSearchToursResponse(res);
         setTours(items);
-        setTotalPages(res.totalPages || res.totalPage || 1);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch active tours");
+        setTotalPages(totalPages);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to fetch active tours");
       } finally {
         setIsLoading(false);
       }

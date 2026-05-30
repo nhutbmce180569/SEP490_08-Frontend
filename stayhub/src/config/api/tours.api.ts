@@ -59,8 +59,4 @@ export const TOURS_API = {
   GET_MY_REVIEWS: `${FULL_API}/reviews/mine`,
   CREATE_REVIEW: `${FULL_API}/reviews`,
   UPDATE_REVIEW: (id: string | number) => `${FULL_API}/reviews/${id}`,
-<<<<<<< HEAD
-  DELETE_REVIEW: (id: string | number) => `${FULL_API}/reviews/${id}`,
-=======
->>>>>>> df00a0088c86611ac1b4d3bb6f585fb737840fb0
 };

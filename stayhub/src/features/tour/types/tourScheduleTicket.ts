@@ -15,10 +15,13 @@ export interface TourScheduleTicket {
   ticketType?: TourScheduleTicketType | null;
   price?: number | string | null;
   quantity?: number | null;
+  soldQuantity?: number | null;
   totalQuantity?: number | null;
   availableQuantity?: number | null;
   availableSeats?: number | null;
   maxCapacity?: number | null;
+  isActive?: boolean | null;
+  note?: string | null;
 }
 
 export interface CreateTourScheduleTicketRequest {
@@ -27,6 +30,8 @@ export interface CreateTourScheduleTicketRequest {
   ticketTypeId: number;
   price: number;
   quantity: number;
+  isActive?: boolean | null;
+  note?: string | null;
 }
 
 export type UpdateTourScheduleTicketRequest = CreateTourScheduleTicketRequest;

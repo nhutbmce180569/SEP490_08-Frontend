@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -8,7 +8,6 @@ import {
   ClipboardList,
   MapPin,
   Info,
-  QrCode,
   CheckCircle2,
   Clock,
   ChevronDown,
@@ -24,6 +23,10 @@ import { useOrderDetail } from "../hooks/useOrderDetail";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useGroupedItineraries } from "../../tour/hooks/useGroupedItineraries";
 import { ReviewForm } from "../../tour/pages/ReviewForm"; 
+import { cancelOrder } from "../services/booking.service";
+import { useToast } from "../../../contexts/ToastContext";
+import { useQuery } from "@tanstack/react-query";
+import { ticketTypeService } from "../../content/services/ticketType.service";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -45,8 +48,42 @@ export const OrderDetailPage: React.FC = () => {
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const { success, error: showError } = useToast();
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
+
+  const ticketTypeIds = useMemo(() => {
+    if (!order) return [];
+
+    return Array.from(
+      new Set(
+        [
+          ...(order.orderDetails ?? []).map((detail) => detail.ticketTypeId),
+          ...(order.tickets ?? []).map((ticket) => ticket.ticketTypeId),
+        ].filter((ticketTypeId): ticketTypeId is number => Number.isFinite(ticketTypeId)),
+      ),
+    );
+  }, [order]);
+
+  const { data: ticketTypeNames = {} } = useQuery({
+    queryKey: ["order-ticket-types", ticketTypeIds],
+    queryFn: async () => {
+      const entries = await Promise.all(
+        ticketTypeIds.map(async (ticketTypeId) => {
+          try {
+            const ticketType = await ticketTypeService.getById(ticketTypeId);
+            return [ticketTypeId, ticketType.name] as const;
+          } catch {
+            return [ticketTypeId, `Ticket type #${ticketTypeId}`] as const;
+          }
+        }),
+      );
+
+      return Object.fromEntries(entries) as Record<number, string>;
+    },
+    enabled: ticketTypeIds.length > 0,
+  });
 
   if (isLoading) {  
     return (
@@ -85,6 +122,42 @@ export const OrderDetailPage: React.FC = () => {
   const canReview = true;
     // isTourEnded &&
     // (order.status === "Paid" || order.status === "Completed");
+
+  const orderDetails = order.orderDetails ?? [];
+  const subtotalAmount =
+    order.totalAmount ??
+    orderDetails.reduce((sum, detail) => sum + detail.totalPrice, 0);
+
+  const getTicketTypeName = (ticketTypeId?: number | null) => {
+    if (!ticketTypeId) return "Ticket";
+    return ticketTypeNames[ticketTypeId] ?? `Ticket type #${ticketTypeId}`;
+  };
+
+  const getTicketDetail = (ticket: (typeof order.tickets)[number]) =>
+    orderDetails.find((detail) => detail.id === ticket.orderDetailId) ??
+    orderDetails.find((detail) => detail.ticketTypeId === ticket.ticketTypeId);
+
+  const handleCancelOrder = async () => {
+    const confirmed = window.confirm(
+      "Are you sure you want to cancel this booking? This action cannot be undone and cancellation fees may apply.",
+    );
+    if (!confirmed) return;
+
+    try {
+      setIsCancelling(true);
+      await cancelOrder(order.id);
+      success("Order cancelled.");
+      await refetch();
+    } catch (err: any) {
+      showError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to cancel order.",
+      );
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-5xl py-8 px-4 sm:px-6 lg:px-8">
@@ -250,13 +323,43 @@ export const OrderDetailPage: React.FC = () => {
               <Banknote className="h-5 w-5 text-emerald-600" /> Payment Summary
             </h4>
             <div className="space-y-3 text-sm">
-              <div className="flex items-center justify-between gap-4 text-slate-600">
-                <span>Tickets</span>
-                <span className="whitespace-nowrap text-right">
-                  {order.ticketCount} x{" "}
-                  {currencyFormatter.format(
-                    (order.finalAmount + (order.discountValue || 0)) / order.ticketCount,
-                  )}
+              {orderDetails.length > 0 ? (
+                <div className="space-y-3">
+                  {orderDetails.map((detail) => (
+                    <div
+                      key={detail.id}
+                      className="rounded-xl py-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="truncate font-semibold text-slate-800">
+                            {getTicketTypeName(detail.ticketTypeId)} x{" "} {detail.quantity}
+                          </div>
+                          
+                        </div>
+                        <div className="shrink-0 text-right font-bold text-slate-900">
+                          {currencyFormatter.format(detail.totalPrice)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-4 text-slate-600">
+                  <span>Tickets</span>
+                  <span className="whitespace-nowrap text-right">
+                    {order.ticketCount} x{" "}
+                    {currencyFormatter.format(
+                      (order.finalAmount + (order.discountValue || 0)) /
+                        Math.max(order.ticketCount, 1),
+                    )}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between border-t border-slate-100 pt-3 text-slate-600">
+                <span>Subtotal</span>
+                <span className="font-semibold text-slate-900">
+                  {currencyFormatter.format(subtotalAmount)}
                 </span>
               </div>
               {order.discountValue && order.discountValue > 0 ? (
@@ -306,14 +409,11 @@ export const OrderDetailPage: React.FC = () => {
                     </p>
                     <ActionButton
                       variant="outline"
+                      disabled={isCancelling}
                       className="w-full !border-rose-200 !text-rose-600 hover:!bg-rose-100 hover:!border-rose-300"
-                      onClick={() =>
-                        window.confirm(
-                          "Are you sure you want to cancel this booking? This action cannot be undone and cancellation fees may apply.",
-                        )
-                      }
+                      onClick={handleCancelOrder}
                     >
-                      Cancel Order
+                      {isCancelling ? "Cancelling..." : "Cancel Order"}
                     </ActionButton>
                   </div>
                 );
@@ -479,24 +579,23 @@ export const OrderDetailPage: React.FC = () => {
             </div>
             <div className="overflow-y-auto p-6 bg-slate-50/50 space-y-4">
               {order.tickets.map((ticket, idx) => {
-                const qrData = {
-                  orderId: order.id,
-                  userId: ticket.userId || null,
-                  attendeeName: ticket.attendeeName,
-                  idCard: ticket.idCard,
-                  dateOfBirth: ticket.dateOfBirth || null,
-                  gender: ticket.gender || null,
-                  nationality: ticket.nationality || null,
-                  qrCode: ticket.qrCode || null,
-                  checkInStatus: ticket.checkInStatus || null,
-                };
-                const qrString = JSON.stringify(qrData);
+                const detail = getTicketDetail(ticket);
+                const ticketTypeName = getTicketTypeName(
+                  detail?.ticketTypeId ?? ticket.ticketTypeId,
+                );
 
                 return (
                   <div key={ticket.id} className="flex flex-col sm:flex-row gap-4 rounded-lg border border-slate-200 p-4 bg-white">
                     <div className="flex-1 space-y-3">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span className="text-sm font-semibold text-slate-800">Passenger {idx + 1}</span>
+                        <div className="min-w-0">
+                          <span className="block text-sm font-semibold text-slate-800">
+                            Passenger {idx + 1}
+                          </span>
+                          <span className="mt-0.5 block truncate text-xs font-medium text-[#EB662B]">
+                            {ticketTypeName}
+                          </span>
+                        </div>
                         <span
                           className={`rounded px-2 py-0.5 text-xs font-semibold ${
                             ticket.checkInStatus === "CheckedIn" || ticket.checkInStatus === "Checked"
@@ -519,6 +618,10 @@ export const OrderDetailPage: React.FC = () => {
                           <p className="font-medium text-slate-900">{ticket.attendeeName}</p>
                         </div>
                         <div>
+                          <p className="text-xs text-slate-500">Ticket Type</p>
+                          <p className="font-medium text-slate-900">{ticketTypeName}</p>
+                        </div>
+                        <div>
                           <p className="text-xs text-slate-500">ID / Passport</p>
                           <p className="font-medium text-slate-900">{ticket.idCard}</p>
                         </div>
@@ -537,7 +640,7 @@ export const OrderDetailPage: React.FC = () => {
                     {ticket.qrCode && (
                       <div className="flex shrink-0 flex-col items-center justify-center border-t border-slate-100 pt-3 sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
                         <div className="mb-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
-                          <QRCodeSVG value={qrString} size={80} />
+                          <QRCodeSVG value={ticket.qrCode} size={80} />
                         </div>
                         <span className="font-mono text-[10px] text-slate-500">{ticket.qrCode}</span>
                       </div>
@@ -564,7 +667,15 @@ export const OrderDetailPage: React.FC = () => {
             <ReviewForm
               tourId={order.tour.id}
               customerId={order.customerId} // Truyền customerId từ order
-              existingReview={order.review} // Tự động bật chế độ Edit nếu order đã có review
+              existingReview={
+                order.review
+                  ? {
+                      ...order.review,
+                      customerId: order.customerId,
+                      tourId: order.tour.id,
+                    }
+                  : null
+              } // Tự động bật chế độ Edit nếu order đã có review
               onSuccess={() => {
                 setIsReviewModalOpen(false); // Đóng Modal
                 refetch(); // Cập nhật lại data order (để hiện dòng "Your Review...")

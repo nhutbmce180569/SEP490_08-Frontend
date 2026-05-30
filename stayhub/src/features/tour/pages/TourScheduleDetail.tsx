@@ -11,10 +11,13 @@ import {
   MapPin,
   Pencil,
   Plus,
+  Power,
+  PowerOff,
   Ticket,
   Trash2,
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useToast } from "../../../contexts/ToastContext";
 import { getApiErrorMessage } from "../../content/utils/apiError";
 import { ticketTypeService } from "../../content/services/ticketType.service";
@@ -26,6 +29,8 @@ import { tourScheduleTicketService } from "../services/tourScheduleTicket.servic
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
 import {
   formatTicketCurrency,
+  getScheduleTicketAvailable,
+  getScheduleTicketCapacity,
   getScheduleTicketName,
   getScheduleTicketTypeId,
 } from "../utils/tourScheduleTicket";
@@ -47,6 +52,12 @@ export const TourScheduleDetail: React.FC = () => {
     Record<number, ReadTicketTypeDTO>
   >({});
   const [isTicketsLoading, setIsTicketsLoading] = React.useState(false);
+  const [updatingTicketId, setUpdatingTicketId] = React.useState<number | null>(null);
+  const [confirmAction, setConfirmAction] = React.useState<
+    | { type: "deleteSchedule" }
+    | { type: "activateTicket" | "deactivateTicket"; ticket: TourScheduleTicket }
+    | null
+  >(null);
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(
     schedule?.tourScheduleItineraries,
@@ -127,16 +138,68 @@ export const TourScheduleDetail: React.FC = () => {
     if (!itineraryDayNumbers.includes(i)) missingItineraryDays.push(i);
   }
 
-  const handleDeleteSchedule = async () => {
-    if (window.confirm("Are you sure you want to delete this schedule?")) {
+  const handleConfirmAction = async () => {
+    if (!confirmAction) return;
+
+    if (confirmAction.type === "deleteSchedule") {
       try {
         await deleteSchedule(schedule.id);
         navigate(-1);
       } catch {
         // Toast is handled by the hook.
+      } finally {
+        setConfirmAction(null);
       }
+      return;
+    }
+
+    const ticket = confirmAction.ticket;
+    const shouldDeactivate = confirmAction.type === "deactivateTicket";
+
+    try {
+      setUpdatingTicketId(ticket.id);
+      setConfirmAction(null);
+      if (shouldDeactivate) {
+        await tourScheduleTicketService.deactivate(ticket.id);
+      } else {
+        await tourScheduleTicketService.activate(ticket.id);
+      }
+
+      await fetchTickets(schedule.id);
+    } catch (err: unknown) {
+      showError(
+        getApiErrorMessage(
+          err,
+          shouldDeactivate
+            ? "Failed to deactivate schedule ticket."
+            : "Failed to activate schedule ticket.",
+        ),
+      );
+    } finally {
+      setUpdatingTicketId(null);
     }
   };
+
+  const confirmTitle =
+    confirmAction?.type === "deleteSchedule"
+      ? "Delete Schedule"
+      : confirmAction?.type === "deactivateTicket"
+        ? "Deactivate Ticket"
+        : "Activate Ticket";
+
+  const confirmMessage =
+    confirmAction?.type === "deleteSchedule"
+      ? "Are you sure you want to delete this schedule?"
+      : confirmAction?.type === "deactivateTicket"
+        ? "Customers will no longer see or book this ticket type."
+        : "Customers will be able to see and book this ticket type.";
+
+  const confirmButtonText =
+    confirmAction?.type === "deleteSchedule"
+      ? "Delete"
+      : confirmAction?.type === "deactivateTicket"
+        ? "Deactivate"
+        : "Activate";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -195,7 +258,7 @@ export const TourScheduleDetail: React.FC = () => {
               <ActionButton
                 type="button"
                 variant="warning"
-                onClick={handleDeleteSchedule}
+                onClick={() => setConfirmAction({ type: "deleteSchedule" })}
                 className="gap-2 px-4 py-2 text-sm"
               >
                 <Trash2 className="h-4 w-4" />
@@ -269,7 +332,7 @@ export const TourScheduleDetail: React.FC = () => {
               </div>
             ) : tickets.length > 0 ? (
               <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                <table className="w-full min-w-[520px] border-collapse bg-white">
+                <table className="w-full min-w-[760px] border-collapse bg-white">
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50">
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -277,6 +340,12 @@ export const TourScheduleDetail: React.FC = () => {
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         Price
+                      </th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Quantity
+                      </th>
+                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Status
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         Action
@@ -287,6 +356,10 @@ export const TourScheduleDetail: React.FC = () => {
                     {tickets.map((ticket) => {
                       const ticketTypeId = getScheduleTicketTypeId(ticket);
                       const ticketType = ticketTypeId ? ticketTypeDetails[ticketTypeId] : undefined;
+                      const quantity = getScheduleTicketCapacity(ticket) ?? 0;
+                      const soldQuantity = ticket.soldQuantity ?? 0;
+                      const availableQuantity = getScheduleTicketAvailable(ticket) ?? 0;
+                      const isActive = ticket.isActive ?? true;
 
                       return (
                         <tr
@@ -302,6 +375,11 @@ export const TourScheduleDetail: React.FC = () => {
                                 <span className="font-semibold text-slate-800">
                                   {getScheduleTicketName(ticket, ticketType)}
                                 </span>
+                                {ticket.note && (
+                                  <p className="mt-0.5 max-w-xs truncate text-xs font-medium text-slate-400">
+                                    {ticket.note}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </td>
@@ -310,6 +388,25 @@ export const TourScheduleDetail: React.FC = () => {
                               <Banknote className="h-4 w-4" />
                               {formatTicketCurrency(ticket.price)}
                             </div>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <div className="text-sm font-semibold text-slate-800">
+                              {quantity}
+                            </div>
+                            <div className="mt-0.5 text-xs font-medium text-slate-400">
+                              {soldQuantity} sold / {availableQuantity} left
+                            </div>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span
+                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                isActive
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-rose-100 text-rose-700"
+                              }`}
+                            >
+                              {isActive ? "Active" : "Inactive"}
+                            </span>
                           </td>
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-1.5">
@@ -329,19 +426,26 @@ export const TourScheduleDetail: React.FC = () => {
                                 <Pencil className="h-3.5 w-3.5" />
                               </ActionButton>
                               <ActionButton
-                                variant="warning"
+                                variant={isActive ? "warning" : "secondary"}
                                 onClick={() =>
-                                  navigate(
-                                    PATH.MANAGER.DELETE_SCHEDULE_TICKET(
-                                      schedule.id,
-                                      ticket.id,
-                                    ),
-                                  )
+                                  setConfirmAction({
+                                    type: isActive ? "deactivateTicket" : "activateTicket",
+                                    ticket,
+                                  })
                                 }
-                                className="h-8 w-8"
-                                title="Delete ticket"
+                                disabled={updatingTicketId === ticket.id}
+                                className={`h-8 w-8 ${
+                                  !isActive
+                                    ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                                    : ""
+                                }`}
+                                title={isActive ? "Deactivate ticket" : "Activate ticket"}
                               >
-                                <Trash2 className="h-3.5 w-3.5" />
+                                {isActive ? (
+                                  <PowerOff className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Power className="h-3.5 w-3.5" />
+                                )}
                               </ActionButton>
                             </div>
                           </td>
@@ -526,6 +630,25 @@ export const TourScheduleDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={handleConfirmAction}
+        title={confirmTitle}
+        message={confirmMessage}
+        confirmText={confirmButtonText}
+        variant={confirmAction?.type === "activateTicket" ? "primary" : "warning"}
+        icon={
+          confirmAction?.type === "activateTicket" ? (
+            <Power className="h-6 w-6 text-blue-500" />
+          ) : confirmAction?.type === "deactivateTicket" ? (
+            <PowerOff className="h-6 w-6 text-rose-500" />
+          ) : (
+            <Trash2 className="h-6 w-6 text-rose-500" />
+          )
+        }
+      />
     </div>
   );
 };

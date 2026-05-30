@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, Banknote, Ticket, Trash2, Users } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Banknote, PowerOff, Ticket, Users } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useToast } from "../../../contexts/ToastContext";
@@ -67,11 +67,11 @@ export const DeleteScheduleTicket: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      await tourScheduleTicketService.delete(ticketId);
-      success("Schedule ticket deleted successfully.");
+      await tourScheduleTicketService.deactivate(ticketId);
+      success("Schedule ticket deactivated successfully.");
       navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (err: unknown) {
-      showError(getApiErrorMessage(err, "Failed to delete schedule ticket."));
+      showError(getApiErrorMessage(err, "Failed to deactivate schedule ticket."));
     } finally {
       setIsDeleting(false);
     }
@@ -105,9 +105,9 @@ export const DeleteScheduleTicket: React.FC = () => {
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-rose-700">Delete Schedule Ticket</h2>
+            <h2 className="text-lg font-bold text-rose-700">Deactivate Schedule Ticket</h2>
             <p className="mt-1 text-sm text-rose-600/90">
-              This action will permanently remove this ticket from Schedule #{scheduleId}
+              This action will hide this ticket from customer booking for Schedule #{scheduleId}
               {schedule?.tour?.name ? ` (${schedule.tour.name})` : ""}.
             </p>
           </div>
@@ -134,14 +134,12 @@ export const DeleteScheduleTicket: React.FC = () => {
               </div>
               <span
                 className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
-                  !ticketType
-                    ? "bg-slate-100 text-slate-600"
-                    : ticketType.isActive
+                  (ticket.isActive ?? true)
                       ? "bg-emerald-100 text-emerald-700"
                       : "bg-rose-100 text-rose-700"
                 }`}
               >
-                {!ticketType ? "Unknown" : ticketType.isActive ? "Active" : "Inactive"}
+                {(ticket.isActive ?? true) ? "Active" : "Inactive"}
               </span>
             </div>
 
@@ -178,13 +176,13 @@ export const DeleteScheduleTicket: React.FC = () => {
             disabled={isDeleting}
             className="gap-2 px-5 py-2.5 text-sm !border-rose-600 !bg-rose-600 !text-white hover:!border-rose-700 hover:!bg-rose-700"
           >
-            <Trash2 className="h-4 w-4" />
-            {isDeleting ? "Deleting..." : "Yes, Delete Ticket"}
+            <PowerOff className="h-4 w-4" />
+            {isDeleting ? "Deactivating..." : "Yes, Deactivate Ticket"}
           </ActionButton>
         </div>
       </div>
 
-      <LoadingOverlay isOpen={isDeleting} message="Deleting schedule ticket..." />
+      <LoadingOverlay isOpen={isDeleting} message="Deactivating schedule ticket..." />
     </div>
   );
 };

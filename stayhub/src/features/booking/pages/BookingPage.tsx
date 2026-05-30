@@ -68,25 +68,9 @@ const getTicketAvailable = (ticket: TourScheduleTicket) =>
   getScheduleTicketAvailable(ticket) ?? 0;
 
 const getCheckoutTicketOptions = (schedule: CheckoutSchedule) => {
-  const tickets = schedule.tourScheduleTickets ?? [];
-  if (tickets.length > 0) return tickets;
-
-  const fallbackPrice = getNumberValue(schedule.price);
-  const fallbackSeats = getNumberValue(schedule.availableSeats);
-
-  if (fallbackPrice === null || fallbackSeats === null) return [];
-
-  return [
-    {
-      id: schedule.id,
-      tourScheduleId: schedule.id,
-      scheduleId: schedule.id,
-      name: "Standard ticket",
-      price: fallbackPrice,
-      availableSeats: fallbackSeats,
-      quantity: fallbackSeats,
-    },
-  ] satisfies TourScheduleTicket[];
+  return (schedule.tourScheduleTickets ?? []).filter(
+    (ticket) => ticket.isActive !== false,
+  );
 };
 
 const getCheckoutScheduleAvailableSeats = (schedule: CheckoutSchedule) => {
@@ -364,23 +348,51 @@ export const BookingPage: React.FC = () => {
       }
     }
 
+    const orderDetails = Array.from(
+      tickets.reduce((groups, ticket) => {
+        const current = groups.get(ticket.tourScheduleTicketId);
+        const requestTicket = {
+          attendeeName: ticket.attendeeName,
+          idCard: ticket.idCard,
+          dateOfBirth: ticket.dateOfBirth,
+          gender: ticket.gender,
+          nationality: ticket.nationality,
+          ticketTypeId: ticket.ticketTypeId,
+        };
+
+        if (current) {
+          current.tickets.push(requestTicket);
+        } else {
+          groups.set(ticket.tourScheduleTicketId, {
+            tourScheduleTicketId: ticket.tourScheduleTicketId,
+            ticketTypeId: ticket.ticketTypeId,
+            tickets: [requestTicket],
+          });
+        }
+
+        return groups;
+      }, new Map<number, {
+        tourScheduleTicketId: number;
+        ticketTypeId?: number | null;
+        tickets: {
+          attendeeName: string;
+          idCard: string;
+          dateOfBirth: string;
+          gender: string;
+          nationality: string;
+          ticketTypeId?: number | null;
+        }[];
+      }>()),
+    ).map(([, detail]) => detail);
+
     handleCreateBooking({
       scheduleId: schedule.id,
+      totalQuantity: ticketCount,
       ticketCount,
       note,
+      discountValue: appliedVoucher?.discountAmount ?? 0,
       finalAmount: finalPayable,
-      tickets: tickets.map((ticket) => ({
-        attendeeName: ticket.attendeeName,
-        idCard: ticket.idCard,
-        dateOfBirth: ticket.dateOfBirth,
-        gender: ticket.gender,
-        nationality: ticket.nationality,
-        tourScheduleTicketId: ticket.tourScheduleTicketId,
-        scheduleTicketId: ticket.tourScheduleTicketId,
-        ticketTypeId: ticket.ticketTypeId,
-        ticketTypeName: ticket.ticketTypeName,
-        price: ticket.price,
-      })),
+      orderDetails,
     });
   };
 

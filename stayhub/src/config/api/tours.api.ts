@@ -25,6 +25,12 @@ export const TOURS_API = {
   GET_SCHEDULE_ITINERARIES_BY_SCHEDULE: (scheduleId: string | number) =>
     `${FULL_API}/TourScheduleItineraries/schedule/${scheduleId}`,
   TOUR_SCHEDULE_STAFFS: `${FULL_API}/TourScheduleStaffs`,
+  TOUR_SCHEDULE_TICKETS: `${FULL_API}/TourScheduleTickets`,
+  GET_TICKETS_BY_SCHEDULE: (scheduleId: string | number) => `${FULL_API}/TourScheduleTickets/schedule/${scheduleId}`,
+  GET_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}`,
+  UPDATE_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}`,
+  ACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}/activate`,
+  DEACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) => `${FULL_API}/TourScheduleTickets/${id}/deactivate`,
   SCHEDULES: `${FULL_API}/TourSchedules`,
   GET_SCHEDULE_BY_OPERATOR: `${FULL_API}/TourSchedules/operator`,
   // Schedules

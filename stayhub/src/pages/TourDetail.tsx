@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Home,
   Tag,
+  Ticket,
   Calendar,
   X,
   Users,
@@ -25,6 +26,23 @@ import { useToast } from "../contexts/ToastContext";
 import { useGroupedItineraries } from "../features/tour/hooks/useGroupedItineraries";
 import { useGetTourItineraries } from "../features/social/tours/hooks/useTourItineraries";
 import { TourItineraryMap } from "../features/social/tours/components/TourItineraryMap";
+import { ticketTypeService } from "../features/content/services/ticketType.service";
+import type { ReadTicketTypeDTO } from "../features/content/types/ticketType";
+import type { TourSchedule } from "../features/tour/types/tourSchedule";
+import type { TourItinerary } from "../features/tour/types/tourItinerary";
+import type { TourScheduleTicket } from "../features/tour/types/tourScheduleTicket";
+import {
+  getNumberValue,
+  getScheduleTicketAvailable,
+  getScheduleTicketName,
+  getScheduleTicketTypeId,
+} from "../features/tour/utils/tourScheduleTicket";
+
+type PublicTourItinerary = TourItinerary & {
+  startLocationName?: string | null;
+  endLocationName?: string | null;
+};
+
 
 const fmt = (n: number) => n.toLocaleString("vi-VN");
 const fmtDate = (d: string) =>
@@ -33,6 +51,72 @@ const fmtDate = (d: string) =>
     month: "short",
     year: "numeric",
   });
+
+const getScheduleTickets = (schedule: TourSchedule) =>
+  (schedule.tourScheduleTickets ?? []).filter((ticket) => ticket.isActive !== false);
+
+const getScheduleLowestPrice = (schedule: TourSchedule) => {
+  const prices = getScheduleTickets(schedule)
+    .map((ticket) => getNumberValue(ticket.price))
+    .filter((price): price is number => price !== null);
+
+  return prices.length > 0 ? Math.min(...prices) : null;
+};
+
+const getSchedulePriceText = (schedule: TourSchedule) => {
+  const prices = getScheduleTickets(schedule)
+    .map((ticket) => getNumberValue(ticket.price))
+    .filter((price): price is number => price !== null);
+
+  if (prices.length === 0) return "No price";
+
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
+
+  return minPrice === maxPrice
+    ? `${fmt(minPrice)} đ`
+    : `${fmt(minPrice)} - ${fmt(maxPrice)} đ`;
+};
+
+const getScheduleAvailableSeats = (schedule: TourSchedule) =>
+  getScheduleTickets(schedule).reduce(
+    (sum, ticket) => sum + (getScheduleTicketAvailable(ticket) ?? 0),
+    0,
+  );
+
+const getTicketDisplayName = (
+  ticket: TourScheduleTicket,
+  ticketTypeDetails: Record<number, ReadTicketTypeDTO>,
+) => {
+  const ticketTypeId = getScheduleTicketTypeId(ticket);
+  return getScheduleTicketName(
+    ticket,
+    ticketTypeId ? ticketTypeDetails[ticketTypeId] : undefined,
+  );
+};
+
+const enrichTicketWithTypeDetail = (
+  ticket: TourScheduleTicket,
+  ticketTypeDetails: Record<number, ReadTicketTypeDTO>,
+): TourScheduleTicket => {
+  const ticketTypeId = getScheduleTicketTypeId(ticket);
+  const ticketType = ticketTypeId ? ticketTypeDetails[ticketTypeId] : undefined;
+
+  if (!ticketType) return ticket;
+
+  return {
+    ...ticket,
+    ticketTypeId: ticket.ticketTypeId ?? ticketType.id,
+    ticketTypeName: getScheduleTicketName(ticket, ticketType),
+    ticketType: {
+      ...ticket.ticketType,
+      id: ticket.ticketType?.id ?? ticketType.id,
+      name: ticketType.name,
+      description: ticket.ticketType?.description ?? ticketType.description,
+      isActive: ticket.ticketType?.isActive ?? ticketType.isActive,
+    },
+  };
+};
 
 export default function PublicTourDetail() {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +133,10 @@ export default function PublicTourDetail() {
     null,
   );
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [expandedTicketScheduleId, setExpandedTicketScheduleId] = useState<
+    number | null
+  >(null);
+  const [currentTime] = useState(() => Date.now());
 
   const { data: category } = useQuery({
     queryKey: ["category", tour?.categoryId],
@@ -65,6 +153,42 @@ export default function PublicTourDetail() {
     return arr.sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
   }, [tour?.tourSchedules]);
 
+  const ticketTypeIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          sortedSchedules
+            .flatMap(getScheduleTickets)
+            .map(getScheduleTicketTypeId)
+            .filter((ticketTypeId): ticketTypeId is number => ticketTypeId !== null),
+        ),
+      ),
+    [sortedSchedules],
+  );
+
+  const { data: ticketTypeDetails = {} } = useQuery({
+    queryKey: ["public-tour-ticket-types", ticketTypeIds],
+    queryFn: async () => {
+      const details = await Promise.all(
+        ticketTypeIds.map(async (ticketTypeId) => {
+          try {
+            const ticketType = await ticketTypeService.getById(ticketTypeId);
+            return [ticketTypeId, ticketType] as const;
+          } catch {
+            return null;
+          }
+        }),
+      );
+
+      return Object.fromEntries(
+        details.filter(
+          (detail): detail is readonly [number, ReadTicketTypeDTO] => detail !== null,
+        ),
+      );
+    },
+    enabled: ticketTypeIds.length > 0,
+  });
+
   const groupedSchedules = useMemo(() => {
     return sortedSchedules.reduce((acc, schedule) => {
       const monthYear = new Date(schedule.departureDate).toLocaleDateString("en-US", { month: "long", year: "numeric" });
@@ -78,21 +202,49 @@ export default function PublicTourDetail() {
   const activeMonth = selectedMonth && availableMonths.includes(selectedMonth) ? selectedMonth : availableMonths[0];
 
   const availableSchedules = useMemo(() => {
-    const now = Date.now();
     return sortedSchedules.filter(
-      (s) => new Date(s.departureDate).getTime() > now && s.availableSeats > 0
+      (schedule) =>
+        new Date(schedule.departureDate).getTime() > currentTime &&
+        getScheduleAvailableSeats(schedule) > 0,
     );
-  }, [sortedSchedules]);
+  }, [currentTime, sortedSchedules]);
 
   const selectedSchedule = sortedSchedules.find((s) => s.id === selectedScheduleId);
+  const selectedSchedulePrice = selectedSchedule
+    ? getScheduleLowestPrice(selectedSchedule)
+    : null;
+  const selectedScheduleAvailableSeats = selectedSchedule
+    ? getScheduleAvailableSeats(selectedSchedule)
+    : 0;
+  const selectedScheduleTickets = selectedSchedule
+    ? getScheduleTickets(selectedSchedule)
+    : [];
+  const selectedCheckoutTickets = selectedScheduleTickets.map((ticket) =>
+    enrichTicketWithTypeDetail(ticket, ticketTypeDetails),
+  );
+  const selectedCheckoutSchedule =
+    selectedSchedule && selectedSchedulePrice !== null && selectedScheduleAvailableSeats > 0
+      ? {
+          ...selectedSchedule,
+          price: selectedSchedulePrice,
+          availableSeats: selectedScheduleAvailableSeats,
+          tourScheduleTickets: selectedCheckoutTickets,
+        }
+      : null;
   const displayImageUrl = tour?.imageUrl || "";
   const displayName = tour?.name || "Loading details...";
+  const availablePrices = availableSchedules
+    .map(getScheduleLowestPrice)
+    .filter((price): price is number => price !== null);
+  const allPrices = sortedSchedules
+    .map(getScheduleLowestPrice)
+    .filter((price): price is number => price !== null);
   const minPrice =
-    availableSchedules.length > 0
-      ? Math.min(...availableSchedules.map((s) => s.price))
-      : sortedSchedules.length > 0
-      ? Math.min(...sortedSchedules.map((s) => s.price))
-      : 0;
+    availablePrices.length > 0
+      ? Math.min(...availablePrices)
+      : allPrices.length > 0
+        ? Math.min(...allPrices)
+        : null;
   const rating = tour?.averageStar || 0;
   const reviews = tour?.reviews?.length || 0;
   const days = tour?.tourItineraries?.length || 0;
@@ -351,7 +503,7 @@ export default function PublicTourDetail() {
                             </div>
                           </div>
                           <div className="flex flex-col divide-y divide-slate-100">
-                            {groupedItineraries[dayNumber].map((iti: any) => {
+                            {(groupedItineraries[dayNumber] as PublicTourItinerary[]).map((iti) => {
                                const isExpanded = expandedItiIds.includes(iti.id);
                                const timeStr = iti.startDuration && iti.endDuration
                                  ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
@@ -455,7 +607,7 @@ export default function PublicTourDetail() {
                   {[5, 4, 3, 2, 1].map((star) => {
                     const count =
                       tour.reviews?.filter(
-                        (r: any) => Math.round(r.rating) === star,
+                        (r) => Math.round(r.rating || 0) === star,
                       ).length || 0;
                     const pct = reviews > 0 ? (count / reviews) * 100 : 0;
                     return (
@@ -485,7 +637,7 @@ export default function PublicTourDetail() {
               {/* Review list */}
               <div className="space-y-6">
                 {tour.reviews && tour.reviews.length > 0 ? (
-                  tour.reviews.map((review: any) => {
+                  tour.reviews.map((review) => {
                     const reviewerName = review.customerName || "Anonymous";
                     const initials =
                       reviewerName
@@ -503,7 +655,7 @@ export default function PublicTourDetail() {
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            {/* --- CẬP NHẬT HIỂN THỊ AVATAR Ở ĐÂY --- */}
+                            {/* Avatar */}
                             <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center text-[#EB662B] font-bold text-lg uppercase shrink-0 overflow-hidden border border-orange-200">
                               {review.customerAvatar ? (
                                 <img 
@@ -511,7 +663,7 @@ export default function PublicTourDetail() {
                                   alt={reviewerName} 
                                   className="h-full w-full object-cover"
                                   onError={(e) => {
-                                    // Fallback nếu link ảnh bị lỗi
+                                    // Fallback if avatar fails
                                     e.currentTarget.style.display = 'none';
                                     e.currentTarget.parentElement!.innerText = initials;
                                   }}
@@ -563,14 +715,18 @@ export default function PublicTourDetail() {
                   </span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-3xl font-black text-white">
-                      {fmt(minPrice)}
+                      {minPrice !== null ? fmt(minPrice) : "No price"}
                     </span>
-                    <span className="text-orange-200 font-semibold ml-1">
-                    đ
-                    </span>
-                    <span className="text-orange-200 text-sm ml-1">
-                      / person
-                    </span>
+                    {minPrice !== null && (
+                      <span className="text-orange-200 font-semibold ml-1">
+                        đ
+                      </span>
+                    )}
+                    {minPrice !== null && (
+                      <span className="text-orange-200 text-sm ml-1">
+                        / person
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -592,7 +748,7 @@ export default function PublicTourDetail() {
                               {fmtDate(selectedSchedule.returnDate)}
                             </div>
                             <div className="text-xs font-medium text-emerald-600 mt-1">
-                              {selectedSchedule.availableSeats} seats left
+                              {selectedScheduleAvailableSeats} seats left
                             </div>
                           </div>
                           <button
@@ -604,12 +760,44 @@ export default function PublicTourDetail() {
                         </div>
                         <div className="border-t border-orange-200/50 pt-3 flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-600">
-                            Price per person
+                            Price range
                           </span>
                           <span className="font-bold text-slate-900">
-                            {fmt(selectedSchedule.price)} d
+                            {getSchedulePriceText(selectedSchedule)}
                           </span>
                         </div>
+                        {selectedScheduleTickets.length > 0 && (
+                          <div className="mt-3 space-y-2 border-t border-orange-200/50 pt-3">
+                            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-400">
+                              <Ticket className="h-3.5 w-3.5" />
+                              Ticket options
+                            </div>
+                            {selectedScheduleTickets.map((ticket) => {
+                              const ticketAvailable = getScheduleTicketAvailable(ticket) ?? 0;
+
+                              return (
+                                <div
+                                  key={ticket.id}
+                                  className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-sm"
+                                >
+                                  <div className="min-w-0">
+                                    <div className="truncate font-semibold text-slate-800">
+                                      {getTicketDisplayName(ticket, ticketTypeDetails)}
+                                    </div>
+                                    <div className="text-xs font-medium text-slate-400">
+                                      {ticketAvailable} left
+                                    </div>
+                                  </div>
+                                  <div className="shrink-0 font-bold text-slate-900">
+                                    {getNumberValue(ticket.price) !== null
+                                      ? `${fmt(getNumberValue(ticket.price) ?? 0)} đ`
+                                      : "No price"}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <button
@@ -632,10 +820,10 @@ export default function PublicTourDetail() {
                   <ActionButton
                     variant="primary"
                     className="w-full py-4 text-base shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
-                    disabled={!selectedSchedule}
+                    disabled={!selectedCheckoutSchedule}
                     onClick={() => {
                       navigate(PATH.CUSTOMER.CHECKOUT(tour.id), {
-                        state: { tour, schedule: selectedSchedule },
+                        state: { tour, schedule: selectedCheckoutSchedule },
                       });
                     }}
                   >
@@ -736,32 +924,25 @@ export default function PublicTourDetail() {
                       (retDate.getTime() - depDate.getTime()) /
                         (1000 * 60 * 60 * 24),
                     );
-                    const isExpired = depDate.getTime() < Date.now();
-                    const isSoldOut = !isExpired && schedule.availableSeats <= 0;
-                    const isUnavailable = isExpired || isSoldOut;
+                    const scheduleAvailableSeats = getScheduleAvailableSeats(schedule);
+                    const schedulePrice = getScheduleLowestPrice(schedule);
+                    const scheduleTickets = getScheduleTickets(schedule);
+                    const isExpandedTickets = expandedTicketScheduleId === schedule.id;
+                    const isExpired = depDate.getTime() < currentTime;
+                    const isSoldOut = !isExpired && scheduleAvailableSeats <= 0;
+                    const hasNoPrice = schedulePrice === null;
+                    const isUnavailable = isExpired || isSoldOut || hasNoPrice;
 
                     return (
-                      <button
+                      <div
                         key={schedule.id}
-                        onClick={() => {
-                          if (isExpired) {
-                            showError("This schedule has expired.");
-                            return;
-                          }
-                          if (isSoldOut) {
-                            showError("This schedule is sold out.");
-                            return;
-                          }
-                          setSelectedScheduleId(schedule.id);
-                          setIsScheduleModalOpen(false);
-                        }}
                         className={`relative text-left rounded-2xl border-2 p-4 transition-all
                           ${
                             isSelected
                               ? "border-[#EB662B] bg-orange-50/50 ring-1 ring-[#EB662B] shadow-md"
                               : isUnavailable
                               ? "border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed grayscale-[50%]"
-                              : "border-slate-200 hover:border-[#EB662B] bg-white hover:shadow-md cursor-pointer"
+                              : "border-slate-200 bg-white hover:shadow-md"
                           }`}
                       >
                         {isSelected && (
@@ -806,26 +987,108 @@ export default function PublicTourDetail() {
                             className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
                               isExpired
                                 ? "bg-slate-200 text-slate-500"
+                                : hasNoPrice
+                                ? "bg-slate-200 text-slate-500"
                                 : isSoldOut
                                 ? "bg-rose-100 text-rose-600"
-                                : schedule.availableSeats <= 5
+                                : scheduleAvailableSeats <= 5
                                 ? "bg-amber-100 text-amber-600"
                                 : "bg-emerald-50 text-emerald-600"
                             }`}
                           >
                             {isExpired
                               ? "Expired"
+                              : hasNoPrice
+                              ? "No price"
                               : isSoldOut
                               ? "Sold Out"
-                              : schedule.availableSeats <= 5
-                              ? `🔥 ${schedule.availableSeats} seats left`
-                              : `${schedule.availableSeats} seats left`}
+                              : scheduleAvailableSeats <= 5
+                              ? `Few seats left: ${scheduleAvailableSeats}`
+                              : `${scheduleAvailableSeats} seats left`}
                           </span>
                           <span className={`font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
-                            {fmt(schedule.price)} d
+                            {getSchedulePriceText(schedule)}
                           </span>
                         </div>
-                      </button>
+
+                        {scheduleTickets.length > 0 && (
+                          <div className="mt-3 border-t border-slate-100 pt-3">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedTicketScheduleId((currentId) =>
+                                  currentId === schedule.id ? null : schedule.id,
+                                )
+                              }
+                              className="flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
+                            >
+                              <span>
+                                {isExpandedTickets ? "Hide" : "Show"} ticket prices
+                              </span>
+                              {isExpandedTickets ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </button>
+
+                            {isExpandedTickets && (
+                              <div className="mt-2 space-y-2">
+                                {scheduleTickets.map((ticket) => {
+                                  const ticketPrice = getNumberValue(ticket.price);
+                                  const ticketAvailable =
+                                    getScheduleTicketAvailable(ticket) ?? 0;
+
+                                  return (
+                                    <div
+                                      key={ticket.id}
+                                      className="rounded-xl border border-slate-100 bg-white px-3 py-2"
+                                    >
+                                      <div className="flex items-center justify-between gap-3 text-sm">
+                                        <span className="min-w-0 truncate font-semibold text-slate-800">
+                                          {getTicketDisplayName(ticket, ticketTypeDetails)}
+                                        </span>
+                                        <span className="shrink-0 font-bold text-slate-900">
+                                          {ticketPrice !== null
+                                            ? `${fmt(ticketPrice)} đ`
+                                            : "No price"}
+                                        </span>
+                                      </div>
+                                      <div className="mt-1 text-xs font-medium text-slate-400">
+                                        {ticketAvailable} available
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          disabled={isUnavailable}
+                          onClick={() => {
+                            if (isExpired) {
+                              showError("This schedule has expired.");
+                              return;
+                            }
+                            if (isSoldOut) {
+                              showError("This schedule is sold out.");
+                              return;
+                            }
+                            if (hasNoPrice) {
+                              showError("This schedule does not have a ticket price.");
+                              return;
+                            }
+                            setSelectedScheduleId(schedule.id);
+                            setIsScheduleModalOpen(false);
+                          }}
+                          className="mt-4 w-full rounded-xl bg-[#EB662B] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                        >
+                          {isSelected ? "Selected" : "Select schedule"}
+                        </button>
+                      </div>
                     );
                   })}
                 </div>

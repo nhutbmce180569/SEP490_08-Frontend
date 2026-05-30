@@ -15,6 +15,8 @@ import { TourCard } from "../components/home/TourCard";
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useSearchTours } from "../hooks/useSearchTours";
+import type { Tour } from "../features/tour/types/tour";
+import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -29,8 +31,15 @@ const SORT_OPTIONS = [
   { label: "Oldest first", value: "date_asc" },
 ];
 
-const getFreeApiImage = (seed: string, w: number, h: number) =>
-  `https://picsum.photos/seed/${seed}/${w}/${h}`;
+const getTourLowestTicketPrice = (tour: Tour) => {
+  const prices =
+    tour.tourSchedules
+      ?.flatMap((schedule) => schedule.tourScheduleTickets ?? [])
+      .map((ticket) => getNumberValue(ticket.price))
+      .filter((price): price is number => price !== null) ?? [];
+
+  return prices.length > 0 ? Math.min(...prices) : null;
+};
 
 // ─── Slider CSS ───────────────────────────────────────────────────────────────
 
@@ -92,7 +101,7 @@ function PriceSlider({
 }) {
   const pct = (v: number) => (v / MAX_PRICE) * 100;
   const fmt = (v: number) =>
-    v <= 0 ? "0" : v >= MAX_PRICE ? "Max" : (v / 1_000_000).toFixed(0) + "M ₫";
+    v <= 0 ? "0" : v >= MAX_PRICE ? "Max" : (v / 1_000_000).toFixed(0) + "M đ";
 
   return (
     <div className="space-y-3">
@@ -833,11 +842,9 @@ export default function TourSearch() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                {tours.map((tour: any) => {
+                {tours.map((tour) => {
                   const days = tour.tourItineraries?.length ?? 0;
-                  const prices =
-                    tour.tourSchedules?.map((s: any) => s.price) ?? [];
-                  const minP = prices.length ? Math.min(...prices) : 0;
+                  const minP = getTourLowestTicketPrice(tour);
                   const loc =
                     [tour.city, tour.country].filter(Boolean).join(", ") ||
                     "Various Locations";

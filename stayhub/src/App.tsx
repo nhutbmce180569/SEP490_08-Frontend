@@ -60,6 +60,9 @@ import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
 import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
 import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
 import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
+import { CreateScheduleTicket } from "./features/tour/pages/CreateScheduleTicket";
+import { UpdateScheduleTicket } from "./features/tour/pages/UpdateScheduleTicket";
+import { DeleteScheduleTicket } from "./features/tour/pages/DeleteScheduleTicket";
 import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
 import { BookingPage } from "./features/booking/pages/BookingPage";
@@ -351,6 +354,18 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
                     element={<DeleteScheduleItinerary />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CREATE_SCHEDULE_TICKET())}
+                    element={<CreateScheduleTicket />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.EDIT_SCHEDULE_TICKET())}
+                    element={<UpdateScheduleTicket />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.DELETE_SCHEDULE_TICKET())}
+                    element={<DeleteScheduleTicket />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}

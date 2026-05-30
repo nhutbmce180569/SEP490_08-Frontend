@@ -8,7 +8,7 @@ export const BOOKINGS_API = {
   GET_CUSTOMER_ORDERS: `${FULL_API}/customer/orders`,
   GET_CUSTOMER_ORDERS_BY_USER: (userId: string | number) => `${FULL_API}/orders/user/${userId}`,
   GET_ORDER_BY_ID: (id: string | number) => `${FULL_API}/orders/my/${id}`,
-  CANCEL_ORDER: (id: string | number) => `${FULL_API}/customer/orders/${id}/cancel`,
+  CANCEL_ORDER: (id: string | number) => `${FULL_API}/orders/${id}/cancel`,
   GET_OPERATOR_ORDERS: `${FULL_API}/operator/orders`,
   
   // Check-in

@@ -8,13 +8,19 @@ import type { CreateOrderRequest } from "../types/booking";
 export const useCreateBooking = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
-  const [isApplyingVoucher, setIsApplyingVoucher] = useState(false);
-  const [appliedVoucher, setAppliedVoucher] = useState<{ code: string; discountAmount: number; finalAmount: number } | null>(null);
+  const [isApplyingVoucher] = useState(false);
+  const [appliedVoucher] = useState<{ code: string; discountAmount: number; finalAmount: number } | null>(null);
 
-  const { success, error: showError } = useToast();
+  const { error: showError } = useToast();
 
   const handleCreateBooking = async (data: CreateOrderRequest) => {
-    const hasFutureDOB = data.tickets?.some(t => t.dateOfBirth && new Date(t.dateOfBirth).getTime() > Date.now());
+    const hasFutureDOB = data.orderDetails?.some((detail) =>
+      detail.tickets.some(
+        (ticket) =>
+          ticket.dateOfBirth &&
+          new Date(ticket.dateOfBirth).getTime() > Date.now(),
+      ),
+    );
     if (hasFutureDOB) {
       showError("One or more passengers have a Date of Birth in the future.");
       return;

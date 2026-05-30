@@ -28,3 +28,8 @@ export const getOrderById = async (orderId: string | number) => {
   const response: any = await apiClient.get(BOOKINGS_API.GET_ORDER_BY_ID(orderId));
   return response.data?.data !== undefined ? response.data.data : response.data;
 };
+
+export const cancelOrder = async (orderId: string | number) => {
+  const response: any = await apiClient.patch(BOOKINGS_API.CANCEL_ORDER(orderId));
+  return response.data !== undefined ? response.data : response;
+};

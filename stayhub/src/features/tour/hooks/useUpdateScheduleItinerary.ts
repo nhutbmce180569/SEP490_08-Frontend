@@ -82,6 +82,7 @@ export const useUpdateScheduleItinerary = () => {
         locationName: values.locationName || null,
         locationLat: values.locationLat ? Number(values.locationLat) : null,
         locationLng: values.locationLng ? Number(values.locationLng) : null,
+        tourismInfoId: values.tourismInfoId === "" || values.tourismInfoId === null || values.tourismInfoId === undefined ? null : Number(values.tourismInfoId),
       };
 
       await updateScheduleItinerary(itineraryId, payload);

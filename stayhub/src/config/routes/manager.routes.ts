@@ -28,6 +28,9 @@ export const MANAGER_ROUTES = {
   CREATE_SCHEDULE_ITINERARY: (scheduleId: string | number = ':scheduleId') => `/manager/schedules/${scheduleId}/itineraries/create`,
   EDIT_SCHEDULE_ITINERARY: (scheduleId: string | number = ':scheduleId', itineraryId: string | number = ':itineraryId') => `/manager/schedules/${scheduleId}/itineraries/edit/${itineraryId}`,
   DELETE_SCHEDULE_ITINERARY: (scheduleId: string | number = ':scheduleId', itineraryId: string | number = ':itineraryId') => `/manager/schedules/${scheduleId}/itineraries/${itineraryId}/delete`,
+  CREATE_SCHEDULE_TICKET: (scheduleId: string | number = ':scheduleId') => `/manager/schedules/${scheduleId}/tickets/create`,
+  EDIT_SCHEDULE_TICKET: (scheduleId: string | number = ':scheduleId', ticketId: string | number = ':ticketId') => `/manager/schedules/${scheduleId}/tickets/edit/${ticketId}`,
+  DELETE_SCHEDULE_TICKET: (scheduleId: string | number = ':scheduleId', ticketId: string | number = ':ticketId') => `/manager/schedules/${scheduleId}/tickets/${ticketId}/delete`,
 
   SCHEDULE_DETAIL: (id: string | number = ':id') => `/manager/schedules/${id}`,
   SCHEDULE_ORDERS: (id: string | number = ':id') => `/manager/schedules/${id}/orders`,

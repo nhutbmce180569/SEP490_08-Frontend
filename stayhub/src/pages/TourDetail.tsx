@@ -23,6 +23,17 @@ import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
 import { useGroupedItineraries } from "../features/tour/hooks/useGroupedItineraries";
+import type { TourSchedule } from "../features/tour/types/tourSchedule";
+import type { TourItinerary } from "../features/tour/types/tourItinerary";
+import {
+  getNumberValue,
+  getScheduleTicketAvailable,
+} from "../features/tour/utils/tourScheduleTicket";
+
+type PublicTourItinerary = TourItinerary & {
+  startLocationName?: string | null;
+  endLocationName?: string | null;
+};
 
 const fmt = (n: number) => n.toLocaleString("vi-VN");
 const fmtDate = (d: string) =>
@@ -31,6 +42,22 @@ const fmtDate = (d: string) =>
     month: "short",
     year: "numeric",
   });
+
+const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
+
+const getScheduleLowestPrice = (schedule: TourSchedule) => {
+  const prices = getScheduleTickets(schedule)
+    .map((ticket) => getNumberValue(ticket.price))
+    .filter((price): price is number => price !== null);
+
+  return prices.length > 0 ? Math.min(...prices) : null;
+};
+
+const getScheduleAvailableSeats = (schedule: TourSchedule) =>
+  getScheduleTickets(schedule).reduce(
+    (sum, ticket) => sum + (getScheduleTicketAvailable(ticket) ?? 0),
+    0,
+  );
 
 export default function PublicTourDetail() {
   const { id } = useParams<{ id: string }>();
@@ -45,6 +72,7 @@ export default function PublicTourDetail() {
     null,
   );
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [currentTime] = useState(() => Date.now());
 
   const { data: category } = useQuery({
     queryKey: ["category", tour?.categoryId],
@@ -74,21 +102,42 @@ export default function PublicTourDetail() {
   const activeMonth = selectedMonth && availableMonths.includes(selectedMonth) ? selectedMonth : availableMonths[0];
 
   const availableSchedules = useMemo(() => {
-    const now = Date.now();
     return sortedSchedules.filter(
-      (s) => new Date(s.departureDate).getTime() > now && s.availableSeats > 0
+      (schedule) =>
+        new Date(schedule.departureDate).getTime() > currentTime &&
+        getScheduleAvailableSeats(schedule) > 0,
     );
-  }, [sortedSchedules]);
+  }, [currentTime, sortedSchedules]);
 
   const selectedSchedule = sortedSchedules.find((s) => s.id === selectedScheduleId);
+  const selectedSchedulePrice = selectedSchedule
+    ? getScheduleLowestPrice(selectedSchedule)
+    : null;
+  const selectedScheduleAvailableSeats = selectedSchedule
+    ? getScheduleAvailableSeats(selectedSchedule)
+    : 0;
+  const selectedCheckoutSchedule =
+    selectedSchedule && selectedSchedulePrice !== null && selectedScheduleAvailableSeats > 0
+      ? {
+          ...selectedSchedule,
+          price: selectedSchedulePrice,
+          availableSeats: selectedScheduleAvailableSeats,
+        }
+      : null;
   const displayImageUrl = tour?.imageUrl || "";
   const displayName = tour?.name || "Loading details...";
+  const availablePrices = availableSchedules
+    .map(getScheduleLowestPrice)
+    .filter((price): price is number => price !== null);
+  const allPrices = sortedSchedules
+    .map(getScheduleLowestPrice)
+    .filter((price): price is number => price !== null);
   const minPrice =
-    availableSchedules.length > 0
-      ? Math.min(...availableSchedules.map((s) => s.price))
-      : sortedSchedules.length > 0
-      ? Math.min(...sortedSchedules.map((s) => s.price))
-      : 0;
+    availablePrices.length > 0
+      ? Math.min(...availablePrices)
+      : allPrices.length > 0
+        ? Math.min(...allPrices)
+        : 0;
   const rating = tour?.averageStar || 0;
   const reviews = tour?.reviews?.length || 0;
   const days = tour?.tourItineraries?.length || 0;
@@ -333,7 +382,7 @@ export default function PublicTourDetail() {
                             </div>
                           </div>
                           <div className="flex flex-col divide-y divide-slate-100">
-                            {groupedItineraries[dayNumber].map((iti: any) => {
+                            {(groupedItineraries[dayNumber] as PublicTourItinerary[]).map((iti) => {
                                const isExpanded = expandedItiIds.includes(iti.id);
                                const timeStr = iti.startDuration && iti.endDuration
                                  ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
@@ -437,7 +486,7 @@ export default function PublicTourDetail() {
                   {[5, 4, 3, 2, 1].map((star) => {
                     const count =
                       tour.reviews?.filter(
-                        (r: any) => Math.round(r.rating) === star,
+                        (r) => Math.round(r.rating || 0) === star,
                       ).length || 0;
                     const pct = reviews > 0 ? (count / reviews) * 100 : 0;
                     return (
@@ -467,7 +516,7 @@ export default function PublicTourDetail() {
               {/* Review list */}
               <div className="space-y-6">
                 {tour.reviews && tour.reviews.length > 0 ? (
-                  tour.reviews.map((review: any) => {
+                  tour.reviews.map((review) => {
                     const reviewerName = review.customerName || "Anonymous";
                     const initials =
                       reviewerName
@@ -485,7 +534,7 @@ export default function PublicTourDetail() {
                       >
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            {/* --- CẬP NHẬT HIỂN THỊ AVATAR Ở ĐÂY --- */}
+                            {/* Avatar */}
                             <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center text-[#EB662B] font-bold text-lg uppercase shrink-0 overflow-hidden border border-orange-200">
                               {review.customerAvatar ? (
                                 <img 
@@ -493,7 +542,7 @@ export default function PublicTourDetail() {
                                   alt={reviewerName} 
                                   className="h-full w-full object-cover"
                                   onError={(e) => {
-                                    // Fallback nếu link ảnh bị lỗi
+                                    // Fallback if avatar fails
                                     e.currentTarget.style.display = 'none';
                                     e.currentTarget.parentElement!.innerText = initials;
                                   }}
@@ -548,7 +597,7 @@ export default function PublicTourDetail() {
                       {fmt(minPrice)}
                     </span>
                     <span className="text-orange-200 font-semibold ml-1">
-                    đ
+                      đ
                     </span>
                     <span className="text-orange-200 text-sm ml-1">
                       / person
@@ -574,7 +623,7 @@ export default function PublicTourDetail() {
                               {fmtDate(selectedSchedule.returnDate)}
                             </div>
                             <div className="text-xs font-medium text-emerald-600 mt-1">
-                              {selectedSchedule.availableSeats} seats left
+                              {selectedScheduleAvailableSeats} seats left
                             </div>
                           </div>
                           <button
@@ -589,7 +638,9 @@ export default function PublicTourDetail() {
                             Price per person
                           </span>
                           <span className="font-bold text-slate-900">
-                            {fmt(selectedSchedule.price)} d
+                            {selectedSchedulePrice !== null
+                              ? `${fmt(selectedSchedulePrice)} đ`
+                              : "No price"}
                           </span>
                         </div>
                       </div>
@@ -614,10 +665,10 @@ export default function PublicTourDetail() {
                   <ActionButton
                     variant="primary"
                     className="w-full py-4 text-base shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
-                    disabled={!selectedSchedule}
+                    disabled={!selectedCheckoutSchedule}
                     onClick={() => {
                       navigate(PATH.CUSTOMER.CHECKOUT(tour.id), {
-                        state: { tour, schedule: selectedSchedule },
+                        state: { tour, schedule: selectedCheckoutSchedule },
                       });
                     }}
                   >
@@ -718,8 +769,10 @@ export default function PublicTourDetail() {
                       (retDate.getTime() - depDate.getTime()) /
                         (1000 * 60 * 60 * 24),
                     );
-                    const isExpired = depDate.getTime() < Date.now();
-                    const isSoldOut = !isExpired && schedule.availableSeats <= 0;
+                    const scheduleAvailableSeats = getScheduleAvailableSeats(schedule);
+                    const schedulePrice = getScheduleLowestPrice(schedule);
+                    const isExpired = depDate.getTime() < currentTime;
+                    const isSoldOut = !isExpired && scheduleAvailableSeats <= 0;
                     const isUnavailable = isExpired || isSoldOut;
 
                     return (
@@ -790,7 +843,7 @@ export default function PublicTourDetail() {
                                 ? "bg-slate-200 text-slate-500"
                                 : isSoldOut
                                 ? "bg-rose-100 text-rose-600"
-                                : schedule.availableSeats <= 5
+                                : scheduleAvailableSeats <= 5
                                 ? "bg-amber-100 text-amber-600"
                                 : "bg-emerald-50 text-emerald-600"
                             }`}
@@ -799,12 +852,12 @@ export default function PublicTourDetail() {
                               ? "Expired"
                               : isSoldOut
                               ? "Sold Out"
-                              : schedule.availableSeats <= 5
-                              ? `🔥 ${schedule.availableSeats} seats left`
-                              : `${schedule.availableSeats} seats left`}
+                              : scheduleAvailableSeats <= 5
+                              ? `Few seats left: ${scheduleAvailableSeats}`
+                              : `${scheduleAvailableSeats} seats left`}
                           </span>
                           <span className={`font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
-                            {fmt(schedule.price)} d
+                            {schedulePrice !== null ? `${fmt(schedulePrice)} đ` : "No price"}
                           </span>
                         </div>
                       </button>

@@ -55,6 +55,9 @@ import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
 import { TicketTypeList } from "./features/content/pages/TicketTypeList";
 import { CreateTicketType } from "./features/content/pages/CreateTicketType";
 import { UpdateTicketType } from "./features/content/pages/UpdateTicketType";
+import { TourismInformationList } from "./features/content/pages/TourismInformationList";
+import { CreateTourismInformation } from "./features/content/pages/CreateTourismInformation";
+import { UpdateTourismInformation } from "./features/content/pages/UpdateTourismInformation";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
@@ -72,6 +75,13 @@ import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
+import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
+import { VoucherList } from "./features/voucher/pages/VoucherList";
+import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
+import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
+import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
+import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
+import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -86,7 +96,6 @@ const pageCopy: Record<string, string> = {
   Profile: "Mock customer profile page.",
   "My Bookings": "Mock booking history.",
   "Booking Detail": "Mock booking detail page.",
-  Wishlist: "Mock wishlist page.",
   "Partner Profile": "Mock tour operator profile page.",
   Vouchers: "Mock customer vouchers page.",
   Reviews: "Mock reviews page.",
@@ -268,10 +277,7 @@ const App: React.FC = () => {
 
               <Route element={<MainLayout />}>
                 <Route path={PATH.PUBLIC.HOME} element={<Home />} />
-                <Route
-                  path={PATH.PUBLIC.TOURS}
-                  element={<TourSearch />}
-                />
+                <Route path={PATH.PUBLIC.TOURS} element={<TourSearch />} />
                 <Route
                   path={PATH.PUBLIC.TOUR_SEARCH}
                   element={<TourSearch />}
@@ -288,10 +294,7 @@ const App: React.FC = () => {
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
                 /> */}
-                <Route
-                  path="/social/profile/:id"
-                  element={<SocialProfile />}
-                />
+                <Route path="/social/profile/:id" element={<SocialProfile />} />
 
                 {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                 <Route element={<ProtectedRoute />}>
@@ -307,11 +310,11 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.WISHLIST}
-                      element={mock("Wishlist", "Customer")}
+                      element={<MyWishlistPage />}
                     />
                     <Route
                       path={PATH.CUSTOMER.VOUCHERS}
-                      element={mock("Vouchers", "Customer")}
+                      element={<MyVouchersPage />}
                     />
                     <Route
                       path={PATH.CUSTOMER.MY_REVIEWS}
@@ -325,8 +328,10 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.NOTIFICATIONS}
                       element={mock("Notifications", "Customer")}
                     />
+
                     <Route path="/social/moments"
                      element={<MomentsRouteWrapper />} />
+
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
@@ -402,7 +407,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
-                    element={<UpdateScheduleItinerary/>}
+                    element={<UpdateScheduleItinerary />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
@@ -437,30 +442,14 @@ const App: React.FC = () => {
                     element={mock("Check-in", "Partner")}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
-                    <Route
-                      index
-                      element={mock("MANAGER Vouchers", "Partner")}
-                    />
-                    <Route
-                      path="create"
-                      element={mock("Create Voucher", "Partner")}
-                    />
-                    <Route
-                      path=":id"
-                      element={mock("Voucher Detail", "Partner")}
-                    />
-                    <Route
-                      path=":id/edit"
-                      element={mock("Edit Voucher", "Partner")}
-                    />
-                    <Route
-                      path=":id/delete"
-                      element={mock("Delete Voucher", "Partner")}
-                    />
+                    <Route index element={<VoucherList />} />
+                    <Route path="create" element={<CreateVoucher />} />
+                    <Route path=":id/edit" element={<UpdateVoucher />} />
+                    <Route path=":id" element={<VoucherDetail />} />
                   </Route>
                   <Route
                     path={childPath(PATH.MANAGER.REVIEWS)}
-                    element={mock("Reviews", "Partner")}
+                    element={<DashboardReviewManager />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.PAYOUT)}
@@ -539,6 +528,11 @@ const App: React.FC = () => {
                       path=":id/delete"
                       element={<DeleteCategoryConfirm />}
                     />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT)}>
+                    <Route index element={<TourismInformationList />} />
+                    <Route path="create" element={<CreateTourismInformation />} />
+                    <Route path=":id/edit" element={<UpdateTourismInformation />} />
                   </Route>
                   <Route
                     path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}

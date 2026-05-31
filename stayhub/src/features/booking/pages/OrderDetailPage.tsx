@@ -16,6 +16,8 @@ import {
   Star,
   ChevronRight,
   X,
+  Image as ImageIcon,
+  ExternalLink,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { PATH } from "../../../config/routes/route";
@@ -27,6 +29,7 @@ import { cancelOrder } from "../services/booking.service";
 import { useToast } from "../../../contexts/ToastContext";
 import { useQuery } from "@tanstack/react-query";
 import { ticketTypeService } from "../../content/services/ticketType.service";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -52,6 +55,34 @@ export const OrderDetailPage: React.FC = () => {
   const { success, error: showError } = useToast();
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
+
+  const tourismInfoIds = useMemo(() => {
+    return Array.from(
+      new Set(
+        (order?.schedule?.tourScheduleItineraries ?? [])
+          .map((item) => item.tourismInfoId)
+          .filter(
+            (tourismInfoId): tourismInfoId is number =>
+              typeof tourismInfoId === "number" && Number.isFinite(tourismInfoId),
+          ),
+      ),
+    );
+  }, [order?.schedule?.tourScheduleItineraries]);
+
+  const { data: tourismInformationDetails = {} } = useQuery({
+    queryKey: ["order-tourism-information-details", tourismInfoIds],
+    queryFn: async () => {
+      const activeTourismInformation = await tourismInformationService.getActiveList();
+      const neededIds = new Set(tourismInfoIds);
+
+      return Object.fromEntries(
+        activeTourismInformation
+          .filter((item) => neededIds.has(item.id))
+          .map((item) => [item.id, item] as const),
+      );
+    },
+    enabled: tourismInfoIds.length > 0,
+  });
 
   const ticketTypeIds = useMemo(() => {
     if (!order) return [];
@@ -496,6 +527,9 @@ export const OrderDetailPage: React.FC = () => {
                           const timeStr = iti.startDuration && iti.endDuration
                             ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
                             : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                          const tourismInfo = iti.tourismInfoId
+                            ? tourismInformationDetails[iti.tourismInfoId]
+                            : null;
 
                           return (
                             <div key={iti.id} className="flex flex-col">
@@ -541,6 +575,72 @@ export const OrderDetailPage: React.FC = () => {
                                         <div className="flex items-start gap-2">
                                           <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                                           <div><span className="font-semibold text-slate-700">End:</span> {iti.endLocationName}</div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  {iti.tourismInfoId && (
+                                    <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
+                                      {tourismInfo ? (
+                                        <div className="grid sm:grid-cols-[160px_1fr]">
+                                          <div className="flex min-h-32 items-center justify-center bg-slate-100">
+                                            {tourismInfo.imageUrl ? (
+                                              <img
+                                                src={tourismInfo.imageUrl}
+                                                alt={tourismInfo.name}
+                                                className="h-full min-h-32 w-full object-cover"
+                                              />
+                                            ) : (
+                                              <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                <ImageIcon className="h-7 w-7" />
+                                                <span className="text-xs font-medium">No image</span>
+                                              </div>
+                                            )}
+                                          </div>
+                                          <div className="space-y-2 p-4">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <span className="font-bold text-slate-800">{tourismInfo.name}</span>
+                                              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-600">
+                                                {tourismInfo.type}
+                                              </span>
+                                            </div>
+                                            {tourismInfo.description && (
+                                              <p className="text-xs leading-relaxed text-slate-500">
+                                                {tourismInfo.description}
+                                              </p>
+                                            )}
+                                            <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
+                                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                                              <span>
+                                                {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
+                                                  .filter(Boolean)
+                                                  .join(", ") || "N/A"}
+                                              </span>
+                                            </div>
+                                            {(tourismInfo.latitude || tourismInfo.longitude) && (
+                                              <div className="text-xs font-medium text-slate-400">
+                                                Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                              </div>
+                                            )}
+                                            {tourismInfo.sourceUrl && (
+                                              <a
+                                                href={tourismInfo.sourceUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700"
+                                              >
+                                                {tourismInfo.sourceName || "Source"}
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                              </a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-start gap-2 p-3">
+                                          <MapPin className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
+                                          <span className="font-semibold text-slate-700">
+                                            Tourism info ID #{iti.tourismInfoId}
+                                          </span>
                                         </div>
                                       )}
                                     </div>

@@ -14,11 +14,11 @@ export const BOOKINGS_API = {
   // Check-in
   CHECK_IN: (sId: string | number) => `${FULL_API}/schedules/${sId}/check-in`,
   
-  // Vouchers (Customer & Operator)
-  SAVE_VOUCHER: `${FULL_API}/customer/vouchers/save`,
+  // Vouchers (Customer)
+  SAVE_VOUCHER: `${FULL_API}/customer/vouchers`,
   GET_CUSTOMER_VOUCHERS: `${FULL_API}/customer/vouchers`,
-  GIFT_VOUCHER: `${FULL_API}/customer/vouchers/gift`,
   APPLY_VOUCHER: `${FULL_API}/customer/vouchers/apply`,
+  REDEEM_VOUCHER: `${FULL_API}/customer/vouchers/redeem`,
   GET_OPERATOR_VOUCHERS: `${FULL_API}/operator/vouchers`,
   CREATE_OPERATOR_VOUCHER: `${FULL_API}/operator/vouchers`,
   OPERATOR_VOUCHER_TOUR_OPTIONS: `${FULL_API}/operator/vouchers/tour-options`,

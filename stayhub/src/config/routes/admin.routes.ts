@@ -13,6 +13,7 @@ export const ADMIN_ROUTES = {
   DELETE_ADMIN_VOUCHER: (id: string | number = ':id') => `/admin/vouchers/${id}/delete`,
   WITHDRAWALS: '/admin/withdrawals',
   BANNER_MANAGEMENT: '/admin/banners',
+  TOURISM_INFORMATION_MANAGEMENT: '/admin/tourism-information',
   REPORT_MODERATION: '/admin/reports',
   SYSTEM_SETTINGS: '/admin/settings',
 

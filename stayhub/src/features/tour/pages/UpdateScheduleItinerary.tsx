@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, Type, FileText, MapPin, Map, AlertTriangle } from "lucide-react";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useUpdateScheduleItinerary } from "../hooks/useUpdateScheduleItinerary";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
+import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import type { TourismInformation } from "../../content/types/tourismInformation";
 
 export const UpdateScheduleItinerary: React.FC = () => {
   const {
@@ -19,11 +22,19 @@ export const UpdateScheduleItinerary: React.FC = () => {
     isSubmitting,
     serverErrors,
   } = useUpdateScheduleItinerary();
+  const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
 
   // --- STATE CHO MAP PICKER ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [currentSetFormData, setCurrentSetFormData] = useState<React.Dispatch<React.SetStateAction<Record<string, any>>> | null>(null);
   const [mapInitialData, setMapInitialData] = useState<any>(null);
+
+  useEffect(() => {
+    tourismInformationService
+      .getActiveList()
+      .then(setTourismInformationList)
+      .catch(() => setTourismInformationList([]));
+  }, []);
 
   const handleConfirmLocation = (locationData: any) => {
     if (currentSetFormData) {
@@ -79,7 +90,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
       label: "Itinerary Date",
       type: "custom",
       required: true,
-      render: (value, onChange, error, setFormData, formData) => {
+      render: (value, onChange, error, _setFormData, formData) => {
         const currentDayNumber = formData?.dayNumber;
         const existingWithSameDay = schedule?.tourScheduleItineraries?.find((i: any) => Number(i.dayNumber) === Number(currentDayNumber) && i.id !== itinerary?.id);
         const isSynced = !!existingWithSameDay;
@@ -198,7 +209,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
       label: "Location", 
       type: "custom", 
       colSpan: 2,
-      render: (value, onChange, error, setFormData, formData) => (
+      render: (_value, _onChange, _error, setFormData, formData) => (
         <div className="flex items-center justify-end border-b border-slate-100 pb-3">
           <ActionButton 
             type="button" variant="secondary" onClick={() => setFormData && formData && openMapModal(setFormData, formData)} 
@@ -209,16 +220,43 @@ export const UpdateScheduleItinerary: React.FC = () => {
         </div>
       )
     },
+    {
+      name: "tourismInfoId",
+      label: "Tourism Info",
+      type: "custom",
+      colSpan: 2,
+      render: (value, onChange, error, setFormData) => (
+        <TourismInformationSelector
+          items={tourismInformationList}
+          value={value === "" || value === null || value === undefined ? null : Number(value)}
+          error={error}
+          onChange={(selectedTourismInfo) => {
+            const nextValue = selectedTourismInfo?.id ?? null;
+            onChange(nextValue);
+
+            if (setFormData && selectedTourismInfo) {
+              setFormData((prev) => ({
+                ...prev,
+                tourismInfoId: nextValue,
+                locationName: selectedTourismInfo.address || selectedTourismInfo.name,
+                locationLat: selectedTourismInfo.latitude ?? prev.locationLat,
+                locationLng: selectedTourismInfo.longitude ?? prev.locationLng,
+              }));
+            }
+          }}
+        />
+      ),
+    },
     { 
       name: "locationName", 
       label: "Location Name", 
       type: "custom", 
       colSpan: 2,
-      validate: (value, formData) => {
+      validate: (_value, formData) => {
         if (!formData.locationLat || !formData.locationLng) return "Please pick a location from map.";
         return undefined;
       },
-      render: (value, onChange, error, setFormData, formData) => (
+      render: (value, onChange, error, _setFormData, _formData) => (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <div className="relative flex-1">

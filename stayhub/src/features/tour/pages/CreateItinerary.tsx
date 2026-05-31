@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Calendar, Type, FileText, MapPin, Map, Plus, Trash2, Save, X, Clock } from "lucide-react";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateItinerary } from "../hooks/useCreateItinerary";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
 import { useToast } from "../../../contexts/ToastContext";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import type { TourismInformation } from "../../content/types/tourismInformation";
+import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 
 export const CreateItinerary: React.FC = () => {
   const {
@@ -23,10 +26,18 @@ export const CreateItinerary: React.FC = () => {
     patchItinerary,
   } = useCreateItinerary();
   const { error: showError } = useToast();
+  const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
 
   // --- STATE CHO MAP PICKER ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [pickingIndex, setPickingIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    tourismInformationService
+      .getActiveList()
+      .then(setTourismInformationList)
+      .catch(() => setTourismInformationList([]));
+  }, []);
 
   const openMapModal = (index: number) => {
     setPickingIndex(index);
@@ -44,6 +55,19 @@ export const CreateItinerary: React.FC = () => {
       }
       patchItinerary(pickingIndex, patch);
     }
+  };
+
+  const handleChangeTourismInfo = (index: number, selectedTourismInfo: TourismInformation | null) => {
+    patchItinerary(index, {
+      tourismInfoId: selectedTourismInfo?.id ?? null,
+      ...(selectedTourismInfo
+        ? {
+            locationName: selectedTourismInfo.address || selectedTourismInfo.name,
+            locationLat: selectedTourismInfo.latitude ?? undefined,
+            locationLng: selectedTourismInfo.longitude ?? undefined,
+          }
+        : {}),
+    });
   };
 
   const onSubmit = (e: React.FormEvent) => {
@@ -216,6 +240,18 @@ export const CreateItinerary: React.FC = () => {
                   </div>
 
                   <div className="grid gap-6 sm:grid-cols-2 sm:col-span-2">
+                    <div className="sm:col-span-2">
+                      <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                        Tourism Info
+                      </label>
+                      <TourismInformationSelector
+                        items={tourismInformationList}
+                        value={iti.tourismInfoId ?? null}
+                        onChange={(item) => handleChangeTourismInfo(index, item)}
+                        error={getError(index, "tourismInfoId")}
+                      />
+                    </div>
+
                     <div className="sm:col-span-2">
                       <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                         <MapPin className="h-4 w-4 text-emerald-500" /> Location Name

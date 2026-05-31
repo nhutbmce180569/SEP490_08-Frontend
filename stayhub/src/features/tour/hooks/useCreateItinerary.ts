@@ -38,7 +38,8 @@ export const useCreateItinerary = () => {
     endDuration: "",
     locationName: "", 
     locationLat: undefined, 
-    locationLng: undefined 
+    locationLng: undefined,
+    tourismInfoId: null,
   }] );
 
   const handleAddDay = () => {
@@ -54,7 +55,8 @@ export const useCreateItinerary = () => {
         endDuration: "",
         locationName: "", 
         locationLat: undefined, 
-        locationLng: undefined 
+        locationLng: undefined,
+        tourismInfoId: null,
       }
     ]);
   };
@@ -66,7 +68,14 @@ export const useCreateItinerary = () => {
   const updateItinerary = (index: number, field: string, value: any) => {
     setItineraries((prev) => {
       const newItis = [...prev];
-      const parsedValue = field === "dayNumber" ? Number(value) : value;
+      const parsedValue =
+        field === "dayNumber"
+          ? Number(value)
+          : field === "tourismInfoId"
+            ? value === "" || value === null || value === undefined
+              ? null
+              : Number(value)
+            : value;
       newItis[index] = { ...newItis[index], [field]: parsedValue };
       return newItis;
     });
@@ -100,6 +109,7 @@ export const useCreateItinerary = () => {
           locationName: iti.locationName || null,
           locationLat: iti.locationLat ? Number(iti.locationLat) : null,
           locationLng: iti.locationLng ? Number(iti.locationLng) : null,
+          tourismInfoId: iti.tourismInfoId === "" || iti.tourismInfoId === null || iti.tourismInfoId === undefined ? null : Number(iti.tourismInfoId),
         }))
       };
 

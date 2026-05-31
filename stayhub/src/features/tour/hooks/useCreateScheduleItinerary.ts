@@ -36,6 +36,7 @@ export const useCreateScheduleItinerary = () => {
       locationName: "",
       locationLat: undefined,
       locationLng: undefined,
+      tourismInfoId: null,
     },
   ]);
 
@@ -53,6 +54,10 @@ export const useCreateScheduleItinerary = () => {
     }
     return missing;
   }, [existingDayNumbers, maxDay]);
+
+  const cloneableDayNumbers = useMemo(() => {
+    return tour?.tourItineraries?.map((iti) => Number(iti.dayNumber)) ?? [];
+  }, [tour?.tourItineraries]);
 
   // Tự động điền ngày nếu dayNumber mặc định đã có trong Database
   useEffect(() => {
@@ -91,6 +96,7 @@ export const useCreateScheduleItinerary = () => {
         locationName: "",
         locationLat: undefined,
         locationLng: undefined,
+        tourismInfoId: null,
       },
     ]);
   };
@@ -201,7 +207,7 @@ export const useCreateScheduleItinerary = () => {
     setIsCloning(true);
     try {
       const clonedItinerariesPromises = tour.tourItineraries.map(async (iti) => {
-        let { locationLat, locationLng, locationName, startDuration, endDuration } = iti;
+        let { locationLat, locationLng, locationName, startDuration, endDuration, tourismInfoId } = iti;
 
         if (locationName && (!locationLat || !locationLng)) {
           const coords = await geocodeAddress(locationName);
@@ -234,6 +240,7 @@ export const useCreateScheduleItinerary = () => {
           locationName: locationName || "",
           locationLat, 
           locationLng,
+          tourismInfoId: tourismInfoId ?? null,
         };
       });
 
@@ -260,7 +267,7 @@ export const useCreateScheduleItinerary = () => {
 
     setCloningDayIndex(itemIndex);
     try {
-      let { locationLat, locationLng, locationName, startDuration, endDuration } = tourItineraryToClone;
+      let { locationLat, locationLng, locationName, startDuration, endDuration, tourismInfoId } = tourItineraryToClone;
 
       if (locationName && (!locationLat || !locationLng)) {
         const coords = await geocodeAddress(locationName);
@@ -291,6 +298,7 @@ export const useCreateScheduleItinerary = () => {
         locationName: locationName || "",
         locationLat,
         locationLng,
+        tourismInfoId: tourismInfoId ?? null,
       };
 
       patchItinerary(itemIndex, patchData);
@@ -320,6 +328,7 @@ export const useCreateScheduleItinerary = () => {
           locationName: iti.locationName || null,
           locationLat: iti.locationLat ? Number(iti.locationLat) : null,
           locationLng: iti.locationLng ? Number(iti.locationLng) : null,
+          tourismInfoId: iti.tourismInfoId === "" || iti.tourismInfoId === null || iti.tourismInfoId === undefined ? null : Number(iti.tourismInfoId),
         })),
       };
 
@@ -362,6 +371,7 @@ export const useCreateScheduleItinerary = () => {
     serverErrors,
     itineraries,
     missingDayNumbers,
+    cloneableDayNumbers,
     handleAddItinerary,
     handleRemoveItinerary,
     updateItinerary,

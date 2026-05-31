@@ -687,6 +687,7 @@ const PopularToursSection = () => {
         : "Flexible",
       price: minPrice,
       imageUrl: tour.imageUrl || "",
+      tourStatus: tour.status,
     };
   };
 

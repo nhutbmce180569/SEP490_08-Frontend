@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,16 +19,19 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  Loader2, // Import thêm icon Loading
+  ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { useTour } from "../hooks/useTour";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
-import { useReview } from "../hooks/useReview"; // 💥 Import hook review
+import { useReview } from "../hooks/useReview"; 
 import { PATH } from "../../../config/routes/route";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useToast } from "../../../contexts/ToastContext";
 import type { TourSchedule } from "../types/tourSchedule";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import type { TourismInformation } from "../../content/types/tourismInformation";
 
 const getNumberValue = (value?: number | string | null) => {
   if (value === undefined || value === null || value === "") return null;
@@ -53,64 +56,102 @@ const getTicketAvailable = (ticket: TourScheduleTicket) =>
       ticket.maxCapacity,
   );
 
-const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
+// const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
 
-const getSchedulePriceText = (schedule: TourSchedule) => {
-  const prices = getScheduleTickets(schedule)
-    .map(getTicketPrice)
-    .filter((price): price is number => price !== null);
+// const getSchedulePriceText = (schedule: TourSchedule) => {
+//   const prices = getScheduleTickets(schedule)
+//     .map(getTicketPrice)
+//     .filter((price): price is number => price !== null);
 
-  if (prices.length === 0) return "No ticket price";
+//   if (prices.length === 0) return "No ticket price";
 
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
+//   const minPrice = Math.min(...prices);
+//   const maxPrice = Math.max(...prices);
 
-  return minPrice === maxPrice
-    ? formatCurrency(minPrice)
-    : `From ${formatCurrency(minPrice)}`;
-};
+//   return minPrice === maxPrice
+//     ? formatCurrency(minPrice)
+//     : `From ${formatCurrency(minPrice)}`;
+// };
 
-const getScheduleAvailabilityText = (schedule: TourSchedule) => {
-  const tickets = getScheduleTickets(schedule);
-  if (tickets.length === 0) return "No ticket setup";
+// const getScheduleAvailabilityText = (schedule: TourSchedule) => {
+//   const tickets = getScheduleTickets(schedule);
+//   if (tickets.length === 0) return "No ticket setup";
 
-  const available = tickets.reduce(
-    (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
-    0,
-  );
-  const capacity = tickets.reduce(
-    (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
-    0,
-  );
+//   const available = tickets.reduce(
+//     (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
+//     0,
+//   );
+//   const capacity = tickets.reduce(
+//     (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
+//     0,
+//   );
 
-  return capacity > 0 ? `${available} / ${capacity}` : `${available} available`;
-};
+//   return capacity > 0 ? `${available} / ${capacity}` : `${available} available`;
+// };
 
 export const TourDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { error: showError } = useToast();
+  const [tourismInformationById, setTourismInformationById] = useState<Record<number, TourismInformation>>({});
   
-  // 1. Hook lấy chi tiết Tour
   const { tour, categoryName, isLoading, error, isToggling, toggleTourStatus } =
     useTour(id);
 
-  // 2. Hook xử lý lịch trình
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
-  // 3. 💥 Hook lấy danh sách Đánh giá
   const { 
     reviews: fetchedReviews, 
     isLoading: isReviewsLoading, 
     fetchReviewsByTour 
   } = useReview();
 
-  // 💥 Tự động gọi API lấy Reviews khi có ID Tour
   useEffect(() => {
     if (id) {
       fetchReviewsByTour(Number(id));
     }
   }, [id, fetchReviewsByTour]);
+
+  useEffect(() => {
+    const tourismInfoIds = Array.from(
+      new Set(
+        (tour?.tourItineraries ?? [])
+          .map((item) => item.tourismInfoId)
+          .filter(
+            (tourismInfoId): tourismInfoId is number =>
+              typeof tourismInfoId === "number" && Number.isFinite(tourismInfoId),
+          ),
+      ),
+    );
+
+    if (tourismInfoIds.length === 0) {
+      setTourismInformationById({});
+      return;
+    }
+
+    let isMounted = true;
+
+    Promise.all(
+      tourismInfoIds.map(async (tourismInfoId) => {
+        const tourismInfo = await tourismInformationService.getById(tourismInfoId);
+        return tourismInfo ? ([tourismInfoId, tourismInfo] as const) : null;
+      }),
+    ).then((entries) => {
+      if (!isMounted) return;
+
+      setTourismInformationById(
+        Object.fromEntries(
+          entries.filter(
+            (entry): entry is readonly [number, TourismInformation] => entry !== null,
+          ),
+        ),
+      );
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [tour?.tourItineraries]);
 
   if (isLoading) {
     return (
@@ -145,20 +186,22 @@ export const TourDetail: React.FC = () => {
   ) {
     if (!itineraryDayNumbers.includes(i)) missingItineraryDays.push(i);
   }
-
   const scheduleCount = tour.tourSchedules?.length || 0;
-  const prices =
-    tour.tourSchedules
-      ?.flatMap((schedule) => getScheduleTickets(schedule).map(getTicketPrice))
-      .filter((price): price is number => price !== null) || [];
-  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  const priceText =
-    prices.length === 0
-      ? "No ticket price"
-      : minPrice === maxPrice
-        ? formatCurrency(minPrice)
-        : `From ${formatCurrency(minPrice)}`;
+  // const prices =
+  //   tour.tourSchedules
+  //     ?.flatMap((schedule) => getScheduleTickets(schedule).map(getTicketPrice))
+  //     .filter((price): price is number => price !== null) || [];
+  // const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  // const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+  // const priceText =
+  //   prices.length === 0
+  //     ? "No ticket price"
+  //     : minPrice === maxPrice
+  //       ? formatCurrency(minPrice)
+  //       : `From ${formatCurrency(minPrice)}`;
+
+  // 💥 LỌC BỎ CÁC REVIEW BỊ ẨN
+  const visibleReviews = fetchedReviews.filter((review) => !review.isHidden);
 
   return (
     <div className="mx-auto max-w-4xl py-6">
@@ -324,6 +367,9 @@ export const TourDetail: React.FC = () => {
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Lowest Price
                 </p>
+                {/* <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
+                  {priceText}
+                </p> */}
               </div>
             </div>
 
@@ -403,6 +449,9 @@ export const TourDetail: React.FC = () => {
                           const timeStr = iti.startDuration && iti.endDuration
                             ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
                             : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                          const tourismInfo = iti.tourismInfoId
+                            ? tourismInformationById[iti.tourismInfoId]
+                            : null;
 
                           return (
                             <div key={iti.id} className="flex flex-col">
@@ -445,6 +494,71 @@ export const TourDetail: React.FC = () => {
                                     <MapPin className="h-4 w-4 text-emerald-500" />
                                     <span>{iti.locationName || "N/A"}</span>
                                   </div>
+                                  {iti.tourismInfoId && (
+                                    <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
+                                      {tourismInfo ? (
+                                        <div className="grid sm:grid-cols-[180px_1fr]">
+                                          <div className="flex min-h-36 items-center justify-center bg-slate-100">
+                                            {tourismInfo.imageUrl ? (
+                                              <img
+                                                src={tourismInfo.imageUrl}
+                                                alt={tourismInfo.name}
+                                                className="h-full min-h-36 w-full object-cover"
+                                              />
+                                            ) : (
+                                              <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                <ImageIcon className="h-8 w-8" />
+                                                <span className="text-xs font-medium">No image</span>
+                                              </div>
+                                            )}
+                                          </div>
+
+                                          <div className="space-y-2 p-4">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                              <h5 className="font-bold text-slate-900">{tourismInfo.name}</h5>
+                                              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-600">
+                                                {tourismInfo.type}
+                                              </span>
+                                            </div>
+                                            {tourismInfo.description && (
+                                              <p className="text-xs leading-relaxed text-slate-500">
+                                                {tourismInfo.description}
+                                              </p>
+                                            )}
+                                            <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
+                                              <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                                              <span>
+                                                {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
+                                                  .filter(Boolean)
+                                                  .join(", ") || "N/A"}
+                                              </span>
+                                            </div>
+                                            {(tourismInfo.latitude || tourismInfo.longitude) && (
+                                              <div className="text-xs font-medium text-slate-400">
+                                                Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                              </div>
+                                            )}
+                                            {tourismInfo.sourceUrl && (
+                                              <a
+                                                href={tourismInfo.sourceUrl}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4880ff] hover:text-blue-700"
+                                              >
+                                                {tourismInfo.sourceName || "Source"}
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                              </a>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
+                                          <Info className="h-4 w-4 text-indigo-500" />
+                                          Tourism info ID #{iti.tourismInfoId}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -535,7 +649,7 @@ export const TourDetail: React.FC = () => {
                           ).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between">
+                      {/* <div className="flex items-center justify-between">
                         <span className="text-slate-500">Price</span>
                         <span className="font-semibold text-emerald-600">
                           {getSchedulePriceText(schedule)}
@@ -546,7 +660,7 @@ export const TourDetail: React.FC = () => {
                         <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-900">
                           {getScheduleAvailabilityText(schedule)}
                         </span>
-                      </div>
+                      </div> */}
                     </div>
                   </div>
                 ))}
@@ -564,10 +678,10 @@ export const TourDetail: React.FC = () => {
             )}
           </div>
 
-          {/* 💥 Reviews Section (Sử dụng dữ liệu từ hook) */}
+          {/* 💥 Reviews Section (Sử dụng visibleReviews) */}
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Reviews ({fetchedReviews.length})</h2>
+              <h2 className="text-lg font-bold text-slate-900">Reviews ({visibleReviews.length})</h2>
             </div>
 
             {isReviewsLoading ? (
@@ -575,16 +689,15 @@ export const TourDetail: React.FC = () => {
                 <Loader2 className="mb-3 h-8 w-8 animate-spin text-indigo-500" />
                 <p className="text-sm font-medium">Loading reviews...</p>
               </div>
-            ) : fetchedReviews.length > 0 ? (
+            ) : visibleReviews.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {fetchedReviews.map((review) => (
+                {visibleReviews.map((review) => (
                   <div
                     key={review.id}
                     className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-md"
                   >
                     <div className="mb-3 flex items-start justify-between">
                       <div className="flex gap-3">
-                        {/* Hiển thị Avatar nếu có */}
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100">
                           {review.customerAvatar ? (
                             <img src={review.customerAvatar} alt={review.customerName || "Avatar"} className="h-full w-full object-cover" />
@@ -612,7 +725,6 @@ export const TourDetail: React.FC = () => {
                                 />
                               ))}
                             </div>
-                            {/* Hiển thị ngày Review nếu BE có trả về */}
                             {review.createdAt && (
                               <span className="text-[11px] font-medium text-slate-400">
                                 • {new Date(review.createdAt).toLocaleDateString()}

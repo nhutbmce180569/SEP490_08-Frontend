@@ -5,7 +5,6 @@ import {
   Calendar,
   CreditCard,
   Minus,
-  Percent,
   Plus,
   ShieldCheck,
   Ticket,
@@ -14,7 +13,8 @@ import {
 } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
-import { useCreateBooking } from "../hooks/useCreateBooking";
+import { useBookingCheckout } from "../hooks/useBookingCheckout";
+import { VoucherCheckoutPanel } from "../../voucher/customer/components/VoucherCheckoutPanel";
 import { PATH } from "../../../config/routes/route";
 import { useToast } from "../../../contexts/ToastContext";
 import type { Tour } from "../../tour/types/tour";
@@ -94,8 +94,10 @@ export const BookingPage: React.FC = () => {
     setVoucherCode,
     isApplyingVoucher,
     appliedVoucher,
-    // handleApplyVoucher
-  } = useCreateBooking();
+    handleApplyVoucher,
+    handleApplySavedVoucher,
+    clearAppliedVoucher,
+  } = useBookingCheckout();
   const { error: showError } = useToast();
 
   const [note, setNote] = useState("");
@@ -390,7 +392,6 @@ export const BookingPage: React.FC = () => {
       totalQuantity: ticketCount,
       ticketCount,
       note,
-      discountValue: appliedVoucher?.discountAmount ?? 0,
       finalAmount: finalPayable,
       orderDetails,
     });
@@ -624,33 +625,18 @@ export const BookingPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mb-5 rounded-2xl border border-slate-200 p-4">
-                    <label className="mb-2 block text-xs font-bold text-slate-700">
-                      Voucher Code
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        value={voucherCode}
-                        onChange={(event) => setVoucherCode(event.target.value)}
-                        placeholder="Enter voucher code"
-                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-[#EB662B]"
-                      />
-                      <button
-                        type="button"
-                        // onClick={() => handleApplyVoucher(tour.id, totalPrice)}
-                        disabled={isApplyingVoucher}
-                        className="inline-flex items-center gap-1 rounded-xl bg-[#4880ff] px-3 py-2 text-sm font-semibold text-white hover:bg-[#336efd] disabled:opacity-60"
-                      >
-                        <Percent className="h-4 w-4" />
-                        Apply
-                      </button>
-                    </div>
-                    {appliedVoucher && (
-                      <p className="mt-2 text-xs font-medium text-emerald-700">
-                        Applied {appliedVoucher.code}: -
-                        {formatCurrency(appliedVoucher.discountAmount)}
-                      </p>
-                    )}
+                  <div className="mb-5">
+                    <VoucherCheckoutPanel
+                      tourId={tour.id}
+                      billAmount={totalPrice}
+                      voucherCode={voucherCode}
+                      isApplying={isApplyingVoucher}
+                      appliedVoucher={appliedVoucher}
+                      onCodeChange={setVoucherCode}
+                      onApply={() => handleApplyVoucher(tour.id, totalPrice)}
+                      onApplySaved={(code) => handleApplySavedVoucher(code, tour.id, totalPrice)}
+                      onClear={clearAppliedVoucher}
+                    />
                   </div>
 
                   <div className="mb-6 flex items-center justify-between border-t border-slate-200 pt-4">

@@ -12,14 +12,15 @@ import {
   X,
   Users,
   ChevronRight,
-  Heart,
   ChevronDown,
   ChevronUp,
+  Image as ImageIcon,
+  ExternalLink,
 } from "lucide-react";
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
 import { PATH } from "../config/routes/route";
-import { useWishlist } from "../features/wishlist/hooks/useWishlist";
+import { WishlistToggleButton } from "../features/wishlist/customer/components/WishlistToggleButton";
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
@@ -28,6 +29,8 @@ import { useGetTourItineraries } from "../features/social/tours/hooks/useTourIti
 import { TourItineraryMap } from "../features/social/tours/components/TourItineraryMap";
 import { ticketTypeService } from "../features/content/services/ticketType.service";
 import type { ReadTicketTypeDTO } from "../features/content/types/ticketType";
+import { tourismInformationService } from "../features/content/services/tourismInformation.service";
+import type { TourismInformation } from "../features/content/types/tourismInformation";
 import type { TourSchedule } from "../features/tour/types/tourSchedule";
 import type { TourItinerary } from "../features/tour/types/tourItinerary";
 import type { TourScheduleTicket } from "../features/tour/types/tourScheduleTicket";
@@ -122,7 +125,6 @@ export default function PublicTourDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id);
-  const { isInWishlist, toggleWishlist, isSubmitting } = useWishlist();
   const { error: showError } = useToast();
 
   const { data: itineraries = [], isLoading: isItinerariesLoading } = useGetTourItineraries(Number(id));
@@ -146,8 +148,6 @@ export default function PublicTourDetail() {
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
-  const isWished = tour ? isInWishlist(Number(tour.id)) : false;
-
   const sortedSchedules = useMemo(() => {
     const arr = [...(tour?.tourSchedules || [])];
     return arr.sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
@@ -164,6 +164,21 @@ export default function PublicTourDetail() {
         ),
       ),
     [sortedSchedules],
+  );
+
+  const tourismInfoIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (tour?.tourItineraries ?? [])
+            .map((item) => item.tourismInfoId)
+            .filter(
+              (tourismInfoId): tourismInfoId is number =>
+                typeof tourismInfoId === "number" && Number.isFinite(tourismInfoId),
+            ),
+        ),
+      ),
+    [tour?.tourItineraries],
   );
 
   const { data: ticketTypeDetails = {} } = useQuery({
@@ -187,6 +202,25 @@ export default function PublicTourDetail() {
       );
     },
     enabled: ticketTypeIds.length > 0,
+  });
+
+  const { data: tourismInformationDetails = {} } = useQuery({
+    queryKey: ["tourism-information-details", tourismInfoIds],
+    queryFn: async () => {
+      const details = await Promise.all(
+        tourismInfoIds.map(async (tourismInfoId) => {
+          const tourismInfo = await tourismInformationService.getById(tourismInfoId);
+          return tourismInfo ? ([tourismInfoId, tourismInfo] as const) : null;
+        }),
+      );
+
+      return Object.fromEntries(
+        details.filter(
+          (detail): detail is readonly [number, TourismInformation] => detail !== null,
+        ),
+      );
+    },
+    enabled: tourismInfoIds.length > 0,
   });
 
   const groupedSchedules = useMemo(() => {
@@ -231,6 +265,7 @@ export default function PublicTourDetail() {
           tourScheduleTickets: selectedCheckoutTickets,
         }
       : null;
+  
   const displayImageUrl = tour?.imageUrl || "";
   const displayName = tour?.name || "Loading details...";
   const availablePrices = availableSchedules
@@ -245,8 +280,16 @@ export default function PublicTourDetail() {
       : allPrices.length > 0
         ? Math.min(...allPrices)
         : null;
+
+  // 💥 BỘ LỌC REVIEW: Chỉ lấy những Review không bị ẩn
+  const visibleReviews = (tour?.reviews || []).filter((review) => {
+    const isHiddenValue = review.isHidden ?? (review as any).IsHidden;
+    return isHiddenValue !== true && isHiddenValue !== 1 && isHiddenValue !== "true";
+  });
+
   const rating = tour?.averageStar || 0;
-  const reviews = tour?.reviews?.length || 0;
+  // 💥 Số lượng review bây giờ sẽ dựa vào mảng đã lọc
+  const reviews = visibleReviews.length; 
   const days = tour?.tourItineraries?.length || 0;
 
   /* Loading */
@@ -323,27 +366,11 @@ export default function PublicTourDetail() {
         {/* Wishlist */}
         <div className="absolute top-[100px] right-6 z-10">
           {!isLoading && tour && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (!isSubmitting) toggleWishlist(Number(tour.id));
-              }}
-              disabled={isSubmitting}
-              className="flex h-12 w-12 items-center justify-center backdrop-blur-md shadow-sm transition-all duration-200"
-              style={{
-                borderRadius: 999,
-                background: isWished ? "#FFF1F2" : "rgba(255,255,255,0.96)",
-                color: isWished ? "#F43F5E" : "#94A3B8",
-              }}
-              onMouseEnter={(e) => {
-                if (!isWished) (e.currentTarget as HTMLElement).style.color = "#F43F5E";
-              }}
-              onMouseLeave={(e) => {
-                if (!isWished) (e.currentTarget as HTMLElement).style.color = "#94A3B8";
-              }}
-            >
-              <Heart size={22} className={isWished ? "fill-current" : ""} />
-            </button>
+            <WishlistToggleButton
+              tourId={Number(tour.id)}
+              tourStatus={tour.status}
+              variant="hero"
+            />
           )}
         </div>
 
@@ -508,6 +535,9 @@ export default function PublicTourDetail() {
                                const timeStr = iti.startDuration && iti.endDuration
                                  ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
                                  : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                               const tourismInfo = iti.tourismInfoId
+                                 ? tourismInformationDetails[iti.tourismInfoId]
+                                 : null;
 
                                return (
                                  <div key={iti.id} className="flex flex-col">
@@ -547,14 +577,80 @@ export default function PublicTourDetail() {
                                              <div><span className="font-semibold text-slate-700">Start:</span> {iti.startLocationName}</div>
                                            </div>
                                          )}
-                                         {iti.endLocationName && (
-                                           <div className="flex items-start gap-2">
-                                             <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
-                                             <div><span className="font-semibold text-slate-700">End:</span> {iti.endLocationName}</div>
-                                           </div>
-                                         )}
-                                       </div>
-                                     </div>
+                                          {iti.endLocationName && (
+                                            <div className="flex items-start gap-2">
+                                              <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                                              <div><span className="font-semibold text-slate-700">End:</span> {iti.endLocationName}</div>
+                                            </div>
+                                          )}
+                                          {iti.tourismInfoId && (
+                                            <div className="mt-1 overflow-hidden rounded-xl border border-slate-100 bg-white text-slate-600">
+                                              {tourismInfo ? (
+                                                <div className="grid sm:grid-cols-[160px_1fr]">
+                                                  <div className="flex min-h-32 items-center justify-center bg-slate-100">
+                                                    {tourismInfo.imageUrl ? (
+                                                      <img
+                                                        src={tourismInfo.imageUrl}
+                                                        alt={tourismInfo.name}
+                                                        className="h-full min-h-32 w-full object-cover"
+                                                      />
+                                                    ) : (
+                                                      <div className="flex flex-col items-center gap-2 text-slate-400">
+                                                        <ImageIcon className="h-7 w-7" />
+                                                        <span className="text-xs font-medium">No image</span>
+                                                      </div>
+                                                    )}
+                                                  </div>
+                                                  <div className="space-y-2 p-4">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                      <span className="font-bold text-slate-800">{tourismInfo.name}</span>
+                                                      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-bold text-[#EB662B]">
+                                                        {tourismInfo.type}
+                                                      </span>
+                                                    </div>
+                                                    {tourismInfo.description && (
+                                                      <p className="text-xs leading-relaxed text-slate-500">
+                                                        {tourismInfo.description}
+                                                      </p>
+                                                    )}
+                                                    <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
+                                                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                                                      <span>
+                                                        {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
+                                                          .filter(Boolean)
+                                                          .join(", ") || "N/A"}
+                                                      </span>
+                                                    </div>
+                                                    {(tourismInfo.latitude || tourismInfo.longitude) && (
+                                                      <div className="text-xs font-medium text-slate-400">
+                                                        Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                                      </div>
+                                                    )}
+                                                    {tourismInfo.sourceUrl && (
+                                                      <a
+                                                        href={tourismInfo.sourceUrl}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#EB662B] hover:text-orange-700"
+                                                      >
+                                                        {tourismInfo.sourceName || "Source"}
+                                                        <ExternalLink className="h-3.5 w-3.5" />
+                                                      </a>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                              ) : (
+                                                <div className="flex items-start gap-2 p-3">
+                                                  <Tag className="h-4 w-4 text-[#EB662B] shrink-0 mt-0.5" />
+                                                  <span className="font-semibold text-slate-700">
+                                                    Tourism info ID #{iti.tourismInfoId}
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
                                    )}
                                  </div>
                                );
@@ -605,10 +701,11 @@ export default function PublicTourDetail() {
                 </div>
                 <div className="flex-1 space-y-2">
                   {[5, 4, 3, 2, 1].map((star) => {
+                    // 💥 Tính số lượng cho từng mốc sao dựa trên mảng visibleReviews
                     const count =
-                      tour.reviews?.filter(
+                      visibleReviews.filter(
                         (r) => Math.round(r.rating || 0) === star,
-                      ).length || 0;
+                      ).length;
                     const pct = reviews > 0 ? (count / reviews) * 100 : 0;
                     return (
                       <div
@@ -636,8 +733,9 @@ export default function PublicTourDetail() {
 
               {/* Review list */}
               <div className="space-y-6">
-                {tour.reviews && tour.reviews.length > 0 ? (
-                  tour.reviews.map((review) => {
+                {/* 💥 Lặp qua mảng visibleReviews thay vì tour.reviews */}
+                {visibleReviews.length > 0 ? (
+                  visibleReviews.map((review) => {
                     const reviewerName = review.customerName || "Anonymous";
                     const initials =
                       reviewerName

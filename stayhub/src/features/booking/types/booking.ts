@@ -12,7 +12,7 @@ export interface CreateOrderRequest {
   scheduleId: number;
   totalQuantity?: number;
   ticketCount?: number;
-  discountValue?: number;
+  voucherCode?: string;
   note?: string;
   finalAmount?: number;
   orderDetails: CreateOrderDetailRequest[];

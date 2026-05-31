@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { customerVoucherService } from '../services/customerVoucher.service';
 import { useToast } from '../../../../contexts/ToastContext';
-import { getApiErrorMessage } from '../../../content/utils/apiError';
+import { getApiErrorMessage, getApiValidationErrors, normalizeServerErrors } from '../../../content/utils/apiError';
 import { validateVoucherCode } from '../../utils/voucherHelpers';
 import type { ApplyVoucherResultDTO } from '../types/customerVoucher';
 
@@ -58,11 +58,17 @@ export const useApplyVoucher = () => {
 
     setIsApplying(true);
     try {
-      const result = await customerVoucherService.applyVoucher({
+      const payload = {
+        voucherCode: code.toUpperCase(),
         code: code.toUpperCase(),
         tourId,
         billAmount,
-      });
+      } as const;
+      // helpful debug logging in dev
+      // eslint-disable-next-line no-console
+      console.debug('[voucher] apply payload', payload);
+
+      const result = await customerVoucherService.applyVoucher(payload);
 
       const applied = toAppliedState(result);
       setAppliedVoucher(applied);
@@ -71,6 +77,18 @@ export const useApplyVoucher = () => {
       return applied;
     } catch (err: unknown) {
       setAppliedVoucher(null);
+      // Try to extract validation errors from server and show them
+      const validation = getApiValidationErrors(err);
+      if (validation && typeof validation === 'object') {
+        const norm = normalizeServerErrors(validation as Record<string, unknown>);
+        const messages = Object.values(norm).flatMap((v) => (Array.isArray(v) ? v : [v]));
+        const text = messages.map((m) => String(m)).join(' · ');
+        // eslint-disable-next-line no-console
+        console.debug('[voucher] apply error validation', validation, norm);
+        showError(text || getApiErrorMessage(err, 'Failed to apply voucher.'));
+        return null;
+      }
+
       showError(getApiErrorMessage(err, 'Failed to apply voucher.'));
       return null;
     } finally {

@@ -21,7 +21,9 @@ export interface SaveVoucherDTO {
 }
 
 export interface ApplyVoucherDTO {
-  code: string;
+  voucherCode?: string;
+  /** Backwards-compatible code field — some endpoints may still expect `code` */
+  code?: string;
   tourId?: number;
   billAmount: number;
 }

@@ -392,7 +392,6 @@ export const BookingPage: React.FC = () => {
       totalQuantity: ticketCount,
       ticketCount,
       note,
-      discountValue: appliedVoucher?.discountAmount ?? 0,
       finalAmount: finalPayable,
       orderDetails,
     });

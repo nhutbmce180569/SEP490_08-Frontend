@@ -9,7 +9,7 @@ export const useBookingCheckout = () => {
   const handleCreateBooking = async (data: CreateOrderRequest) => {
     await booking.handleCreateBooking({
       ...data,
-      discountValue: voucher.appliedVoucher?.discountAmount ?? data.discountValue ?? 0,
+      voucherCode: voucher.voucherCode?.trim() || undefined,
       finalAmount: voucher.appliedVoucher?.finalAmount ?? data.finalAmount,
     });
   };

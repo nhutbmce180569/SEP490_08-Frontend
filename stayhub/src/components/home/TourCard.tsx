@@ -3,8 +3,6 @@ import { MapPin, Clock, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PATH } from "../../config/routes/route";
 
-import { WishlistToggleButton } from "../../features/wishlist/customer/components/WishlistToggleButton";
-
 export interface TourCardProps {
   id: string | number;
   title: string;
@@ -14,12 +12,9 @@ export interface TourCardProps {
   duration: string;
   price: number | null;
   imageUrl: string;
-  tourStatus?: string | null;
-  showWishlist?: boolean;
 }
 
 export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
-  const showWishlist = tour.showWishlist !== false;
 
   return (
     <Link
@@ -68,15 +63,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
             )}
           </div>
 
-          {showWishlist && (
-            <div className="absolute right-3 top-3 z-10">
-              <WishlistToggleButton
-                tourId={Number(tour.id)}
-                tourStatus={tour.tourStatus}
-                variant="card"
-              />
-            </div>
-          )}
+         
 
           {/* Hover CTA */}
           <div className="absolute bottom-3 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">

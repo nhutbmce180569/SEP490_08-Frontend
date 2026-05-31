@@ -6,7 +6,7 @@ import type { ReadWishlistItemDTO } from '../types/customerWishlist';
 import { validateTourId } from '../utils/wishlistHelpers';
 import { WISHLIST_QUERY_KEY } from './useMyWishlist';
 
-export const useRemoveFromWishlist = () => {
+export const useRemoveFromWishlist = (options?: { onRemoved?: () => void }) => {
   const queryClient = useQueryClient();
   const { success, error: showError } = useToast();
 
@@ -24,6 +24,7 @@ export const useRemoveFromWishlist = () => {
     onSuccess: () => {
       success('Removed from your wishlist.');
       queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
+      options?.onRemoved?.();
     },
     onError: (err: unknown, _tourId, context) => {
       if (context?.previous) {

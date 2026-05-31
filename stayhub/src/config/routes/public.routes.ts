@@ -8,6 +8,9 @@ export const PUBLIC_ROUTES = {
   TOURS: '/tours',
   TOUR_SEARCH: '/search',
   UNAUTHORIZED: '/unauthorized',
+  // AI Tour Assistant (public — no login required)
+  AI_ASSISTANT: '/ai-assistant',
+  AI_RECOMMENDATIONS: '/ai/recommendations',
   // Dynamic Route
   TOUR_DETAIL: (id: string | number = ':id') => `/tours/${id}`,
 } as const;

@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
-import { AlertCircle, Heart, Search } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { AlertCircle, Heart, RefreshCw, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { PATH } from '../../../../config/routes/route';
+import { WishlistSearchInput } from '../components/WishlistSearchInput';
 import { WishlistTourCard } from '../components/WishlistTourCard';
 import { useMyWishlist } from '../hooks/useMyWishlist';
 import { useRemoveFromWishlist } from '../hooks/useRemoveFromWishlist';
 import type { WishlistTab } from '../types/customerWishlist';
+import {
+  filterWishlistBySearch,
+  getWishlistTabCounts,
+} from '../utils/wishlistHelpers';
 
 const TABS: { key: WishlistTab; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -16,17 +21,25 @@ const TABS: { key: WishlistTab; label: string }[] = [
 
 export const MyWishlistPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<WishlistTab>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [pendingRemove, setPendingRemove] = useState<{ tourId: number; tourName: string } | null>(
     null,
   );
 
-  const { allItems, items, isLoading, error } = useMyWishlist(activeTab);
-  const { removeFromWishlist, isRemoving, removingTourId } = useRemoveFromWishlist();
+  const { allItems, items, isLoading, error, refetch, isFetching } = useMyWishlist(activeTab);
+  const { removeFromWishlist, isRemoving, removingTourId } = useRemoveFromWishlist({
+    onRemoved: () => setPendingRemove(null),
+  });
+
+  const tabCounts = useMemo(() => getWishlistTabCounts(allItems), [allItems]);
+  const displayedItems = useMemo(
+    () => filterWishlistBySearch(items, searchQuery),
+    [items, searchQuery],
+  );
 
   const handleConfirmRemove = () => {
     if (!pendingRemove) return;
     removeFromWishlist(pendingRemove.tourId);
-    setPendingRemove(null);
   };
 
   return (
@@ -48,21 +61,44 @@ export const MyWishlistPage: React.FC = () => {
         )}
       </div>
 
+      {!isLoading && !error && allItems.length > 0 && (
+        <WishlistSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          resultCount={displayedItems.length}
+        />
+      )}
+
       <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-100 pb-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
-              activeTab === tab.key
-                ? 'bg-[#EB662B] text-white shadow-md shadow-orange-500/20'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {TABS.map((tab) => {
+          const count = tabCounts[tab.key];
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => {
+                setActiveTab(tab.key);
+                setSearchQuery('');
+              }}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${
+                activeTab === tab.key
+                  ? 'bg-[#EB662B] text-white shadow-md shadow-orange-500/20'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {tab.label}
+              {!isLoading && count > 0 && (
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
+                    activeTab === tab.key ? 'bg-white/25 text-white' : 'bg-white text-slate-500'
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {isLoading ? (
@@ -72,10 +108,19 @@ export const MyWishlistPage: React.FC = () => {
           ))}
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 py-12 text-center text-rose-700">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 py-12 text-center text-rose-700">
           <AlertCircle size={28} className="text-rose-400" />
           <p className="font-semibold">Unable to load wishlist</p>
           <p className="text-sm text-rose-500">{error}</p>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="mt-2 inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-60"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+            Try again
+          </button>
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
@@ -96,9 +141,21 @@ export const MyWishlistPage: React.FC = () => {
             Browse tours
           </Link>
         </div>
+      ) : displayedItems.length === 0 ? (
+        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+          <Search size={32} className="text-slate-300" />
+          <p className="font-semibold text-slate-700">No tours match your search</p>
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="text-sm font-bold text-[#EB662B] hover:underline"
+          >
+            Clear search
+          </button>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
+          {displayedItems.map((item) => (
             <WishlistTourCard
               key={item.wishlistId}
               item={item}
@@ -113,7 +170,7 @@ export const MyWishlistPage: React.FC = () => {
 
       <ConfirmDialog
         open={!!pendingRemove}
-        onClose={() => setPendingRemove(null)}
+        onClose={() => !isRemoving && setPendingRemove(null)}
         onConfirm={handleConfirmRemove}
         title="Remove from wishlist?"
         message={

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users } from 'lucide-react';
+import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users, Sparkles } from 'lucide-react';
 import { PATH } from '../config/routes/route';
 
 export const ProfileLayout: React.FC = () => {
@@ -11,6 +11,7 @@ export const ProfileLayout: React.FC = () => {
     { name: 'Wishlist', path: PATH.CUSTOMER.WISHLIST, icon: Heart },
     { name: 'Reviews', path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
     { name: 'Vouchers', path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
+    { name: 'AI Gợi ý tour', path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
     { name: 'Notifications', path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
     { name: 'Settings', path: PATH.CUSTOMER.SETTINGS, icon: Settings },
   ];

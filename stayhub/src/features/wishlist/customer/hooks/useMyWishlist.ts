@@ -24,6 +24,7 @@ export const useMyWishlist = (activeTab: WishlistTab = 'all') => {
     items,
     wishlistIds: allItems.map((item) => item.tourId),
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     error: query.isError ? 'Failed to load your wishlist.' : null,
     refetch: query.refetch,
   };

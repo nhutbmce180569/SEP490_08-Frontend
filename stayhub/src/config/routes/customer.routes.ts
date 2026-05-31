@@ -8,7 +8,6 @@ export const CUSTOMER_ROUTES = {
   VOUCHERS: '/vouchers',
   MY_REVIEWS: '/my-reviews',
 
-  // Social & AI
   AI_ASSISTANT: '/ai-assistant',
   SOCIAL_FRIENDS: '/social/friends',
   SOCIAL_CHAT: '/social/chat',

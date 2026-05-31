@@ -68,6 +68,8 @@ import { UpdateScheduleTicket } from "./features/tour/pages/UpdateScheduleTicket
 import { DeleteScheduleTicket } from "./features/tour/pages/DeleteScheduleTicket";
 import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
+import { AiQuestionnairePage } from "./features/ai/pages/AiQuestionnairePage";
+import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
@@ -232,6 +234,14 @@ const App: React.FC = () => {
                 <Route
                   path={PATH.PUBLIC.TOUR_DETAIL()}
                   element={<PublicTourDetail />}
+                />
+                <Route
+                  path={PATH.PUBLIC.AI_ASSISTANT}
+                  element={<AiQuestionnairePage />}
+                />
+                <Route
+                  path={PATH.PUBLIC.AI_RECOMMENDATIONS}
+                  element={<AiRecommendationsPage />}
                 />
                 <Route
                   path={PATH.CUSTOMER.CHECKOUT()}

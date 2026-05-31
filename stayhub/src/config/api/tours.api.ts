@@ -55,12 +55,8 @@ export const TOURS_API = {
   // Staff
   MANAGE_STAFF: (sId: string | number) => `${FULL_API}/schedules/${sId}/staff`,
 
-  /** Wishlists — customer saved tours (TourAPI via gateway). */
-  GET_WISHLIST: `${FULL_API}/wishlists`,
-  ADD_TO_WISHLIST: (tourId: string | number) =>
-    `${FULL_API}/wishlists/tours/${tourId}`,
-  REMOVE_FROM_WISHLIST: (tourId: string | number) =>
-    `${FULL_API}/wishlists/tours/${tourId}`,
+  /** Wishlists — GET list, POST `{ tourId, action: "add"|"rem" }` (via gateway `FULL_API`). */
+  MANAGE_WISHLIST: `${FULL_API}/wishlists`,
 
   GET_REVIEWS_BY_TOUR: (tourId: string | number) =>
     `${FULL_API}/reviews/tour/${tourId}`,

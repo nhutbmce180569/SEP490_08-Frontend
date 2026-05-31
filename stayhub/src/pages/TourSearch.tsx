@@ -865,7 +865,6 @@ export default function TourSearch() {
                         imageUrl:
                           tour.imageUrl ||
                           "",
-                        tourStatus: tour.status,
                       }}
                     />
                   );

@@ -23,3 +23,22 @@ export const filterWishlistByTab = (
       return items;
   }
 };
+
+export const filterWishlistBySearch = (
+  items: ReadWishlistItemDTO[],
+  query: string,
+): ReadWishlistItemDTO[] => {
+  const trimmed = query.trim().toLowerCase();
+  if (!trimmed) return items;
+  return items.filter((item) => {
+    const name = item.tourName?.toLowerCase() ?? '';
+    const desc = item.tourDescription?.toLowerCase() ?? '';
+    return name.includes(trimmed) || desc.includes(trimmed);
+  });
+};
+
+export const getWishlistTabCounts = (items: ReadWishlistItemDTO[]) => ({
+  all: items.length,
+  active: items.filter((item) => isTourActive(item.tourStatus)).length,
+  unavailable: items.filter((item) => !isTourActive(item.tourStatus)).length,
+});

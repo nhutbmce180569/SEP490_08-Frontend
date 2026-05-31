@@ -8,11 +8,12 @@ import { useToast } from "../../contexts/ToastContext";
 // IMPORT THÊM CONTEXT VÀ SERVICE
 import { AuthContext } from "../../contexts/AuthContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
-import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX } from "lucide-react";
+import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX, Sparkles } from "lucide-react";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
 // TÌM ĐÚNG ĐƯỜNG DẪN IMPORT CỦA BẠN VÀ ĐẶT VÀO ĐÂY
 import  NotificationBell  from "../../features/system/components/NotificationBell";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
+import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
 
 type DropdownOption = { label: string; value: string };
 
@@ -285,6 +286,16 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
             onChange={setCurrency}
           /> */}
 
+          <ActionButton
+            variant="outline"
+            onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
+            className="hidden md:flex !w-auto px-4 gap-2 !border-[#EB662B]/30 !text-[#EB662B] hover:!bg-[#FFF1EB]"
+            title="AI Tour Assistant"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>AI Gợi ý</span>
+          </ActionButton>
+
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "10px" }}>
               {showDashboardButton && (
@@ -367,14 +378,7 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
                 )}
               </div>
 
-              <button
-                onClick={() => navigate(PATH.CUSTOMER.WISHLIST)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-500"
-                title="My wishlist"
-                aria-label="My wishlist"
-              >
-                <Heart className="h-5 w-5" />
-              </button>
+              <WishlistHeaderButton />
               {/* CÁI CHUÔNG ĐƯỢC GẮN Ở ĐÂY, NGAY BÊN TRÁI AVATAR */}
               <NotificationBell />
 
@@ -420,6 +424,13 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
                     >
                       <User className="h-4 w-4" />
                       My Profile
+                    </button>
+                    <button
+                      onClick={() => { navigate(PATH.CUSTOMER.WISHLIST); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#EB662B] rounded-lg transition-colors outline-none whitespace-nowrap"
+                    >
+                      <Heart className="h-4 w-4" />
+                      My Wishlist
                     </button>
                     {!isSocialLogin && (
                       <button

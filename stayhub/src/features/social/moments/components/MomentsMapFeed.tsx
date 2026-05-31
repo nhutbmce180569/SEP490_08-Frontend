@@ -8,6 +8,7 @@ import { MomentCard } from "./MomentCard";
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
+import { ShareLocationButton } from "../../tracking/components/ShareLocationButton";
 
 interface MomentsMapFeedProps {
   scheduleId: number;
@@ -377,6 +378,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           </OverlayView>
         ))}
       </GoogleMap>
+
+      {/* Giai đoạn 2: Nút chia sẻ vị trí */}
+      <div className="absolute top-4 left-4 z-20">
+        <ShareLocationButton />
+      </div>
 
       {/* Giai đoạn 2: Menu "Lớp hiển thị" */}
       <div className="absolute top-4 right-4 z-20">

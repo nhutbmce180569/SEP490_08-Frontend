@@ -82,6 +82,7 @@ import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
+import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -258,6 +259,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
               <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+              <Route path="/track/:token" element={<PublicTrackingPage />} />
               <Route
                 path={PATH.PUBLIC.FORGOT_PASSWORD}
                 element={<ForgotPassword />}
@@ -328,7 +330,7 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.NOTIFICATIONS}
                       element={mock("Notifications", "Customer")}
                     />
-
+                    
                     <Route path="/social/moments"
                      element={<MomentsRouteWrapper />} />
 

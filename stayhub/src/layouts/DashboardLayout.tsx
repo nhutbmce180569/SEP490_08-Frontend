@@ -201,7 +201,7 @@ export const DashboardLayout: React.FC = () => {
                     <div className="flex flex-col gap-3">
                       <div className="text-sm text-slate-600">You have new bookings to review.</div>
                       <div className="text-sm text-slate-600">A customer left a 5-star review!</div>
-                      <button className="mt-2 text-sm font-semibold text-[#4880ff] hover:underline text-left">
+                      <button className="mt-2 text-sm font-semibold text-[#0068E0] hover:underline text-left">
                         View all
                       </button>
                     </div>

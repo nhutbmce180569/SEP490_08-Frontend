@@ -95,7 +95,7 @@ const currentUserId = user?.id || 0;
       <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50/50">
         <div className="p-4 border-b border-slate-100 bg-white">
           <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-[#EB662B]" />
+            <MessageSquare className="w-4 h-4 text-[#0068E0]" />
             Conversations
           </h2>
         </div>
@@ -115,11 +115,11 @@ const currentUserId = user?.id || 0;
                 onClick={() => setActiveRoomId(room.id)}
                 className={`w-full text-left p-3 rounded-2xl transition-all flex items-center gap-3 outline-none ${
                   isSelected 
-                    ? "bg-[#EB662B]/10 text-[#EB662B] font-bold" 
+                    ? "bg-[#0068E0]/10 text-[#0068E0] font-bold"
                     : "text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? "bg-[#EB662B] text-white" : "bg-slate-200 text-slate-500"}`}>
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${isSelected ? "bg-[#0068E0] text-white" : "bg-slate-200 text-slate-500"}`}>
                   {room.isGroupChat ? <Users className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
                 </div>
                 <div className="overflow-hidden flex-1">
@@ -159,7 +159,7 @@ const currentUserId = user?.id || 0;
                     <div key={msg.id} className={`flex flex-col max-w-[75%] ${isMe ? "self-end items-end" : "self-start items-start"}`}>
                       <div className={`p-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
                         isMe 
-                          ? "bg-[#EB662B] text-white rounded-br-none font-medium" 
+                          ? "bg-[#0068E0] text-white rounded-br-none font-medium"
                           : "bg-white text-slate-800 border border-slate-100 rounded-bl-none"
                       }`}>
                         {msg.content}
@@ -180,12 +180,12 @@ const currentUserId = user?.id || 0;
                 value={typedMessage}
                 onChange={(e) => setTypedMessage(e.target.value)}
                 placeholder="Type a message..."
-                className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#EB662B]/50 transition-colors text-slate-800"
+                className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#0068E0]/50 transition-colors text-slate-800"
               />
               <button
                 type="submit"
                 disabled={!typedMessage.trim() || isSendingMessage}
-                className="p-2.5 bg-[#EB662B] hover:bg-[#d55821] disabled:opacity-40 text-white rounded-xl transition-all shadow-md shadow-[#EB662B]/10 cursor-pointer"
+                className="p-2.5 bg-[#0068E0] hover:bg-[#0058D0] disabled:opacity-40 text-white rounded-xl transition-all shadow-md shadow-[#0068E0]/10 cursor-pointer"
               >
                 {isSendingMessage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               </button>

@@ -127,7 +127,7 @@ export default function ResetPassword() {
                 type="button"
                 onClick={handleResendCode}
                 disabled={isResending || isSubmitting || countdown > 0}
-                className="text-xs font-bold text-[#EB662B] hover:text-[#d55821] transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none"
+                className="text-xs font-bold text-[#0068E0] hover:text-[#0058D0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none"
               >
                 {isResending ? "Resending..." : countdown > 0 ? `Resend Code (${countdown}s)` : "Resend Code"}
               </button>
@@ -139,7 +139,7 @@ export default function ResetPassword() {
                 name="code"
                 value={formData.code}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.code ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.code ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                 placeholder="Enter reset code"
                 required
               />
@@ -158,7 +158,7 @@ export default function ResetPassword() {
                 name="newPassword"
                 value={formData.newPassword}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.newPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.newPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                 placeholder="Create a new password"
                 required
               />
@@ -180,7 +180,7 @@ export default function ResetPassword() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                 placeholder="Repeat your new password"
                 required
               />
@@ -196,7 +196,7 @@ export default function ResetPassword() {
       </div>
 
       <div className="mt-8">
-        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-[#EB662B] transition-colors !no-underline">
+        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-[#0068E0] transition-colors !no-underline">
           &larr; Back to Login
         </Link>
       </div>

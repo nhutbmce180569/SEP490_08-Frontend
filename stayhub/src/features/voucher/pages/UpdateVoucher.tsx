@@ -45,7 +45,7 @@ export const UpdateVoucher: React.FC = () => {
         <button
           type="button"
           onClick={handleCancel}
-          className="mt-4 text-sm font-semibold text-[#EB662B] hover:underline"
+          className="mt-4 text-sm font-semibold text-[#0068E0] hover:underline"
         >
           Back to vouchers
         </button>

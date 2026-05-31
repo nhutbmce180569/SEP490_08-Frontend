@@ -79,7 +79,7 @@ export default function ChangePassword() {
                 name="oldPassword"
                 value={formData.oldPassword}
                 onChange={handleChange}
-                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#EB662B] focus:ring-4 focus:ring-[#EB662B]/10"
+                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
                 placeholder="Enter current password"
                 required
               />
@@ -98,7 +98,7 @@ export default function ChangePassword() {
                 name="newPassword"
                 value={formData.newPassword}
                 onChange={handleChange}
-                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#EB662B] focus:ring-4 focus:ring-[#EB662B]/10"
+                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
                 placeholder="Create a new password"
                 required
               />
@@ -124,7 +124,7 @@ export default function ChangePassword() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                 placeholder="Repeat your new password"
                 required
               />
@@ -145,7 +145,7 @@ export default function ChangePassword() {
       </div>
 
       <div className="mt-8">
-        <Link to="/" className="text-sm font-semibold text-slate-500 hover:text-[#EB662B] transition-colors !no-underline">
+        <Link to="/" className="text-sm font-semibold text-slate-500 hover:text-[#0068E0] transition-colors !no-underline">
           &larr; Back to Home
         </Link>
       </div>

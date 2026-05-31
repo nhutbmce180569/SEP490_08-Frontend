@@ -233,7 +233,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
               <button 
                 type="submit" 
                 disabled={!newComment.trim() || isAdding}
-                className="flex items-center px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-[#EB662B] hover:bg-[#d55821] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-[#0068E0] hover:bg-[#0058D0] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAdding ? (
                   <>

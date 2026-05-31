@@ -5,6 +5,7 @@ import type { CreateTicketRequest, ReadTicketDTO } from "./ticket";
 export interface CreateOrderDetailRequest {
   tourScheduleTicketId: number;
   ticketTypeId?: number | null;
+  unitPrice?: number | null;
   tickets: CreateTicketRequest[];
 }
 
@@ -12,9 +13,9 @@ export interface CreateOrderRequest {
   scheduleId: number;
   totalQuantity?: number;
   ticketCount?: number;
-  voucherCode?: string;
-  note?: string;
-  finalAmount?: number;
+  voucherCode?: string | null;
+  note?: string | null;
+  finalAmount: number;
   orderDetails: CreateOrderDetailRequest[];
 }
 
@@ -39,14 +40,15 @@ export interface ReadOrderDTO {
   totalQuantity: number;
   ticketCount: number;
   totalAmount: number;
-  discountValue?: number;
+  discountValue?: number | null;
+  voucherCode?: string | null;
   finalAmount: number;
-  note?: string;
-  status?: string;
-  orderedAt: string;
-  inviteToken?: string;
-  tour: Tour;
-  schedule: TourSchedule;
+  note?: string | null;
+  status?: string | null;
+  orderedAt?: string | null;
+  inviteToken?: string | null;
+  tour?: Tour | null;
+  schedule?: TourSchedule | null;
   orderDetails: {
     id: number;
     orderId: number;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { 
   Star, 
   MessageSquare, 
@@ -15,9 +15,21 @@ import {
 } from "lucide-react";
 import { useReview } from "../hooks/useReview"; 
 import { ActionButton } from "../../../components/dashboard/ActionButton"; 
+import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useToast } from "../../../contexts/ToastContext"; 
+import { AuthContext } from "../../../contexts/AuthContext";
 import type { Review } from "../types/review";
 import { getTours } from "../services/tour.service";
+
+
+const formatReviewDate = (date?: string | null) =>
+  date
+    ? new Date(date).toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "";
 
 // ==========================================
 // COMPONENT 1: CARD QUẢN LÝ TỪNG REVIEW
@@ -30,7 +42,15 @@ const AdminReviewCard: React.FC<{
   onToggleHide: (reviewId: number, isHidden: boolean) => Promise<void>;
 }> = ({ review, onReply, onEditReply, onDeleteReply, onToggleHide }) => {
   const { success: showSuccess, error: showError } = useToast();
+  const { user } = useContext(AuthContext);
+  const currentUserId = user?.id;
   
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    action: "deleteReply" | "toggleHide";
+    nextHideStatus?: boolean;
+  }>({ open: false, action: "deleteReply" });
+
   const existingReply = review.replies && review.replies.length > 0 ? review.replies[0] : null;
   
   const [isReplying, setIsReplying] = useState(false);
@@ -58,34 +78,39 @@ const AdminReviewCard: React.FC<{
     }
   };
 
-  const handleDeleteReply = async () => {
+  const handleDeleteReply = () => {
     if (!existingReply) return;
-    if (!window.confirm("Are you sure you want to delete this reply?")) return;
-    setIsSubmitting(true);
-    try {
-      await onDeleteReply(review.id, existingReply.id);
-      showSuccess("Reply deleted!");
-      setReplyText("");
-    } catch (err: any) {
-      showError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    setConfirmDialog({ open: true, action: "deleteReply" });
   };
 
-  const handleToggleHide = async () => {
-    const newStatus = !review.isHidden;
-    const actionText = newStatus ? "hide" : "unhide";
-    if (!window.confirm(`Are you sure you want to ${actionText} this review?`)) return;
-    
+  const handleToggleHide = () => {
+    setConfirmDialog({ open: true, action: "toggleHide", nextHideStatus: !review.isHidden });
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog({ open: false, action: "deleteReply" });
+  };
+
+  const handleConfirmDialog = async () => {
+    if (!confirmDialog.open) return;
+
     setIsSubmitting(true);
     try {
-      await onToggleHide(review.id, newStatus);
-      showSuccess(`Review has been ${newStatus ? "hidden" : "made visible"}.`);
+      if (confirmDialog.action === "deleteReply") {
+        if (!existingReply) return;
+        await onDeleteReply(review.id, existingReply.id);
+        showSuccess("Reply deleted!");
+        setReplyText("");
+      } else {
+        const newStatus = confirmDialog.nextHideStatus ?? !review.isHidden;
+        await onToggleHide(review.id, newStatus);
+        showSuccess(`Review has been ${newStatus ? "hidden" : "made visible"}.`);
+      }
     } catch (err: any) {
       showError(err.message);
     } finally {
       setIsSubmitting(false);
+      closeConfirmDialog();
     }
   };
 
@@ -134,7 +159,7 @@ const AdminReviewCard: React.FC<{
                   ))}
                 </div>
                 {review.createdAt && (
-                  <span className="text-xs font-medium text-slate-400">• {new Date(review.createdAt).toLocaleDateString()}</span>
+                  <span className="text-xs font-medium text-slate-400">• {formatReviewDate(review.createdAt)}</span>
                 )}
               </div>
             </div>
@@ -159,9 +184,33 @@ const AdminReviewCard: React.FC<{
             <div className="relative rounded-xl bg-slate-50 p-4 border border-slate-100">
               <CornerDownRight className="absolute -left-6 top-4 h-5 w-5 text-slate-300" />
               <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldAlert className="h-4 w-4 text-indigo-500" />
-                  <span className="text-sm font-bold text-slate-900">Your Reply</span>
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase border border-indigo-200">
+                    {existingReply.userAvatar ? (
+                      <img
+                        src={existingReply.userAvatar}
+                        alt={existingReply.userName || "Staff"}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.parentElement!.innerText = (existingReply.userName || 'S').charAt(0).toUpperCase();
+                        }}
+                      />
+                    ) : (
+                      (existingReply.userName || 'S').charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h5 className="text-sm font-bold text-slate-900">
+                        {String(existingReply.userId) === String(currentUserId) ? 'Your Reply' : existingReply.userName || 'Staff'}
+                      </h5>
+                      {existingReply.createdAt && (
+                        <span className="text-xs font-medium text-slate-400">• {formatReviewDate(existingReply.createdAt)}</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-slate-500">Reply to customer</div>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button onClick={() => setIsEditing(true)} className="text-slate-400 hover:text-indigo-600" title="Edit Reply">
@@ -205,6 +254,33 @@ const AdminReviewCard: React.FC<{
           )}
         </div>
       </div>
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={closeConfirmDialog}
+        onConfirm={handleConfirmDialog}
+        title={
+          confirmDialog.action === "deleteReply"
+            ? "Confirm delete reply"
+            : confirmDialog.nextHideStatus
+            ? "Confirm hide review"
+            : "Confirm unhide review"
+        }
+        message={
+          confirmDialog.action === "deleteReply"
+            ? "Are you sure you want to delete this reply?"
+            : confirmDialog.nextHideStatus
+            ? "Are you sure you want to hide this review?"
+            : "Are you sure you want to unhide this review?"
+        }
+        confirmText={
+          confirmDialog.action === "deleteReply"
+            ? "Delete"
+            : confirmDialog.nextHideStatus
+            ? "Hide"
+            : "Unhide"
+        }
+        variant={confirmDialog.action === "deleteReply" ? "warning" : "warning"}
+      />
     </div>
   );
 };

@@ -13,10 +13,8 @@ import { useReview } from "../hooks/useReview"; // Chỉnh lại đường dẫn
 import { PATH } from "../../../config/routes/route"; // Chỉnh lại đường dẫn tới route
 
 export const MyReviewsPage: React.FC = () => {
-  // Lấy dữ liệu từ hook
   const { myAllReviews, isLoading, error, fetchAllMyReviews } = useReview();
 
-  // Gọi API ngay khi vào trang
   useEffect(() => {
     fetchAllMyReviews();
   }, [fetchAllMyReviews]);

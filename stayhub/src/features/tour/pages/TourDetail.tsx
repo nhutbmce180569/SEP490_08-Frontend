@@ -55,38 +55,48 @@ const getTicketAvailable = (ticket: TourScheduleTicket) =>
       ticket.maxCapacity,
   );
 
-// const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
+const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
 
-// const getSchedulePriceText = (schedule: TourSchedule) => {
-//   const prices = getScheduleTickets(schedule)
-//     .map(getTicketPrice)
-//     .filter((price): price is number => price !== null);
+const getSchedulePriceText = (schedule: TourSchedule) => {
+  const prices = getScheduleTickets(schedule)
+    .map(getTicketPrice)
+    .filter((price): price is number => price !== null);
 
-//   if (prices.length === 0) return "No ticket price";
+  if (prices.length === 0) return "No ticket price";
 
-//   const minPrice = Math.min(...prices);
-//   const maxPrice = Math.max(...prices);
+  const minPrice = Math.min(...prices);
+  const maxPrice = Math.max(...prices);
 
-//   return minPrice === maxPrice
-//     ? formatCurrency(minPrice)
-//     : `From ${formatCurrency(minPrice)}`;
-// };
+  return minPrice === maxPrice
+    ? formatCurrency(minPrice)
+    : `From ${formatCurrency(minPrice)}`;
+};
 
-// const getScheduleAvailabilityText = (schedule: TourSchedule) => {
-//   const tickets = getScheduleTickets(schedule);
-//   if (tickets.length === 0) return "No ticket setup";
+const getScheduleAvailabilityText = (schedule: TourSchedule) => {
+  const tickets = getScheduleTickets(schedule);
+  if (tickets.length === 0) return "No ticket setup";
 
-//   const available = tickets.reduce(
-//     (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
-//     0,
-//   );
-//   const capacity = tickets.reduce(
-//     (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
-//     0,
-//   );
+  const available = tickets.reduce(
+    (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
+    0,
+  );
+  const capacity = tickets.reduce(
+    (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
+    0,
+  );
 
-//   return capacity > 0 ? `${available} / ${capacity}` : `${available} available`;
-// };
+  return capacity > 0 ? `${available} / ${capacity}` : `${available} available`;
+};
+
+const getReviewCustomerName = (review: any) =>
+  review.customerName || review.CustomerName || review.customerId
+    ? String(review.customerName || review.CustomerName || `Customer #${review.customerId}`)
+    : "Anonymous Customer";
+
+const getReviewReplyName = (reply: any) =>
+  reply.userName || reply.UserName || reply.userId
+    ? String(reply.userName || reply.UserName || `Staff #${reply.userId}`)
+    : "Staff";
 
 export const TourDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -186,18 +196,18 @@ export const TourDetail: React.FC = () => {
     if (!itineraryDayNumbers.includes(i)) missingItineraryDays.push(i);
   }
   const scheduleCount = tour.tourSchedules?.length || 0;
-  // const prices =
-  //   tour.tourSchedules
-  //     ?.flatMap((schedule) => getScheduleTickets(schedule).map(getTicketPrice))
-  //     .filter((price): price is number => price !== null) || [];
-  // const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  // const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  // const priceText =
-  //   prices.length === 0
-  //     ? "No ticket price"
-  //     : minPrice === maxPrice
-  //       ? formatCurrency(minPrice)
-  //       : `From ${formatCurrency(minPrice)}`;
+  const prices =
+    tour.tourSchedules
+      ?.flatMap((schedule) => getScheduleTickets(schedule).map(getTicketPrice))
+      .filter((price): price is number => price !== null) || [];
+  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+  const priceText =
+    prices.length === 0
+      ? "No ticket price"
+      : minPrice === maxPrice
+        ? formatCurrency(minPrice)
+        : `From ${formatCurrency(minPrice)}`;
 
   // 💥 LỌC BỎ CÁC REVIEW BỊ ẨN
   const visibleReviews = fetchedReviews.filter((review) => !review.isHidden);
@@ -278,7 +288,7 @@ export const TourDetail: React.FC = () => {
                     <User className="h-4 w-4 text-slate-400" />
                     <span>
                       Created{tour.createdByName && ` by ${tour.createdByName}`}
-                      {tour.createdAt && ` on ${new Date(tour.createdAt).toLocaleDateString()}`}
+                      {tour.createdAt && ` on ${new Date(tour.createdAt).toLocaleDateString("vi-VN")}`}
                     </span>
                   </div>
                 )}
@@ -287,7 +297,7 @@ export const TourDetail: React.FC = () => {
                     <Pencil className="h-4 w-4 text-slate-400" />
                     <span>
                       Last updated{tour.updatedByName && ` by ${tour.updatedByName}`}
-                      {tour.updatedAt && ` on ${new Date(tour.updatedAt).toLocaleDateString()}`}
+                      {tour.updatedAt && ` on ${new Date(tour.updatedAt).toLocaleDateString("vi-VN")}`}
                     </span>
                   </div>
                 )}
@@ -632,10 +642,10 @@ export const TourDetail: React.FC = () => {
                         <span className="font-medium text-slate-900">
                           {new Date(
                             schedule.departureDate,
-                          ).toLocaleDateString()}
+                          ).toLocaleDateString("vi-VN")}
                         </span>
                       </div>
-                      {/* <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                         <span className="text-slate-500">Price</span>
                         <span className="font-semibold text-emerald-600">
                           {getSchedulePriceText(schedule)}
@@ -646,7 +656,7 @@ export const TourDetail: React.FC = () => {
                         <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-900">
                           {getScheduleAvailabilityText(schedule)}
                         </span>
-                      </div> */}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -686,7 +696,7 @@ export const TourDetail: React.FC = () => {
                       <div className="flex gap-3">
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100">
                           {review.customerAvatar ? (
-                            <img src={review.customerAvatar} alt={review.customerName || "Avatar"} className="h-full w-full object-cover" />
+                            <img src={review.customerAvatar} alt={getReviewCustomerName(review)} className="h-full w-full object-cover" />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-600">
                               <User className="h-5 w-5" />
@@ -696,7 +706,7 @@ export const TourDetail: React.FC = () => {
                         
                         <div>
                           <h3 className="font-semibold text-slate-900">
-                            {review.customerName || "Anonymous Customer"}
+                            {getReviewCustomerName(review)}
                           </h3>
                           <div className="mt-1 flex items-center gap-2">
                             <div className="flex items-center">
@@ -713,7 +723,7 @@ export const TourDetail: React.FC = () => {
                             </div>
                             {review.createdAt && (
                               <span className="text-[11px] font-medium text-slate-400">
-                                • {new Date(review.createdAt).toLocaleDateString()}
+                                • {new Date(review.createdAt).toLocaleDateString("vi-VN")}
                               </span>
                             )}
                           </div>
@@ -724,6 +734,60 @@ export const TourDetail: React.FC = () => {
                       <p className="mt-2 text-sm text-slate-700 leading-relaxed">
                         {review.comment}
                       </p>
+                    )}
+
+                    {review.replies && review.replies.length > 0 && (
+                      <div className="mt-4 space-y-4">
+                        {review.replies.map((reply) => {
+                          const replyName = getReviewReplyName(reply);
+                          const replyInitial = replyName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .substring(0, 2)
+                            .toUpperCase();
+
+                          return (
+                            <div
+                              key={reply.id}
+                              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                            >
+                              <div className="mb-3 flex items-center gap-3">
+                                <div className="h-10 w-10 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase border border-indigo-200">
+                                  {reply.userAvatar ? (
+                                    <img
+                                      src={reply.userAvatar}
+                                      alt={replyName}
+                                      className="h-full w-full object-cover"
+                                      onError={(e) => {
+                                        e.currentTarget.style.display = "none";
+                                        e.currentTarget.parentElement!.innerText = replyInitial;
+                                      }}
+                                    />
+                                  ) : (
+                                    replyInitial
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                    <span>{replyName}</span>
+                                    <span className="text-slate-400">•</span>
+                                    <span className="text-xs font-medium text-slate-500">
+                                      {reply.createdAt
+                                        ? new Date(reply.createdAt).toLocaleDateString("vi-VN")
+                                        : ""}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-slate-500">Reply to customer review</div>
+                                </div>
+                              </div>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                {reply.content}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
                 ))}

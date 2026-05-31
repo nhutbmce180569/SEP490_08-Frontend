@@ -1,10 +1,14 @@
-// Interface phụ cho Reply (nếu sau này bạn làm chức năng Admin/Guide trả lời review)
+// Interface cho Reply (ReadReviewReply maps to backend ReadReviewReplyDTO)
 export interface ReadReviewReply {
   id: number;
   reviewId: number;
+  userId?: number;
   content: string;
-  repliedBy?: string;
+  userName?: string | null;
+  userAvatar?: string | null;
+  repliedBy?: string | null;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 // Map theo ReadReviewDTO
@@ -39,14 +43,7 @@ export interface UpdateReviewRequest {
 }
 
 
-export interface ReadReviewReply {
-  id: number;
-  reviewId: number;
-  content: string;
-  repliedBy?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+// (already defined above)
 
 export interface CreateReviewReplyRequest {
   content: string;

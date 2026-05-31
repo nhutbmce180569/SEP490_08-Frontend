@@ -63,6 +63,7 @@ import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
 import { TourScheduleList } from "./features/tour/pages/TourScheduleList";
 import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
+import {CreateEditSchedule} from "./features/tour/pages/CreateEditSchedule";
 import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
 import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
 import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
@@ -396,7 +397,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
-                    element={mock("Create Schedule", "Partner")}
+                    element={<CreateEditSchedule />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
@@ -404,7 +405,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
-                    element={mock("Edit Schedule", "Partner")}
+                    element={<CreateEditSchedule />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}

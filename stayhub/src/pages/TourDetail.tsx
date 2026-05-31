@@ -12,7 +12,6 @@ import {
   X,
   Users,
   ChevronRight,
-  Heart,
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
@@ -21,7 +20,7 @@ import {
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
 import { PATH } from "../config/routes/route";
-import { useWishlist } from "../features/wishlist/hooks/useWishlist";
+import { WishlistToggleButton } from "../features/wishlist/customer/components/WishlistToggleButton";
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
@@ -123,7 +122,6 @@ export default function PublicTourDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id);
-  const { isInWishlist, toggleWishlist, isSubmitting } = useWishlist();
   const { error: showError } = useToast();
 
   const [showFullError, setShowFullError] = useState(false);
@@ -144,8 +142,6 @@ export default function PublicTourDetail() {
   });
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
-
-  const isWished = tour ? isInWishlist(Number(tour.id)) : false;
 
   const sortedSchedules = useMemo(() => {
     const arr = [...(tour?.tourSchedules || [])];
@@ -365,27 +361,11 @@ export default function PublicTourDetail() {
         {/* Wishlist */}
         <div className="absolute top-[100px] right-6 z-10">
           {!isLoading && tour && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (!isSubmitting) toggleWishlist(Number(tour.id));
-              }}
-              disabled={isSubmitting}
-              className="flex h-12 w-12 items-center justify-center backdrop-blur-md shadow-sm transition-all duration-200"
-              style={{
-                borderRadius: 999,
-                background: isWished ? "#FFF1F2" : "rgba(255,255,255,0.96)",
-                color: isWished ? "#F43F5E" : "#94A3B8",
-              }}
-              onMouseEnter={(e) => {
-                if (!isWished) (e.currentTarget as HTMLElement).style.color = "#F43F5E";
-              }}
-              onMouseLeave={(e) => {
-                if (!isWished) (e.currentTarget as HTMLElement).style.color = "#94A3B8";
-              }}
-            >
-              <Heart size={22} className={isWished ? "fill-current" : ""} />
-            </button>
+            <WishlistToggleButton
+              tourId={Number(tour.id)}
+              tourStatus={tour.status}
+              variant="hero"
+            />
           )}
         </div>
 

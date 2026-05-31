@@ -1,52 +1,37 @@
-import axios from "axios";
-import { TOURS_API } from "../../../config/api/tours.api"; // Điều chỉnh đường dẫn import TOURS_API của bạn
+import { TOURS_API } from "../../../config/api/tours.api";
+import { apiClient } from "../../../utils/axiosClient";
 import type {
   TourSchedule,
   CreateTourScheduleRequest,
   UpdateTourScheduleRequest,
-} from "../types/tourSchedule"; // Điều chỉnh đường dẫn import types của bạn
-
-const getAuthConfig = () => {
-  const token = localStorage.getItem("token");
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
+} from "../types/tourSchedule";
 
 export const tourScheduleService = {
   getAllSchedules: async (): Promise<TourSchedule[]> => {
-    const response = await axios.get(TOURS_API.GET_ALL_SCHEDULES);
-    return response.data;
+    return await apiClient.get<TourSchedule[]>(TOURS_API.GET_ALL_SCHEDULES);
   },
 
   getScheduleById: async (id: string | number): Promise<TourSchedule> => {
-    const response = await axios.get(TOURS_API.GET_SCHEDULE_DETAIL(id));
-    return response.data;
+    return await apiClient.get<TourSchedule>(TOURS_API.GET_SCHEDULE_DETAIL(id));
   },
 
   createSchedule: async (data: CreateTourScheduleRequest): Promise<TourSchedule> => {
-    const response = await axios.post(TOURS_API.CREATE_SCHEDULE, data, getAuthConfig());
-    return response.data;
+    return await apiClient.post<TourSchedule>(TOURS_API.CREATE_SCHEDULE, data);
   },
 
   updateSchedule: async (id: string | number, data: UpdateTourScheduleRequest): Promise<TourSchedule> => {
-    const response = await axios.put(TOURS_API.UPDATE_SCHEDULE(id), data, getAuthConfig());
-    return response.data;
+    return await apiClient.put<TourSchedule>(TOURS_API.UPDATE_SCHEDULE(id), data);
   },
 
   deleteSchedule: async (id: string | number): Promise<void> => {
-    await axios.delete(TOURS_API.DELETE_SCHEDULE(id), getAuthConfig());
+    return await apiClient.delete<void>(TOURS_API.DELETE_SCHEDULE(id));
   },
 
   reserveSeats: async (id: string | number, quantity: number): Promise<{ message: string }> => {
-    const response = await axios.post(TOURS_API.RESERVE_SEATS(id), { quantity }, getAuthConfig());
-    return response.data;
+    return await apiClient.post<{ message: string }>(TOURS_API.RESERVE_SEATS(id), { quantity });
   },
 
   releaseSeats: async (id: string | number, quantity: number): Promise<{ message: string }> => {
-    const response = await axios.post(TOURS_API.RELEASE_SEATS(id), { quantity }, getAuthConfig());
-    return response.data;
+    return await apiClient.post<{ message: string }>(TOURS_API.RELEASE_SEATS(id), { quantity });
   },
 };

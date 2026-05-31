@@ -89,3 +89,27 @@ export const updateTourStatusByAdmin = async (
     throw error;
   }
 };
+
+// Compatibility wrapper used by some components (CreateEditSchedule expects this)
+export const tourService = {
+  getAllTours: async (): Promise<any[]> => {
+    try {
+      const res = await apiClient.get<any>(TOURS_API.GET_ALL);
+      // Normalize possible response shapes to an array
+      if (Array.isArray(res)) return res;
+      if (res?.data && Array.isArray(res.data)) return res.data;
+      if (res?.items && Array.isArray(res.items)) return res.items;
+      if (res?.results && Array.isArray(res.results)) return res.results;
+      if (res?.rows && Array.isArray(res.rows)) return res.rows;
+      return [];
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getTourById: async (id: string | number) => {
+    return await getTourById(id);
+  },
+};
+
+export default tourService;

@@ -37,6 +37,6 @@ export const MANAGER_ROUTES = {
   SCHEDULE_CHECKIN: (id: string | number = ':id') => `/manager/schedules/${id}/checkin`,
   DELETE_SCHEDULE: (id: string | number = ':id') => `/manager/schedules/${id}/delete`,
   EDIT_SCHEDULE: (id: string | number = ':id') => `/manager/schedules/edit/${id}`,
-  CREATE_SCHEDULE: (tourId: string | number = ':tourId') => `/manager/tours/${tourId}/schedules/create`,
+  CREATE_SCHEDULE: () => `/manager/schedules/create`,
   
 } as const;

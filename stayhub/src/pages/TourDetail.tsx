@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Star,
@@ -24,6 +24,7 @@ import { WishlistToggleButton } from "../features/wishlist/customer/components/W
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
+import { AuthContext } from "../contexts/AuthContext";
 import { useGroupedItineraries } from "../features/tour/hooks/useGroupedItineraries";
 import { useGetTourItineraries } from "../features/social/tours/hooks/useTourItineraries";
 import { TourItineraryMap } from "../features/social/tours/components/TourItineraryMap";
@@ -54,6 +55,16 @@ const fmtDate = (d: string) =>
     month: "short",
     year: "numeric",
   });
+
+const getReviewCustomerName = (review: any) =>
+  review.customerName || review.CustomerName || review.customerId
+    ? String(review.customerName || review.CustomerName || `Customer #${review.customerId}`)
+    : "Anonymous Customer";
+
+const getReviewReplyName = (reply: any) =>
+  reply.userName || reply.UserName || reply.userId
+    ? String(reply.userName || reply.UserName || `Staff #${reply.userId}`)
+    : "Staff";
 
 const getScheduleTickets = (schedule: TourSchedule) =>
   (schedule.tourScheduleTickets ?? []).filter((ticket) => ticket.isActive !== false);
@@ -126,6 +137,8 @@ export default function PublicTourDetail() {
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id);
   const { error: showError } = useToast();
+  const { user } = useContext(AuthContext);
+  const currentUserId = user?.id;
 
   const { data: itineraries = [], isLoading: isItinerariesLoading } = useGetTourItineraries(Number(id));
 
@@ -736,7 +749,7 @@ export default function PublicTourDetail() {
                 {/* 💥 Lặp qua mảng visibleReviews thay vì tour.reviews */}
                 {visibleReviews.length > 0 ? (
                   visibleReviews.map((review) => {
-                    const reviewerName = review.customerName || "Anonymous";
+                    const reviewerName = getReviewCustomerName(review);
                     const initials =
                       reviewerName
                         .split(" ")
@@ -770,8 +783,13 @@ export default function PublicTourDetail() {
                                 initials
                               )}
                             </div>
-                            <div className="font-bold text-slate-800">
-                              {reviewerName}
+                            <div>
+                              <div className="font-bold text-slate-800">{reviewerName}</div>
+                              {review.createdAt && (
+                                <div className="text-xs text-slate-400">
+                                  {fmtDate(review.createdAt)}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="flex text-amber-400">
@@ -790,6 +808,60 @@ export default function PublicTourDetail() {
                         <p className="text-slate-600 leading-relaxed">
                           {review.comment || "No comment."}
                         </p>
+
+                        {review.replies && review.replies.length > 0 && (
+                          <div className="mt-4 space-y-4">
+                            {review.replies.map((reply) => {
+                              const replyName = getReviewReplyName(reply);
+                              const replyInitial = replyName
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
+                                .substring(0, 2)
+                                .toUpperCase();
+
+                              return (
+                                <div
+                                  key={reply.id}
+                                  className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
+                                >
+                                  <div className="mb-3 flex items-center gap-3">
+                                    <div className="h-10 w-10 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase border border-indigo-200">
+                                      {reply.userAvatar ? (
+                                        <img
+                                          src={reply.userAvatar}
+                                          alt={replyName}
+                                          className="h-full w-full object-cover"
+                                          onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            e.currentTarget.parentElement!.innerText = replyInitial;
+                                          }}
+                                        />
+                                      ) : (
+                                        replyInitial
+                                      )}
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                        <span>{replyName}</span>
+                                        <span className="text-slate-400">•</span>
+                                        <span className="text-xs font-medium text-slate-500">
+                                          {reply.createdAt
+                                            ? fmtDate(reply.createdAt)
+                                            : ""}
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-slate-500">Reply to customer review</div>
+                                    </div>
+                                  </div>
+                                  <p className="text-sm text-slate-700 leading-relaxed">
+                                    {reply.content}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
                     );
                   })

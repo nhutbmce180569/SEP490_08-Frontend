@@ -70,5 +70,3 @@ export interface VoucherFilters {
   status?: string;
   isActive?: boolean;
 }
-
-export type VoucherStatus = 'Active' | 'Inactive' | 'Scheduled' | 'Expired' | 'Depleted';

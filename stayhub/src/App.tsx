@@ -74,6 +74,7 @@ import { VoucherList } from "./features/voucher/pages/VoucherList";
 import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
 import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
+import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -257,7 +258,7 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.VOUCHERS}
-                      element={mock("Vouchers", "Customer")}
+                      element={<MyVouchersPage />}
                     />
                     <Route
                       path={PATH.CUSTOMER.MY_REVIEWS}

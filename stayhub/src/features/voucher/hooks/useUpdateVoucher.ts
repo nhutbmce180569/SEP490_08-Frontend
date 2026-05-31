@@ -34,7 +34,7 @@ export const useUpdateVoucher = () => {
       queryClient.invalidateQueries({ queryKey: ['voucher', id] });
       navigate(PATH.MANAGER.VOUCHERS);
     },
-    onError: (err: any) => {
+    onError: (err: unknown) => {
       const validationErrors = getApiValidationErrors(err);
       if (validationErrors) {
         setServerErrors(validationErrors as Record<string, string>);
@@ -44,7 +44,7 @@ export const useUpdateVoucher = () => {
     },
   });
 
-  const handleSubmit = (data: Record<string, any>) => {
+  const handleSubmit = (data: Record<string, unknown>) => {
     if (!voucher) return;
     setServerErrors({});
 
@@ -55,15 +55,15 @@ export const useUpdateVoucher = () => {
     const maxDiscountAmount = data.maxDiscountAmount !== undefined && data.maxDiscountAmount !== ''
       ? Number(data.maxDiscountAmount)
       : undefined;
-    const startDate = data.startDate ? toIsoDateTime(data.startDate) : voucher.startDate;
-    const endDate = data.endDate ? toIsoDateTime(data.endDate) : voucher.endDate;
+    const startDate = data.startDate ? toIsoDateTime(data.startDate as string) : voucher.startDate;
+    const endDate = data.endDate ? toIsoDateTime(data.endDate as string) : voucher.endDate;
     const customerAssignments = (data.customerAssignments || []) as CreateUserVoucherAssignmentDTO[];
 
+    const localErrors: Record<string, string> = {};
     const discountError = validateDiscountValue(discountType, discountValue);
     const maxDiscountError = validateMaxDiscountAmount(discountType, maxDiscountAmount);
     const dateError = validateDateRange(startDate, endDate);
 
-    const localErrors: Record<string, string> = {};
     if (discountError) localErrors.discountValue = discountError;
     if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
     if (dateError) localErrors.endDate = dateError;
@@ -83,9 +83,9 @@ export const useUpdateVoucher = () => {
       return;
     }
 
-    const dto: UpdateVoucherDTO = {
+    mutation.mutate({
       tourId: data.tourId ? Number(data.tourId) : undefined,
-      discountType: data.discountType || undefined,
+      discountType: data.discountType ? String(data.discountType) : undefined,
       discountValue: data.discountValue !== undefined && data.discountValue !== ''
         ? Number(data.discountValue)
         : undefined,
@@ -95,11 +95,9 @@ export const useUpdateVoucher = () => {
         : undefined,
       startDate: data.startDate ? startDate : undefined,
       endDate: data.endDate ? endDate : undefined,
-      description: data.description !== undefined ? (data.description?.trim() || '') : undefined,
+      description: data.description !== undefined ? String(data.description).trim() : undefined,
       customerAssignments: customerAssignments.length > 0 ? customerAssignments : undefined,
-    };
-
-    mutation.mutate(dto);
+    });
   };
 
   const handleCancel = () => navigate(PATH.MANAGER.VOUCHERS);

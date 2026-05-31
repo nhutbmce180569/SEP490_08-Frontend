@@ -27,7 +27,7 @@ export const useCreateVoucher = () => {
       queryClient.invalidateQueries({ queryKey: ['vouchers'] });
       navigate(PATH.MANAGER.VOUCHERS);
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       const validationErrors = getApiValidationErrors(error);
       if (validationErrors) {
         setServerErrors(validationErrors as Record<string, string>);
@@ -37,22 +37,22 @@ export const useCreateVoucher = () => {
     },
   });
 
-  const handleSubmit = (data: Record<string, any>) => {
+  const handleSubmit = (data: Record<string, unknown>) => {
     setServerErrors({});
 
     const discountType = data.discountType as string;
     const discountValue = Number(data.discountValue);
     const maxDiscountAmount = data.maxDiscountAmount ? Number(data.maxDiscountAmount) : undefined;
-    const startDate = toIsoDateTime(data.startDate);
-    const endDate = toIsoDateTime(data.endDate);
+    const startDate = toIsoDateTime(data.startDate as string);
+    const endDate = toIsoDateTime(data.endDate as string);
     const customerAssignments = (data.customerAssignments || []) as CreateUserVoucherAssignmentDTO[];
 
-    const codeError = validateVoucherCode(data.code || '');
+    const localErrors: Record<string, string> = {};
+    const codeError = validateVoucherCode(String(data.code || ''));
     const discountError = validateDiscountValue(discountType, discountValue);
     const maxDiscountError = validateMaxDiscountAmount(discountType, maxDiscountAmount);
     const dateError = validateDateRange(startDate, endDate);
 
-    const localErrors: Record<string, string> = {};
     if (codeError) localErrors.code = codeError;
     if (discountError) localErrors.discountValue = discountError;
     if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
@@ -69,8 +69,8 @@ export const useCreateVoucher = () => {
       return;
     }
 
-    const dto: CreateVoucherDTO = {
-      code: data.code.trim().toUpperCase(),
+    mutation.mutate({
+      code: String(data.code).trim().toUpperCase(),
       tourId: data.tourId ? Number(data.tourId) : undefined,
       discountType,
       discountValue,
@@ -78,19 +78,12 @@ export const useCreateVoucher = () => {
       availableCount,
       startDate,
       endDate,
-      description: data.description?.trim() || undefined,
+      description: data.description ? String(data.description).trim() : undefined,
       customerAssignments: customerAssignments.length > 0 ? customerAssignments : undefined,
-    };
-
-    mutation.mutate(dto);
+    });
   };
 
   const handleCancel = () => navigate(PATH.MANAGER.VOUCHERS);
 
-  return {
-    handleSubmit,
-    handleCancel,
-    isSubmitting: mutation.isPending,
-    serverErrors,
-  };
+  return { handleSubmit, handleCancel, isSubmitting: mutation.isPending, serverErrors };
 };

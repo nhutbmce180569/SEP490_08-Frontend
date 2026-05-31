@@ -8,18 +8,6 @@ export const formatDiscount = (discountType: string, discountValue: number) => {
   return formatVnd(discountValue);
 };
 
-export const toDateTimeLocal = (iso: string) => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const pad = (value: number) => String(value).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-};
-
-export const toIsoDateTime = (localValue: string) => {
-  if (!localValue) return '';
-  return new Date(localValue).toISOString();
-};
-
 export const formatDateTime = (iso: string) => {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return 'N/A';
@@ -30,6 +18,18 @@ export const formatDateTime = (iso: string) => {
     hour: '2-digit',
     minute: '2-digit',
   });
+};
+
+export const toDateTimeLocal = (iso: string) => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+export const toIsoDateTime = (localValue: string) => {
+  if (!localValue) return '';
+  return new Date(localValue).toISOString();
 };
 
 export const STATUS_STYLES: Record<string, string> = {

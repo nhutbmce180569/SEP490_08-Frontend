@@ -7,3 +7,4 @@ export * from './finance.api';
 export * from './admin.api';
 export * from './system.api';
 export * from './content.api';
+export * from './voucher.api';

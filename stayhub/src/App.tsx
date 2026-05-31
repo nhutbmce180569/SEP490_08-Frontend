@@ -70,6 +70,10 @@ import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
+import { VoucherList } from "./features/voucher/pages/VoucherList";
+import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
+import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
+import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -381,26 +385,10 @@ const App: React.FC = () => {
                     element={mock("Check-in", "Partner")}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
-                    <Route
-                      index
-                      element={mock("MANAGER Vouchers", "Partner")}
-                    />
-                    <Route
-                      path="create"
-                      element={mock("Create Voucher", "Partner")}
-                    />
-                    <Route
-                      path=":id"
-                      element={mock("Voucher Detail", "Partner")}
-                    />
-                    <Route
-                      path=":id/edit"
-                      element={mock("Edit Voucher", "Partner")}
-                    />
-                    <Route
-                      path=":id/delete"
-                      element={mock("Delete Voucher", "Partner")}
-                    />
+                    <Route index element={<VoucherList />} />
+                    <Route path="create" element={<CreateVoucher />} />
+                    <Route path=":id/edit" element={<UpdateVoucher />} />
+                    <Route path=":id" element={<VoucherDetail />} />
                   </Route>
                   <Route
                     path={childPath(PATH.MANAGER.REVIEWS)}

@@ -52,7 +52,7 @@ export const DeleteScheduleItinerary: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
                   <Calendar className="h-4 w-4" />
-                  {new Date(itinerary.itineraryDate).toLocaleDateString()}
+                  {new Date(itinerary.itineraryDate).toLocaleDateString("vi-VN")}
                 </div>
                 <h3 className="mt-2 text-xl font-semibold text-slate-900">
                   {itinerary.title || "Untitled itinerary"}

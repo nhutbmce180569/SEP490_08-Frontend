@@ -62,6 +62,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         window.location.href = '/login'; // Reset lại toàn bộ app
     };
 
+    const clearAuthStorage = () => {
+        setToken(null);
+        setRefreshToken(null);
+        setUser(null);
+
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+    };
+
     useEffect(() => {
         const savedUser = localStorage.getItem("user");
         const savedToken = localStorage.getItem("accessToken");
@@ -76,11 +86,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     setRefreshToken(savedRefreshToken);
                 } catch (error) {
                     console.error("Failed to parse user from localStorage", error);
-                    logout(); // Lỗi parse JSON thì dọn dẹp luôn
+                    clearAuthStorage();
                 }
             } else {
                 // Chỉ đá văng khi CẢ Access Token và Refresh Token đều không còn/hết hạn
-                logout(); 
+                clearAuthStorage();
             }
         }
         setLoading(false);

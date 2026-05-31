@@ -1,35 +1,46 @@
 import React, { useState, useContext, useRef, useCallback, useEffect } from "react";
 import Webcam from "react-webcam";
-import { Loader2, X, RefreshCw, MapPin, Globe, Users, Lock } from "lucide-react";
+import { Loader2, X, RefreshCw, MapPin, Globe, Users, Lock, ChevronDown } from "lucide-react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useCreateMoment } from "../hooks/useMoments";
+import { useGetEligibleSchedules } from "../hooks/useEligibleSchedules";
 
 interface CreateMomentFormProps {
-  scheduleId?: number | string;
   onClose?: () => void;
 }
 
 const MAX_CAPTION_LENGTH = 500;
 
 export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({ 
-  scheduleId = 1,
   onClose
 }) => {
   const { mutate: createMoment, isPending } = useCreateMoment();
+  
+  // 1. GỌI API LẤY DANH SÁCH CHUYẾN ĐI
+  const { data: eligibleSchedules, isLoading: isSchedulesLoading } = useGetEligibleSchedules();
+  
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
+  const [privacy, setPrivacy] = useState<'Public' | 'Friend' | 'Private'>('Public');
   
-  // ✨ STATE MỚI: Lưu trữ tọa độ ngay khi bật Camera
+  // 2. TỰ ĐỘNG CHỌN CHUYẾN ĐI TRÊN CÙNG KHI CÓ DATA
+  useEffect(() => {
+    if (eligibleSchedules && eligibleSchedules.length > 0) {
+      setSelectedScheduleId(String(eligibleSchedules[0].scheduleId));
+    }
+  }, [eligibleSchedules]);
+
+  // STATE: GPS
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [geoStatus, setGeoStatus] = useState<"locating" | "success" | "error">("locating");
-  const [privacy, setPrivacy] = useState<'Public' | 'Friend' | 'Private'>('Public');
 
   const webcamRef = useRef<Webcam>(null);
   const { user } = useContext(AuthContext);
   const { success, error: showError, warning } = useToast();
 
-  // ✨ ĐỊNH VỊ NGAY KHI MỞ COMPONENT
+  // ĐỊNH VỊ GPS NGAY KHI MỞ
   useEffect(() => {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
@@ -43,7 +54,6 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
         (err) => {
           console.error("Lỗi GPS:", err);
           setGeoStatus("error");
-          // Fallback tạm về tọa độ Cần Thơ nếu trình duyệt chặn
           setLocation({ lat: 10.0451, lng: 105.7468 }); 
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -66,6 +76,10 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
   const onSubmit = async () => {
     if (!imageSrc) return;
     if (isPending) return;
+    if (!selectedScheduleId) {
+      warning("Vui lòng chọn chuyến đi để đăng ảnh!");
+      return;
+    }
     
     if (geoStatus === "locating") {
       warning("Đang tìm vị trí GPS, vui lòng đợi 1 chút...");
@@ -84,15 +98,14 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
         formData.append("caption", caption.trim());
       }
 
-      formData.append("scheduleId", scheduleId.toString());
+      // TRUYỀN ID CHUYẾN ĐI ĐÃ CHỌN VÀO FORM
+      formData.append("scheduleId", selectedScheduleId);
 
       if (user && user.id) {
         formData.append("userId", user.id.toString());
       }
 
-      // ✨ Gắn tọa độ đã chuẩn bị sẵn vào Form
       if (location) {
-        // Mẹo: Replace phẩy thành chấm để phòng lỗi sai Format số thập phân bên C#
         formData.append("lat", location.lat.toString().replace(',', '.'));
         formData.append("lng", location.lng.toString().replace(',', '.'));
       }
@@ -118,8 +131,36 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
     });
   };
 
+  // ==========================================
+  // XỬ LÝ EMPTY STATE (CHƯA MUA TOUR)
+  // ==========================================
+  if (!isSchedulesLoading && (!eligibleSchedules || eligibleSchedules.length === 0)) {
+    return (
+      <div className="relative w-full max-w-md mx-auto p-8 rounded-3xl bg-white text-center shadow-2xl animate-fade-in-up">
+        {onClose && (
+          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition">
+            <X className="w-5 h-5" />
+          </button>
+        )}
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 mb-5">
+          <MapPin className="h-10 w-10 text-[#0068E0]" />
+        </div>
+        <h3 className="text-xl font-black mb-3 text-slate-800">Chưa có chuyến đi nào</h3>
+        <p className="text-sm text-slate-500 mb-8 leading-relaxed">
+          Bạn cần tham gia ít nhất một chuyến đi cùng StayHub để có thể chia sẻ khoảnh khắc nhé. Hãy đặt tour để bắt đầu hành trình!
+        </p>
+        <button onClick={onClose} className="w-full font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-xl transition-all active:scale-95">
+          Đã hiểu
+        </button>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // RENDER CAMERA & FORM CHÍNH
+  // ==========================================
   return (
-    <div className="relative w-full max-w-md mx-auto overflow-hidden rounded-[2rem] bg-black text-white shadow-2xl flex flex-col h-[80vh] md:h-[600px] border border-white/10">
+    <div className="relative w-full max-w-md mx-auto overflow-hidden rounded-[2rem] bg-black text-white shadow-2xl flex flex-col h-[80vh] md:h-[650px] border border-white/10">
       {onClose && (
         <button 
           onClick={onClose} 
@@ -130,17 +171,38 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
         </button>
       )}
 
-      {/* ✨ RADAR HIỂN THỊ TRẠNG THÁI GPS */}
-      <div className="absolute top-4 left-4 z-50 flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-medium">
-        <MapPin className={`w-3.5 h-3.5 ${geoStatus === 'locating' ? 'animate-bounce text-yellow-400' : geoStatus === 'success' ? 'text-green-400' : 'text-red-400'}`} />
-        {geoStatus === 'locating' && <span className="text-yellow-400">Đang dò GPS...</span>}
+      {/* DROPDOWN CHỌN CHUYẾN ĐI (Floating trên góc trái) */}
+      <div className="absolute top-4 left-4 z-50 flex items-center bg-black/50 backdrop-blur-md pl-2 pr-1 py-1 rounded-full text-xs font-medium border border-white/10">
+        <MapPin className="w-3.5 h-3.5 text-[#0068E0] mr-2" />
+        <select 
+          value={selectedScheduleId}
+          onChange={(e) => setSelectedScheduleId(e.target.value)}
+          className="bg-transparent text-white focus:outline-none appearance-none font-semibold truncate max-w-[120px]"
+        >
+          {isSchedulesLoading ? (
+            <option className="bg-slate-800" disabled>Đang tải...</option>
+          ) : (
+            eligibleSchedules?.map((trip: any) => (
+              <option key={trip.scheduleId} value={trip.scheduleId} className="bg-slate-800">
+                {trip.tourName}
+              </option>
+            ))
+          )}
+        </select>
+        <ChevronDown className="w-3 h-3 text-white/50 pointer-events-none" />
+      </div>
+
+      {/* RADAR GPS (Dịch xuống dưới Dropdown) */}
+      <div className="absolute top-14 left-4 z-50 flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-medium border border-white/5">
+        <div className={`w-2 h-2 rounded-full ${geoStatus === 'locating' ? 'animate-ping bg-yellow-400' : geoStatus === 'success' ? 'bg-green-400' : 'bg-red-400'}`} />
+        {geoStatus === 'locating' && <span className="text-yellow-400">Đang tìm GPS...</span>}
         {geoStatus === 'success' && <span className="text-green-400">Đã ghim vị trí</span>}
-        {geoStatus === 'error' && <span className="text-red-400">Dùng vị trí mặc định</span>}
+        {geoStatus === 'error' && <span className="text-red-400">Lỗi GPS</span>}
       </div>
 
       {isPending && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md">
-          <Loader2 className="w-12 h-12 animate-spin text-[#EB662B] mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-[#0068E0] mb-4" />
           <p className="font-semibold text-lg tracking-tight">Đang tải lên...</p>
         </div>
       )}
@@ -179,7 +241,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 <button
                   key={opt.id}
                   onClick={() => setPrivacy(opt.id as any)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${privacy === opt.id ? 'bg-[#EB662B] text-white shadow-md' : 'bg-black/40 text-white/70 hover:bg-black/60 border border-white/10'}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${privacy === opt.id ? 'bg-[#0068E0] text-white shadow-md' : 'bg-black/40 text-white/70 hover:bg-black/60 border border-white/10'}`}
                 >
                   <opt.icon className="w-3.5 h-3.5" />
                   {opt.label}
@@ -192,7 +254,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 placeholder="Thêm mô tả..."
-                className="w-full bg-black/40 backdrop-blur-md border border-white/20 text-white placeholder-white/50 px-5 py-4 rounded-2xl outline-none focus:border-[#EB662B] transition-colors pr-16"
+                className="w-full bg-black/40 backdrop-blur-md border border-white/20 text-white placeholder-white/50 px-5 py-4 rounded-2xl outline-none focus:border-[#0068E0] transition-colors pr-16"
                 maxLength={MAX_CAPTION_LENGTH}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-white/40">
@@ -210,8 +272,8 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
               </button>
               <button
                 onClick={onSubmit}
-                disabled={isPending || geoStatus === 'locating'}
-                className="flex-1 py-4 px-4 rounded-2xl bg-[#EB662B] hover:bg-[#d55821] font-bold text-white shadow-[0_8px_20px_rgba(235,102,43,0.4)] transition-all active:scale-95 disabled:opacity-50"
+                disabled={isPending || geoStatus === 'locating' || !selectedScheduleId}
+                className="flex-1 py-4 px-4 rounded-2xl bg-[#0068E0] hover:bg-[#0058D0] font-bold text-white shadow-[0_8px_20px_rgba(0,104,224,0.4)] transition-all active:scale-95 disabled:opacity-50"
               >
                 Đăng
               </button>

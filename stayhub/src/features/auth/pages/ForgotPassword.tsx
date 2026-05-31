@@ -50,7 +50,7 @@ export default function ForgotPassword() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#EB662B] focus:ring-4 focus:ring-[#EB662B]/10"
+                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
                 placeholder="name@example.com"
                 required
               />
@@ -66,7 +66,7 @@ export default function ForgotPassword() {
       </div>
 
       <div className="mt-8">
-        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-[#EB662B] transition-colors !no-underline">
+        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-[#0068E0] transition-colors !no-underline">
           &larr; Back to Login
         </Link>
       </div>

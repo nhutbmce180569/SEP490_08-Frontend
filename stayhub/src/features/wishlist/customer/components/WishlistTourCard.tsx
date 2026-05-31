@@ -30,7 +30,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
     <div
       className={`group relative flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
         isActive
-          ? 'border-slate-200 hover:border-[#EB662B]/40 hover:shadow-md'
+          ? 'border-slate-200 hover:border-[#0068E0]/40 hover:shadow-md'
           : 'border-slate-100 opacity-80'
       }`}
     >
@@ -95,7 +95,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
           {isActive ? (
             <Link
               to={PATH.CUSTOMER.CHECKOUT(item.tourId)}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#EB662B] px-3 py-2 text-xs font-bold text-white hover:bg-[#d85a26] !no-underline"
+              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#0068E0] px-3 py-2 text-xs font-bold text-white hover:bg-[#0058D0] !no-underline"
             >
               <Ticket className="h-3.5 w-3.5" />
               Book now

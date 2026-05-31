@@ -347,7 +347,7 @@ export const TourScheduleDetail: React.FC = () => {
               </div>
               <div className="text-base font-bold text-slate-900">
                 {schedule.departureDate
-                  ? new Date(schedule.departureDate).toLocaleString("en-US")
+                  ? new Date(schedule.departureDate).toLocaleDateString("vi-VN")
                   : "N/A"}
               </div>
             </div>
@@ -359,7 +359,7 @@ export const TourScheduleDetail: React.FC = () => {
               </div>
               <div className="text-base font-bold text-slate-900">
                 {schedule.returnDate
-                  ? new Date(schedule.returnDate).toLocaleString("en-US")
+                  ? new Date(schedule.returnDate).toLocaleDateString("vi-VN")
                   : "N/A"}
               </div>
             </div>
@@ -596,7 +596,7 @@ export const TourScheduleDetail: React.FC = () => {
                             </h3>
                             {dayDate && (
                               <p className="mt-0.5 text-xs font-medium text-slate-400">
-                                {new Date(dayDate).toLocaleDateString()}
+                                {new Date(dayDate).toLocaleDateString("vi-VN")}
                               </p>
                             )}
                           </div>

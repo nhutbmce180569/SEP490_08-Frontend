@@ -54,7 +54,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
     <div className="rounded-2xl border border-slate-200 bg-white">
       <div className="border-b border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2">
-          <Tag className="h-4 w-4 text-[#EB662B]" />
+          <Tag className="h-4 w-4 text-[#0068E0]" />
           <span className="text-sm font-bold text-slate-800">Shop Voucher / Promo Code</span>
         </div>
       </div>
@@ -78,7 +78,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowWallet((prev) => !prev)}
-                  className="flex w-full items-center justify-between rounded-xl border border-dashed border-[#EB662B]/40 bg-orange-50/50 px-3 py-2.5 text-left text-sm font-semibold text-[#EB662B] hover:bg-orange-50"
+                  className="flex w-full items-center justify-between rounded-xl border border-dashed border-[#0068E0]/40 bg-blue-50/50 px-3 py-2.5 text-left text-sm font-semibold text-[#0068E0] hover:bg-blue-50"
                 >
                   <span>Select from My Vouchers ({applicableVouchers.length})</span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${showWallet ? 'rotate-180' : ''}`} />
@@ -105,13 +105,13 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
                 onChange={(event) => onCodeChange(event.target.value.toUpperCase())}
                 placeholder="Enter voucher code"
                 maxLength={50}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold uppercase tracking-wide outline-none focus:border-[#EB662B] focus:ring-4 focus:ring-[#EB662B]/10"
+                className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold uppercase tracking-wide outline-none focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
               />
               <button
                 type="button"
                 onClick={onApply}
                 disabled={isApplying || !voucherCode.trim() || billAmount <= 0}
-                className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#4880ff] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#336efd] disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-[#0068E0] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#0058D0] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Percent className="h-4 w-4" />
                 {isApplying ? 'Applying...' : 'Apply'}
@@ -134,7 +134,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
             )}
             <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-slate-900">
               <span>Total</span>
-              <span className="text-[#EB662B]">{formatVnd(appliedVoucher?.finalAmount ?? billAmount)}</span>
+              <span className="text-[#0068E0]">{formatVnd(appliedVoucher?.finalAmount ?? billAmount)}</span>
             </div>
           </div>
         )}
@@ -152,7 +152,7 @@ const WalletPickerItem: React.FC<{
     type="button"
     onClick={onSelect}
     disabled={disabled}
-    className="flex w-full items-center justify-between gap-3 rounded-lg border border-white bg-white px-3 py-2.5 text-left hover:border-[#EB662B]/30 hover:shadow-sm disabled:opacity-60"
+    className="flex w-full items-center justify-between gap-3 rounded-lg border border-white bg-white px-3 py-2.5 text-left hover:border-[#0068E0]/30 hover:shadow-sm disabled:opacity-60"
   >
     <div className="min-w-0">
       <div className="font-mono text-xs font-black text-slate-800">{voucher.code}</div>
@@ -161,6 +161,6 @@ const WalletPickerItem: React.FC<{
         {voucher.tourName ? ` · ${voucher.tourName}` : ' · All tours'}
       </div>
     </div>
-    <span className="shrink-0 text-xs font-bold text-[#EB662B]">Apply</span>
+    <span className="shrink-0 text-xs font-bold text-[#0068E0]">Apply</span>
   </button>
 );

@@ -69,7 +69,7 @@ export default function Register() {
             to="/"
             className="flex w-max items-center gap-2 outline-none !no-underline"
           >
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#EB662B] font-black text-xl">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#0068E0] font-black text-xl">
               S
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-white">
@@ -126,7 +126,7 @@ export default function Register() {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.fullName ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.fullName ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                   placeholder="e.g. John Doe"
                   required
                 />
@@ -146,7 +146,7 @@ export default function Register() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.email ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.email ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                   placeholder="name@example.com"
                   required
                 />
@@ -166,7 +166,7 @@ export default function Register() {
                   name="phoneNumber"
                   value={formData.phoneNumber}
                   onChange={handleChange}
-                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.phoneNumber ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.phoneNumber ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                   placeholder="e.g. 0123456789"
                   required
                 />
@@ -184,7 +184,7 @@ export default function Register() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.gender ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                    className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.gender ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                     required
                   >
                     <option value="" disabled>Select</option>
@@ -204,7 +204,7 @@ export default function Register() {
                     name="dateOfBirth"
                     value={formData.dateOfBirth}
                     onChange={handleChange}
-                    className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.dateOfBirth ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                    className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.dateOfBirth ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                     required
                   />
                 </div>
@@ -224,7 +224,7 @@ export default function Register() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.password ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.password ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                   placeholder="Create a strong password"
                   required
                 />
@@ -255,7 +255,7 @@ export default function Register() {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#EB662B]"}`}
+                  className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
                   placeholder="Repeat your password"
                   required
                 />
@@ -268,11 +268,11 @@ export default function Register() {
               <label className="group flex cursor-pointer items-start gap-3">
                 <input
                   type="checkbox"
-                  className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 text-[#EB662B] focus:ring-[#EB662B]"
+                  className="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 text-[#0068E0] focus:ring-[#0068E0]"
                   required
                 />
                 <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">
-                  I agree to the <Link to="/terms" className="text-[#EB662B] hover:underline !no-underline">Terms of Service</Link> and <Link to="/privacy" className="text-[#EB662B] hover:underline !no-underline">Privacy Policy</Link>.
+                  I agree to the <Link to="/terms" className="text-[#0068E0] hover:underline !no-underline">Terms of Service</Link> and <Link to="/privacy" className="text-[#0068E0] hover:underline !no-underline">Privacy Policy</Link>.
                 </span>
               </label>
             </div>
@@ -313,7 +313,7 @@ export default function Register() {
             Already have an account?{" "}
             <Link
               to="/login"
-              className="font-bold text-[#EB662B] transition-colors hover:text-[#d55821] !no-underline"
+              className="font-bold text-[#0068E0] transition-colors hover:text-[#0058D0] !no-underline"
             >
               Log in here
             </Link>

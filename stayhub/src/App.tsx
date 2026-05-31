@@ -1,10 +1,12 @@
 import React, { useContext } from "react";
+import { useState } from 'react';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
   Outlet,
+  useParams,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -28,6 +30,7 @@ import { Profile } from "./features/auth/pages/Profile";
 import { FriendsManagement } from "./features/social/friends/pages/FriendsManagement";
 import { MomentsFeed } from "./features/social/moments/components/MomentsFeed";
 import { SocialProfile } from "./features/social/profile/pages/SocialProfile";
+import { useGetEligibleSchedules } from './features/social/moments/hooks/useEligibleSchedules';
 
 // Components dành cho Quản lý User (Admin)
 import UserList from "./features/auth/pages/UserList";
@@ -60,6 +63,7 @@ import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
 import { TourScheduleList } from "./features/tour/pages/TourScheduleList";
 import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
+import {CreateEditSchedule} from "./features/tour/pages/CreateEditSchedule";
 import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
 import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
 import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
@@ -73,6 +77,9 @@ import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
+import { CreateCancellationRequestPage } from "./features/booking/pages/CreateCancellationRequestPage";
+import { CancellationListPage } from "./features/booking/pages/CancellationListPage";
+import { ProcessCancellationPage } from "./features/booking/pages/ProcessCancellationPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
 import { VoucherList } from "./features/voucher/pages/VoucherList";
@@ -81,6 +88,7 @@ import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
+import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -114,7 +122,7 @@ const MockPage: React.FC<{ title: string; section?: string }> = ({
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[#EB662B]">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#0068E0]">
             {section}
           </p>
           <h1 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
@@ -136,7 +144,7 @@ const MockPage: React.FC<{ title: string; section?: string }> = ({
             key={label}
             className="min-h-32 rounded-xl border border-slate-100 bg-slate-50 p-4"
           >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-black text-[#EB662B] shadow-sm">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-black text-[#0068E0] shadow-sm">
               {index + 1}
             </div>
             <h2 className="text-sm font-bold text-slate-800">{label}</h2>
@@ -169,7 +177,7 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#EB662B] border-t-transparent"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0068E0] border-t-transparent"></div>
       </div>
     );
   }
@@ -196,6 +204,56 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 
   return <Outlet />;
 };
+// Wrapper để hứng ID từ URL và truyền vào MomentsFeed
+const MomentsRouteWrapper = () => {
+  // null = Đang xem tất cả (Global Map)
+  const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
+  
+  // Gọi hook lấy danh sách Tour mà bạn đã fix thành công lúc trước
+  // const { data: schedules } = useGetEligibleSchedules(); 
+  
+  // Mock data tạm nếu chưa import được hook:
+  const schedules = [
+    { scheduleId: 3, tourName: "Đà Lạt 3N2Đ - Săn Mây" },
+    { scheduleId: 5, tourName: "Hội An Xưa" },
+    { scheduleId: 7, tourName: "Mekong Delta" }
+  ];
+
+  return (
+    <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
+      {/* KHU VỰC ĐIỀU HƯỚNG & LỌC */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800">Cộng đồng StayHub</h2>
+          <p className="text-sm text-slate-500 font-medium">Khám phá khoảnh khắc từ khắp nơi</p>
+        </div>
+
+  
+        <div className="relative">
+          <select 
+            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0068E0] cursor-pointer"
+            onChange={(e) => setSelectedSchedule(e.target.value ? Number(e.target.value) : null)}
+            value={selectedSchedule || ""}
+          >
+            <option value="">🌍 Tất cả chuyến đi (Global)</option>
+            {schedules?.map(s => (
+              <option key={s.scheduleId} value={s.scheduleId}>
+                📍 {s.tourName}
+              </option>
+            ))}
+          </select>
+          {/* Mũi tên trỏ xuống của Select */}
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+          </div>
+        </div>
+      </div>
+
+    
+      <MomentsFeed scheduleId={selectedSchedule as any} /> 
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   return (
@@ -207,6 +265,7 @@ const App: React.FC = () => {
             <Routes>
               <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
               <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+              <Route path="/track/:token" element={<PublicTrackingPage />} />
               <Route
                 path={PATH.PUBLIC.FORGOT_PASSWORD}
                 element={<ForgotPassword />}
@@ -266,6 +325,10 @@ const App: React.FC = () => {
                       element={<OrderDetailPage />}
                     />
                     <Route
+                      path={PATH.CUSTOMER.REQUEST_CANCELLATION()}
+                      element={<CreateCancellationRequestPage />}
+                    />
+                    <Route
                       path={PATH.CUSTOMER.WISHLIST}
                       element={<MyWishlistPage />}
                     />
@@ -285,10 +348,10 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.NOTIFICATIONS}
                       element={mock("Notifications", "Customer")}
                     />
-                    <Route
-                      path="/social/moments"
-                      element={<MomentsFeed scheduleId={1} />}
-                    />
+                    
+                    <Route path="/social/moments"
+                     element={<MomentsRouteWrapper />} />
+
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
@@ -344,7 +407,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
-                    element={mock("Create Schedule", "Partner")}
+                    element={<CreateEditSchedule />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
@@ -352,7 +415,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
-                    element={mock("Edit Schedule", "Partner")}
+                    element={<CreateEditSchedule />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
@@ -397,6 +460,14 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.MANAGER.CHECK_IN)}
                     element={mock("Check-in", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CANCELLATION_REQUESTS)}
+                    element={<CancellationListPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.PROCESS_CANCELLATION())}
+                    element={<ProcessCancellationPage />}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
                     <Route index element={<VoucherList />} />

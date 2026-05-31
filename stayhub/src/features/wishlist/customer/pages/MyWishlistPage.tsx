@@ -47,7 +47,7 @@ export const MyWishlistPage: React.FC = () => {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
-            <Heart className="text-[#EB662B]" size={24} />
+            <Heart className="text-[#0068E0]" size={24} />
             My Wishlist
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
@@ -70,35 +70,20 @@ export const MyWishlistPage: React.FC = () => {
       )}
 
       <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-100 pb-4">
-        {TABS.map((tab) => {
-          const count = tabCounts[tab.key];
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => {
-                setActiveTab(tab.key);
-                setSearchQuery('');
-              }}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                activeTab === tab.key
-                  ? 'bg-[#EB662B] text-white shadow-md shadow-orange-500/20'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {tab.label}
-              {!isLoading && count > 0 && (
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${
-                    activeTab === tab.key ? 'bg-white/25 text-white' : 'bg-white text-slate-500'
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
+              activeTab === tab.key
+                ? 'bg-[#0068E0] text-white shadow-md shadow-blue-500/20'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {isLoading ? (
@@ -135,7 +120,7 @@ export const MyWishlistPage: React.FC = () => {
           </p>
           <Link
             to={PATH.PUBLIC.TOUR_SEARCH}
-            className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#EB662B] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#d85a26] !no-underline"
+            className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#0068E0] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0058D0] !no-underline"
           >
             <Search className="h-4 w-4" />
             Browse tours

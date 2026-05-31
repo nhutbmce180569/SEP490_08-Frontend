@@ -4,12 +4,14 @@ import type { Moment, Comment } from "../types/moment.type";
 const MOMENT_API_URL = "/moments";
 
 export const getMomentFeed = (
-  scheduleId: number, 
+  scheduleId: number | null, 
   skip: number = 0, 
   top: number = 5
 ): Promise<Moment[]> => {
+  const scheduleQuery = scheduleId ? `scheduleId=${scheduleId}&` : "";
+  
   return apiClient.get<Moment[]>(
-    `${MOMENT_API_URL}?scheduleId=${scheduleId}&$skip=${skip}&$top=${top}`
+    `${MOMENT_API_URL}?${scheduleQuery}$skip=${skip}&$top=${top}`
   );
 };
 

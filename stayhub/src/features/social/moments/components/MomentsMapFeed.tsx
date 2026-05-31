@@ -8,6 +8,7 @@ import { MomentCard } from "./MomentCard";
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
+import { ShareLocationButton } from "../../tracking/components/ShareLocationButton";
 
 interface MomentsMapFeedProps {
   scheduleId: number;
@@ -182,39 +183,52 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   const points = useMemo(() => {
     if (!moments) return [];
+    
+    // 1. Trích xuất mảng dữ liệu (Hỗ trợ đủ loại cấu trúc response từ BE)
     const momentsArray = Array.isArray(moments) 
       ? moments 
       : ((moments as any).pages?.flat() || (moments as any).data || (moments as any).value || []);
 
-    return momentsArray
+    // 💥 DÒNG LOG CỰC QUAN TRỌNG ĐỂ BẮT BỆNH:
+    console.log("🔥 [DEBUG 1] Mảng Moments nhận được từ BE:", momentsArray);
+
+    const validPoints = momentsArray
       .filter((m: any) => {
-        const latitude = m.lat !== undefined ? m.lat : m.Lat;
-        const longitude = m.lng !== undefined ? m.lng : m.Lng;
+        // Bao phủ mọi trường hợp đặt tên của Backend (lat, Lat, latitude, Latitude)
+        const latitude = m.lat ?? m.Lat ?? m.latitude ?? m.Latitude;
+        const longitude = m.lng ?? m.Lng ?? m.longitude ?? m.Longitude;
         return latitude != null && longitude != null;
       })
       .map((m: any) => {
-        const latitude = m.lat !== undefined ? m.lat : m.Lat;
-        const longitude = m.lng !== undefined ? m.lng : m.Lng;
-        const userObj = m.user || m.User;
+        const latitude = m.lat ?? m.Lat ?? m.latitude ?? m.Latitude;
+        const longitude = m.lng ?? m.Lng ?? m.longitude ?? m.Longitude;
+        
+        // Đảm bảo không bị lỗi nếu BE không trả về object User
+        const userObj = m.user || m.User || {};
 
         return {
           type: "Feature" as const,
           properties: {
             cluster: false,
             momentId: m.id || m.Id,
-            userId: m.userId || userObj?.id || userObj?.Id,
-            avatarUrl: userObj?.avatarUrl || userObj?.AvatarUrl,
-            userFullName: userObj?.fullName || userObj?.FullName,
+            userId: m.userId || m.UserId || userObj.id || userObj.Id || 0,
+            avatarUrl: userObj.avatarUrl || userObj.AvatarUrl || m.avatarUrl || null,
+            userFullName: userObj.fullName || userObj.FullName || m.fullName || m.FullName || "?",
             rawMoment: m 
           },
           geometry: {
             type: "Point" as const,
+            // Ép kiểu ép buộc về Number đề phòng BE trả về chuỗi "9.940..."
             coordinates: [Number(longitude), Number(latitude)], 
           },
         };
       });
-  }, [moments]);
 
+    // 💥 LOG KIỂM TRA ĐẦU RA:
+    console.log("🔥 [DEBUG 2] Số lượng Marker được vẽ lên Map:", validPoints.length);
+    
+    return validPoints;
+  }, [moments]);
   useEffect(() => {
     if (points.length > 0 && mapRef.current && center === defaultCenter) {
       const firstPoint = points[0].geometry.coordinates;
@@ -232,7 +246,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   if (!isLoaded) {
     return (
       <div className="w-full h-[80vh] flex items-center justify-center bg-slate-100 rounded-3xl">
-        <div className="animate-spin w-10 h-10 border-4 border-[#EB662B] border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-10 h-10 border-4 border-[#0068E0] border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -350,11 +364,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         {showLiveLocations && friendLocations.map((friend: any) => (
           <OverlayView key={`friend-${friend.userId}`} position={{ lat: friend.lat, lng: friend.lng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
             <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
-              <div className="w-12 h-12 rounded-full border-4 border-[#EB662B] overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-full border-4 border-[#0068E0] overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
                 {friend.avatarUrl ? (
                   <img src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[#EB662B] font-bold text-lg">{friend.fullName?.charAt(0)}</div>
+                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[#0068E0] font-bold text-lg">{friend.fullName?.charAt(0)}</div>
                 )}
               </div>
               <span className="absolute top-full mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
@@ -365,6 +379,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         ))}
       </GoogleMap>
 
+      {/* Giai đoạn 2: Nút chia sẻ vị trí */}
+      <div className="absolute top-4 left-4 z-20">
+        <ShareLocationButton />
+      </div>
+
       {/* Giai đoạn 2: Menu "Lớp hiển thị" */}
       <div className="absolute top-4 right-4 z-20">
         <div className="relative">
@@ -373,7 +392,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               e.stopPropagation();
               setIsLayerMenuOpen(!isLayerMenuOpen);
             }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition-all hover:scale-110 hover:text-[#EB662B] focus:outline-none focus:ring-2 focus:ring-[#EB662B] focus:ring-offset-2"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition-all hover:scale-110 hover:text-[#0068E0] focus:outline-none focus:ring-2 focus:ring-[#0068E0] focus:ring-offset-2"
             aria-label="Toggle Layers"
           >
             <Layers className="h-6 w-6" />
@@ -387,7 +406,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               <div className="py-1">
                 <div onClick={() => setShowMoments(!showMoments)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
                   <span className="text-sm font-medium text-slate-800">Khoảnh khắc</span>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showMoments ? 'bg-[#EB662B]' : 'bg-slate-300'}`}>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showMoments ? 'bg-[#0068E0]' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showMoments ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
@@ -401,13 +420,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                       </div>
                     )}
                   </div>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showLiveLocations ? 'bg-[#EB662B]' : 'bg-slate-300'}`}>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showLiveLocations ? 'bg-[#0068E0]' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showLiveLocations ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
                 <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
                   <span className="text-sm font-medium text-slate-800">Dấu chân</span>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showFootprints ? 'bg-[#EB662B]' : 'bg-slate-300'}`}>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showFootprints ? 'bg-[#0068E0]' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showFootprints ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
@@ -420,7 +439,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       {/* Giai đoạn 2: Nút "Đến ảnh mới nhất" */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <button onClick={handleJumpToNewest} className="flex items-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-lg ring-1 ring-slate-900/5 transition-all hover:scale-105 hover:bg-slate-50 active:scale-95">
-          <Navigation className="h-4 w-4 text-[#EB662B]" />
+          <Navigation className="h-4 w-4 text-[#0068E0]" />
           Ảnh mới nhất
         </button>
       </div>
@@ -437,7 +456,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               </div>
             ))}
           </div>
-          <button className="absolute bottom-8 right-8 z-50 w-16 h-16 !rounded-full overflow-hidden flex items-center justify-center bg-[#EB662B]/90 backdrop-blur-md text-white border-4 border-white/80 shadow-[0_8px_20px_rgba(235,102,43,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer">
+          <button className="absolute bottom-8 right-8 z-50 w-16 h-16 !rounded-full overflow-hidden flex items-center justify-center bg-[#0068E0]/90 backdrop-blur-md text-white border-4 border-white/80 shadow-[0_8px_20px_rgba(0,104,224,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer">
             <Camera className="w-7 h-7 text-white" />
           </button>
         </div>

@@ -3,6 +3,8 @@ import { Link, NavLink } from 'react-router-dom';
 import { X } from 'lucide-react';
 
 import { PATH } from '../config/routes/route';
+import logoBlue from '../assets/logo_blue.png';
+import logoIcon from '../assets/stayhub_icon_transparent.png';
 
 export type AdminSidebarItem = {
   label: string;
@@ -23,7 +25,7 @@ const navItemClassName = (isActive: boolean, collapsed: boolean) =>
     navItemBase,
     collapsed ? 'justify-center px-0' : 'px-4',
     isActive
-      ? 'bg-[#4880ff] text-white shadow-sm'
+      ? 'bg-[#0068E0] text-white shadow-sm'
       : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
   ].join(' ');
 
@@ -33,7 +35,7 @@ export function Sidebar({
   open,
   collapsed = false,
   onClose,
-  logoLink = PATH.OPERATOR.DASHBOARD,
+  logoLink = PATH.MANAGER.DASHBOARD,
   badge,
 }: {
   items?: AdminSidebarItem[];
@@ -53,18 +55,27 @@ export function Sidebar({
       ].join(' ')}
     >
       <div className={`flex h-16 shrink-0 items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
-        <Link to={logoLink} className="flex items-center gap-2 !no-underline hover:!no-underline outline-none border-none">
-          <div className="text-[20px] font-extrabold leading-none">
-            {collapsed ? (
-              <span className="text-[#4880ff]">S</span>
-            ) : (
-              <>
-                <span className="text-[#4880ff]">Stay</span>
-                <span className="text-slate-900">Hub</span>
-                {badge}
-              </>
-            )}
-          </div>
+        <Link
+          to={logoLink}
+          className={`flex min-w-0 items-center !no-underline hover:!no-underline outline-none border-none ${collapsed ? 'justify-center' : 'gap-2'}`}
+          aria-label="StayHub dashboard"
+        >
+          {collapsed ? (
+            <img
+              src={logoIcon}
+              alt="StayHub"
+              className="h-10 w-10 object-contain"
+            />
+          ) : (
+            <>
+              <img
+                src={logoBlue}
+                alt="StayHub"
+                className="h-10 w-auto max-w-[150px] object-contain"
+              />
+              {badge}
+            </>
+          )}
         </Link>
 
         {!collapsed && (

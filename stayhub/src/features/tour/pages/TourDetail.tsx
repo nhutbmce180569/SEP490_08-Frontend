@@ -14,7 +14,6 @@ import {
   Map,
   Trash2,
   Banknote,
-  Power,
   Tag,
   ChevronDown,
   ChevronUp,
@@ -95,7 +94,7 @@ export const TourDetail: React.FC = () => {
   const { error: showError } = useToast();
   const [tourismInformationById, setTourismInformationById] = useState<Record<number, TourismInformation>>({});
   
-  const { tour, categoryName, isLoading, error, isToggling, toggleTourStatus } =
+  const { tour, categoryName, isLoading, error } =
     useTour(id);
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
@@ -299,19 +298,6 @@ export const TourDetail: React.FC = () => {
             {tour.status !== "Banned" && (
               <div className="flex shrink-0 items-start gap-3">
                 <ActionButton
-                  variant="secondary"
-                  onClick={toggleTourStatus}
-                  disabled={isToggling}
-                  className={`gap-2 px-4 py-2 text-sm ${tour.status === "Active" ? "!bg-amber-500 !text-white !border-amber-500 hover:!bg-amber-600" : "!bg-emerald-500 !text-white !border-emerald-500 hover:!bg-emerald-600"}`}
-                >
-                  <Power className="h-4 w-4" />
-                  {isToggling
-                    ? "Processing..."
-                    : tour.status === "Active"
-                      ? "Deactivate"
-                      : "Activate"}
-                </ActionButton>
-                <ActionButton
                   variant="primary"
                   onClick={() => {
                     if (tour.status === "Active") {
@@ -330,7 +316,7 @@ export const TourDetail: React.FC = () => {
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
                 <Clock className="h-5 w-5" />
@@ -359,7 +345,7 @@ export const TourDetail: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
+            {/* <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
                 <Banknote className="h-5 w-5" />
               </div>
@@ -367,11 +353,11 @@ export const TourDetail: React.FC = () => {
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
                   Lowest Price
                 </p>
-                {/* <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
+                <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
                   {priceText}
-                </p> */}
+                </p>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">

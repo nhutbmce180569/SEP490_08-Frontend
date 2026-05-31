@@ -185,7 +185,7 @@ useEffect(() => {
                 <button 
                   onClick={() => createChat(friend?.friendId, { onSuccess: () => navigate('/social/chat') })}
                   disabled={isCreatingChat}
-                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#EB662B] rounded-md hover:bg-[#d55821] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#0068E0] rounded-md hover:bg-[#0058D0] transition-colors disabled:opacity-50"
                 >
                   <MessageCircle className="w-4 h-4" />
                   Message
@@ -316,7 +316,7 @@ useEffect(() => {
                   <button
                     onClick={() => handleSendRequest(user?.id)}
                     disabled={isSending}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-[#EB662B] text-white text-xs font-semibold rounded-lg hover:bg-[#d55821] transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
                     Send Request

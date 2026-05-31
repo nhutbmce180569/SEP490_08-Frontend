@@ -34,7 +34,7 @@ export default function Login() {
             to="/"
             className="flex w-max items-center gap-2 outline-none !no-underline"
           >
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#EB662B] font-black text-xl">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#0068E0] font-black text-xl">
               S
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-white">
@@ -98,7 +98,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
                   placeholder="Enter your email"
                   required
                 />
@@ -116,7 +116,7 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
                   placeholder="••••••••"
                   required
                 />
@@ -139,7 +139,7 @@ export default function Login() {
               <label className="group flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#EB662B] focus:ring-[#EB662B]"
+                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#0068E0] focus:ring-[#0068E0]"
                 />
                 <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">
                   Remember me
@@ -147,7 +147,7 @@ export default function Login() {
               </label>
               <Link
                 to="/forgot-password"
-                className="text-sm font-semibold text-[#EB662B] transition-colors hover:text-[#d55821] !no-underline"
+                className="text-sm font-semibold text-[#0068E0] transition-colors hover:text-[#0058D0] !no-underline"
               >
                 Forgot password?
               </Link>
@@ -189,7 +189,7 @@ export default function Login() {
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="font-bold text-[#EB662B] transition-colors hover:text-[#d55821] !no-underline"
+              className="font-bold text-[#0068E0] transition-colors hover:text-[#0058D0] !no-underline"
             >
               Sign up for free
             </Link>

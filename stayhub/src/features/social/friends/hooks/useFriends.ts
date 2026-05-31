@@ -22,10 +22,11 @@ export const useGetFriendships = () => {
   });
 };
 
-export const useGetPendingRequests = () => {
+export const useGetPendingRequests = (enabled: boolean = true) => {
   return useQuery({
     queryKey: friendQueryKeys.pending(),
     queryFn: getPendingRequests,
+    enabled,
   });
 };
 

@@ -62,7 +62,7 @@ export const PublicTrackingPage: React.FC = () => {
   if (isLoading || !isLoaded) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#EB662B] border-t-transparent"></div>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0068E0] border-t-transparent"></div>
       </div>
     );
   }
@@ -85,7 +85,7 @@ export const PublicTrackingPage: React.FC = () => {
       <div className="absolute left-1/2 top-6 z-10 w-max max-w-[90%] -translate-x-1/2 animate-fade-in-down rounded-full border border-white/20 bg-black/60 px-6 py-3 shadow-2xl backdrop-blur-md">
         <div className="flex items-center gap-3">
           <p className="text-sm font-medium text-white">
-            Đang theo dõi hành trình của: <span className="font-bold text-[#EB662B]">{targetName}</span>
+            Đang theo dõi hành trình của: <span className="font-bold text-[#0068E0]">{targetName}</span>
           </p>
           <div className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/20 px-2 py-0.5">
             <div className="h-2 w-2 animate-pulse rounded-full bg-rose-500"></div>
@@ -107,11 +107,11 @@ export const PublicTrackingPage: React.FC = () => {
           <OverlayView position={liveLocation} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h) })}>
             <div className="pointer-events-none relative flex origin-bottom flex-col items-center justify-center">
               <div className="absolute -bottom-1 h-3 w-8 rounded-[100%] bg-black/30 blur-[3px]"></div>
-              <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-tr from-[#EB662B] to-orange-400 shadow-xl">
+              <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-tr from-[#0068E0] to-blue-400 shadow-xl">
                 <MapPin className="h-6 w-6 text-white" />
-                <div className="absolute inset-0 animate-ping rounded-full border-[3px] border-[#EB662B] opacity-50"></div>
+                <div className="absolute inset-0 animate-ping rounded-full border-[3px] border-[#0068E0] opacity-50"></div>
               </div>
-              <div className="absolute -bottom-2 z-0 h-4 w-4 rotate-45 border-b-[4px] border-r-[4px] border-white bg-orange-400"></div>
+              <div className="absolute -bottom-2 z-0 h-4 w-4 rotate-45 border-b-[4px] border-r-[4px] border-white bg-blue-400"></div>
             </div>
           </OverlayView>
         )}

@@ -27,7 +27,7 @@ const STATUS_STYLES: Record<string, string> = {
   Cancelled: "bg-rose-100 text-rose-700",
 };
 
-const getStatusStyle = (status?: string) =>
+const getStatusStyle = (status?: string | null) =>
   STATUS_STYLES[status ?? ""] ?? "bg-slate-100 text-slate-600";
 
 export const MyBookingsPage: React.FC = () => {
@@ -62,7 +62,7 @@ export const MyBookingsPage: React.FC = () => {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
-            <Ticket className="text-[#EB662B]" size={24} />
+            <Ticket className="text-[#0068E0]" size={24} />
             My Bookings
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
@@ -118,8 +118,8 @@ export const MyBookingsPage: React.FC = () => {
                     className="h-16 w-16 sm:h-20 sm:w-20 shrink-0 rounded-2xl object-cover shadow-sm border border-slate-100"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-orange-50 border border-orange-100">
-                    <Ticket size={24} className="text-[#EB662B]" />
+                  <div className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100">
+                    <Ticket size={24} className="text-[#0068E0]" />
                   </div>
                 )}
 
@@ -181,7 +181,7 @@ export const MyBookingsPage: React.FC = () => {
           {/* Infinite Scroll Trigger */}
           <div ref={ref} className="mt-4 flex w-full justify-center py-6">
             {isFetchingNextPage ? (
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-[#EB662B]" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-[#0068E0]" />
             ) : hasNextPage ? (
               <div className="h-8 w-8" />
             ) : (

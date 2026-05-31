@@ -7,8 +7,6 @@ import {
   Search,
   Globe,
   Smile,
-  ChevronLeft,
-  ChevronRight,
   Compass,
   Shield,
   Zap,
@@ -16,17 +14,16 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ActionButton } from "../components/home/ActionButton";
-import { TourCard, type TourCardProps } from "../components/home/TourCard";
 import { usePublicTours } from "../hooks/usePublicTours";
 import type { Tour } from "../features/tour/types/tour";
 import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
-import { getImg } from "../config/api/api";
-import { useActiveBanners } from "../features/content/hooks/useActiveBanners";
-import type { ReadBannerDTO } from "../features/content/types/banner";
 import { PATH } from "../config/routes/route";
 
 const getFreeApiImage = (seed: string, width: number, height: number) =>
   `https://picsum.photos/seed/${seed}/${width}/${height}`;
+
+const HOME_CONTAINER_CLASS =
+  "mx-auto w-full max-w-[1320px] px-[15px]";
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -38,114 +35,6 @@ const getTourLowestTicketPrice = (tour: Tour) => {
   return prices.length > 0 ? Math.min(...prices) : null;
 };
 
-
-
-// ─── DYNAMIC BANNER SECTION ──────────────────────────────────────────────────
-
-const DynamicBannerSection = () => {
-  const { data, isLoading, error } = useActiveBanners(5);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const navigate = useNavigate();
-
-  const banners: ReadBannerDTO[] = Array.isArray(data) ? data : data?.data || [];
-
-  // Tự động chuyển Banner mỗi 6 giây
-  useEffect(() => {
-    if (!banners || banners.length <= 1) return;
-    const timer = setInterval(() => setCurrentIndex((p) => (p + 1) % banners.length), 6000);
-    return () => clearInterval(timer);
-  }, [banners]);
-
-  if (isLoading || error || banners.length === 0) return null;
-
-  const handleBannerClick = (url?: string) => {
-    if (!url) return;
-    if (url.startsWith("http")) {
-      window.open(url, "_blank");
-    } else {
-      navigate(url);
-    }
-  };
-
-  return (
-    <section className="pt-16 pb-8 bg-white">
-      <div className="container mx-auto px-4 lg:px-8">
-        <SectionHeader
-          eyebrow="Special Offers"
-          title="Promotions & Updates"
-          subtitle="Discover our latest deals and featured events."
-        />
-
-        <div className="relative w-full rounded-[2.5rem] overflow-hidden group shadow-xl bg-slate-900 aspect-[16/9] md:aspect-[21/9] max-h-[480px]">
-          {banners.map((banner, i) => (
-            <div
-              key={banner.id}
-              className="absolute inset-0 w-full h-full transition-opacity duration-700 ease-in-out cursor-pointer"
-              style={{ opacity: currentIndex === i ? 1 : 0, zIndex: currentIndex === i ? 10 : 0 }}
-              onClick={() => handleBannerClick(banner.targetUrl)}
-            >
-              <img
-                src={getImg(banner.imageUrl)}
-                alt={banner.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.src = "https://placehold.co/1200x400/f8fafc/94a3b8?text=Promotion+Banner";
-                }}
-              />
-              {/* Gradient Overlay & Title */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-900/20 to-transparent pointer-events-none" />
-              <div className="absolute bottom-6 left-6 right-6 md:bottom-12 md:left-12 md:right-12 pointer-events-none text-white">
-                <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>{banner.title}</h3>
-              </div>
-            </div>
-          ))}
-
-          {/* Slider Controls */}
-          {banners.length > 1 && (
-            <>
-              <div className="absolute top-1/2 -translate-y-1/2 left-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ActionButton
-                  variant="icon"
-                  onClick={(e) => { e.stopPropagation(); setCurrentIndex((p) => (p === 0 ? banners.length - 1 : p - 1)); }}
-                  className="!w-10 !h-10 md:!w-12 md:!h-12 !bg-white/20 backdrop-blur-md border border-white/20 !text-white hover:!bg-white hover:!text-slate-900 transition-all"
-                >
-                  <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-                </ActionButton>
-              </div>
-              <div className="absolute top-1/2 -translate-y-1/2 right-4 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                <ActionButton
-                  variant="icon"
-                  onClick={(e) => { e.stopPropagation(); setCurrentIndex((p) => (p + 1) % banners.length); }}
-                  className="!w-10 !h-10 md:!w-12 md:!h-12 !bg-white/20 backdrop-blur-md border border-white/20 !text-white hover:!bg-white hover:!text-slate-900 transition-all"
-                >
-                  <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-                </ActionButton>
-              </div>
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-1.5 md:gap-2">
-                {banners.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={(e) => { e.stopPropagation(); setCurrentIndex(i); }}
-                    className="transition-all duration-300 shadow-sm"
-                    style={{
-                      width: currentIndex === i ? 24 : 8,
-                      height: 8,
-                      borderRadius: 999,
-                      background: currentIndex === i ? "#EB662B" : "rgba(255,255,255,0.5)",
-                    }}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// ─── SECTION HEADER ─────────────────────────────────────────────────────────
-
 const SectionHeader: React.FC<{
   eyebrow?: string;
   title: string;
@@ -154,18 +43,18 @@ const SectionHeader: React.FC<{
   onSeeAll?: () => void;
   light?: boolean;
 }> = ({ eyebrow, title, subtitle, showSeeAll, onSeeAll, light }) => (
-  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-    <div className="max-w-xl">
+  <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+    <div className="max-w-lg">
       {eyebrow && (
         <span
-          className="inline-block mb-3 text-xs font-black uppercase tracking-[0.2em]"
-          style={{ color: "#EB662B" }}
+          className="inline-block mb-2 text-[11px] font-black uppercase tracking-[0.16em]"
+          style={{ color: "#0068E0" }}
         >
           {eyebrow}
         </span>
       )}
       <h2
-        className={`text-4xl md:text-5xl font-black leading-[1.1] tracking-tight ${
+        className={`text-3xl md:text-4xl font-black leading-[1.12] tracking-tight ${
           light ? "text-white" : "text-slate-900"
         }`}
         style={{
@@ -176,7 +65,7 @@ const SectionHeader: React.FC<{
       </h2>
       {subtitle && (
         <p
-          className={`mt-4 text-base font-medium leading-relaxed ${light ? "text-white/70" : "text-slate-500"}`}
+          className={`mt-3 text-sm font-medium leading-relaxed ${light ? "text-white/70" : "text-slate-500"}`}
         >
           {subtitle}
         </p>
@@ -185,13 +74,13 @@ const SectionHeader: React.FC<{
     {showSeeAll && (
       <button
         onClick={onSeeAll}
-        className="group inline-flex items-center gap-2.5 text-sm font-black uppercase tracking-widest shrink-0 transition-all duration-200"
-        style={{ color: "#EB662B" }}
+        className="group inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest shrink-0 transition-all duration-200"
+        style={{ color: "#0068E0" }}
       >
         Explore All
         <span
-          className="flex items-center justify-center w-9 h-9 rounded-full border-2 transition-all duration-200 group-hover:bg-[#EB662B] group-hover:border-[#EB662B] group-hover:text-white"
-          style={{ borderColor: "#EB662B", color: "#EB662B" }}
+          className="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-200 group-hover:bg-[#0068E0] group-hover:border-[#0068E0] group-hover:text-white"
+          style={{ borderColor: "#0068E0", color: "#0068E0" }}
         >
           <ArrowRight
             size={16}
@@ -213,9 +102,9 @@ const HeroSection = () => {
   const [activeSlide, setActiveSlide] = useState(0);
 
   const slides = [
-    { seed: "hero-travel-bali", label: "Bali, Indonesia" },
-    { seed: "hero-travel-alps", label: "Swiss Alps" },
-    { seed: "hero-travel-kyoto", label: "Kyoto, Japan" },
+    { seed: "vietnam-ha-long-bay-cruise", label: "Ha Long, Vietnam" },
+    { seed: "vietnam-da-nang-beach", label: "Da Nang, Vietnam" },
+    { seed: "vietnam-hoi-an-lanterns", label: "Hoi An, Vietnam" },
   ];
 
   useEffect(() => {
@@ -235,7 +124,7 @@ const HeroSection = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-end overflow-hidden">
+    <div className="relative min-h-[680px] md:min-h-[720px] flex flex-col justify-end overflow-hidden">
       {/* Slideshow background */}
       {slides.map((slide, i) => (
         <img
@@ -252,7 +141,7 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-slate-950/60 to-transparent" />
 
       {/* Slide dots */}
-      <div className="absolute top-8 right-8 flex gap-2 z-20">
+      <div className="absolute top-6 right-6 flex gap-2 z-20">
         {slides.map((_, i) => (
           <button
             key={i}
@@ -263,7 +152,7 @@ const HeroSection = () => {
               height: 8,
               borderRadius: 999,
               background:
-                activeSlide === i ? "#EB662B" : "rgba(255,255,255,0.4)",
+                activeSlide === i ? "#0068E0" : "rgba(255,255,255,0.4)",
               border: "none",
               cursor: "pointer",
             }}
@@ -272,8 +161,8 @@ const HeroSection = () => {
       </div>
 
       {/* Location label */}
-      <div className="absolute top-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
-        <MapPin size={14} style={{ color: "#EB662B" }} />
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
+        <MapPin size={14} style={{ color: "#0068E0" }} />
         <span className="text-white text-xs font-bold tracking-wider">
           {slides[activeSlide].label}
         </span>
@@ -281,12 +170,12 @@ const HeroSection = () => {
 
       {/* Hero content */}
       <div className="relative z-10 pb-0">
-        <div className="container mx-auto px-4 lg:px-8 pt-24 pb-16">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-6">
+        <div className={`${HOME_CONTAINER_CLASS} pt-24 pb-12`}>
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-3 mb-5">
               <span
-                className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest bg-[#EB662B]/20 border border-[#EB662B]/40 backdrop-blur-sm"
-                style={{ color: "#EB662B" }}
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest bg-[#0068E0]/20 border border-[#0068E0]/40 backdrop-blur-sm"
+                style={{ color: "#0068E0" }}
               >
                 <Compass size={12} />
                 New adventures await
@@ -294,40 +183,40 @@ const HeroSection = () => {
             </div>
 
             <h1
-              className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[0.95] tracking-tighter mb-6"
+              className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-[0.98] tracking-tight mb-5"
               style={{
                 fontFamily:
                   "'Sora', 'Plus Jakarta Sans', system-ui, sans-serif",
               }}
             >
-              Explore the
+              Explore
               <br />
               <span
                 style={{
-                  WebkitTextStroke: "2px #EB662B",
+                  WebkitTextStroke: "2px #0068E0",
                   color: "transparent",
                 }}
               >
-                world
+                Vietnam
               </span>{" "}
-              <span style={{ color: "#EB662B" }}>boldly.</span>
+              <span style={{ color: "#0068E0" }}>boldly.</span>
             </h1>
 
-            <p className="text-white/70 text-lg md:text-xl font-medium leading-relaxed max-w-lg mb-10">
-              Handcrafted tours. Epic destinations. Memories that outlast every
-              photo.
+            <p className="text-white/70 text-base md:text-lg font-medium leading-relaxed max-w-lg mb-8">
+              Handcrafted local tours across Vietnam. Coastal cities, highland
+              air, old towns, and routes worth remembering.
             </p>
 
             {/* Stats row */}
-            <div className="flex items-center gap-8 mb-12">
+            <div className="flex items-center gap-6 mb-9">
               {[
                 { value: "50K+", label: "Happy Travelers" },
-                { value: "120+", label: "Destinations" },
+                { value: "20+", label: "VN Destinations" },
                 { value: "4.9★", label: "Avg Rating" },
               ].map((s) => (
                 <div key={s.label}>
                   <div
-                    className="text-2xl font-black text-white"
+                    className="text-xl font-black text-white"
                     style={{ fontFamily: "'Sora', sans-serif" }}
                   >
                     {s.value}
@@ -342,17 +231,17 @@ const HeroSection = () => {
 
           {/* Search bar */}
           <div
-            className="relative rounded-2xl md:rounded-3xl shadow-2xl p-2 max-w-5xl flex flex-col md:flex-row items-center gap-1"
+            className="relative rounded-2xl shadow-xl p-1.5 max-w-4xl flex flex-col md:flex-row items-center gap-1"
             style={{
               background: "rgba(255,255,255,0.97)",
               backdropFilter: "blur(20px)",
             }}
           >
             {/* Location */}
-            <div className="flex-1 flex items-center gap-3 px-5 py-3.5 rounded-xl cursor-text hover:bg-orange-50/60 transition-colors group">
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl cursor-text hover:bg-blue-50/60 transition-colors group">
               <MapPin
-                size={20}
-                style={{ color: "#EB662B" }}
+                size={18}
+                style={{ color: "#0068E0" }}
                 className="shrink-0"
               />
               <div className="flex-1 min-w-0">
@@ -371,8 +260,8 @@ const HeroSection = () => {
             <div className="hidden md:block w-px bg-slate-100 my-2" />
 
             {/* Date */}
-            <div className="flex-1 flex items-center gap-3 px-5 py-3.5 rounded-xl cursor-text hover:bg-orange-50/60 transition-colors">
-              <Clock size={20} className="text-blue-400 shrink-0" />
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl cursor-text hover:bg-blue-50/60 transition-colors">
+              <Clock size={18} className="text-blue-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
                   When?
@@ -392,8 +281,8 @@ const HeroSection = () => {
             <div className="hidden md:block w-px bg-slate-100 my-2" />
 
             {/* Type */}
-            <div className="flex-1 flex items-center gap-3 px-5 py-3.5 rounded-xl hover:bg-orange-50/60 transition-colors cursor-pointer">
-              <Smile size={20} className="text-emerald-400 shrink-0" />
+            <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-50/60 transition-colors cursor-pointer">
+              <Smile size={18} className="text-emerald-400 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
                   Tour Type
@@ -416,8 +305,8 @@ const HeroSection = () => {
             <ActionButton
               variant="primary"
               onClick={handleSearch}
-              className="!h-14 !px-8 gap-2.5 shrink-0 !rounded-xl font-black !text-sm uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-              style={{ boxShadow: "0 8px 32px rgba(235,102,43,0.35)" }}
+              className="!h-12 !px-6 gap-2 shrink-0 !rounded-xl font-black !text-xs uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+              style={{ boxShadow: "0 8px 32px rgba(0,104,224,0.28)" }}
             >
               <Search size={18} strokeWidth={2.5} />
               Search
@@ -429,13 +318,13 @@ const HeroSection = () => {
             <span className="text-white/40 text-xs font-bold uppercase tracking-widest">
               Popular:
             </span>
-            {["Bali", "Tokyo", "Paris", "Maldives", "Vietnam"].map((d) => (
+            {["Da Nang", "Hoi An", "Da Lat", "Ha Long", "Phu Quoc"].map((d) => (
               <button
                 key={d}
                 onClick={() =>
                   navigate(`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${d}`)
                 }
-                className="px-3 py-1.5 rounded-full text-xs font-bold text-white/70 border border-white/20 hover:border-[#EB662B] hover:text-[#EB662B] transition-all backdrop-blur-sm"
+                className="px-3 py-1.5 rounded-full text-xs font-bold text-white/70 border border-white/20 hover:border-[#0068E0] hover:text-[#0068E0] transition-all backdrop-blur-sm"
               >
                 {d}
               </button>
@@ -451,39 +340,39 @@ const HeroSection = () => {
 
 const TrustBar = () => (
   <div className="bg-white border-b border-slate-100">
-    <div className="container mx-auto px-4 lg:px-8">
-      <div className="flex items-center justify-between py-5 gap-6 overflow-x-auto">
+    <div className={HOME_CONTAINER_CLASS}>
+      <div className="flex items-center justify-between py-4 gap-5 overflow-x-auto">
         {[
           {
-            icon: <Shield size={18} style={{ color: "#EB662B" }} />,
+            icon: <Shield size={18} style={{ color: "#0068E0" }} />,
             text: "Best Price Guarantee",
           },
           {
-            icon: <Zap size={18} style={{ color: "#EB662B" }} />,
+            icon: <Zap size={18} style={{ color: "#0068E0" }} />,
             text: "Instant Confirmation",
           },
           {
-            icon: <Users size={18} style={{ color: "#EB662B" }} />,
+            icon: <Users size={18} style={{ color: "#0068E0" }} />,
             text: "Expert Local Guides",
           },
           {
             icon: (
               <Star
                 size={18}
-                style={{ color: "#EB662B" }}
-                className="fill-[#EB662B]"
+                style={{ color: "#0068E0" }}
+                className="fill-[#0068E0]"
               />
             ),
             text: "4.9★ Rated Service",
           },
           {
-            icon: <Globe size={18} style={{ color: "#EB662B" }} />,
+            icon: <Globe size={18} style={{ color: "#0068E0" }} />,
             text: "120+ Destinations",
           },
         ].map((item) => (
           <div key={item.text} className="flex items-center gap-2.5 shrink-0">
             {item.icon}
-            <span className="text-sm font-bold text-slate-700 whitespace-nowrap">
+            <span className="text-xs font-bold text-slate-700 whitespace-nowrap">
               {item.text}
             </span>
           </div>
@@ -497,293 +386,231 @@ const TrustBar = () => (
 
 const FeaturedTourSection = () => {
   const { tours, isLoading, error } = usePublicTours(1, 5);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!tours || tours.length === 0) return;
-    const timer = setInterval(
-      () => setCurrentIndex((p) => (p + 1) % tours.length),
-      6000,
-    );
-    return () => clearInterval(timer);
-  }, [tours]);
-
-  if (isLoading)
+  if (isLoading) {
     return (
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4 flex justify-center">
-          <div className="w-8 h-8 border-4 border-[#EB662B] border-t-transparent rounded-full animate-spin" />
+      <section className="py-16 bg-white">
+        <div className={`${HOME_CONTAINER_CLASS} flex justify-center`}>
+          <div className="w-8 h-8 border-4 border-[#0068E0] border-t-transparent rounded-full animate-spin" />
         </div>
       </section>
     );
+  }
 
   if (error || !tours || tours.length === 0) return null;
 
-  const tour = tours[currentIndex];
-  const minPrice = getTourLowestTicketPrice(tour);
-  const duration = tour.tourItineraries?.length
-    ? `${tour.tourItineraries.length} day${tour.tourItineraries.length > 1 ? "s" : ""}`
-    : "Flexible";
-  const location =
-    [tour.city, tour.country].filter(Boolean).join(", ") || "Various Locations";
+  const topTours = tours.slice(0, 5);
+  const featuredTour = topTours[0];
+  const sideTours = topTours.slice(1);
+
+  const getTourMeta = (tour: Tour) => {
+    const minPrice = getTourLowestTicketPrice(tour);
+    const duration = tour.tourItineraries?.length
+      ? `${tour.tourItineraries.length} day${tour.tourItineraries.length > 1 ? "s" : ""}`
+      : "Flexible";
+    const location =
+      [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam";
+
+    return { minPrice, duration, location };
+  };
+
+  const featuredMeta = getTourMeta(featuredTour);
 
   return (
-    <section className="py-20 bg-white overflow-hidden">
-      <div className="container mx-auto px-4 lg:px-8">
+    <section className="relative overflow-hidden py-16">
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(circle at top left, rgba(0,136,255,0.20), transparent 34%), linear-gradient(135deg, #F8FBFF 0%, #EAF4FF 45%, #FFFFFF 100%)",
+        }}
+      />
+      <div className={`${HOME_CONTAINER_CLASS} relative z-10`}>
         <SectionHeader
-          eyebrow="Top Picks"
-          title="Featured Experiences"
-          subtitle="Our most sought-after adventures, curated just for you."
+          eyebrow="Top 5 Tours"
+          title="Vietnam trips worth booking first"
+          subtitle="A brighter look at the most interesting tours available right now."
           showSeeAll
           onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
         />
 
-        <div
-          className="relative rounded-[2.5rem] overflow-hidden bg-slate-900"
-          style={{ minHeight: 540 }}
-        >
-          {/* Background */}
-          {tour.imageUrl ? (
-            <img
-              key={tour.id}
-              src={tour.imageUrl}
-              alt={tour.name}
-              className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-white/20 font-black text-2xl md:text-3xl uppercase tracking-[0.2em] px-4 text-center">Adventure Awaits</span>
-            </div>
-          )}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(5,7,60,0.92) 0%, rgba(5,7,60,0.5) 55%, rgba(5,7,60,0.1) 100%)",
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
+          <button
+            type="button"
+            onClick={() => navigate(PATH.PUBLIC.TOUR_DETAIL(featuredTour.id))}
+            className="group relative min-h-[460px] overflow-hidden rounded-3xl text-left shadow-2xl shadow-blue-900/15"
+          >
+            {featuredTour.imageUrl ? (
+              <img
+                src={featuredTour.imageUrl}
+                alt={featuredTour.name}
+                className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              />
+            ) : (
+              <img
+                src={getFreeApiImage(`top-tour-${featuredTour.id}`, 900, 650)}
+                alt={featuredTour.name}
+                className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#0068E0]/45 to-transparent" />
 
-          {/* Content */}
-          <div className="relative z-10 flex flex-col justify-end h-full min-h-[540px] p-8 md:p-14 lg:p-16 max-w-2xl">
-            <div className="flex gap-2 mb-5 flex-wrap">
-              <span
-                className="px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest text-white"
-                style={{ background: "#EB662B" }}
-              >
-                ✦ Featured
-              </span>
-              <span className="px-3 py-1.5 rounded-full text-xs font-bold text-white bg-white/15 backdrop-blur-md flex items-center gap-1">
-                <Star size={12} className="text-amber-400 fill-amber-400" />
-                {tour.averageStar ? tour.averageStar.toFixed(1) : "New"}
-                <span className="text-white/60">
-                  ({tour.reviews?.length || 0} reviews)
+            <div className="relative z-10 flex h-full min-h-[460px] flex-col justify-between p-6 sm:p-8">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-white px-3 py-1.5 text-xs font-black uppercase tracking-widest text-[#0068E0] shadow-sm">
+                  #1 Pick
                 </span>
-              </span>
-            </div>
+                <span className="rounded-full bg-[#0068E0] px-3 py-1.5 text-xs font-black uppercase tracking-widest text-white shadow-sm">
+                  Featured
+                </span>
+              </div>
 
-            <h3
-              className="text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.05] mb-5"
-              style={{ fontFamily: "'Sora', sans-serif" }}
-            >
-              {tour.name}
-            </h3>
-
-            <div className="flex flex-wrap gap-3 mb-8">
-              <span className="flex items-center gap-1.5 text-sm font-semibold text-white/80 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl">
-                <MapPin size={15} style={{ color: "#EB662B" }} /> {location}
-              </span>
-              <span className="flex items-center gap-1.5 text-sm font-semibold text-white/80 bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl">
-                <Clock size={15} style={{ color: "#EB662B" }} /> {duration}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-5 flex-wrap">
               <div>
-                <div className="text-white/40 text-[10px] font-black uppercase tracking-widest mb-1">
-                  From
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-2 text-sm font-bold text-white backdrop-blur-md">
+                    <MapPin size={15} className="text-sky-200" />
+                    {featuredMeta.location}
+                  </span>
+                  <span className="flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-2 text-sm font-bold text-white backdrop-blur-md">
+                    <Clock size={15} className="text-sky-200" />
+                    {featuredMeta.duration}
+                  </span>
                 </div>
-                <div
-                  className="text-3xl font-black text-white"
+                <h3
+                  className="max-w-2xl text-3xl font-black leading-tight text-white sm:text-5xl"
                   style={{ fontFamily: "'Sora', sans-serif" }}
                 >
-                  {minPrice !== null
-                    ? `${minPrice.toLocaleString("vi-VN")} đ`
-                    : "Contact us"}
+                  {featuredTour.name}
+                </h3>
+                <div className="mt-6 flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-white/50">
+                      From
+                    </div>
+                    <div className="text-2xl font-black text-white">
+                      {featuredMeta.minPrice !== null
+                        ? `${featuredMeta.minPrice.toLocaleString("vi-VN")} d`
+                        : "Contact us"}
+                    </div>
+                  </div>
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-white text-[#0068E0] transition group-hover:translate-x-1">
+                    <ArrowRight size={20} />
+                  </span>
                 </div>
               </div>
-              <ActionButton
-                variant="primary"
-                onClick={() => navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id))}
-                className="gap-2.5 !px-8 !h-14 !rounded-2xl font-black !text-sm hover:scale-105 active:scale-95"
-                style={{ boxShadow: "0 12px 40px rgba(235,102,43,0.5)" }}
-              >
-                View Details <ArrowRight size={18} />
-              </ActionButton>
             </div>
-          </div>
+          </button>
 
-          {/* Slide controls */}
-          <div className="absolute bottom-8 right-8 flex items-center gap-2 z-20">
-            <ActionButton
-              variant="icon"
-              onClick={() =>
-                setCurrentIndex((p) => (p === 0 ? tours.length - 1 : p - 1))
-              }
-              className="!w-10 !h-10 !bg-white/10 border border-white/20 !text-white hover:!bg-white hover:!text-slate-900"
-            >
-              <ChevronLeft size={20} />
-            </ActionButton>
-            <div className="flex gap-1.5 px-3">
-              {tours.map((_, i) => (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            {sideTours.map((tour, index) => {
+              const meta = getTourMeta(tour);
+
+              return (
                 <button
-                  key={i}
-                  onClick={() => setCurrentIndex(i)}
-                  className="transition-all duration-300"
-                  style={{
-                    width: currentIndex === i ? 24 : 6,
-                    height: 6,
-                    borderRadius: 999,
-                    background:
-                      currentIndex === i ? "#EB662B" : "rgba(255,255,255,0.35)",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                />
-              ))}
-            </div>
-            <ActionButton
-              variant="icon"
-              onClick={() => setCurrentIndex((p) => (p + 1) % tours.length)}
-              className="!w-10 !h-10 !bg-white/10 border border-white/20 !text-white hover:!bg-white hover:!text-slate-900"
-            >
-              <ChevronRight size={20} />
-            </ActionButton>
+                  type="button"
+                  key={tour.id}
+                  onClick={() => navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id))}
+                  className="group grid min-h-[136px] grid-cols-[130px_1fr] overflow-hidden rounded-2xl border border-white bg-white text-left shadow-lg shadow-blue-900/5 transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
+                >
+                  <div className="relative h-full overflow-hidden bg-slate-100">
+                    <img
+                      src={tour.imageUrl || getFreeApiImage(`top-tour-small-${tour.id}`, 360, 300)}
+                      alt={tour.name}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute left-2 top-2 rounded-full bg-[#0068E0] px-2 py-1 text-[10px] font-black text-white">
+                      #{index + 2}
+                    </div>
+                  </div>
+                  <div className="flex min-w-0 flex-col justify-between p-4">
+                    <div>
+                      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-black uppercase tracking-widest text-[#0068E0]">
+                        <MapPin size={12} />
+                        <span className="truncate">{meta.location}</span>
+                      </div>
+                      <h3 className="line-clamp-2 text-sm font-black leading-snug text-slate-900 group-hover:text-[#0068E0]">
+                        {tour.name}
+                      </h3>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-3">
+                      <span className="text-xs font-bold text-slate-500">
+                        {meta.duration}
+                      </span>
+                      <span className="whitespace-nowrap text-sm font-black text-[#0068E0]">
+                        {meta.minPrice !== null
+                          ? `${meta.minPrice.toLocaleString("vi-VN")} d`
+                          : "Contact"}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
     </section>
   );
 };
-
-// ─── POPULAR TOURS GRID ──────────────────────────────────────────────────────
-
-const PopularToursSection = () => {
-  const { tours, isLoading, error } = usePublicTours(1, 6);
-  const navigate = useNavigate();
-
-  const toTourCardProps = (tour: Tour): TourCardProps => {
-    const minPrice = getTourLowestTicketPrice(tour);
-    return {
-      id: tour.id,
-      title: tour.name,
-      location:
-        [tour.city, tour.country].filter(Boolean).join(", ") || "Various",
-      rating: tour.averageStar || 0,
-      reviews: tour.reviews?.length || 0,
-      duration: tour.tourItineraries?.length
-        ? `${tour.tourItineraries.length} day${tour.tourItineraries.length > 1 ? "s" : ""}`
-        : "Flexible",
-      price: minPrice,
-      imageUrl: tour.imageUrl || "",
-      tourStatus: tour.status,
-    };
-  };
-
-  return (
-    <section className="py-20" style={{ background: "#FFF8F5" }}>
-      <div className="container mx-auto px-4 lg:px-8">
-        <SectionHeader
-          eyebrow="Popular Now"
-          title="Tours Travelers Love"
-          subtitle="Real reviews, real adventures — rated by people who've been there."
-          showSeeAll
-          onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
-        />
-
-        {isLoading ? (
-          <div className="flex justify-center py-20">
-            <div className="w-8 h-8 border-4 border-[#EB662B] border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="text-center py-16 text-rose-500 bg-rose-50 rounded-3xl">
-            {error}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tours.slice(0, 6).map((tour: Tour) => (
-              <TourCard key={tour.id} tour={toTourCardProps(tour)} />
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
-  );
-};
-
 // ─── TRENDING DESTINATIONS ───────────────────────────────────────────────────
 
 const TrendingDestinationsSection = () => {
   const navigate = useNavigate();
   const destinations = [
     {
-      name: "Bali",
-      country: "Indonesia",
-      tours: "600+ Tours",
-      seed: "bali-beach-temple",
-      emoji: "🌴",
+      name: "Da Nang",
+      country: "Central Vietnam",
+      tours: "120+ Tours",
+      seed: "da-nang-vietnam-beach-bridge",
       col: "col-span-2 row-span-2",
     },
     {
-      name: "Tokyo",
-      country: "Japan",
-      tours: "400+ Tours",
-      seed: "tokyo-neon-night",
-      emoji: "🗼",
+      name: "Hoi An",
+      country: "Quang Nam",
+      tours: "90+ Tours",
+      seed: "hoi-an-vietnam-lantern-town",
       col: "col-span-1 row-span-1",
     },
     {
-      name: "Paris",
-      country: "France",
-      tours: "300+ Tours",
-      seed: "paris-eiffel-golden",
-      emoji: "🗼",
+      name: "Da Lat",
+      country: "Lam Dong",
+      tours: "75+ Tours",
+      seed: "da-lat-vietnam-pine-hills",
       col: "col-span-1 row-span-1",
     },
     {
-      name: "Swiss Alps",
-      country: "Switzerland",
-      tours: "150+ Tours",
-      seed: "swiss-alpine-lake",
-      emoji: "⛰️",
+      name: "Ha Long",
+      country: "Quang Ninh",
+      tours: "80+ Tours",
+      seed: "ha-long-bay-vietnam-limestone",
       col: "col-span-1 row-span-1",
     },
     {
-      name: "Maldives",
-      country: "Maldives",
-      tours: "200+ Tours",
-      seed: "maldives-overwater",
-      emoji: "🏝️",
+      name: "Phu Quoc",
+      country: "Kien Giang",
+      tours: "65+ Tours",
+      seed: "phu-quoc-vietnam-island",
       col: "col-span-1 row-span-1",
     },
   ];
 
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4 lg:px-8">
+    <section className="py-14 bg-white">
+      <div className={HOME_CONTAINER_CLASS}>
         <SectionHeader
           eyebrow="Trending"
-          title="Destinations on Fire"
-          subtitle="The most-booked places this season — where will you go next?"
+          title="Vietnam destinations on fire"
+          subtitle="The most-booked local places this season."
           showSeeAll
           onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
         />
 
         {/* Bento grid layout */}
         <div
-          className="grid grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-4"
-          style={{ height: 560 }}
+          className="grid grid-cols-2 lg:grid-cols-4 grid-rows-2 gap-3"
+          style={{ height: 460 }}
         >
           {destinations.map((dest, i) => (
             <div
@@ -791,7 +618,7 @@ const TrendingDestinationsSection = () => {
               onClick={() =>
                 navigate(`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${dest.name}`)
               }
-              className={`group relative rounded-3xl overflow-hidden cursor-pointer ${dest.col}`}
+              className={`group relative rounded-2xl overflow-hidden cursor-pointer ${dest.col}`}
               style={{ minHeight: i === 0 ? "auto" : 120 }}
             >
               <img
@@ -806,19 +633,19 @@ const TrendingDestinationsSection = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
 
               {/* Hover reveal arrow */}
-              <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/0 border border-white/0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 group-hover:bg-[#EB662B] group-hover:border-[#EB662B] transition-all duration-300">
+              <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/0 border border-white/0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 group-hover:bg-[#0068E0] group-hover:border-[#0068E0] transition-all duration-300">
                 <ArrowRight size={14} />
               </div>
 
-              <div className="absolute bottom-0 left-0 p-5 transition-transform duration-300 group-hover:-translate-y-1">
+              <div className="absolute bottom-0 left-0 p-4 transition-transform duration-300 group-hover:-translate-y-1">
                 <p
                   className="text-[10px] font-black uppercase tracking-[0.2em] mb-1"
-                  style={{ color: "#EB662B" }}
+                  style={{ color: "#0068E0" }}
                 >
                   {dest.country}
                 </p>
                 <h3
-                  className={`font-black text-white leading-tight ${i === 0 ? "text-3xl md:text-4xl" : "text-xl"}`}
+                  className={`font-black text-white leading-tight ${i === 0 ? "text-2xl md:text-3xl" : "text-lg"}`}
                   style={{ fontFamily: "'Sora', sans-serif" }}
                 >
                   {dest.name}
@@ -841,8 +668,8 @@ const WhyChooseUsSection = () => {
   const features = [
     {
       icon: Shield,
-      color: "#EB662B",
-      bg: "#FFF1EB",
+      color: "#0068E0",
+      bg: "#EAF4FF",
       title: "Best Price Guarantee",
       description:
         "Find a lower price anywhere and we'll match it — no questions asked.",
@@ -851,9 +678,9 @@ const WhyChooseUsSection = () => {
       icon: Globe,
       color: "#3B82F6",
       bg: "#EFF6FF",
-      title: "Global Destinations",
+      title: "Vietnam Destinations",
       description:
-        "120+ handpicked destinations spanning every corner of the planet.",
+        "Handpicked city, island, mountain, and heritage routes across Vietnam.",
     },
     {
       icon: Users,
@@ -874,9 +701,9 @@ const WhyChooseUsSection = () => {
   ];
 
   return (
-    <section className="py-20" style={{ background: "#05073C" }}>
-      <div className="container mx-auto px-4 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+    <section className="py-14" style={{ background: "#05073C" }}>
+      <div className={HOME_CONTAINER_CLASS}>
+        <div className="grid lg:grid-cols-2 gap-10 items-center">
           {/* Left: text + image collage */}
           <div>
             <SectionHeader
@@ -889,18 +716,18 @@ const WhyChooseUsSection = () => {
               <img
                 src={getFreeApiImage("travel-guide-happy", 500, 360)}
                 alt=""
-                className="rounded-2xl object-cover w-full h-44"
+                className="rounded-xl object-cover w-full h-36"
               />
               <div className="flex flex-col gap-3">
                 <img
                   src={getFreeApiImage("adventure-mountain-view", 500, 200)}
                   alt=""
-                  className="rounded-2xl object-cover w-full h-[84px]"
+                  className="rounded-xl object-cover w-full h-[66px]"
                 />
                 <div
-                  className="rounded-2xl flex items-center justify-center h-[84px] font-black text-2xl"
+                  className="rounded-xl flex items-center justify-center h-[66px] font-black text-xl"
                   style={{
-                    background: "#EB662B",
+                    background: "#0068E0",
                     color: "#fff",
                     fontFamily: "'Sora', sans-serif",
                   }}
@@ -916,20 +743,20 @@ const WhyChooseUsSection = () => {
           </div>
 
           {/* Right: feature cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {features.map((f) => {
               const Icon = f.icon;
               return (
                 <div
                   key={f.title}
-                  className="group p-6 rounded-2xl border border-white/8 hover:border-white/20 transition-all duration-300"
+                  className="group p-5 rounded-xl border border-white/8 hover:border-white/20 transition-all duration-300"
                   style={{ background: "rgba(255,255,255,0.05)" }}
                 >
                   <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
                     style={{ background: f.bg }}
                   >
-                    <Icon size={22} style={{ color: f.color }} />
+                    <Icon size={20} style={{ color: f.color }} />
                   </div>
                   <h3
                     className="text-base font-bold text-white mb-2"
@@ -959,7 +786,7 @@ const TestimonialsSection = () => {
       location: "New York, USA",
       avatar: "avatar-sarah",
       rating: 5,
-      text: "StayHub made our Bali trip absolutely magical. Every detail was taken care of — best vacation of our lives!",
+      text: "StayHub made our Da Nang trip absolutely smooth. Every detail was taken care of — best vacation of our lives!",
     },
     {
       name: "Kenji T.",
@@ -978,20 +805,20 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4 lg:px-8">
+    <section className="py-14 bg-white">
+      <div className={HOME_CONTAINER_CLASS}>
         <SectionHeader
           eyebrow="Traveler Stories"
           title="They went. They loved it."
           subtitle="Real experiences from real adventurers who booked with us."
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {testimonials.map((t, i) => (
             <div
               key={t.name}
-              className="p-8 rounded-3xl border border-slate-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col gap-5"
-              style={{ background: i === 1 ? "#EB662B" : "#FAFAFA" }}
+              className="p-6 rounded-2xl border border-slate-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-col gap-4"
+              style={{ background: i === 1 ? "#0068E0" : "#FAFAFA" }}
             >
               {/* Stars */}
               <div className="flex gap-1">
@@ -1009,7 +836,7 @@ const TestimonialsSection = () => {
               </div>
 
               <p
-                className={`text-base font-medium leading-relaxed flex-1 ${i === 1 ? "text-white" : "text-slate-700"}`}
+                className={`text-sm font-medium leading-relaxed flex-1 ${i === 1 ? "text-white" : "text-slate-700"}`}
               >
                 "{t.text}"
               </p>
@@ -1047,12 +874,13 @@ const TestimonialsSection = () => {
 const CTASection = () => {
   const navigate = useNavigate();
   return (
-    <section className="py-12 px-4 md:px-8">
+    <section className="py-10">
+      <div className={HOME_CONTAINER_CLASS}>
       <div
-        className="relative rounded-[2.5rem] overflow-hidden"
+        className="relative rounded-2xl overflow-hidden"
         style={{
           background:
-            "linear-gradient(135deg, #EB662B 0%, #C94E18 50%, #05073C 100%)",
+            "linear-gradient(135deg, #0068E0 0%, #0048B0 50%, #05073C 100%)",
         }}
       >
         {/* Decorative circles */}
@@ -1065,13 +893,13 @@ const CTASection = () => {
           style={{ background: "rgba(255,255,255,0.2)" }}
         />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 px-10 py-14 md:px-16">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-6 py-10 md:px-10">
           <div>
             <div className="text-sm font-black uppercase tracking-widest text-white/60 mb-3">
               Limited Time
             </div>
             <h2
-              className="text-4xl md:text-5xl font-black text-white leading-tight mb-3"
+              className="text-3xl md:text-4xl font-black text-white leading-tight mb-3"
               style={{ fontFamily: "'Sora', sans-serif" }}
             >
               Your next adventure
@@ -1088,19 +916,20 @@ const CTASection = () => {
             <ActionButton
               variant="outline"
               onClick={() => navigate(PATH.PUBLIC.REGISTER)}
-              className="!px-8 !h-14 !rounded-2xl font-black !text-sm uppercase tracking-widest !text-[#EB662B] shadow-2xl whitespace-nowrap hover:scale-105 active:scale-95"
+              className="!w-auto !px-6 !h-12 !rounded-xl font-black !text-xs uppercase tracking-widest !text-[#0068E0] shadow-xl whitespace-nowrap hover:scale-105 active:scale-95"
             >
               Get Started Free
             </ActionButton>
             <ActionButton
               variant="secondary"
               onClick={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
-              className="!px-8 !h-14 !rounded-2xl font-black !text-sm uppercase tracking-widest !text-white border-2 border-white/30 hover:border-white hover:bg-white/10 whitespace-nowrap"
+              className="!w-auto !px-6 !h-12 !rounded-xl font-black !text-xs uppercase tracking-widest !text-white border-2 border-white/30 hover:border-white hover:bg-white/10 whitespace-nowrap"
             >
               Browse Tours
             </ActionButton>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );
@@ -1122,14 +951,10 @@ export default function Home() {
       {/* 2. Trust signals — thin bar */}
       <TrustBar />
 
-      {/* 2.5 Dynamic Banners (Mới thêm) */}
-      <DynamicBannerSection />
 
       {/* 3. Featured / Spotlight — full-bleed carousel card */}
       <FeaturedTourSection />
 
-      {/* 4. Popular Tours Grid — 6 cards */}
-      <PopularToursSection />
 
       {/* 5. Trending Destinations — bento grid */}
       <TrendingDestinationsSection />

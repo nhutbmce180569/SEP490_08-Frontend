@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
-  ArrowLeft,
   Calendar,
   Users,
   Banknote,
@@ -41,6 +40,18 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
   year: "numeric",
   month: "short",
   day: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+const tripDateFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+const tripTimeFormatter = new Intl.DateTimeFormat("en-US", {
   hour: "2-digit",
   minute: "2-digit",
 });
@@ -168,6 +179,38 @@ export const OrderDetailPage: React.FC = () => {
     orderDetails.find((detail) => detail.id === ticket.orderDetailId) ??
     orderDetails.find((detail) => detail.ticketTypeId === ticket.ticketTypeId);
 
+  const departureDate = order.schedule
+    ? new Date(order.schedule.departureDate)
+    : null;
+  const returnDate = order.schedule ? new Date(order.schedule.returnDate) : null;
+  const bookedDate = order.orderedAt ? new Date(order.orderedAt) : null;
+  const isSettled = order.status === "Completed" || order.status === "Paid";
+  const statusClasses =
+    order.status === "Cancelled"
+      ? "border-rose-200 bg-rose-50 text-rose-700"
+      : isSettled
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+        : "border-amber-200 bg-amber-50 text-amber-700";
+  const ticketCount = order.ticketCount ?? order.tickets?.length ?? 0;
+  const itineraryDayCount = Object.keys(groupedItineraries).length;
+  const tripDurationDays =
+    departureDate && returnDate
+      ? Math.max(
+          1,
+          Math.ceil(
+            (returnDate.getTime() - departureDate.getTime()) /
+              (1000 * 3600 * 24),
+          ) + 1,
+        )
+      : null;
+  const canCancelBooking =
+    order.status !== "Cancelled" &&
+    Boolean(departureDate) &&
+    !isTourEnded &&
+    Math.ceil(
+      ((departureDate?.getTime() ?? 0) - Date.now()) / (1000 * 3600 * 24),
+    ) >= 5;
+
   const handleCancelOrder = async () => {
     const confirmed = window.confirm(
       "Are you sure you want to cancel this booking? This action cannot be undone and cancellation fees may apply.",
@@ -191,266 +234,311 @@ export const OrderDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl py-8 px-4 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-4">
-        <Link
-          to={PATH.CUSTOMER.MY_BOOKINGS}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800 !no-underline"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to My Bookings
-        </Link>
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-500">Order ID:</span>
-            <span className="rounded bg-slate-100 px-2 py-1 text-sm font-bold text-slate-800">
-              #{order.id}
-            </span>
-          </div>
-          {order.orderedAt && (
-            <span className="text-xs font-medium text-slate-400">
-              Booked on {dateFormatter.format(new Date(order.orderedAt))}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* CỘT TRÁI (Tour Info, Schedule, Passengers & REVIEW) */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Tour Card */}
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex flex-col sm:flex-row">
-              {order.tour?.imageUrl && (
-                <div className="w-full sm:w-48 shrink-0">
-                  <img
-                    src={order.tour.imageUrl}
-                    alt={order.tour.name}
-                    className="h-full min-h-[160px] w-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="flex-1 p-6">
-                <div className="mb-2 flex items-start justify-between">
-                  <h1 className="text-base font-bold leading-snug text-slate-900">
-                    {order.tour?.name || "Tour Booking"}
-                  </h1>
-                  <span
-                    className={`inline-flex shrink-0 items-center gap-1 rounded bg-slate-100 px-2 py-1 text-xs font-semibold ${
-                      order.status === "Completed" || order.status === "Paid"
-                        ? "text-emerald-700"
-                        : "text-amber-700"
-                    }`}
-                  >
-                    {order.status === "Completed" || order.status === "Paid" ? (
-                      <CheckCircle2 size={12} />
-                    ) : (
-                      <Clock size={12} />
-                    )}
-                    {order.status || "Pending"}
-                  </span>
-                </div>
-
-                <p className="mb-4 flex items-center gap-1.5 text-sm text-slate-600">
-                  <MapPin className="h-4 w-4 text-slate-400" />
-                  {[order.tour?.city, order.tour?.country]
-                    .filter(Boolean)
-                    .join(", ") || "Various Locations"}
-                </p>
-
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
-                  <div>
-                    <p className="mb-1 text-xs text-slate-500">Departure</p>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {order.schedule
-                        ? dateFormatter.format(new Date(order.schedule.departureDate))
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="mb-1 text-xs text-slate-500">Return</p>
-                    <p className="text-sm font-semibold text-slate-800">
-                      {order.schedule
-                        ? dateFormatter.format(new Date(order.schedule.returnDate))
-                        : "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Cards (Itinerary & Tickets) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {order.schedule?.tourScheduleItineraries && order.schedule.tourScheduleItineraries.length > 0 && (
-              <div 
-                onClick={() => setIsItineraryModalOpen(true)}
-                className="group flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-500 transition-colors group-hover:bg-indigo-100">
-                    <Calendar className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900">Itinerary</h4>
-                    <p className="text-xs font-medium text-slate-500">View daily activities</p>
-                  </div>
-                </div>
-                <ChevronRight className="h-5 w-5 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-indigo-500" />
-              </div>
-            )}
-
-            <div 
-              onClick={() => setIsTicketsModalOpen(true)}
-              className="group flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:border-[#EB662B] hover:shadow-md"
-            >
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-50 text-[#EB662B] transition-colors group-hover:bg-orange-100">
-                  <Users className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-slate-900">Tickets</h4>
-                  <p className="text-xs font-medium text-slate-500">{order.ticketCount} passenger(s) QR</p>
-                </div>
-              </div>
-              <ChevronRight className="h-5 w-5 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-[#EB662B]" />
-            </div>
-          </div>
-
-          {/* ========================================== */}
-          {/* KHỐI HIỂN THỊ ĐÁNH GIÁ (NÚT KÍCH HOẠT MODAL) */}
-          {/* ========================================== */}
-          {canReview && (
-            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 animate-in fade-in duration-300">
-              <div className="space-y-2">
-                <h4 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-                  <Star className="h-5 w-5 text-[#EB662B]" /> 
-                  {order.review ? "Your Review" : "Rate Your Experience"}
-                </h4>
-                <p className="text-sm font-medium leading-relaxed text-slate-600">
-                  {order.review 
-                    ? `You rated this tour ${order.review.rating}/5 stars. You can update your feedback anytime.`
-                    : "Hope you enjoyed the trip! Let us know how it went by writing a review to improve our services."
-                  }
-                </p>
-              </div>
-              <ActionButton
-                variant="primary"
-                className="w-full sm:w-auto shrink-0 !bg-[#EB662B] !border-[#EB662B] hover:!bg-[#d4531d] px-6 font-bold text-sm shadow-sm transition-colors"
-                onClick={() => setIsReviewModalOpen(true)}
-              >
-                {order.review ? "Edit Review" : "Write a Review"}
-              </ActionButton>
-            </div>
-          )}
-        </div>
-
-        {/* CỘT PHẢI (Payment Summary, Notes & Extras) */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Payment Summary */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h4 className="mb-4 flex items-center gap-2 border-b border-slate-100 pb-3 text-sm font-bold text-slate-900">
-              <Banknote className="h-5 w-5 text-emerald-600" /> Payment Summary
-            </h4>
-            <div className="space-y-3 text-sm">
-              {orderDetails.length > 0 ? (
-                <div className="space-y-3">
-                  {orderDetails.map((detail) => (
-                    <div
-                      key={detail.id}
-                      className="rounded-xl py-3"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="truncate font-semibold text-slate-800">
-                            {getTicketTypeName(detail.ticketTypeId)} x{" "} {detail.quantity}
-                          </div>
-                          
-                        </div>
-                        <div className="shrink-0 text-right font-bold text-slate-900">
-                          {currencyFormatter.format(detail.totalPrice)}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+    <div className="w-full">
+      <div className="space-y-6">
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="grid">
+            <div className="relative min-h-[220px] bg-slate-100 sm:min-h-[260px]">
+              {order.tour?.imageUrl ? (
+                <img
+                  src={order.tour.imageUrl}
+                  alt={order.tour.name}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
               ) : (
-                <div className="flex items-center justify-between gap-4 text-slate-600">
-                  <span>Tickets</span>
-                  <span className="whitespace-nowrap text-right">
-                    {order.ticketCount} x{" "}
-                    {currencyFormatter.format(
-                      (order.finalAmount + (order.discountValue || 0)) /
-                        Math.max(order.ticketCount, 1),
-                    )}
-                  </span>
+                <div className="flex h-full min-h-[260px] items-center justify-center text-slate-400">
+                  <ImageIcon className="h-12 w-12" />
                 </div>
               )}
-              <div className="flex justify-between border-t border-slate-100 pt-3 text-slate-600">
-                <span>Subtotal</span>
-                <span className="font-semibold text-slate-900">
-                  {currencyFormatter.format(subtotalAmount)}
-                </span>
-              </div>
-              {order.discountValue && order.discountValue > 0 ? (
-                <div className="flex justify-between text-rose-600">
-                  <span>Discount</span>
-                  <span>-{currencyFormatter.format(order.discountValue)}</span>
-                </div>
-              ) : null}
-              <div className="flex justify-between border-t border-slate-100 pt-3 text-base">
-                <span className="font-bold text-slate-900">Total Paid</span>
-                <span className="font-bold text-[#EB662B]">
-                  {currencyFormatter.format(order.finalAmount)}
+              <div className="absolute left-4 top-4">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm ${statusClasses}`}
+                >
+                  {isSettled ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                  {order.status || "Pending"}
                 </span>
               </div>
             </div>
-          </div>
 
-          {/* Notes */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h4 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-900">
-              <Info className="h-5 w-5 text-sky-500" /> Order Notes
-            </h4>
-            <p className="whitespace-pre-wrap text-sm text-slate-600">
-              {order.note ? order.note : <span className="italic text-slate-400">No special requests provided.</span>}
-            </p>
-          </div>
+            <div className="flex flex-col gap-5 p-5 sm:p-6">
+              <div className="space-y-3">
+                {bookedDate && (
+                  <p className="text-xs font-semibold uppercase text-slate-400">
+                    Booked {dateFormatter.format(bookedDate)}
+                  </p>
+                )}
+                <h1 className="text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
+                  {order.tour?.name || "Tour Booking"}
+                </h1>
+                <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
+                  <MapPin className="h-4 w-4 shrink-0 text-[#0068E0]" />
+                  <span className="truncate">
+                    {[order.tour?.city, order.tour?.country]
+                      .filter(Boolean)
+                      .join(", ") || "Various Locations"}
+                  </span>
+                </p>
+              </div>
 
-          {/* Cancel Booking */}
-          {order.status !== "Cancelled" &&
-            order.schedule &&
-            (() => {
-              const departureDate = new Date(order.schedule.departureDate);
-              const currentDate = new Date();
-              const timeDiff = departureDate.getTime() - currentDate.getTime();
-              const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-[11px] font-bold uppercase text-slate-400">
+                    Tickets
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">
+                    {ticketCount}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-[11px] font-bold uppercase text-slate-400">
+                    Days
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">
+                    {(tripDurationDays ?? itineraryDayCount) || "N/A"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-[11px] font-bold uppercase text-slate-400">
+                    Plan
+                  </p>
+                  <p className="mt-1 text-lg font-bold text-slate-950">
+                    {itineraryDayCount || "N/A"}
+                  </p>
+                </div>
+              </div>
 
-              if (daysDiff >= 5 && !isTourEnded) {
-                return (
-                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 shadow-sm">
-                    <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-rose-900">
-                      <AlertTriangle className="h-5 w-5 text-rose-500" /> Cancel Booking
-                    </h4>
-                    <p className="mb-4 text-xs font-medium text-rose-700/80 leading-relaxed">
-                      You can cancel this booking up to 5 days before departure.
-                      Please note that a cancellation fee may be deducted from
-                      your refund depending on our policy.
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="grid gap-4 xl:grid-cols-[1fr_auto_1fr] xl:items-center">
+                  <div className="rounded-xl bg-emerald-50 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-emerald-700">
+                      <Calendar className="h-4 w-4" />
+                      Departure
+                    </div>
+                    <p className="text-base font-bold leading-snug text-slate-950">
+                      {departureDate
+                        ? tripDateFormatter.format(departureDate)
+                        : "N/A"}
                     </p>
-                    <ActionButton
-                      variant="outline"
-                      disabled={isCancelling}
-                      className="w-full !border-rose-200 !text-rose-600 hover:!bg-rose-100 hover:!border-rose-300"
-                      onClick={handleCancelOrder}
-                    >
-                      {isCancelling ? "Cancelling..." : "Cancel Order"}
-                    </ActionButton>
+                    {departureDate && (
+                      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+                        <Clock className="h-4 w-4 text-emerald-600" />
+                        {tripTimeFormatter.format(departureDate)}
+                      </p>
+                    )}
                   </div>
-                );
-              }
-              return null;
-            })()}
+
+                  <div className="hidden h-px w-10 bg-slate-200 xl:block" />
+
+                  <div className="rounded-xl bg-sky-50 p-4">
+                    <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-sky-700">
+                      <Calendar className="h-4 w-4" />
+                      Return
+                    </div>
+                    <p className="text-base font-bold leading-snug text-slate-950">
+                      {returnDate ? tripDateFormatter.format(returnDate) : "N/A"}
+                    </p>
+                    {returnDate && (
+                      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+                        <Clock className="h-4 w-4 text-sky-600" />
+                        {tripTimeFormatter.format(returnDate)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="space-y-6">
+          <div className="space-y-6">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-4">
+                <h2 className="text-base font-bold text-slate-950">
+                  Trip Documents
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Itinerary details and passenger QR tickets.
+                </p>
+              </div>
+
+              <div className="grid gap-4 xl:grid-cols-2">
+                {order.schedule?.tourScheduleItineraries &&
+                  order.schedule.tourScheduleItineraries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setIsItineraryModalOpen(true)}
+                      className="group flex min-h-[118px] items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-indigo-300 hover:bg-white hover:shadow-sm"
+                    >
+                      <span className="flex min-w-0 items-center gap-4">
+                        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
+                          <Calendar className="h-6 w-6" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-bold text-slate-950">
+                            Itinerary
+                          </span>
+                          <span className="mt-1 block text-sm text-slate-500">
+                            {itineraryDayCount} day plan
+                          </span>
+                        </span>
+                      </span>
+                      <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-indigo-600" />
+                    </button>
+                  )}
+
+                <button
+                  type="button"
+                  onClick={() => setIsTicketsModalOpen(true)}
+                  className="group flex min-h-[118px] items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-300 hover:bg-white hover:shadow-sm"
+                >
+                  <span className="flex min-w-0 items-center gap-4">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[#0068E0]">
+                      <Users className="h-6 w-6" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-sm font-bold text-slate-950">
+                        Passenger Tickets
+                      </span>
+                      <span className="mt-1 block text-sm text-slate-500">
+                        {ticketCount} QR ticket{ticketCount === 1 ? "" : "s"}
+                      </span>
+                    </span>
+                  </span>
+                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-[#0068E0]" />
+                </button>
+              </div>
+            </section>
+
+            {canReview && (
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+                  <div className="min-w-0 space-y-2">
+                    <h2 className="flex items-center gap-2 text-base font-bold text-slate-950">
+                      <Star className="h-5 w-5 shrink-0 text-[#0068E0]" />
+                      {order.review ? "Your Review" : "Rate Your Experience"}
+                    </h2>
+                    <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+                      {order.review
+                        ? `You rated this tour ${order.review.rating}/5 stars. You can update your feedback anytime.`
+                        : "Share your feedback after the trip so the host can improve future tours."}
+                    </p>
+                  </div>
+                  <ActionButton
+                    variant="primary"
+                    className="w-full shrink-0 !border-[#0068E0] !bg-[#0068E0] px-6 text-sm font-bold hover:!bg-[#0058D0] xl:w-auto"
+                    onClick={() => setIsReviewModalOpen(true)}
+                  >
+                    {order.review ? "Edit Review" : "Write a Review"}
+                  </ActionButton>
+                </div>
+              </section>
+            )}
+          </div>
+
+          <aside className="space-y-6">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-slate-950">
+                <Banknote className="h-5 w-5 text-emerald-600" />
+                Payment Summary
+              </h2>
+
+              <div className="space-y-4 text-sm">
+                {orderDetails.length > 0 ? (
+                  <div className="space-y-3">
+                    {orderDetails.map((detail) => (
+                      <div
+                        key={detail.id}
+                        className="flex items-start justify-between gap-4"
+                      >
+                        <div className="min-w-0">
+                          <p className="font-semibold leading-snug text-slate-800">
+                            {getTicketTypeName(detail.ticketTypeId)}
+                          </p>
+                          <p className="mt-0.5 text-xs font-medium text-slate-400">
+                            Quantity {detail.quantity}
+                          </p>
+                        </div>
+                        <p className="shrink-0 whitespace-nowrap font-bold text-slate-950">
+                          {currencyFormatter.format(detail.totalPrice)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between gap-4 text-slate-600">
+                    <span>Tickets</span>
+                    <span className="whitespace-nowrap text-right">
+                      {ticketCount} x{" "}
+                      {currencyFormatter.format(
+                        (order.finalAmount + (order.discountValue || 0)) /
+                          Math.max(ticketCount, 1),
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                <div className="space-y-3 border-t border-slate-100 pt-4">
+                  <div className="flex justify-between gap-4 text-slate-600">
+                    <span>Subtotal</span>
+                    <span className="font-semibold text-slate-950">
+                      {currencyFormatter.format(subtotalAmount)}
+                    </span>
+                  </div>
+                  {order.discountValue && order.discountValue > 0 ? (
+                    <div className="flex justify-between gap-4 text-rose-600">
+                      <span>Discount</span>
+                      <span>-{currencyFormatter.format(order.discountValue)}</span>
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center justify-between gap-4 rounded-xl bg-blue-50 px-4 py-3">
+                  <span className="font-bold text-slate-950">Total Paid</span>
+                  <span className="whitespace-nowrap text-lg font-bold text-[#0068E0]">
+                    {currencyFormatter.format(order.finalAmount)}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-950">
+                <Info className="h-5 w-5 text-sky-500" />
+                Booking Notes
+              </h2>
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                {order.note ? (
+                  order.note
+                ) : (
+                  <span className="italic text-slate-400">
+                    No special requests provided.
+                  </span>
+                )}
+              </p>
+            </section>
+
+            {canCancelBooking && (
+              <section className="rounded-2xl border border-rose-200 bg-rose-50 p-5 shadow-sm sm:p-6">
+                <h2 className="mb-2 flex items-center gap-2 text-base font-bold text-rose-900">
+                  <AlertTriangle className="h-5 w-5 text-rose-500" />
+                  Cancel Booking
+                </h2>
+                <p className="mb-4 text-sm leading-relaxed text-rose-700">
+                  You can cancel this booking up to 5 days before departure.
+                  Cancellation fees may apply depending on the policy.
+                </p>
+                <ActionButton
+                  variant="outline"
+                  disabled={isCancelling}
+                  className="w-full !border-rose-200 !text-rose-600 hover:!border-rose-300 hover:!bg-rose-100"
+                  onClick={handleCancelOrder}
+                >
+                  {isCancelling ? "Cancelling..." : "Cancel Order"}
+                </ActionButton>
+              </section>
+            )}
+          </aside>
         </div>
       </div>
 
@@ -488,17 +576,17 @@ export const OrderDetailPage: React.FC = () => {
                   return (
                     <div
                       key={dayNumber}
-                      className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${isToday ? "border-[#EB662B] ring-1 ring-[#EB662B]/30" : "border-slate-200"}`}
+                      className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${isToday ? "border-[#0068E0] ring-1 ring-[#0068E0]/30" : "border-slate-200"}`}
                     >
                       {/* Day Header */}
-                      <div className={`flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b ${isToday ? "border-orange-100 bg-orange-50/50" : "border-slate-100 bg-slate-50"}`}>
+                      <div className={`flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b ${isToday ? "border-blue-100 bg-blue-50/50" : "border-slate-100 bg-slate-50"}`}>
                         <div className="flex items-center gap-3">
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isToday ? "bg-[#EB662B] text-white shadow-md shadow-orange-200" : "bg-indigo-100 text-indigo-700"}`}>
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isToday ? "bg-[#0068E0] text-white shadow-md shadow-blue-200" : "bg-indigo-100 text-indigo-700"}`}>
                             <span className="text-sm font-black">D{dayNumber}</span>
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className={`text-base font-bold ${isToday ? "text-[#EB662B]" : "text-slate-800"}`}>
+                              <h3 className={`text-base font-bold ${isToday ? "text-[#0068E0]" : "text-slate-800"}`}>
                                 Day {dayNumber}
                               </h3>
                               {isToday && (
@@ -538,7 +626,7 @@ export const OrderDetailPage: React.FC = () => {
                                 onClick={() => toggleIti(iti.id)}
                               >
                                 <div className="flex items-center gap-4">
-                                  <div className={`flex min-w-[90px] items-center justify-center rounded-lg px-3 py-1.5 text-xs font-bold ${isToday ? "bg-orange-50 text-[#EB662B]" : "bg-slate-100 text-slate-600"}`}>
+                                  <div className={`flex min-w-[90px] items-center justify-center rounded-lg px-3 py-1.5 text-xs font-bold ${isToday ? "bg-blue-50 text-[#0068E0]" : "bg-slate-100 text-slate-600"}`}>
                                     <Clock className="mr-1.5 h-3.5 w-3.5" />
                                     {timeStr}
                                   </div>
@@ -665,7 +753,7 @@ export const OrderDetailPage: React.FC = () => {
           <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-[#EB662B]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-[#0068E0]">
                   <Users size={20} />
                 </div>
                 <div>
@@ -692,7 +780,7 @@ export const OrderDetailPage: React.FC = () => {
                           <span className="block text-sm font-semibold text-slate-800">
                             Passenger {idx + 1}
                           </span>
-                          <span className="mt-0.5 block truncate text-xs font-medium text-[#EB662B]">
+                          <span className="mt-0.5 block truncate text-xs font-medium text-[#0068E0]">
                             {ticketTypeName}
                           </span>
                         </div>

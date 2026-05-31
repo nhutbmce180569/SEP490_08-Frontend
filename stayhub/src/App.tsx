@@ -75,6 +75,9 @@ import TourSearch from "./pages/TourSearch";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
+import { CreateCancellationRequestPage } from "./features/booking/pages/CreateCancellationRequestPage";
+import { CancellationListPage } from "./features/booking/pages/CancellationListPage";
+import { ProcessCancellationPage } from "./features/booking/pages/ProcessCancellationPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
 import { VoucherList } from "./features/voucher/pages/VoucherList";
@@ -117,7 +120,7 @@ const MockPage: React.FC<{ title: string; section?: string }> = ({
     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[#EB662B]">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#0068E0]">
             {section}
           </p>
           <h1 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
@@ -139,7 +142,7 @@ const MockPage: React.FC<{ title: string; section?: string }> = ({
             key={label}
             className="min-h-32 rounded-xl border border-slate-100 bg-slate-50 p-4"
           >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-black text-[#EB662B] shadow-sm">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-black text-[#0068E0] shadow-sm">
               {index + 1}
             </div>
             <h2 className="text-sm font-bold text-slate-800">{label}</h2>
@@ -172,7 +175,7 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#EB662B] border-t-transparent"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0068E0] border-t-transparent"></div>
       </div>
     );
   }
@@ -226,7 +229,7 @@ const MomentsRouteWrapper = () => {
   
         <div className="relative">
           <select 
-            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#EB662B] cursor-pointer"
+            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0068E0] cursor-pointer"
             onChange={(e) => setSelectedSchedule(e.target.value ? Number(e.target.value) : null)}
             value={selectedSchedule || ""}
           >
@@ -310,6 +313,10 @@ const App: React.FC = () => {
                     <Route
                       path={PATH.CUSTOMER.BOOKING_DETAIL()}
                       element={<OrderDetailPage />}
+                    />
+                    <Route
+                      path={PATH.CUSTOMER.REQUEST_CANCELLATION()}
+                      element={<CreateCancellationRequestPage />}
                     />
                     <Route
                       path={PATH.CUSTOMER.WISHLIST}
@@ -443,6 +450,14 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.MANAGER.CHECK_IN)}
                     element={mock("Check-in", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CANCELLATION_REQUESTS)}
+                    element={<CancellationListPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.PROCESS_CANCELLATION())}
+                    element={<ProcessCancellationPage />}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
                     <Route index element={<VoucherList />} />

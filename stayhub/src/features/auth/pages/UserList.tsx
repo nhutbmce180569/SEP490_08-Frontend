@@ -168,7 +168,7 @@ export const UserList: React.FC = () => {
             placeholder="Search by full name..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
           />
         </div>
         <div className="relative w-full sm:w-48">
@@ -176,7 +176,7 @@ export const UserList: React.FC = () => {
           <select
             value={roleInput}
             onChange={(e) => setRoleInput(e.target.value)}
-            className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+            className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
           >
             <option value="">All Roles</option>
             <option value="Admin">Admin</option>

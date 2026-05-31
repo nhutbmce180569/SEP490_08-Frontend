@@ -29,7 +29,7 @@ export default function Footer() {
     <footer
       style={{
         background: "#fff",
-        borderTop: "1px solid rgba(235,102,43,0.15)",
+        borderTop: "1px solid rgba(0,104,224,0.15)",
         fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
         color: "#05073C",
       }}
@@ -39,7 +39,7 @@ export default function Footer() {
         <div
           style={{
             height: 185,
-            borderBottom: "1px solid rgba(235,102,43,0.15)",
+            borderBottom: "1px solid rgba(0,104,224,0.15)",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -54,11 +54,11 @@ export default function Footer() {
                 width: 50,
                 height: 50,
                 borderRadius: 14,
-                background: "rgba(235,102,43,0.12)",
+                background: "rgba(0,104,224,0.12)",
                 display: "grid",
                 placeItems: "center",
                 fontSize: 22,
-                color: "#EB662B",
+                color: "#0068E0",
                 fontWeight: 800,
               }}
             >
@@ -66,7 +66,7 @@ export default function Footer() {
             </div>
             <div style={{ fontSize: 19.5, fontWeight: 600 }}>
               Speak to our expert at{" "}
-              <span style={{ color: "#EB662B" }}>1-800-453-6744</span>
+              <span style={{ color: "#0068E0" }}>1-800-453-6744</span>
             </div>
           </div>
 

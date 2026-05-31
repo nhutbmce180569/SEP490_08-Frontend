@@ -310,7 +310,7 @@ export default function PublicTourDetail() {
     return (
       <div className="min-h-screen -mt-[88px] flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4 text-slate-500">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#EB662B]" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#0068E0]" />
           Loading tour details...
         </div>
       </div>
@@ -506,7 +506,7 @@ export default function PublicTourDetail() {
                 <h2 className="mb-6 text-2xl font-bold text-slate-900">Itinerary Map</h2>
                 {isItinerariesLoading ? (
                   <div className="flex h-[400px] items-center justify-center rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
                   </div>
                 ) : itineraries.length > 0 ? (
                   <TourItineraryMap itineraries={itineraries} />
@@ -517,7 +517,7 @@ export default function PublicTourDetail() {
 
               {tourItineraries.length > 0 ? (
                 <div className="relative">
-                  <div className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-[#EB662B] via-orange-200 to-transparent hidden sm:block" />
+                  <div className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-[#0068E0] via-blue-200 to-transparent hidden sm:block" />
                   <div className="space-y-6">
                     {Object.entries(groupedItineraries)
                       .map(([dayStr]) => Number(dayStr))
@@ -525,16 +525,16 @@ export default function PublicTourDetail() {
                       .map((dayNumber) => (
                       <div key={dayNumber} className="flex gap-5 sm:gap-8">
                         <div className="relative z-10 shrink-0 hidden sm:block">
-                          <div className="h-10 w-10 rounded-full bg-[#EB662B] flex items-center justify-center shadow-md shadow-orange-200">
+                          <div className="h-10 w-10 rounded-full bg-[#0068E0] flex items-center justify-center shadow-md shadow-blue-200">
                             <span className="text-white font-black text-xs">
                               {dayNumber}
                             </span>
                           </div>
                         </div>
-                        <div className="flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-orange-200 transition-colors overflow-hidden">
+                        <div className="flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-blue-200 transition-colors overflow-hidden">
                           <div className="border-b border-slate-100 bg-slate-50 px-5 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                               <span className="sm:hidden inline-flex items-center justify-center h-6 w-6 rounded-full bg-[#EB662B] text-white font-black text-[10px]">
+                               <span className="sm:hidden inline-flex items-center justify-center h-6 w-6 rounded-full bg-[#0068E0] text-white font-black text-[10px]">
                                  {dayNumber}
                                </span>
                                <h3 className="text-lg font-bold text-slate-800">
@@ -559,7 +559,7 @@ export default function PublicTourDetail() {
                                      onClick={() => toggleIti(iti.id)}
                                    >
                                      <div className="flex items-center gap-4">
-                                       <div className="flex min-w-[90px] items-center justify-center rounded-lg bg-orange-50 px-3 py-1.5 text-xs font-bold text-[#EB662B]">
+                                       <div className="flex min-w-[90px] items-center justify-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#0068E0]">
                                          <Clock className="mr-1.5 h-3.5 w-3.5" />
                                          {timeStr}
                                        </div>
@@ -617,7 +617,7 @@ export default function PublicTourDetail() {
                                                   <div className="space-y-2 p-4">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                       <span className="font-bold text-slate-800">{tourismInfo.name}</span>
-                                                      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-bold text-[#EB662B]">
+                                                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-[#0068E0]">
                                                         {tourismInfo.type}
                                                       </span>
                                                     </div>
@@ -644,7 +644,7 @@ export default function PublicTourDetail() {
                                                         href={tourismInfo.sourceUrl}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#EB662B] hover:text-orange-700"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0068E0] hover:text-blue-700"
                                                       >
                                                         {tourismInfo.sourceName || "Source"}
                                                         <ExternalLink className="h-3.5 w-3.5" />
@@ -654,7 +654,7 @@ export default function PublicTourDetail() {
                                                 </div>
                                               ) : (
                                                 <div className="flex items-start gap-2 p-3">
-                                                  <Tag className="h-4 w-4 text-[#EB662B] shrink-0 mt-0.5" />
+                                                  <Tag className="h-4 w-4 text-[#0068E0] shrink-0 mt-0.5" />
                                                   <span className="font-semibold text-slate-700">
                                                     Tourism info ID #{iti.tourismInfoId}
                                                   </span>
@@ -767,7 +767,7 @@ export default function PublicTourDetail() {
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
                             {/* Avatar */}
-                            <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center text-[#EB662B] font-bold text-lg uppercase shrink-0 overflow-hidden border border-orange-200">
+                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-[#0068E0] font-bold text-lg uppercase shrink-0 overflow-hidden border border-blue-200">
                               {review.customerAvatar ? (
                                 <img 
                                   src={review.customerAvatar} 
@@ -879,8 +879,8 @@ export default function PublicTourDetail() {
             <div className="sticky top-24">
               <div className="rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
                 {/* Price strip */}
-                <div className="bg-gradient-to-r from-[#EB662B] to-orange-400 px-6 py-5">
-                  <span className="text-orange-100 text-xs font-semibold uppercase tracking-widest">
+                <div className="bg-gradient-to-r from-[#0068E0] to-blue-400 px-6 py-5">
+                  <span className="text-blue-100 text-xs font-semibold uppercase tracking-widest">
                     Starting from
                   </span>
                   <div className="flex items-baseline gap-1 mt-1">
@@ -888,12 +888,12 @@ export default function PublicTourDetail() {
                       {minPrice !== null ? fmt(minPrice) : "No price"}
                     </span>
                     {minPrice !== null && (
-                      <span className="text-orange-200 font-semibold ml-1">
+                      <span className="text-blue-200 font-semibold ml-1">
                         đ
                       </span>
                     )}
                     {minPrice !== null && (
-                      <span className="text-orange-200 text-sm ml-1">
+                      <span className="text-blue-200 text-sm ml-1">
                         / person
                       </span>
                     )}
@@ -907,7 +907,7 @@ export default function PublicTourDetail() {
                     </h3>
 
                     {selectedSchedule ? (
-                      <div className="rounded-2xl border border-[#EB662B] bg-orange-50/30 p-4">
+                      <div className="rounded-2xl border border-[#0068E0] bg-blue-50/30 p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="text-sm font-semibold text-slate-500">
@@ -923,12 +923,12 @@ export default function PublicTourDetail() {
                           </div>
                           <button
                             onClick={() => setIsScheduleModalOpen(true)}
-                            className="text-sm font-bold text-[#EB662B] hover:text-orange-700 underline"
+                            className="text-sm font-bold text-[#0068E0] hover:text-blue-700 underline"
                           >
                             Change
                           </button>
                         </div>
-                        <div className="border-t border-orange-200/50 pt-3 flex justify-between items-center">
+                        <div className="border-t border-blue-200/50 pt-3 flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-600">
                             Price range
                           </span>
@@ -937,7 +937,7 @@ export default function PublicTourDetail() {
                           </span>
                         </div>
                         {selectedScheduleTickets.length > 0 && (
-                          <div className="mt-3 space-y-2 border-t border-orange-200/50 pt-3">
+                          <div className="mt-3 space-y-2 border-t border-blue-200/50 pt-3">
                             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-400">
                               <Ticket className="h-3.5 w-3.5" />
                               Ticket options
@@ -972,15 +972,15 @@ export default function PublicTourDetail() {
                     ) : (
                       <button
                         onClick={() => setIsScheduleModalOpen(true)}
-                        className="w-full flex items-center justify-between rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 hover:border-[#EB662B] hover:bg-orange-50 transition-all group"
+                        className="w-full flex items-center justify-between rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 hover:border-[#0068E0] hover:bg-blue-50 transition-all group"
                       >
-                        <div className="flex items-center gap-3 text-slate-600 group-hover:text-[#EB662B]">
+                        <div className="flex items-center gap-3 text-slate-600 group-hover:text-[#0068E0]">
                           <Calendar className="h-5 w-5" />
                           <span className="font-medium">Select a date</span>
                         </div>
                         <ChevronRight
                           size={18}
-                          className="text-slate-300 group-hover:text-[#EB662B] transition-colors"
+                          className="text-slate-300 group-hover:text-[#0068E0] transition-colors"
                         />
                       </button>
                     )}
@@ -989,7 +989,7 @@ export default function PublicTourDetail() {
                   {/* ActionButton - same as original */}
                   <ActionButton
                     variant="primary"
-                    className="w-full py-4 text-base shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
+                    className="w-full py-4 text-base shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
                     disabled={!selectedCheckoutSchedule}
                     onClick={() => {
                       navigate(PATH.CUSTOMER.CHECKOUT(tour.id), {
@@ -1009,7 +1009,7 @@ export default function PublicTourDetail() {
               {/* Quick stats */}
               <div className="mt-4 bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <div className="text-lg font-black text-[#EB662B]">
+                  <div className="text-lg font-black text-[#0068E0]">
                     {days || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
@@ -1017,7 +1017,7 @@ export default function PublicTourDetail() {
                   </div>
                 </div>
                 <div className="border-x border-slate-100">
-                  <div className="text-lg font-black text-[#EB662B]">
+                  <div className="text-lg font-black text-[#0068E0]">
                     {reviews || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
@@ -1025,7 +1025,7 @@ export default function PublicTourDetail() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-lg font-black text-[#EB662B]">
+                  <div className="text-lg font-black text-[#0068E0]">
                     {rating > 0 ? rating.toFixed(1) : "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
@@ -1073,7 +1073,7 @@ export default function PublicTourDetail() {
                     onClick={() => setSelectedMonth(month)}
                     className={`whitespace-nowrap py-4 text-sm font-bold border-b-2 transition-colors ${
                       activeMonth === month
-                        ? "border-[#EB662B] text-[#EB662B]"
+                        ? "border-[#0068E0] text-[#0068E0]"
                         : "border-transparent text-slate-500 hover:text-slate-800"
                     }`}
                   >
@@ -1085,7 +1085,7 @@ export default function PublicTourDetail() {
 
             <div className="p-6 max-h-[60vh] overflow-y-auto bg-slate-50/30">
               {availableMonths.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="flex flex-col gap-3">
                   {groupedSchedules[activeMonth].map((schedule) => {
                     const isSelected = selectedScheduleId === schedule.id;
                     const depDate = new Date(schedule.departureDate);
@@ -1109,155 +1109,156 @@ export default function PublicTourDetail() {
                         className={`relative text-left rounded-2xl border-2 p-4 transition-all
                           ${
                             isSelected
-                              ? "border-[#EB662B] bg-orange-50/50 ring-1 ring-[#EB662B] shadow-md"
+                              ? "border-[#0068E0] bg-blue-50/50 ring-1 ring-[#0068E0] shadow-md"
                               : isUnavailable
                               ? "border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed grayscale-[50%]"
                               : "border-slate-200 bg-white hover:shadow-md"
                           }`}
                       >
                         {isSelected && (
-                          <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-[#EB662B] flex items-center justify-center">
+                          <div className="absolute right-3 top-3 h-5 w-5 rounded-full bg-[#0068E0] flex items-center justify-center">
                             <CheckCircle2 size={12} className="text-white" />
                           </div>
                         )}
 
-                        {/* Calendar date badge + info */}
-                        <div className="flex items-center gap-3 mb-3">
-                          <div
-                            className={`rounded-xl px-2.5 py-1.5 text-center min-w-[48px] shrink-0 ${isSelected ? "bg-[#EB662B]" : "bg-slate-100"}`}
-                          >
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                          <div className="flex min-w-0 flex-1 items-center gap-4">
                             <div
-                              className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? "text-orange-200" : "text-slate-400"}`}
+                              className={`rounded-xl px-3 py-2 text-center min-w-[58px] shrink-0 ${isSelected ? "bg-[#0068E0]" : "bg-slate-100"}`}
                             >
-                              {depDate.toLocaleDateString("en", {
-                                month: "short",
-                              })}
-                            </div>
-                            <div
-                              className={`text-xl font-black leading-tight ${isSelected ? "text-white" : "text-slate-800"}`}
-                            >
-                              {depDate.getDate()}
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs text-slate-400 font-medium">
-                              to
-                            </div>
-                            <div className="font-bold text-slate-700 text-sm truncate">
-                              {fmtDate(schedule.returnDate)}
-                            </div>
-                            <div className="text-xs text-slate-400">
-                              {nights} night{nights !== 1 ? "s" : ""}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
-                          <span
-                            className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                              isExpired
-                                ? "bg-slate-200 text-slate-500"
-                                : hasNoPrice
-                                ? "bg-slate-200 text-slate-500"
-                                : isSoldOut
-                                ? "bg-rose-100 text-rose-600"
-                                : scheduleAvailableSeats <= 5
-                                ? "bg-amber-100 text-amber-600"
-                                : "bg-emerald-50 text-emerald-600"
-                            }`}
-                          >
-                            {isExpired
-                              ? "Expired"
-                              : hasNoPrice
-                              ? "No price"
-                              : isSoldOut
-                              ? "Sold Out"
-                              : scheduleAvailableSeats <= 5
-                              ? `Few seats left: ${scheduleAvailableSeats}`
-                              : `${scheduleAvailableSeats} seats left`}
-                          </span>
-                          <span className={`font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
-                            {getSchedulePriceText(schedule)}
-                          </span>
-                        </div>
-
-                        {scheduleTickets.length > 0 && (
-                          <div className="mt-3 border-t border-slate-100 pt-3">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setExpandedTicketScheduleId((currentId) =>
-                                  currentId === schedule.id ? null : schedule.id,
-                                )
-                              }
-                              className="flex w-full items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
-                            >
-                              <span>
-                                {isExpandedTickets ? "Hide" : "Show"} ticket prices
-                              </span>
-                              {isExpandedTickets ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </button>
-
-                            {isExpandedTickets && (
-                              <div className="mt-2 space-y-2">
-                                {scheduleTickets.map((ticket) => {
-                                  const ticketPrice = getNumberValue(ticket.price);
-                                  const ticketAvailable =
-                                    getScheduleTicketAvailable(ticket) ?? 0;
-
-                                  return (
-                                    <div
-                                      key={ticket.id}
-                                      className="rounded-xl border border-slate-100 bg-white px-3 py-2"
-                                    >
-                                      <div className="flex items-center justify-between gap-3 text-sm">
-                                        <span className="min-w-0 truncate font-semibold text-slate-800">
-                                          {getTicketDisplayName(ticket, ticketTypeDetails)}
-                                        </span>
-                                        <span className="shrink-0 font-bold text-slate-900">
-                                          {ticketPrice !== null
-                                            ? `${fmt(ticketPrice)} đ`
-                                            : "No price"}
-                                        </span>
-                                      </div>
-                                      <div className="mt-1 text-xs font-medium text-slate-400">
-                                        {ticketAvailable} available
-                                      </div>
-                                    </div>
-                                  );
+                              <div
+                                className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? "text-blue-200" : "text-slate-400"}`}
+                              >
+                                {depDate.toLocaleDateString("en", {
+                                  month: "short",
                                 })}
                               </div>
+                              <div
+                                className={`text-2xl font-black leading-tight ${isSelected ? "text-white" : "text-slate-800"}`}
+                              >
+                                {depDate.getDate()}
+                              </div>
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                                Departure - Return
+                              </div>
+                              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-slate-800">
+                                <span>{fmtDate(schedule.departureDate)}</span>
+                                <span className="text-slate-300">to</span>
+                                <span>{fmtDate(schedule.returnDate)}</span>
+                              </div>
+                              <div className="mt-1 text-xs font-medium text-slate-400">
+                                {nights} night{nights !== 1 ? "s" : ""}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+                            <span
+                              className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
+                                isExpired
+                                  ? "bg-slate-200 text-slate-500"
+                                  : hasNoPrice
+                                  ? "bg-slate-200 text-slate-500"
+                                  : isSoldOut
+                                  ? "bg-rose-100 text-rose-600"
+                                  : scheduleAvailableSeats <= 5
+                                  ? "bg-amber-100 text-amber-600"
+                                  : "bg-emerald-50 text-emerald-600"
+                              }`}
+                            >
+                              {isExpired
+                                ? "Expired"
+                                : hasNoPrice
+                                ? "No price"
+                                : isSoldOut
+                                ? "Sold Out"
+                                : scheduleAvailableSeats <= 5
+                                ? `Few seats left: ${scheduleAvailableSeats}`
+                                : `${scheduleAvailableSeats} seats left`}
+                            </span>
+
+                            <span className={`min-w-[110px] text-right font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
+                              {getSchedulePriceText(schedule)}
+                            </span>
+
+                            {scheduleTickets.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedTicketScheduleId((currentId) =>
+                                    currentId === schedule.id ? null : schedule.id,
+                                  )
+                                }
+                                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
+                              >
+                                {isExpandedTickets ? "Hide" : "Tickets"}
+                                {isExpandedTickets ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </button>
                             )}
+
+                            <button
+                              type="button"
+                              disabled={isUnavailable}
+                              onClick={() => {
+                                if (isExpired) {
+                                  showError("This schedule has expired.");
+                                  return;
+                                }
+                                if (isSoldOut) {
+                                  showError("This schedule is sold out.");
+                                  return;
+                                }
+                                if (hasNoPrice) {
+                                  showError("This schedule does not have a ticket price.");
+                                  return;
+                                }
+                                setSelectedScheduleId(schedule.id);
+                                setIsScheduleModalOpen(false);
+                              }}
+                              className="min-w-[132px] rounded-xl bg-[#0068E0] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                            >
+                              {isSelected ? "Selected" : "Select"}
+                            </button>
+                          </div>
+                        </div>
+
+                        {scheduleTickets.length > 0 && isExpandedTickets && (
+                          <div className="mt-4 grid gap-2 border-t border-slate-100 pt-3 sm:grid-cols-2">
+                            {scheduleTickets.map((ticket) => {
+                              const ticketPrice = getNumberValue(ticket.price);
+                              const ticketAvailable =
+                                getScheduleTicketAvailable(ticket) ?? 0;
+
+                              return (
+                                <div
+                                  key={ticket.id}
+                                  className="rounded-xl border border-slate-100 bg-white px-3 py-2"
+                                >
+                                  <div className="flex items-center justify-between gap-3 text-sm">
+                                    <span className="min-w-0 truncate font-semibold text-slate-800">
+                                      {getTicketDisplayName(ticket, ticketTypeDetails)}
+                                    </span>
+                                    <span className="shrink-0 font-bold text-slate-900">
+                                      {ticketPrice !== null
+                                        ? `${fmt(ticketPrice)} đ`
+                                        : "No price"}
+                                    </span>
+                                  </div>
+                                  <div className="mt-1 text-xs font-medium text-slate-400">
+                                    {ticketAvailable} available
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
-
-                        <button
-                          type="button"
-                          disabled={isUnavailable}
-                          onClick={() => {
-                            if (isExpired) {
-                              showError("This schedule has expired.");
-                              return;
-                            }
-                            if (isSoldOut) {
-                              showError("This schedule is sold out.");
-                              return;
-                            }
-                            if (hasNoPrice) {
-                              showError("This schedule does not have a ticket price.");
-                              return;
-                            }
-                            setSelectedScheduleId(schedule.id);
-                            setIsScheduleModalOpen(false);
-                          }}
-                          className="mt-4 w-full rounded-xl bg-[#EB662B] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
-                        >
-                          {isSelected ? "Selected" : "Select schedule"}
-                        </button>
                       </div>
                     );
                   })}
@@ -1278,8 +1279,8 @@ export default function PublicTourDetail() {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <div className="h-[2px] w-6 bg-[#EB662B] rounded-full" />
-      <span className="text-[11px] font-black uppercase tracking-[0.15em] text-[#EB662B]">
+      <div className="h-[2px] w-6 bg-[#0068E0] rounded-full" />
+      <span className="text-[11px] font-black uppercase tracking-[0.15em] text-[#0068E0]">
         {children}
       </span>
     </div>

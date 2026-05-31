@@ -22,7 +22,7 @@ export const MyReviewsPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-3xl bg-white shadow-sm border border-slate-100">
-        <Loader2 className="h-8 w-8 animate-spin text-[#EB662B]" />
+        <Loader2 className="h-8 w-8 animate-spin text-[#0068E0]" />
         <p className="text-sm font-medium text-slate-500">
           Loading your reviews...
         </p>
@@ -36,7 +36,7 @@ export const MyReviewsPage: React.FC = () => {
         <p className="text-rose-500 font-semibold">{error}</p>
         <button
           onClick={() => fetchAllMyReviews()}
-          className="mt-2 text-sm font-medium text-[#EB662B] hover:underline"
+          className="mt-2 text-sm font-medium text-[#0068E0] hover:underline"
         >
           Try Again
         </button>
@@ -58,7 +58,7 @@ export const MyReviewsPage: React.FC = () => {
               {/* Thông tin Tour được Review */}
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-[#EB662B]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-[#0068E0]">
                     <Map className="h-5 w-5" />
                   </div>
                   <div>
@@ -85,7 +85,7 @@ export const MyReviewsPage: React.FC = () => {
                 {/* Nút xem lại chi tiết Tour */}
                 <Link
                   to={`/tours/${review.tourId}`} // Tùy chỉnh route chi tiết tour của bạn (ví dụ PATH.PUBLIC.TOUR_DETAIL(review.tourId))
-                  className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#EB662B] hover:ring-[#EB662B]/30"
+                  className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#0068E0] hover:ring-[#0068E0]/30"
                 >
                   View Tour <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
@@ -157,7 +157,7 @@ export const MyReviewsPage: React.FC = () => {
       ) : (
         /* Empty State */
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 text-[#EB662B]">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 text-[#0068E0]">
             <Star className="h-8 w-8" />
           </div>
           <h3 className="mb-2 text-lg font-bold text-slate-900">
@@ -169,7 +169,7 @@ export const MyReviewsPage: React.FC = () => {
           </p>
           <Link
             to={PATH.CUSTOMER.MY_BOOKINGS}
-            className="mt-6 rounded-xl bg-[#EB662B] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#d4531d] shadow-sm shadow-[#EB662B]/20"
+            className="mt-6 rounded-xl bg-[#0068E0] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#0058D0] shadow-sm shadow-[#0068E0]/20"
           >
             View My Bookings
           </Link>

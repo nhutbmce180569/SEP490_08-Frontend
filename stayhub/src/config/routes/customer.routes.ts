@@ -19,6 +19,7 @@ export const CUSTOMER_ROUTES = {
   CHECKOUT: (id: string | number = ':id') => `/tours/${id}/book`,
   BOOKING_DETAIL: (id: string | number = ':id') => `/my-bookings/${id}`,
   CANCEL_BOOKING: (id: string | number = ':id') => `/my-bookings/${id}/cancel`,
+  REQUEST_CANCELLATION: (id: string | number = ':id') => `/my-bookings/${id}/request-refund`,
   REMOVE_WISHLIST: (id: string | number = ':id') => `/wishlist/${id}/remove`,
   DELETE_REVIEW: (id: string | number = ':id') => `/my-reviews/${id}/delete`,
   TOUR_MAP: (id: string | number = ':id') => `/tours/${id}/map`,

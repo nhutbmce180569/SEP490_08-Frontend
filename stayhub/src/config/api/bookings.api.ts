@@ -11,6 +11,12 @@ export const BOOKINGS_API = {
   CANCEL_ORDER: (id: string | number) => `${FULL_API}/orders/${id}/cancel`,
   GET_OPERATOR_ORDERS: `${FULL_API}/operator/orders`,
   
+  // Cancellation Requests
+  CREATE_CANCELLATION_REQUEST: `${FULL_API}/CancellationRequest`,
+  GET_CANCELLATION_REQUESTS: `${FULL_API}/CancellationRequest`,
+  GET_CANCELLATION_REQUEST_DETAIL: (id: string | number) => `${FULL_API}/CancellationRequest/${id}`,
+  PROCESS_CANCELLATION_REQUEST: (id: string | number) => `${FULL_API}/CancellationRequest/${id}/process`,
+
   // Check-in
   CHECK_IN: (sId: string | number) => `${FULL_API}/schedules/${sId}/check-in`,
   

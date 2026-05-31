@@ -5,6 +5,7 @@ import {
   BookOpen,
   CalendarDays,
   CircleDollarSign,
+  FileText,
   LayoutDashboard,
   Menu,
   Search,
@@ -73,6 +74,11 @@ export const DashboardLayout: React.FC = () => {
         label: 'Bookings',
         to: PATH.MANAGER.BOOKING_MANAGEMENT,
         icon: <TicketPercent className="h-4 w-4" />,
+      },
+      {
+        label: 'Cancellations',
+        to: PATH.MANAGER.CANCELLATION_REQUESTS,
+        icon: <FileText className="h-4 w-4" />,
       },
       {
         label: 'Vouchers',

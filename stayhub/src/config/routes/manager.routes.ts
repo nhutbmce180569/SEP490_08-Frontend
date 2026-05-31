@@ -11,6 +11,7 @@ export const MANAGER_ROUTES = {
   VOUCHERS: '/manager/vouchers',
   CREATE_OPERATOR_VOUCHER: '/manager/vouchers/create',
   OPERATOR_VOUCHER_DETAIL: (id: string | number = ':id') => `/manager/vouchers/${id}`,
+  CANCELLATION_REQUESTS: '/manager/cancellations',
   EDIT_OPERATOR_VOUCHER: (id: string | number = ':id') => `/manager/vouchers/${id}/edit`,
   REVIEWS: '/manager/reviews',
   PAYOUT: '/manager/payout',
@@ -20,6 +21,7 @@ export const MANAGER_ROUTES = {
   EDIT_TOUR: (id: string | number = ':id') => `/manager/tours/edit/${id}`,
   DELETE_TOUR: (id: string | number = ':id') => `/manager/tours/${id}/delete`,
   DELETE_VOUCHER: (id: string | number = ':id') => `/manager/vouchers/${id}/delete`,
+  PROCESS_CANCELLATION: (id: string | number = ':id') => `/manager/cancellations/${id}`,
 
   // Itinerary Routes
   CREATE_ITINERARY: (tourId: string | number = ':tourId') => `/manager/tours/${tourId}/itineraries/create`,

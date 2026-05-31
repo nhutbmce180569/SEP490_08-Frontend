@@ -25,6 +25,8 @@ import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
 import { useGroupedItineraries } from "../features/tour/hooks/useGroupedItineraries";
+import { useGetTourItineraries } from "../features/social/tours/hooks/useTourItineraries";
+import { TourItineraryMap } from "../features/social/tours/components/TourItineraryMap";
 import { ticketTypeService } from "../features/content/services/ticketType.service";
 import type { ReadTicketTypeDTO } from "../features/content/types/ticketType";
 import { tourismInformationService } from "../features/content/services/tourismInformation.service";
@@ -43,6 +45,7 @@ type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
   endLocationName?: string | null;
 };
+
 
 const fmt = (n: number) => n.toLocaleString("vi-VN");
 const fmtDate = (d: string) =>
@@ -123,6 +126,8 @@ export default function PublicTourDetail() {
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id);
   const { error: showError } = useToast();
+
+  const { data: itineraries = [], isLoading: isItinerariesLoading } = useGetTourItineraries(Number(id));
 
   const [showFullError, setShowFullError] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -338,7 +343,7 @@ export default function PublicTourDetail() {
     );
   }
 
-  const itineraries = tour.tourItineraries || [];
+  const tourItineraries = tour.tourItineraries || [];
 
   return (
     <div className="-mt-[88px] bg-white">
@@ -483,7 +488,21 @@ export default function PublicTourDetail() {
               <h2 className="text-2xl font-bold text-slate-800 mb-8">
                 Itinerary
               </h2>
-              {itineraries.length > 0 ? (
+              
+              <div className="mb-10">
+                <h2 className="mb-6 text-2xl font-bold text-slate-900">Itinerary Map</h2>
+                {isItinerariesLoading ? (
+                  <div className="flex h-[400px] items-center justify-center rounded-2xl bg-slate-50 border border-slate-100">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent"></div>
+                  </div>
+                ) : itineraries.length > 0 ? (
+                  <TourItineraryMap itineraries={itineraries} />
+                ) : (
+                  <p className="text-slate-500 italic">No map data available.</p>
+                )}
+              </div>
+
+              {tourItineraries.length > 0 ? (
                 <div className="relative">
                   <div className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-[#EB662B] via-orange-200 to-transparent hidden sm:block" />
                   <div className="space-y-6">

@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { GoogleMap, Marker, Polyline, useJsApiLoader, OverlayView } from "@react-google-maps/api";
-import { MapPin, Clock, Navigation, Calendar } from "lucide-react";
+import { MapPin, Clock, Navigation, Calendar, ChevronLeft, List, Share2 } from "lucide-react";
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
+import { useGenerateTrackingToken } from "../../tracking/hooks/useTracking";
+import { useToast } from "../../../../contexts/ToastContext";
 
 // 1. Định nghĩa Types/Interfaces
 export interface ItineraryLocation {
@@ -13,8 +15,8 @@ export interface ItineraryLocation {
   locationName: string;
   locationLat: number;
   locationLng: number;
-  startDuration: string;
-  endDuration: string;
+  startDuration: string | null;
+  endDuration: string | null;
 }
 
 interface TourItineraryMapProps {
@@ -38,28 +40,34 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
 
   const mapRef = useRef<google.maps.Map | null>(null);
 
+  const { success } = useToast();
+  const { mutate: generateTrackingToken, isPending: isGeneratingToken } = useGenerateTrackingToken();
+
   // 2. Quản lý State & Dữ liệu phái sinh
-  // Bóc tách mảng Unique Days (Các ngày duy nhất) và sắp xếp tăng dần
   const uniqueDays = useMemo(() => {
     const days = Array.from(new Set(itineraries.map((i) => i.dayNumber)));
     return days.sort((a, b) => a - b);
   }, [itineraries]);
 
-  const [selectedDay, setSelectedDay] = useState<number>(1);
+  const [selectedDay, setSelectedDay] = useState<number | 'ALL'>('ALL');
   const [activeLocId, setActiveLocId] = useState<number | null>(null);
 
-  // YÊU CẦU 2: Tích hợp logic Thời gian (Pre-tour vs In-tour)
+  // State cho UI Panel và Đường đi động (Animation)
+  const [isPanelExpanded, setIsPanelExpanded] = useState(true);
+  const [animatedPath, setAnimatedPath] = useState<google.maps.LatLng[]>([]);
+
+  // Tích hợp logic Thời gian (Pre-tour vs In-tour)
   const isTourStarted = useMemo(() => new Date() >= new Date(departureDate), [departureDate]);
   
   // State lưu vị trí người dùng khi In-tour
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
-  // YÊU CẦU 3: Tích hợp Lớp Vị trí Bạn bè Real-time
+  // Tích hợp Lớp Vị trí Bạn bè Real-time
   const [showLiveFriends, setShowLiveFriends] = useState(true);
   const [friendLocations, setFriendLocations] = useState<any[]>([]);
   const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
 
-  // BƯỚC 3: Hook 1 - Initial Load & SignalR Real-time
+  // Hook 1 - Initial Load & SignalR Real-time
   useEffect(() => {
     if (!showLiveFriends) return;
 
@@ -68,7 +76,6 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     const initLocationService = async () => {
       try {
         const initialFriends = await locationService.getLiveFriends();
-        // Lấy đúng mảng bên trong thuộc tính data do Backend trả về (nếu có)
         setFriendLocations(initialFriends?.data || initialFriends || []);
       } catch (err) {
         console.error("Lỗi lấy danh sách bạn bè live:", err);
@@ -109,9 +116,8 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     };
   }, [showLiveFriends]);
 
-  // BƯỚC 4: Hook 2 - Ping vị trí của chính mình lên Server
+  // Hook 2 - Ping vị trí của chính mình lên Server
   useEffect(() => {
-    // Bỏ isTourStarted để ứng dụng luôn lấy GPS và ping khi mở map
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -128,30 +134,75 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     }
   }, [scheduleId]);
 
-  // Tự động set selectedDay là ngày đầu tiên nếu danh sách thay đổi và selectedDay hiện tại không tồn tại
-  useEffect(() => {
-    if (uniqueDays.length > 0 && !uniqueDays.includes(selectedDay)) {
-      setSelectedDay(uniqueDays[0]);
-    }
-  }, [uniqueDays, selectedDay]);
-
   // Lọc lịch trình theo ngày đang chọn và sắp xếp theo thời gian bắt đầu
   const currentDayItineraries = useMemo(() => {
-    return itineraries
-      .filter((i) => i.dayNumber === selectedDay)
-      .sort((a, b) => {
-        const timeA = a.startDuration || "00:00";
-        const timeB = b.startDuration || "00:00";
-        return timeA.localeCompare(timeB);
-      });
+    let filtered = itineraries;
+    if (selectedDay !== 'ALL') {
+      filtered = itineraries.filter((i) => i.dayNumber === selectedDay);
+    }
+    return filtered.sort((a, b) => {
+      if (a.dayNumber !== b.dayNumber) return a.dayNumber - b.dayNumber;
+      const timeA = a.startDuration || "00:00";
+      const timeB = b.startDuration || "00:00";
+      return timeA.localeCompare(timeB);
+    });
   }, [itineraries, selectedDay]);
 
-  // Mảng đường đi (Polyline) nối tọa độ các điểm đến
-  const polylinePath = useMemo(() => {
-    return currentDayItineraries
-      .filter((loc) => loc.locationLat && loc.locationLng)
-      .map((loc) => ({ lat: loc.locationLat, lng: loc.locationLng }));
-  }, [currentDayItineraries]);
+  // Lấy đường đi thực tế từ Directions API & Animation Vẽ Đường
+  useEffect(() => {
+    if (!isLoaded || !window.google) return;
+
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const validItineraries = currentDayItineraries.filter(loc => loc.locationLat && loc.locationLng);
+    if (validItineraries.length < 2) {
+      setAnimatedPath([]);
+      return;
+    }
+
+    const directionsService = new window.google.maps.DirectionsService();
+    const origin = new window.google.maps.LatLng(validItineraries[0].locationLat, validItineraries[0].locationLng);
+    const destination = new window.google.maps.LatLng(
+      validItineraries[validItineraries.length - 1].locationLat,
+      validItineraries[validItineraries.length - 1].locationLng
+    );
+
+    const waypoints = validItineraries.slice(1, -1).map(loc => ({
+      location: new window.google.maps.LatLng(loc.locationLat, loc.locationLng),
+      stopover: true
+    }));
+
+    directionsService.route(
+      {
+        origin,
+        destination,
+        waypoints,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK && result) {
+          const overviewPath = result.routes[0].overview_path;
+          let currentIndex = 0;
+          setAnimatedPath([]);
+
+          intervalId = setInterval(() => {
+            if (currentIndex < overviewPath.length) {
+              setAnimatedPath(prev => [...prev, overviewPath[currentIndex]]);
+              currentIndex++;
+            } else {
+              clearInterval(intervalId);
+            }
+          }, 20); // 20ms/điểm
+        } else {
+          console.warn("Directions request failed due to " + status);
+        }
+      }
+    );
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [currentDayItineraries, isLoaded]);
 
   // Tự động fitBounds để hiển thị toàn bộ lộ trình của ngày
   useEffect(() => {
@@ -168,7 +219,6 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
 
       if (hasValidCoords) {
         mapRef.current.fitBounds(bounds);
-        // Điều chỉnh zoom sau khi fitBounds nếu chỉ có 1 điểm duy nhất
         if (currentDayItineraries.length === 1) {
           const listener = window.google.maps.event.addListener(mapRef.current, "idle", () => {
             if (mapRef.current!.getZoom()! > 15) {
@@ -185,7 +235,6 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     mapRef.current = map;
   }, []);
 
-  // Hàm Xử lý khi nhấn vào 1 mục trên Timeline
   const handleLocationClick = (loc: ItineraryLocation) => {
     setActiveLocId(loc.id);
     if (mapRef.current && loc.locationLat && loc.locationLng && window.google) {
@@ -194,104 +243,26 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     }
   };
 
-  // Hàm tiện ích cắt format HH:mm:ss thành HH:mm
-  const formatTime = (timeStr?: string) => {
-    if (!timeStr) return "--:--";
+  const formatTime = (timeStr?: string | null) => {
+    if (!timeStr) return "";
     return timeStr.length >= 5 ? timeStr.substring(0, 5) : timeStr;
   };
-console.log("=== DANH SÁCH BẠN BÈ ===", friendLocations);
+
+  const handleShareLocation = () => {
+    generateTrackingToken(undefined, {
+      onSuccess: (token) => {
+        const link = window.location.origin + '/track/' + token;
+        navigator.clipboard.writeText(link);
+        success("Đã tạo link theo dõi 24h và sao chép vào khay nhớ tạm!");
+      }
+    });
+  };
+
   return (
-    <div className="flex flex-col md:flex-row h-[70vh] min-h-[500px] w-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      {/* 3. Panel Trái: Day Stepper & Timeline */}
-      <div className="w-full md:w-[380px] flex flex-col border-b md:border-b-0 md:border-r border-slate-200 bg-white shrink-0">
-
-        {/* YÊU CẦU 2: Pre-tour Banner (Hiển thị khi Tour chưa bắt đầu) */}
-        {!isTourStarted && currentDayItineraries.length > 0 && (
-          <div className="mx-4 mt-4 mb-1 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600 mb-1">Điểm tập trung chặng đầu</p>
-            <h4 className="text-sm font-bold text-slate-800 mb-3">{currentDayItineraries[0].locationName || currentDayItineraries[0].title}</h4>
-            <button
-              onClick={() => {
-                const firstLoc = currentDayItineraries[0];
-                window.open(`https://www.google.com/maps/search/?api=1&query=${firstLoc.locationLat},${firstLoc.locationLng}`);
-              }}
-              className="flex items-center justify-center gap-2 w-full py-2 bg-[#EB662B] text-white rounded-lg text-sm font-bold shadow-sm transition-all hover:bg-orange-600 active:scale-95"
-            >
-              <Navigation className="w-4 h-4" /> Chỉ đường đến điểm hẹn
-            </button>
-          </div>
-        )}
-        
-        {/* Header Tabs Chọn Ngày */}
-        <div className="p-4 border-b border-slate-100 bg-slate-50/50">
-          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#EB662B]" /> Lịch trình chi tiết
-          </h3>
-          <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
-            {uniqueDays.length === 0 ? (
-              <span className="text-sm text-slate-400">Không có dữ liệu ngày</span>
-            ) : (
-              uniqueDays.map((day) => (
-                <button
-                  key={day}
-                  onClick={() => { setSelectedDay(day); setActiveLocId(null); }}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-                    selectedDay === day
-                      ? "bg-[#EB662B] text-white shadow-sm"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  Ngày {day}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Body Lịch trình (Timeline) */}
-        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
-          {currentDayItineraries.length === 0 ? (
-            <div className="text-center text-sm text-slate-500 mt-10">Không có điểm đến nào trong ngày này.</div>
-          ) : (
-            <div className="relative border-l-2 border-slate-100 ml-3 pl-5 space-y-6">
-              {currentDayItineraries.map((loc, idx) => (
-                <div 
-                  key={loc.id} 
-                  onClick={() => handleLocationClick(loc)}
-                  className="relative cursor-pointer group"
-                >
-                  {/* Dấu chấm Timeline */}
-                  <div 
-                    className={`absolute -left-[27px] w-3 h-3 rounded-full border-2 border-white top-1 transition-all duration-300 ${
-                      activeLocId === loc.id ? "bg-[#EB662B] scale-150 ring-4 ring-[#EB662B]/20" : "bg-slate-300 group-hover:bg-[#EB662B]/50"
-                    }`} 
-                  />
-                  
-                  {/* Nội dung Card */}
-                  <div className={`p-4 rounded-xl border transition-all duration-300 ${
-                    activeLocId === loc.id 
-                      ? "bg-orange-50/50 border-orange-200 shadow-sm" 
-                      : "bg-white border-slate-100 hover:border-orange-100 hover:bg-slate-50"
-                  }`}>
-                    <div className="flex items-center gap-2 text-xs font-semibold text-[#EB662B] mb-2">
-                      <Clock className="w-3.5 h-3.5" />
-                      {formatTime(loc.startDuration)} - {formatTime(loc.endDuration)}
-                    </div>
-                    <h4 className="text-sm font-bold text-slate-800 mb-1 leading-snug">{loc.title}</h4>
-                    <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-1.5">
-                      <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400 mt-0.5" />
-                      <span className="line-clamp-2 leading-relaxed">{loc.locationName}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* 4. Panel Phải: Google Maps */}
-      <div className="flex-1 relative bg-slate-100 min-h-[300px]">
+    <div className="relative h-[80vh] min-h-[600px] w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100">
+      
+      {/* 1. Background Google Maps */}
+      <div className="absolute inset-0 z-0">
         {!isLoaded ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-8 h-8 border-4 border-slate-300 border-t-[#EB662B] rounded-full animate-spin"></div>
@@ -304,7 +275,6 @@ console.log("=== DANH SÁCH BẠN BÈ ===", friendLocations);
             onLoad={onMapLoad}
             options={{ disableDefaultUI: true, zoomControl: true }}
           >
-            {/* YÊU CẦU 3: Toggle Button Bật/Tắt Vị trí bạn bè (Nổi góc bản đồ) */}
             {isTourStarted && (
               <div className="absolute top-4 right-14 z-10 bg-white/90 backdrop-blur-md px-3 py-2 rounded-xl shadow-sm border border-slate-200 animate-fade-in-down flex flex-col gap-1">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -324,13 +294,51 @@ console.log("=== DANH SÁCH BẠN BÈ ===", friendLocations);
               </div>
             )}
 
-            <Polyline path={polylinePath} options={{ strokeColor: "#EB662B", strokeWeight: 4, strokeOpacity: 0.8 }} />
+            <Polyline
+              path={animatedPath}
+              options={{
+                strokeColor: "#EB662B",
+                strokeWeight: 4,
+                strokeOpacity: 0.8
+              }}
+            />
             
-            {currentDayItineraries.map((loc) => (
-              <Marker key={loc.id} position={{ lat: loc.locationLat, lng: loc.locationLng }} onClick={() => handleLocationClick(loc)} animation={activeLocId === loc.id ? window.google.maps.Animation.BOUNCE : undefined} />
+            {currentDayItineraries.map((loc, index) => (
+              <OverlayView 
+                key={loc.id} 
+                position={{ lat: loc.locationLat, lng: loc.locationLng }} 
+                mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} 
+                getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}
+              >
+                <div className="relative z-10 flex flex-col items-center justify-center">
+                  {/* Popup Tooltip (hiển thị khi active) */}
+                  {activeLocId === loc.id && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 bg-white rounded-xl shadow-xl border border-slate-100 p-3 z-50 animate-fade-in-up">
+                      <div className="text-[10px] font-bold text-[#EB662B] mb-1">
+                        {formatTime(loc.startDuration)} - {formatTime(loc.endDuration)}
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-800 leading-tight mb-1">{loc.title}</h4>
+                      <div className="text-xs text-slate-500 line-clamp-1">{loc.locationName}</div>
+                      {/* Đuôi nhọn (Pointer tail) */}
+                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-b border-r border-slate-100 rotate-45"></div>
+                    </div>
+                  )}
+                  
+                  {/* Node tròn */}
+                  <div 
+                    onClick={() => handleLocationClick(loc)}
+                    className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 text-xs font-bold shadow-sm transition-all duration-300 ${
+                      activeLocId === loc.id
+                        ? "scale-110 border-[#EB662B] bg-[#EB662B] text-white"
+                        : "border-[#EB662B] bg-white text-[#EB662B] hover:scale-110 hover:bg-[#EB662B] hover:text-white"
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                </div>
+              </OverlayView>
             ))}
 
-            {/* YÊU CẦU 2: Marker Vị trí GPS hiện tại của User (Chấm xanh Pulse Effect) */}
             {isTourStarted && userLocation && (
               <OverlayView position={userLocation} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
                 <div className="relative flex items-center justify-center w-8 h-8 pointer-events-none">
@@ -340,7 +348,6 @@ console.log("=== DANH SÁCH BẠN BÈ ===", friendLocations);
               </OverlayView>
             )}
 
-            {/* YÊU CẦU 3: Lớp Marker Avatar Bạn bè */}
             {showLiveFriends && friendLocations.map((friend: any) => (
               <OverlayView key={`friend-${friend.userId}`} position={{ lat: friend.lat, lng: friend.lng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
                 <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
@@ -360,6 +367,127 @@ console.log("=== DANH SÁCH BẠN BÈ ===", friendLocations);
           </GoogleMap>
         )}
       </div>
+
+      {/* Floating Share Tracking Button */}
+      {isTourStarted && (
+        <button
+          onClick={handleShareLocation}
+          disabled={isGeneratingToken}
+          title="Chia sẻ hành trình"
+          className="absolute bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#EB662B] shadow-[0_8px_20px_rgba(0,0,0,0.15)] border-2 border-[#EB662B] transition-all hover:scale-110 active:scale-95 disabled:opacity-70"
+        >
+          {isGeneratingToken ? (
+            <div className="w-6 h-6 border-2 border-[#EB662B] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <Share2 className="w-6 h-6" />
+          )}
+        </button>
+      )}
+
+      {/* 2. Floating Panel Lịch trình */}
+      {isPanelExpanded ? (
+        <div className="absolute top-4 left-4 z-10 w-[350px] max-h-[calc(100%-32px)] flex flex-col bg-white/95 backdrop-blur-md shadow-2xl rounded-2xl border border-slate-100 overflow-hidden animate-fade-in-right">
+          <button 
+            onClick={() => setIsPanelExpanded(false)} 
+            className="absolute top-4 right-4 p-1.5 bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition-colors z-20"
+          >
+            <ChevronLeft className="w-4 h-4"/>
+          </button>
+
+          {!isTourStarted && currentDayItineraries.length > 0 && (
+            <div className="mx-4 mt-4 mb-1 p-4 bg-orange-50 border border-orange-200 rounded-xl shrink-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-orange-600 mb-1">Điểm tập trung chặng đầu</p>
+              <h4 className="text-sm font-bold text-slate-800 mb-3">{currentDayItineraries[0].locationName || currentDayItineraries[0].title}</h4>
+              <button
+                onClick={() => {
+                  const firstLoc = currentDayItineraries[0];
+                  window.open(`https://www.google.com/maps/search/?api=1&query=${firstLoc.locationLat},${firstLoc.locationLng}`);
+                }}
+                className="flex items-center justify-center gap-2 w-full py-2 bg-[#EB662B] text-white rounded-lg text-sm font-bold shadow-sm transition-all hover:bg-orange-600 active:scale-95"
+              >
+                <Navigation className="w-4 h-4" /> Chỉ đường đến điểm hẹn
+              </button>
+            </div>
+          )}
+          
+          <div className="p-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
+            <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#EB662B]" /> Lịch trình chi tiết
+            </h3>
+            <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
+              <button
+                onClick={() => { setSelectedDay('ALL'); setActiveLocId(null); }}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                  selectedDay === 'ALL' ? "bg-[#EB662B] text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                Tổng quan
+              </button>
+              {uniqueDays.map((day) => (
+                <button
+                  key={day}
+                  onClick={() => { setSelectedDay(day); setActiveLocId(null); }}
+                  className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                    selectedDay === day
+                      ? "bg-[#EB662B] text-white shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  Ngày {day}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+            {currentDayItineraries.length === 0 ? (
+              <div className="text-center text-sm text-slate-500 mt-10">Không có điểm đến nào trong lịch trình.</div>
+            ) : (
+              <div className="relative border-l-2 border-slate-100 ml-3 pl-5 space-y-6">
+                {currentDayItineraries.map((loc, idx) => (
+                  <div 
+                    key={loc.id} 
+                    onClick={() => handleLocationClick(loc)}
+                    className="relative cursor-pointer group"
+                  >
+                    <div 
+                      className={`absolute -left-[27px] w-3 h-3 rounded-full border-2 border-white top-1 transition-all duration-300 ${
+                        activeLocId === loc.id ? "bg-[#EB662B] scale-150 ring-4 ring-[#EB662B]/20" : "bg-slate-300 group-hover:bg-[#EB662B]/50"
+                      }`} 
+                    />
+                    
+                    <div className={`p-4 rounded-xl border transition-all duration-300 ${
+                      activeLocId === loc.id 
+                        ? "bg-orange-50/50 border-orange-200 shadow-sm" 
+                        : "bg-white border-slate-100 hover:border-orange-100 hover:bg-slate-50"
+                    }`}>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-[#EB662B] mb-2">
+                        <Clock className="w-3.5 h-3.5" />
+                        {loc.startDuration ? formatTime(loc.startDuration) + (loc.endDuration ? ' - ' + formatTime(loc.endDuration) : '') : 'Tự do'}
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-800 mb-1 leading-snug">
+                        {selectedDay === 'ALL' && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md mr-2">Ngày {loc.dayNumber}</span>}
+                        {loc.title}
+                      </h4>
+                      <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-1.5">
+                        <MapPin className="w-3.5 h-3.5 shrink-0 text-slate-400 mt-0.5" />
+                        <span className="line-clamp-2 leading-relaxed">{loc.locationName}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <button 
+          onClick={() => setIsPanelExpanded(true)} 
+          className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg border border-slate-100 text-slate-800 font-bold hover:bg-slate-50 transition-all"
+        >
+          <List className="w-5 h-5 text-[#EB662B]"/> Danh sách lịch trình
+        </button>
+      )}
     </div>
   );
 };

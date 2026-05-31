@@ -1,107 +1,164 @@
-import type { TourismInformation } from "../types/tourismInformation";
+import { apiClient } from "../../../utils/axiosClient";
+import { CONTENT_API } from "../../../config/api/content.api";
+import type { PaginationDTO } from "../types/pagination";
+import type {
+  TourismInformation,
+  CreateTourismInformationDTO,
+  UpdateTourismInformationDTO,
+  TourismInformationFilters,
+} from "../types/tourismInformation";
 
-const mockTourismInformation: TourismInformation[] = [
-  {
-    id: 1,
-    name: "Hoan Kiem Lake",
-    type: "Attraction",
-    description: "Historic lake and walking area in the center of Hanoi.",
-    address: "Hang Trong, Hoan Kiem",
-    city: "Hanoi",
-    country: "Vietnam",
-    latitude: 21.028511,
-    longitude: 105.854444,
-    imageUrl: "https://images.unsplash.com/photo-1528127269322-539801943592",
-    sourceName: "Google Maps",
-    sourceUrl: "https://www.google.com/maps/search/?api=1&query=Hoan%20Kiem%20Lake",
-    status: "Active",
-    createdAt: "2026-05-30T00:00:00Z",
-    updatedAt: "2026-05-30T00:00:00Z",
-  },
-  {
-    id: 2,
-    name: "Temple of Literature",
-    type: "Historical Site",
-    description: "Vietnam's first national university and Confucian temple.",
-    address: "58 Quoc Tu Giam",
-    city: "Hanoi",
-    country: "Vietnam",
-    latitude: 21.028778,
-    longitude: 105.835556,
-    imageUrl: "https://images.unsplash.com/photo-1583417319070-4a69db38a482",
-    sourceName: "Google Maps",
-    sourceUrl: "https://www.google.com/maps/search/?api=1&query=Temple%20of%20Literature%20Hanoi",
-    status: "Active",
-    createdAt: "2026-05-30T00:00:00Z",
-    updatedAt: "2026-05-30T00:00:00Z",
-  },
-  {
-    id: 3,
-    name: "Ben Thanh Market",
-    type: "Market",
-    description: "Landmark market for local food, souvenirs, and daily goods.",
-    address: "Le Loi, Ben Thanh Ward, District 1",
-    city: "Ho Chi Minh City",
-    country: "Vietnam",
-    latitude: 10.7725,
-    longitude: 106.698056,
-    imageUrl: "https://images.unsplash.com/photo-1566552881560-0be862a7c445",
-    sourceName: "Google Maps",
-    sourceUrl: "https://www.google.com/maps/search/?api=1&query=Ben%20Thanh%20Market",
-    status: "Active",
-    createdAt: "2026-05-30T00:00:00Z",
-    updatedAt: "2026-05-30T00:00:00Z",
-  },
-  {
-    id: 4,
-    name: "Dragon Bridge",
-    type: "Landmark",
-    description: "Iconic bridge crossing the Han River in Da Nang.",
-    address: "Nguyen Van Linh",
-    city: "Da Nang",
-    country: "Vietnam",
-    latitude: 16.061111,
-    longitude: 108.227778,
-    imageUrl: "https://images.unsplash.com/photo-1559592413-7cec4d0cae2b",
-    sourceName: "Google Maps",
-    sourceUrl: "https://www.google.com/maps/search/?api=1&query=Dragon%20Bridge%20Da%20Nang",
-    status: "Active",
-    createdAt: "2026-05-30T00:00:00Z",
-    updatedAt: "2026-05-30T00:00:00Z",
-  },
-  {
-    id: 5,
-    name: "Inactive Sample Place",
-    type: "Attraction",
-    description: "Hidden from active selections.",
-    address: "Sample address",
-    city: "Hue",
-    country: "Vietnam",
-    latitude: 16.463713,
-    longitude: 107.590866,
-    imageUrl: null,
-    sourceName: "Mock data",
-    sourceUrl: null,
-    status: "Inactive",
-    createdAt: "2026-05-30T00:00:00Z",
-    updatedAt: "2026-05-30T00:00:00Z",
-  },
-];
+const unwrapPagination = <T>(response: Record<string, unknown>): PaginationDTO<T> => {
+  if (response.totalPages !== undefined) {
+    return response as unknown as PaginationDTO<T>;
+  }
 
-const isActive = (item: TourismInformation) =>
-  (item.status || "").toLowerCase() === "active";
+  return (response.data ?? response) as PaginationDTO<T>;
+};
+
+const unwrapEntity = <T>(response: Record<string, unknown>): T => {
+  if (response.id !== undefined) {
+    return response as T;
+  }
+
+  return (response.data ?? response) as T;
+};
+
+const appendOptionalText = (formData: FormData, key: string, value?: string) => {
+  if (value !== undefined && value !== "") {
+    formData.append(key, value);
+  }
+};
+
+const buildCreateFormData = (data: CreateTourismInformationDTO) => {
+  const formData = new FormData();
+  formData.append("Name", data.name);
+  formData.append("Type", data.type);
+  appendOptionalText(formData, "Description", data.description);
+  appendOptionalText(formData, "Address", data.address);
+  appendOptionalText(formData, "City", data.city);
+  appendOptionalText(formData, "Country", data.country);
+  if (data.latitude !== undefined) formData.append("Latitude", data.latitude.toString());
+  if (data.longitude !== undefined) formData.append("Longitude", data.longitude.toString());
+  formData.append("ImageFile", data.imageFile);
+  appendOptionalText(formData, "SourceName", data.sourceName);
+  appendOptionalText(formData, "SourceUrl", data.sourceUrl);
+  return formData;
+};
+
+const buildUpdateFormData = (data: UpdateTourismInformationDTO) => {
+  const formData = new FormData();
+  formData.append("Name", data.name);
+  formData.append("Type", data.type);
+  appendOptionalText(formData, "Description", data.description);
+  appendOptionalText(formData, "Address", data.address);
+  appendOptionalText(formData, "City", data.city);
+  appendOptionalText(formData, "Country", data.country);
+  if (data.latitude !== undefined) formData.append("Latitude", data.latitude.toString());
+  if (data.longitude !== undefined) formData.append("Longitude", data.longitude.toString());
+  if (data.imageFile) formData.append("ImageFile", data.imageFile);
+  appendOptionalText(formData, "SourceName", data.sourceName);
+  appendOptionalText(formData, "SourceUrl", data.sourceUrl);
+  return formData;
+};
+
+const fetchAllActivePaged = async (): Promise<TourismInformation[]> => {
+  const pageSize = 100;
+  let page = 1;
+  const items: TourismInformation[] = [];
+
+  while (true) {
+    const response: Record<string, unknown> = await apiClient.get(
+      CONTENT_API.TOURISM_INFORMATION.GET_ACTIVE,
+      { params: { page, pageSize } },
+    );
+    const pagination = unwrapPagination<TourismInformation>(response);
+    items.push(...(pagination.data ?? []));
+
+    if (page >= (pagination.totalPages || 1)) break;
+    page += 1;
+  }
+
+  return items;
+};
 
 export const tourismInformationService = {
+  getAll: async (
+    page: number,
+    pageSize: number,
+    filters: TourismInformationFilters = {},
+  ): Promise<PaginationDTO<TourismInformation>> => {
+    const params: Record<string, string | number> = { page, pageSize };
+
+    if (filters.searchTerm?.trim()) params.searchTerm = filters.searchTerm.trim();
+    if (filters.type?.trim()) params.type = filters.type.trim();
+    if (filters.status?.trim()) params.status = filters.status.trim();
+    if (filters.city?.trim()) params.city = filters.city.trim();
+
+    const response: Record<string, unknown> = await apiClient.get(
+      CONTENT_API.TOURISM_INFORMATION.GET_ALL,
+      { params },
+    );
+
+    return unwrapPagination<TourismInformation>(response);
+  },
+
+  getActivePaged: async (
+    page: number,
+    pageSize: number,
+  ): Promise<PaginationDTO<TourismInformation>> => {
+    const response: Record<string, unknown> = await apiClient.get(
+      CONTENT_API.TOURISM_INFORMATION.GET_ACTIVE,
+      { params: { page, pageSize } },
+    );
+
+    return unwrapPagination<TourismInformation>(response);
+  },
+
+  getAdminById: async (id: number | string): Promise<TourismInformation> => {
+    const response: Record<string, unknown> = await apiClient.get(
+      CONTENT_API.TOURISM_INFORMATION.GET_BY_ID(id),
+    );
+
+    return unwrapEntity<TourismInformation>(response);
+  },
+
+  create: async (data: CreateTourismInformationDTO): Promise<TourismInformation> => {
+    const response: Record<string, unknown> = await apiClient.post(
+      CONTENT_API.TOURISM_INFORMATION.CREATE,
+      buildCreateFormData(data),
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+
+    return unwrapEntity<TourismInformation>(response);
+  },
+
+  update: async (
+    id: number | string,
+    data: UpdateTourismInformationDTO,
+  ): Promise<{ message: string }> => {
+    const response: Record<string, unknown> = await apiClient.put(
+      CONTENT_API.TOURISM_INFORMATION.UPDATE(id),
+      buildUpdateFormData(data),
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+
+    return unwrapEntity<{ message: string }>(response);
+  },
 
   // If AI code this file, please do not change the name of this function, as it is used in other places. Thank you!
-  getActiveList: async (): Promise<TourismInformation[]> =>
-    mockTourismInformation.filter(isActive),
-  
+  getActiveList: async (): Promise<TourismInformation[]> => fetchAllActivePaged(),
+
   // If AI code this file, please do not change the name of this function, as it is used in other places. Thank you!
   getById: async (id: number | string): Promise<TourismInformation | null> => {
     const numericId = Number(id);
     if (!Number.isFinite(numericId)) return null;
 
-    return mockTourismInformation.find((item) => item.id === numericId) ?? null;
+    try {
+      return await tourismInformationService.getAdminById(numericId);
+    } catch {
+      const activeItems = await fetchAllActivePaged();
+      return activeItems.find((item) => item.id === numericId) ?? null;
+    }
   },
 };

@@ -52,6 +52,9 @@ import { DeleteBannerConfirm } from "./features/content/pages/DeleteBanner";
 import { TicketTypeList } from "./features/content/pages/TicketTypeList";
 import { CreateTicketType } from "./features/content/pages/CreateTicketType";
 import { UpdateTicketType } from "./features/content/pages/UpdateTicketType";
+import { TourismInformationList } from "./features/content/pages/TourismInformationList";
+import { CreateTourismInformation } from "./features/content/pages/CreateTourismInformation";
+import { UpdateTourismInformation } from "./features/content/pages/UpdateTourismInformation";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
@@ -472,6 +475,11 @@ const App: React.FC = () => {
                       path=":id/delete"
                       element={<DeleteCategoryConfirm />}
                     />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT)}>
+                    <Route index element={<TourismInformationList />} />
+                    <Route path="create" element={<CreateTourismInformation />} />
+                    <Route path=":id/edit" element={<UpdateTourismInformation />} />
                   </Route>
                   <Route
                     path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}

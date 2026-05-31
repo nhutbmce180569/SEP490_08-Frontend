@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
   PieChart, Download, Users, Building, Map, 
   ShieldAlert, CreditCard, Ticket, Image, 
-  Layers, Settings, Menu, Bell, Search, MoreVertical, Home 
+  Layers, Settings, Menu, Bell, Search, MoreVertical, Home, Compass
 } from 'lucide-react';
 import { Sidebar, type AdminSidebarItem } from './Sidebar';
 import { PATH } from '../config/routes/route';
@@ -26,6 +26,7 @@ const ADMIN_SIDEBAR_ITEMS: AdminSidebarItem[] = [
   { label: 'Ticket Types', to: PATH.ADMIN.TICKET_TYPE_MANAGEMENT, icon: <Ticket /> },
   { label: 'Banners', to: PATH.ADMIN.BANNER_MANAGEMENT, icon: <Image /> },
   { label: 'Tour Categories', to: PATH.ADMIN.CATEGORY_MANAGEMENT, icon: <Layers /> },
+  { label: 'Tourism Information', to: PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT, icon: <Compass /> },
   { label: 'Global Settings', to: PATH.ADMIN.SYSTEM_SETTINGS, icon: <Settings /> },
 ];
 

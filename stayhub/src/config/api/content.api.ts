@@ -34,4 +34,14 @@ export const CONTENT_API = {
     ACTIVATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}/activate`,
     DEACTIVATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}/deactivate`,
   },
+
+  TOURISM_INFORMATION: {
+    GET_ALL: `${FULL_API}/TourismInformation`,
+    GET_ACTIVE: `${FULL_API}/TourismInformation/active`,
+    GET_BY_ID: (id: string | number) => `${FULL_API}/TourismInformation/${id}`,
+    CREATE: `${FULL_API}/TourismInformation`,
+    UPDATE: (id: string | number) => `${FULL_API}/TourismInformation/${id}`,
+    ACTIVATE: (id: string | number) => `${FULL_API}/TourismInformation/${id}/activate`,
+    DEACTIVATE: (id: string | number) => `${FULL_API}/TourismInformation/${id}/deactivate`,
+  },
 };

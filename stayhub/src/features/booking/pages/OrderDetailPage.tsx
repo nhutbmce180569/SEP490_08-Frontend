@@ -25,11 +25,11 @@ import { useOrderDetail } from "../hooks/useOrderDetail";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useGroupedItineraries } from "../../tour/hooks/useGroupedItineraries";
 import { ReviewForm } from "../../tour/pages/ReviewForm"; 
-import { cancelOrder } from "../services/booking.service";
 import { useToast } from "../../../contexts/ToastContext";
 import { useQuery } from "@tanstack/react-query";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
+import { useNavigate } from "react-router-dom";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -47,11 +47,11 @@ const dateFormatter = new Intl.DateTimeFormat("en-US", {
 
 export const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { order, isLoading, error, refetch } = useOrderDetail(id);
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [isCancelling, setIsCancelling] = useState(false);
   const { success, error: showError } = useToast();
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
@@ -167,28 +167,6 @@ export const OrderDetailPage: React.FC = () => {
   const getTicketDetail = (ticket: (typeof order.tickets)[number]) =>
     orderDetails.find((detail) => detail.id === ticket.orderDetailId) ??
     orderDetails.find((detail) => detail.ticketTypeId === ticket.ticketTypeId);
-
-  const handleCancelOrder = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this booking? This action cannot be undone and cancellation fees may apply.",
-    );
-    if (!confirmed) return;
-
-    try {
-      setIsCancelling(true);
-      await cancelOrder(order.id);
-      success("Order cancelled.");
-      await refetch();
-    } catch (err: any) {
-      showError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to cancel order.",
-      );
-    } finally {
-      setIsCancelling(false);
-    }
-  };
 
   return (
     <div className="mx-auto max-w-5xl py-8 px-4 sm:px-6 lg:px-8">
@@ -440,11 +418,10 @@ export const OrderDetailPage: React.FC = () => {
                     </p>
                     <ActionButton
                       variant="outline"
-                      disabled={isCancelling}
                       className="w-full !border-rose-200 !text-rose-600 hover:!bg-rose-100 hover:!border-rose-300"
-                      onClick={handleCancelOrder}
+                      onClick={() => navigate(PATH.CUSTOMER.REQUEST_CANCELLATION(order.id))}
                     >
-                      {isCancelling ? "Cancelling..." : "Cancel Order"}
+                      Request Cancellation
                     </ActionButton>
                   </div>
                 );

@@ -74,6 +74,9 @@ import TourSearch from "./pages/TourSearch";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
+import { CreateCancellationRequestPage } from "./features/booking/pages/CreateCancellationRequestPage";
+import { CancellationListPage } from "./features/booking/pages/CancellationListPage";
+import { ProcessCancellationPage } from "./features/booking/pages/ProcessCancellationPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
 import { VoucherList } from "./features/voucher/pages/VoucherList";
@@ -311,6 +314,10 @@ const App: React.FC = () => {
                       element={<OrderDetailPage />}
                     />
                     <Route
+                      path={PATH.CUSTOMER.REQUEST_CANCELLATION()}
+                      element={<CreateCancellationRequestPage />}
+                    />
+                    <Route
                       path={PATH.CUSTOMER.WISHLIST}
                       element={<MyWishlistPage />}
                     />
@@ -442,6 +449,14 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.MANAGER.CHECK_IN)}
                     element={mock("Check-in", "Partner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.CANCELLATION_REQUESTS)}
+                    element={<CancellationListPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.PROCESS_CANCELLATION())}
+                    element={<ProcessCancellationPage />}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
                     <Route index element={<VoucherList />} />

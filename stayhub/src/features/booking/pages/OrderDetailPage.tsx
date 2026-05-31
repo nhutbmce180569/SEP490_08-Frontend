@@ -179,63 +179,6 @@ export const OrderDetailPage: React.FC = () => {
     orderDetails.find((detail) => detail.id === ticket.orderDetailId) ??
     orderDetails.find((detail) => detail.ticketTypeId === ticket.ticketTypeId);
 
-<<<<<<< HEAD
-=======
-  const departureDate = order.schedule
-    ? new Date(order.schedule.departureDate)
-    : null;
-  const returnDate = order.schedule ? new Date(order.schedule.returnDate) : null;
-  const bookedDate = order.orderedAt ? new Date(order.orderedAt) : null;
-  const isSettled = order.status === "Completed" || order.status === "Paid";
-  const statusClasses =
-    order.status === "Cancelled"
-      ? "border-rose-200 bg-rose-50 text-rose-700"
-      : isSettled
-        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-        : "border-amber-200 bg-amber-50 text-amber-700";
-  const ticketCount = order.ticketCount ?? order.tickets?.length ?? 0;
-  const itineraryDayCount = Object.keys(groupedItineraries).length;
-  const tripDurationDays =
-    departureDate && returnDate
-      ? Math.max(
-          1,
-          Math.ceil(
-            (returnDate.getTime() - departureDate.getTime()) /
-              (1000 * 3600 * 24),
-          ) + 1,
-        )
-      : null;
-  const canCancelBooking =
-    order.status !== "Cancelled" &&
-    Boolean(departureDate) &&
-    !isTourEnded &&
-    Math.ceil(
-      ((departureDate?.getTime() ?? 0) - Date.now()) / (1000 * 3600 * 24),
-    ) >= 5;
-
-  const handleCancelOrder = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this booking? This action cannot be undone and cancellation fees may apply.",
-    );
-    if (!confirmed) return;
-
-    try {
-      setIsCancelling(true);
-      await cancelOrder(order.id);
-      success("Order cancelled.");
-      await refetch();
-    } catch (err: any) {
-      showError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to cancel order.",
-      );
-    } finally {
-      setIsCancelling(false);
-    }
-  };
-
->>>>>>> 32cec563acc0da738c6dedfec4bb717e8aa613f0
   return (
     <div className="w-full">
       <div className="space-y-6">
@@ -322,7 +265,6 @@ export const OrderDetailPage: React.FC = () => {
                         ? tripDateFormatter.format(departureDate)
                         : "N/A"}
                     </p>
-<<<<<<< HEAD
                     <ActionButton
                       variant="outline"
                       className="w-full !border-rose-200 !text-rose-600 hover:!bg-rose-100 hover:!border-rose-300"
@@ -330,14 +272,6 @@ export const OrderDetailPage: React.FC = () => {
                     >
                       Request Cancellation
                     </ActionButton>
-=======
-                    {departureDate && (
-                      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
-                        <Clock className="h-4 w-4 text-emerald-600" />
-                        {tripTimeFormatter.format(departureDate)}
-                      </p>
-                    )}
->>>>>>> 32cec563acc0da738c6dedfec4bb717e8aa613f0
                   </div>
 
                   <div className="hidden h-px w-10 bg-slate-200 xl:block" />

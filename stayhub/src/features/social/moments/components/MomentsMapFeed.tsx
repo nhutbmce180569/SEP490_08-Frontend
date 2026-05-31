@@ -182,39 +182,52 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   const points = useMemo(() => {
     if (!moments) return [];
+    
+    // 1. Trích xuất mảng dữ liệu (Hỗ trợ đủ loại cấu trúc response từ BE)
     const momentsArray = Array.isArray(moments) 
       ? moments 
       : ((moments as any).pages?.flat() || (moments as any).data || (moments as any).value || []);
 
-    return momentsArray
+    // 💥 DÒNG LOG CỰC QUAN TRỌNG ĐỂ BẮT BỆNH:
+    console.log("🔥 [DEBUG 1] Mảng Moments nhận được từ BE:", momentsArray);
+
+    const validPoints = momentsArray
       .filter((m: any) => {
-        const latitude = m.lat !== undefined ? m.lat : m.Lat;
-        const longitude = m.lng !== undefined ? m.lng : m.Lng;
+        // Bao phủ mọi trường hợp đặt tên của Backend (lat, Lat, latitude, Latitude)
+        const latitude = m.lat ?? m.Lat ?? m.latitude ?? m.Latitude;
+        const longitude = m.lng ?? m.Lng ?? m.longitude ?? m.Longitude;
         return latitude != null && longitude != null;
       })
       .map((m: any) => {
-        const latitude = m.lat !== undefined ? m.lat : m.Lat;
-        const longitude = m.lng !== undefined ? m.lng : m.Lng;
-        const userObj = m.user || m.User;
+        const latitude = m.lat ?? m.Lat ?? m.latitude ?? m.Latitude;
+        const longitude = m.lng ?? m.Lng ?? m.longitude ?? m.Longitude;
+        
+        // Đảm bảo không bị lỗi nếu BE không trả về object User
+        const userObj = m.user || m.User || {};
 
         return {
           type: "Feature" as const,
           properties: {
             cluster: false,
             momentId: m.id || m.Id,
-            userId: m.userId || userObj?.id || userObj?.Id,
-            avatarUrl: userObj?.avatarUrl || userObj?.AvatarUrl,
-            userFullName: userObj?.fullName || userObj?.FullName,
+            userId: m.userId || m.UserId || userObj.id || userObj.Id || 0,
+            avatarUrl: userObj.avatarUrl || userObj.AvatarUrl || m.avatarUrl || null,
+            userFullName: userObj.fullName || userObj.FullName || m.fullName || m.FullName || "?",
             rawMoment: m 
           },
           geometry: {
             type: "Point" as const,
+            // Ép kiểu ép buộc về Number đề phòng BE trả về chuỗi "9.940..."
             coordinates: [Number(longitude), Number(latitude)], 
           },
         };
       });
-  }, [moments]);
 
+    // 💥 LOG KIỂM TRA ĐẦU RA:
+    console.log("🔥 [DEBUG 2] Số lượng Marker được vẽ lên Map:", validPoints.length);
+    
+    return validPoints;
+  }, [moments]);
   useEffect(() => {
     if (points.length > 0 && mapRef.current && center === defaultCenter) {
       const firstPoint = points[0].geometry.coordinates;

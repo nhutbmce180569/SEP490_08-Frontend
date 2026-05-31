@@ -12,15 +12,17 @@ import {
 
 export const momentQueryKeys = {
   all: ["moments"] as const,
-  feed: (scheduleId: number) => [...momentQueryKeys.all, "feed", scheduleId] as const,
+  // Đổi thành number | null. Nếu null, gán chuỗi "global" để React Query phân biệt cache
+  feed: (scheduleId: number | null) => [...momentQueryKeys.all, "feed", scheduleId ?? "global"] as const,
   footprints: () => [...momentQueryKeys.all, "footprints"] as const,
 };
 
-export const useGetMomentFeed = (scheduleId: number) => {
+// 👉 Cho phép scheduleId nhận giá trị null
+export const useGetMomentFeed = (scheduleId: number | null) => {
   return useQuery({
     queryKey: momentQueryKeys.feed(scheduleId),
     queryFn: () => getMomentFeed(scheduleId),
-    enabled: !!scheduleId,
+    // BỎ DÒNG enabled: !!scheduleId Ở ĐÂY để cho phép gọi API khi null
   });
 };
 
@@ -31,7 +33,8 @@ export const useGetMyFootprints = () => {
   });
 };
 
-export const useInfiniteMomentFeed = (scheduleId: number, pageSize: number = 5) => {
+// 👉 Cho phép scheduleId nhận giá trị null
+export const useInfiniteMomentFeed = (scheduleId: number | null, pageSize: number = 5) => {
   return useInfiniteQuery({
     queryKey: momentQueryKeys.feed(scheduleId),
     queryFn: ({ pageParam = 0 }) => getMomentFeed(scheduleId, pageParam, pageSize),
@@ -40,7 +43,7 @@ export const useInfiniteMomentFeed = (scheduleId: number, pageSize: number = 5) 
       if (lastPage.length < pageSize) return undefined;
       return allPages.length * pageSize;
     },
-    enabled: !!scheduleId,
+    // BỎ DÒNG enabled: !!scheduleId Ở ĐÂY 
   });
 };
 

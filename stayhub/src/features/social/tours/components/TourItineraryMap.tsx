@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { GoogleMap, Marker, Polyline, useJsApiLoader, OverlayView } from "@react-google-maps/api";
-import { MapPin, Clock, Navigation, Calendar, ChevronLeft, List } from "lucide-react";
+import { MapPin, Clock, Navigation, Calendar, ChevronLeft, List, Share2 } from "lucide-react";
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
+import { useGenerateTrackingToken } from "../../tracking/hooks/useTracking";
+import { useToast } from "../../../../contexts/ToastContext";
 
 // 1. Định nghĩa Types/Interfaces
 export interface ItineraryLocation {
@@ -37,6 +39,9 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
   });
 
   const mapRef = useRef<google.maps.Map | null>(null);
+
+  const { success } = useToast();
+  const { mutate: generateTrackingToken, isPending: isGeneratingToken } = useGenerateTrackingToken();
 
   // 2. Quản lý State & Dữ liệu phái sinh
   const uniqueDays = useMemo(() => {
@@ -243,6 +248,16 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     return timeStr.length >= 5 ? timeStr.substring(0, 5) : timeStr;
   };
 
+  const handleShareLocation = () => {
+    generateTrackingToken(undefined, {
+      onSuccess: (token) => {
+        const link = window.location.origin + '/track/' + token;
+        navigator.clipboard.writeText(link);
+        success("Đã tạo link theo dõi 24h và sao chép vào khay nhớ tạm!");
+      }
+    });
+  };
+
   return (
     <div className="relative h-[80vh] min-h-[600px] w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100">
       
@@ -352,6 +367,22 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
           </GoogleMap>
         )}
       </div>
+
+      {/* Floating Share Tracking Button */}
+      {isTourStarted && (
+        <button
+          onClick={handleShareLocation}
+          disabled={isGeneratingToken}
+          title="Chia sẻ hành trình"
+          className="absolute bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#EB662B] shadow-[0_8px_20px_rgba(0,0,0,0.15)] border-2 border-[#EB662B] transition-all hover:scale-110 active:scale-95 disabled:opacity-70"
+        >
+          {isGeneratingToken ? (
+            <div className="w-6 h-6 border-2 border-[#EB662B] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <Share2 className="w-6 h-6" />
+          )}
+        </button>
+      )}
 
       {/* 2. Floating Panel Lịch trình */}
       {isPanelExpanded ? (

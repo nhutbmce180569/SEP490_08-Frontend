@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Search, Pencil, Trash2, Plus, Eye, Star } from "lucide-react";
+import { Search, Pencil, Trash2, Plus, Eye, Star, Power } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -28,6 +28,8 @@ export const TourList: React.FC = () => {
     handleEdit,
     handleDelete,
     handleView,
+    handleToggleStatus,
+    togglingTourId,
   } = useTours(PAGE_SIZE);
 
   const tours = data?.data || [];
@@ -132,6 +134,20 @@ export const TourList: React.FC = () => {
               <>
                 <ActionButton
                   variant="secondary"
+                  aria-label={tour.status === "Active" ? "Deactivate" : "Activate"}
+                  title={tour.status === "Active" ? "Deactivate tour" : "Activate tour"}
+                  onClick={() => handleToggleStatus(tour)}
+                  disabled={togglingTourId === tour.id}
+                  className={`h-8 w-8 ${
+                    tour.status === "Active"
+                      ? "text-amber-600 hover:bg-amber-50 hover:text-amber-700"
+                      : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                  } ${togglingTourId === tour.id ? "cursor-wait opacity-60" : ""}`}
+                >
+                  <Power className="h-3.5 w-3.5" />
+                </ActionButton>
+                <ActionButton
+                  variant="secondary"
                   aria-label="Edit"
                   onClick={() => handleEdit(tour.id)}
                   className="h-8 w-8"
@@ -152,7 +168,7 @@ export const TourList: React.FC = () => {
         ),
       },
     ],
-    [handleEdit, handleDelete],
+    [handleEdit, handleDelete, handleToggleStatus, handleView, togglingTourId],
   );
 
   return (

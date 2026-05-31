@@ -104,9 +104,15 @@ axiosClient.interceptors.response.use(
       const currentRefreshToken = localStorage.getItem("refreshToken");
 
       if (!currentRefreshToken) {
-        // Fallback: No refresh token present, boot the user out.
-        localStorage.clear();
-        window.location.href = PATH.PUBLIC.LOGIN;
+        // If a logged-out visitor hits a 401 from a public page, do not force
+        // them away from the public route. Protected routes handle login redirects.
+        const hadAccessToken = Boolean(localStorage.getItem("accessToken"));
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("user");
+        if (hadAccessToken) {
+          window.location.href = PATH.PUBLIC.LOGIN;
+        }
         return Promise.reject(error);
       }
 

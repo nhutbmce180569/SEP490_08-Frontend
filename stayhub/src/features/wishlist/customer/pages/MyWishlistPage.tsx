@@ -34,7 +34,7 @@ export const MyWishlistPage: React.FC = () => {
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
-            <Heart className="text-[#EB662B]" size={24} />
+            <Heart className="text-[#0068E0]" size={24} />
             My Wishlist
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
@@ -56,7 +56,7 @@ export const MyWishlistPage: React.FC = () => {
             onClick={() => setActiveTab(tab.key)}
             className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
               activeTab === tab.key
-                ? 'bg-[#EB662B] text-white shadow-md shadow-orange-500/20'
+                ? 'bg-[#0068E0] text-white shadow-md shadow-blue-500/20'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
@@ -90,7 +90,7 @@ export const MyWishlistPage: React.FC = () => {
           </p>
           <Link
             to={PATH.PUBLIC.TOUR_SEARCH}
-            className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#EB662B] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#d85a26] !no-underline"
+            className="mt-2 inline-flex items-center gap-2 rounded-full bg-[#0068E0] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0058D0] !no-underline"
           >
             <Search className="h-4 w-4" />
             Browse tours

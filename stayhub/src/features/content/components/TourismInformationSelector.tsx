@@ -26,15 +26,14 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
   const filteredItems = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();
 
-    if (!normalizedKeyword) return items.slice(0, 6);
+    if (!normalizedKeyword) return items;
 
     return items
       .filter((item) =>
         [item.name, item.type, item.address, item.city, item.country]
           .filter(Boolean)
           .some((text) => text!.toLowerCase().includes(normalizedKeyword)),
-      )
-      .slice(0, 8);
+      );
   }, [items, keyword]);
 
   useEffect(() => {

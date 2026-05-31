@@ -82,7 +82,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
           <div className="absolute bottom-3 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
             <span
               className="flex items-center gap-1.5 px-4 py-2 text-xs font-black uppercase tracking-widest text-white"
-              style={{ background: "#EB662B", borderRadius: 999 }}
+              style={{ background: "#0068E0", borderRadius: 999 }}
             >
               View Tour <ArrowRight size={13} />
             </span>
@@ -95,7 +95,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
           <div className="mb-2 flex items-center gap-1.5">
             <MapPin
               size={13}
-              style={{ color: "#EB662B" }}
+              style={{ color: "#0068E0" }}
               className="shrink-0"
             />
             <span className="truncate text-[11px] font-black uppercase tracking-[0.15em] text-slate-400">
@@ -105,7 +105,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
 
           {/* Title */}
           <h3
-            className="mb-4 line-clamp-2 text-base font-black leading-snug text-slate-900 transition-colors duration-200 group-hover:text-[#EB662B]"
+            className="mb-4 line-clamp-2 text-base font-black leading-snug text-slate-900 transition-colors duration-200 group-hover:text-[#0068E0]"
             style={{
               fontFamily: "'Sora', 'Plus Jakarta Sans', system-ui, sans-serif",
             }}
@@ -123,9 +123,9 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
               <span
                 className="flex h-7 w-7 items-center justify-center"
                 style={{
-                  background: "#FFF1EB",
+                  background: "#EAF4FF",
                   borderRadius: 8,
-                  color: "#EB662B",
+                  color: "#0068E0",
                 }}
               >
                 <Clock size={14} />
@@ -140,7 +140,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
               </div>
               <div
                 className="text-base font-black"
-                style={{ color: "#EB662B", fontFamily: "'Sora', sans-serif" }}
+                style={{ color: "#0068E0", fontFamily: "'Sora', sans-serif" }}
               >
                 {tour.price !== null
                   ? `${tour.price.toLocaleString("vi-VN")} đ`

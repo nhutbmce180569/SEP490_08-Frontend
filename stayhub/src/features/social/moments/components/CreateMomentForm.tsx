@@ -142,8 +142,8 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
             <X className="w-5 h-5" />
           </button>
         )}
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-orange-50 mb-5">
-          <MapPin className="h-10 w-10 text-[#EB662B]" />
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 mb-5">
+          <MapPin className="h-10 w-10 text-[#0068E0]" />
         </div>
         <h3 className="text-xl font-black mb-3 text-slate-800">Chưa có chuyến đi nào</h3>
         <p className="text-sm text-slate-500 mb-8 leading-relaxed">
@@ -173,7 +173,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
 
       {/* DROPDOWN CHỌN CHUYẾN ĐI (Floating trên góc trái) */}
       <div className="absolute top-4 left-4 z-50 flex items-center bg-black/50 backdrop-blur-md pl-2 pr-1 py-1 rounded-full text-xs font-medium border border-white/10">
-        <MapPin className="w-3.5 h-3.5 text-[#EB662B] mr-2" />
+        <MapPin className="w-3.5 h-3.5 text-[#0068E0] mr-2" />
         <select 
           value={selectedScheduleId}
           onChange={(e) => setSelectedScheduleId(e.target.value)}
@@ -202,7 +202,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
 
       {isPending && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md">
-          <Loader2 className="w-12 h-12 animate-spin text-[#EB662B] mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-[#0068E0] mb-4" />
           <p className="font-semibold text-lg tracking-tight">Đang tải lên...</p>
         </div>
       )}
@@ -241,7 +241,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 <button
                   key={opt.id}
                   onClick={() => setPrivacy(opt.id as any)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${privacy === opt.id ? 'bg-[#EB662B] text-white shadow-md' : 'bg-black/40 text-white/70 hover:bg-black/60 border border-white/10'}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${privacy === opt.id ? 'bg-[#0068E0] text-white shadow-md' : 'bg-black/40 text-white/70 hover:bg-black/60 border border-white/10'}`}
                 >
                   <opt.icon className="w-3.5 h-3.5" />
                   {opt.label}
@@ -254,7 +254,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 placeholder="Thêm mô tả..."
-                className="w-full bg-black/40 backdrop-blur-md border border-white/20 text-white placeholder-white/50 px-5 py-4 rounded-2xl outline-none focus:border-[#EB662B] transition-colors pr-16"
+                className="w-full bg-black/40 backdrop-blur-md border border-white/20 text-white placeholder-white/50 px-5 py-4 rounded-2xl outline-none focus:border-[#0068E0] transition-colors pr-16"
                 maxLength={MAX_CAPTION_LENGTH}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-white/40">
@@ -273,7 +273,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
               <button
                 onClick={onSubmit}
                 disabled={isPending || geoStatus === 'locating' || !selectedScheduleId}
-                className="flex-1 py-4 px-4 rounded-2xl bg-[#EB662B] hover:bg-[#d55821] font-bold text-white shadow-[0_8px_20px_rgba(235,102,43,0.4)] transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 py-4 px-4 rounded-2xl bg-[#0068E0] hover:bg-[#0058D0] font-bold text-white shadow-[0_8px_20px_rgba(0,104,224,0.4)] transition-all active:scale-95 disabled:opacity-50"
               >
                 Đăng
               </button>

@@ -37,9 +37,9 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
 
   return (
     <div className={`group relative flex overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
-      isUsable ? 'border-slate-200 hover:border-[#EB662B]/40 hover:shadow-md' : 'border-slate-100 opacity-75'
+      isUsable ? 'border-slate-200 hover:border-[#0068E0]/40 hover:shadow-md' : 'border-slate-100 opacity-75'
     }`}>
-      <div className="relative flex w-[88px] shrink-0 flex-col items-center justify-center bg-gradient-to-b from-[#EB662B] to-[#d85a26] px-2 py-4 text-white">
+      <div className="relative flex w-[88px] shrink-0 flex-col items-center justify-center bg-gradient-to-b from-[#0068E0] to-[#0058D0] px-2 py-4 text-white">
         <div className="text-center">
           <div className="text-2xl font-black leading-none">
             {isPercent ? `${voucher.discountValue}%` : formatVnd(voucher.discountValue).replace(/\s?₫/, '')}
@@ -103,7 +103,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
           {isUsable && (
             <Link
               to={voucher.tourId ? PATH.PUBLIC.TOUR_DETAIL(voucher.tourId) : PATH.PUBLIC.TOUR_SEARCH}
-              className="inline-flex items-center gap-1 rounded-lg bg-[#EB662B] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#d85a26] !no-underline"
+              className="inline-flex items-center gap-1 rounded-lg bg-[#0068E0] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0058D0] !no-underline"
             >
               <TicketPercent className="h-3.5 w-3.5" />
               {voucher.tourId ? 'Use Now' : 'Browse Tours'}

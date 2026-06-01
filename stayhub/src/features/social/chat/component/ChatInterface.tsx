@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useContext } from "react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { MessageSquare, Send, Users, ShieldAlert, Loader2 } from "lucide-react";
-import { useGetChatRooms, useGetRoomMessages, useSendMessage } from "../hooks/useChats";
+import { useGetChatRooms, useGetRoomMessages, useSendMessage } from "../hooks/useChatSignalR";
 import { useQueryClient } from "@tanstack/react-query";
 import * as signalR from "@microsoft/signalr";
 

@@ -1,49 +1,55 @@
-import { apiClient } from "../../../../utils/axiosClient";
-import type { ChatRoom, ChatMessage } from "../types/chat.type";
+import axios from 'axios';
+import type { ChatRoom, ChatMessage } from '../types/chat.type';
 
-export const getChatRooms = async (): Promise<ChatRoom[]> => {
-  const response = await apiClient.get<any>("/chats/rooms");
-  return response?.data ?? response;
-};
+const apiClient = axios.create({
+  baseURL: 'https://localhost:7010',
+});
 
-export const getRoomMessages = async (
-  roomId: number,
-  skip: number = 0,
-  top: number = 50
-): Promise<ChatMessage[]> => {
-  const response = await apiClient.get<any>(
-    `/chats/rooms/${roomId}/messages?skip=${skip}&top=${top}`
-  );
-  return response?.data ?? response;
-};
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accessToken');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
-export const sendGroupInvitation = async (
-  chatRoomId: number,
-  inviteeId: number
-): Promise<any> => {
-  const response = await apiClient.post<any>("/chats/invite", {
-    chatRoomId,
-    inviteeId,
-  });
-  return response?.data ?? response;
-};
+export const chatService = {
+  getChatRooms: async (): Promise<ChatRoom[]> => {
+    const response = await apiClient.get<any>('/api/chat/rooms');
+    return response.data?.data || response.data || [];
+  },
 
-export const respondToInvitation = async (
-  invitationId: number,
-  status: "Accepted" | "Declined"
-): Promise<any> => {
-  const response = await apiClient.post<any>(`/chats/invite/${invitationId}/respond`, { status });
-  return response?.data ?? response;
-};
+  getChatMessages: async (roomId: number): Promise<ChatMessage[]> => {
+    const response = await apiClient.get<any>(
+      `/api/chat/rooms/${roomId}/messages`
+    );
+    return response.data?.data || response.data || [];
+  },
 
-export const createChatRoom = async (receiverId: number): Promise<any> => {
-  const response = await apiClient.post<any>('/chats', { receiverId });
-  return response?.data ?? response;
-};
-export const sendMessage = async (
-  roomId: number,
-  content: string
-): Promise<any> => {
-  const response = await apiClient.post<any>(`/chats/${roomId}/messages`, { content });
-  return response?.data ?? response;
+  createChatRoom: async (friendId: number): Promise<any> => {
+    const response = await apiClient.post<any>('/api/chat/rooms', {
+      friendId,
+    });
+    return response.data?.data || response.data || response;
+  },
+
+  pinRoom: async (roomId: number): Promise<void> => {
+    await apiClient.post(`/api/chat/rooms/${roomId}/pin`);
+  },
+
+  muteRoom: async (roomId: number): Promise<void> => {
+    await apiClient.post(`/api/chat/rooms/${roomId}/mute`);
+  },
+
+  addMembers: async (roomId: number, userIds: number[]): Promise<ChatRoom> => {
+    const response = await apiClient.post<any>(
+      `/api/chat/rooms/${roomId}/members`,
+      { userIds }
+    );
+    return response.data?.data || response.data || response;
+  },
+
+  leaveGroup: async (roomId: number): Promise<void> => {
+    await apiClient.delete(`/api/chat/rooms/${roomId}/leave`);
+  },
 };

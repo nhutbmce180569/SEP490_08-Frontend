@@ -5,12 +5,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { useToast } from "../../contexts/ToastContext";
 
-// IMPORT THÊM CONTEXT VÀ SERVICE
 import { AuthContext } from "../../contexts/AuthContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
-import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX } from "lucide-react";
+import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX, MessageCircle } from "lucide-react";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
-// TÌM ĐÚNG ĐƯỜNG DẪN IMPORT CỦA BẠN VÀ ĐẶT VÀO ĐÂY
 import  NotificationBell  from "../../features/system/components/NotificationBell";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
 
@@ -103,50 +101,15 @@ export default function Header() {
     user?.rawClaims?.idp === "Facebook";
 
   const [query, setQuery] = useState("");
-  const [destination, setDestination] = useState("all");
-  const [activity, setActivity] = useState("all");
-  const [currency, setCurrency] = useState("usd");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showFriendMenu, setShowFriendMenu] = useState(false);
-const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const destinationOptions = useMemo<DropdownOption[]>(
-    () => [
-      { label: "All", value: "all" },
-      { label: "Paris", value: "paris" },
-      { label: "Tokyo", value: "tokyo" },
-      { label: "Bangkok", value: "bangkok" },
-      { label: "Bali", value: "bali" },
-    ],
-    []
-  );
-
-  const activityOptions = useMemo<DropdownOption[]>(
-    () => [
-      { label: "All", value: "all" },
-      { label: "City tours", value: "city" },
-      { label: "Nature", value: "nature" },
-      { label: "Food", value: "food" },
-      { label: "Adventure", value: "adventure" },
-    ],
-    []
-  );
-
-  const currencyOptions = useMemo<DropdownOption[]>(
-    () => [
-      { label: "USD", value: "usd" },
-      { label: "VND", value: "vnd" },
-      { label: "EUR", value: "eur" },
-      { label: "SGD", value: "sgd" },
-    ],
-    []
-  );
-
- const handleLogout = async () => {
+  const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
-    setShowLogoutConfirm(false); // Ẩn dialog lập tức khi bắt đầu xử lý
+    setShowLogoutConfirm(false);
     
     try {
       const refreshToken = localStorage.getItem("refreshToken");
@@ -266,25 +229,6 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
             gap: 10,
           }}
         >
-          {/* <HeaderDropdown
-            label="Destinations"
-            options={destinationOptions}
-            value={destination}
-            onChange={setDestination}
-          />
-          <HeaderDropdown
-            label="Activities"
-            options={activityOptions}
-            value={activity}
-            onChange={setActivity}
-          />
-          <HeaderDropdown
-            label="Currency"
-            options={currencyOptions}
-            value={currency}
-            onChange={setCurrency}
-          /> */}
-
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "10px" }}>
               {showDashboardButton && (
@@ -375,6 +319,19 @@ const [isLoggingOut, setIsLoggingOut] = useState(false);
               >
                 <Heart className="h-5 w-5" />
               </button>
+              
+              <Link 
+                to="/social/chat" // 👉 ĐÃ SỬA LẠI ĐƯỜNG DẪN THÀNH /social/chat
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600"
+                title="Messages"
+              >
+                <MessageCircle className="h-5 w-5" />
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                </span>
+              </Link>
+
               {/* CÁI CHUÔNG ĐƯỢC GẮN Ở ĐÂY, NGAY BÊN TRÁI AVATAR */}
               <NotificationBell />
 

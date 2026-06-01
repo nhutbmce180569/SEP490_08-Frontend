@@ -7,10 +7,13 @@ import { useToast } from "../../contexts/ToastContext";
 
 import { AuthContext } from "../../contexts/AuthContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
-import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX, MessageCircle } from "lucide-react";
+
+import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX, Sparkles , MessageCircle} from "lucide-react";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
 import  NotificationBell  from "../../features/system/components/NotificationBell";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
+import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
+import logoBlue from "../../assets/logo_blue.png";
 
 type DropdownOption = { label: string; value: string };
 
@@ -72,7 +75,7 @@ export default function Header() {
   
   const { user, logout: contextLogout } = useContext(AuthContext);
   
-  const { data: pendingRequests } = useGetPendingRequests();
+  const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
   const pendingCount = Array.isArray(pendingRequests) ? pendingRequests.length : 0;
 
   const userRoles = Array.isArray(user?.roles)
@@ -159,31 +162,26 @@ export default function Header() {
             paddingRight: 20,
           }}
         >
-        <Link to={PATH.PUBLIC.HOME} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 10,
-                background: "#05073C",
-                display: "grid",
-                placeItems: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-              }}
-              aria-hidden
-            >
-              S
-            </div>
-            <div style={{ lineHeight: 1 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#05073C" }}>
-                StayHub
-              </div>
-              <div style={{ fontSize: 11.5, color: "#717171", marginTop: 2 }}>
-                Tours & activities
-              </div>
-            </div>
+        <Link
+          to={PATH.PUBLIC.HOME}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            textDecoration: "none",
+            flexShrink: 0,
+          }}
+          aria-label="StayHub home"
+        >
+          <img
+            src={logoBlue}
+            alt="StayHub"
+            style={{
+              display: "block",
+              height: 90,
+              width: "auto",
+              objectFit: "contain",
+            }}
+          />
         </Link>
 
           <div
@@ -229,6 +227,35 @@ export default function Header() {
             gap: 10,
           }}
         >
+
+          {/* <HeaderDropdown
+            label="Destinations"
+            options={destinationOptions}
+            value={destination}
+            onChange={setDestination}
+          />
+          <HeaderDropdown
+            label="Activities"
+            options={activityOptions}
+            value={activity}
+            onChange={setActivity}
+          />
+          <HeaderDropdown
+            label="Currency"
+            options={currencyOptions}
+            value={currency}
+            onChange={setCurrency}
+          /> */}
+
+          <ActionButton
+            variant="outline"
+            onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
+            className="hidden md:flex !w-auto px-4 gap-2 !border-[#EB662B]/30 !text-[#EB662B] hover:!bg-[#FFF1EB]"
+            title="AI Tour Assistant"
+          >
+            <Sparkles className="h-4 w-4" />
+            <span>AI Gợi ý</span>
+          </ActionButton>
           {user ? (
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "10px" }}>
               {showDashboardButton && (
@@ -246,7 +273,7 @@ export default function Header() {
               
               <button
                 onClick={() => navigate("/social/moments")}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#EB662B]/10 hover:text-[#EB662B]"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
                 title="Moments"
                 aria-label="Moments"
               >
@@ -256,7 +283,7 @@ export default function Header() {
               <div className="relative">
                 <button
                   onClick={() => setShowFriendMenu(!showFriendMenu)}
-                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#EB662B]/10 hover:text-[#EB662B]"
+                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
                   title="Friends"
                   aria-label="Friends"
                 >
@@ -311,9 +338,10 @@ export default function Header() {
                 )}
               </div>
 
+
               <button
                 onClick={() => navigate(PATH.CUSTOMER.WISHLIST)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-500"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
                 title="My wishlist"
                 aria-label="My wishlist"
               >
@@ -345,7 +373,7 @@ export default function Header() {
                       width: 36,
                       height: 36,
                       borderRadius: "50%",
-                      background: "#EB662B",
+                      background: "#0068E0",
                       color: "#fff",
                       display: "grid",
                       placeItems: "center",
@@ -373,15 +401,22 @@ export default function Header() {
                   <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 p-2 z-50 flex flex-col gap-1">
                     <button
                       onClick={() => { navigate(PATH.CUSTOMER.PROFILE); setShowUserMenu(false); }}
-                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#EB662B] rounded-lg transition-colors outline-none whitespace-nowrap"
+                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0068E0] rounded-lg transition-colors outline-none whitespace-nowrap"
                     >
                       <User className="h-4 w-4" />
                       My Profile
                     </button>
+                    <button
+                      onClick={() => { navigate(PATH.CUSTOMER.WISHLIST); setShowUserMenu(false); }}
+                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#EB662B] rounded-lg transition-colors outline-none whitespace-nowrap"
+                    >
+                      <Heart className="h-4 w-4" />
+                      My Wishlist
+                    </button>
                     {!isSocialLogin && (
                       <button
                         onClick={() => { navigate(PATH.PUBLIC.CHANGE_PASSWORD); setShowUserMenu(false); }}
-                        className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#EB662B] rounded-lg transition-colors outline-none whitespace-nowrap"
+                        className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0068E0] rounded-lg transition-colors outline-none whitespace-nowrap"
                       >
                         <Lock className="h-4 w-4" />
                         Change Password

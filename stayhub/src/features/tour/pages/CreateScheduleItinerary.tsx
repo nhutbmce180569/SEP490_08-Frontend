@@ -367,11 +367,11 @@ export const CreateScheduleItinerary: React.FC = () => {
                           <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
                             <span>Suggested period:</span>
                             <strong className="font-semibold text-slate-600">
-                              {depDate.toLocaleDateString()}
+                              {depDate.toLocaleDateString("vi-VN")}
                             </strong>{" "}
                             to{" "}
                             <strong className="font-semibold text-slate-600">
-                              {retDate.toLocaleDateString()}
+                              {retDate.toLocaleDateString("vi-VN")}
                             </strong>
                             .
                           </div>

@@ -99,7 +99,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
                   disabled={readOnly}
                   onChange={(event) => handleFieldChange(index, 'userId', Number(event.target.value))}
                   onBlur={() => lookupUser(index)}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#EB662B] focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
                   placeholder="Enter customer ID"
                 />
                 {(row.userFullName || row.userEmail) && (
@@ -117,7 +117,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
                   value={row.quantity}
                   disabled={readOnly}
                   onChange={(event) => handleFieldChange(index, 'quantity', Number(event.target.value))}
-                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#EB662B] focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
                 />
               </div>
 

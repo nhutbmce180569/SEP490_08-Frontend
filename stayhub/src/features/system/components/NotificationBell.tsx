@@ -43,15 +43,15 @@ export default function NotificationBell() {
         onClick={() => setIsOpen(!isOpen)}
         className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
           isOpen
-            ? "bg-[#EB662B]/10 text-[#EB662B]"
-            : "text-slate-500 hover:bg-[#EB662B]/10 hover:text-[#EB662B]"
+            ? "bg-[#0068E0]/10 text-[#0068E0]"
+            : "text-slate-500 hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
         }`}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
           <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#EB662B] opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#EB662B]"></span>
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0068E0] opacity-75"></span>
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#0068E0]"></span>
           </span>
         )}
       </button>
@@ -62,7 +62,7 @@ export default function NotificationBell() {
           <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3">
             <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
             {unreadCount > 0 && (
-              <button className="flex items-center gap-1 text-xs font-semibold text-[#EB662B] transition-colors hover:text-[#d4531d]">
+              <button className="flex items-center gap-1 text-xs font-semibold text-[#0068E0] transition-colors hover:text-[#0058D0]">
                 <Check className="h-3.5 w-3.5" />
                 Mark all read
               </button>
@@ -71,7 +71,7 @@ export default function NotificationBell() {
 
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
             {isLoading ? (
-              <div className="flex justify-center py-10 text-[#EB662B]">
+              <div className="flex justify-center py-10 text-[#0068E0]">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : error ? (
@@ -86,7 +86,7 @@ export default function NotificationBell() {
                     onClick={() => markAsRead(noti)}
                     // 💥 Thêm class 'group' và 'relative' để xử lý hover hiện nút xóa
                     className={`group relative flex cursor-pointer flex-col gap-1.5 p-4 transition-colors hover:bg-slate-50 ${
-                      !noti.isRead ? "bg-[#EB662B]/[0.03]" : ""
+                      !noti.isRead ? "bg-[#0068E0]/[0.03]" : ""
                     }`}
                   >
                     {/* Thêm pr-6 để chữ không đè lên nút Xóa */}
@@ -136,7 +136,7 @@ export default function NotificationBell() {
           </div>
 
           <div className="border-t border-slate-100 bg-slate-50 p-2 text-center">
-            <button className="text-xs font-semibold text-slate-500 transition-colors hover:text-[#EB662B]">
+            <button className="text-xs font-semibold text-slate-500 transition-colors hover:text-[#0068E0]">
               View all notifications
             </button>
           </div>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './home/Header';
 import Footer from './home/Footer';
+import { TourAssistantChatWidget } from '../features/ai/components/TourAssistantChatWidget';
 
 
 export const MainLayout: React.FC = () => {
@@ -20,6 +21,7 @@ export const MainLayout: React.FC = () => {
       </main>
       
       <Footer />
+      <TourAssistantChatWidget />
     </div>
   );
 };

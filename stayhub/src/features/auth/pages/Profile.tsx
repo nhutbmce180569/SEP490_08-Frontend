@@ -84,7 +84,7 @@ export const Profile: React.FC = () => {
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
-            <User className="text-[#EB662B]" /> My Profile
+            <User className="text-[#0068E0]" /> My Profile
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">Manage your personal details and how we can reach you</p>
         </div>
@@ -116,7 +116,7 @@ export const Profile: React.FC = () => {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute bottom-2 right-2 flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-[#EB662B] text-white shadow-md transition-transform hover:scale-110 active:scale-95"
+              className="absolute bottom-2 right-2 flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-[#0068E0] text-white shadow-md transition-transform hover:scale-110 active:scale-95"
             >
               <Camera size={20} />
             </button>
@@ -146,7 +146,7 @@ export const Profile: React.FC = () => {
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
                   required
                 />
               </div>
@@ -175,7 +175,7 @@ export const Profile: React.FC = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
                 />
               </div>
             </div>
@@ -189,7 +189,7 @@ export const Profile: React.FC = () => {
                   name="dateOfBirth"
                   value={formData.dateOfBirth}
                   onChange={handleChange}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
                 />
               </div>
             </div>
@@ -200,7 +200,7 @@ export const Profile: React.FC = () => {
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#EB662B] focus:bg-white focus:ring-4 focus:ring-[#EB662B]/10"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
               >
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -214,7 +214,7 @@ export const Profile: React.FC = () => {
               type="submit"
               variant="primary"
               disabled={isUpdating}
-              className="gap-2 px-8 py-3.5 text-[15px] shadow-lg shadow-[#EB662B]/20 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="gap-2 px-8 py-3.5 text-[15px] shadow-lg shadow-[#0068E0]/20 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <Save size={18} />
               {isUpdating ? 'Saving...' : 'Save Changes'}

@@ -160,7 +160,7 @@ export const AdminLayout: React.FC = () => {
                     <div className="flex flex-col gap-3">
                       <div className="text-sm text-slate-600">New partner approval request.</div>
                       <div className="text-sm text-slate-600">A user submitted a violation report.</div>
-                      <button className="mt-2 text-sm font-semibold text-[#4880ff] hover:underline text-left">
+                      <button className="mt-2 text-sm font-semibold text-[#0068E0] hover:underline text-left">
                         View all
                       </button>
                     </div>

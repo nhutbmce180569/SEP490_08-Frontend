@@ -8,3 +8,4 @@ export * from './admin.api';
 export * from './system.api';
 export * from './content.api';
 export * from './voucher.api';
+export * from './ai.api';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users } from 'lucide-react';
+import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users, Sparkles } from 'lucide-react';
 import { PATH } from '../config/routes/route';
 
 export const ProfileLayout: React.FC = () => {
@@ -11,6 +11,7 @@ export const ProfileLayout: React.FC = () => {
     { name: 'Wishlist', path: PATH.CUSTOMER.WISHLIST, icon: Heart },
     { name: 'Reviews', path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
     { name: 'Vouchers', path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
+    { name: 'AI Gợi ý tour', path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
     { name: 'Notifications', path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
     { name: 'Settings', path: PATH.CUSTOMER.SETTINGS, icon: Settings },
   ];
@@ -33,7 +34,7 @@ export const ProfileLayout: React.FC = () => {
                     className={({ isActive }) =>
                       `group flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-sm font-bold transition-all duration-300 !no-underline ${
                         isActive
-                          ? 'bg-[#EB662B] text-white shadow-md shadow-[#EB662B]/20'
+                          ? 'bg-[#0068E0] text-white shadow-md shadow-[#0068E0]/20'
                           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                       }`
                     }
@@ -44,7 +45,7 @@ export const ProfileLayout: React.FC = () => {
                           size={20} 
                           strokeWidth={isActive ? 2.5 : 2}
                           className={`transition-all duration-300 ${
-                            isActive ? 'scale-110 text-white' : 'text-slate-400 group-hover:scale-110 group-hover:text-[#EB662B]'
+                            isActive ? 'scale-110 text-white' : 'text-slate-400 group-hover:scale-110 group-hover:text-[#0068E0]'
                           }`}
                         />
                         <span>{item.name}</span>
@@ -60,7 +61,7 @@ export const ProfileLayout: React.FC = () => {
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <Outlet />
           </div>
         </div>

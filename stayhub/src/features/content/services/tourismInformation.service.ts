@@ -8,12 +8,78 @@ import type {
   TourismInformationFilters,
 } from "../types/tourismInformation";
 
-const unwrapPagination = <T>(response: Record<string, unknown>): PaginationDTO<T> => {
-  if (response.totalPages !== undefined) {
-    return response as unknown as PaginationDTO<T>;
+type RawPagination<T> = {
+  data?: T[];
+  items?: T[];
+  total?: number;
+  totalItems?: number;
+  totalCount?: number;
+  count?: number;
+  currentPage?: number;
+  page?: number;
+  pageSize?: number;
+  totalPages?: number;
+  totalPage?: number;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const getResponsePayload = (response: unknown): unknown => {
+  if (!isRecord(response)) return response;
+
+  if (
+    response.totalPages !== undefined ||
+    response.totalPage !== undefined ||
+    response.items !== undefined
+  ) {
+    return response;
   }
 
-  return (response.data ?? response) as PaginationDTO<T>;
+  return response.data ?? response;
+};
+
+const unwrapPagination = <T>(
+  response: unknown,
+  page: number = 1,
+  pageSize: number = 10,
+): PaginationDTO<T> => {
+  const payload = getResponsePayload(response);
+
+  if (Array.isArray(payload)) {
+    return {
+      data: payload as T[],
+      total: payload.length,
+      totalPages: 1,
+      currentPage: page,
+      pageSize,
+    };
+  }
+
+  const raw = (isRecord(payload) ? payload : {}) as RawPagination<T>;
+  const data = Array.isArray(raw.data)
+    ? raw.data
+    : Array.isArray(raw.items)
+      ? raw.items
+      : [];
+  const normalizedPageSize = raw.pageSize ?? pageSize;
+  const total =
+    raw.total ??
+    raw.totalItems ??
+    raw.totalCount ??
+    raw.count ??
+    data.length;
+
+  return {
+    data,
+    total,
+    totalPages:
+      raw.totalPages ??
+      raw.totalPage ??
+      Math.max(1, Math.ceil(total / normalizedPageSize)),
+    currentPage: raw.currentPage ?? raw.page ?? page,
+    pageSize: normalizedPageSize,
+  };
 };
 
 const unwrapEntity = <T>(response: Record<string, unknown>): T => {
@@ -72,10 +138,10 @@ const fetchAllActivePaged = async (): Promise<TourismInformation[]> => {
       CONTENT_API.TOURISM_INFORMATION.GET_ACTIVE,
       { params: { page, pageSize } },
     );
-    const pagination = unwrapPagination<TourismInformation>(response);
+    const pagination = unwrapPagination<TourismInformation>(response, page, pageSize);
     items.push(...(pagination.data ?? []));
 
-    if (page >= (pagination.totalPages || 1)) break;
+    if ((pagination.data ?? []).length === 0 || page >= (pagination.totalPages || 1)) break;
     page += 1;
   }
 
@@ -100,7 +166,7 @@ export const tourismInformationService = {
       { params },
     );
 
-    return unwrapPagination<TourismInformation>(response);
+    return unwrapPagination<TourismInformation>(response, page, pageSize);
   },
 
   getActivePaged: async (
@@ -112,7 +178,7 @@ export const tourismInformationService = {
       { params: { page, pageSize } },
     );
 
-    return unwrapPagination<TourismInformation>(response);
+    return unwrapPagination<TourismInformation>(response, page, pageSize);
   },
 
   getAdminById: async (id: number | string): Promise<TourismInformation> => {

@@ -1,23 +1,21 @@
 export interface ChatRoom {
   id: number;
-  scheduleId: number | null;
-  roomName: string;
-  isGroupChat: boolean;
-  createdAt: string;
+  name?: string;
+  roomName?: string;
+  lastMessage?: string;
+  unreadCount: number;
+  avatarUrl?: string;
+  isPinned?: boolean;
+  isMuted?: boolean;
+  isGroupChat?: boolean;
 }
 
 export interface ChatMessage {
   id: number;
   chatRoomId: number;
   senderId: number;
+  senderName: string;
+  senderAvatarUrl?: string;
   content: string;
-  isRead: boolean;
-  sentAt: string;
-}
-
-export interface GroupInvitationPayload {
-  type: string;
-  roomId: number;
-  inviterId: number;
-  message: string;
+  createdAt: string;
 }

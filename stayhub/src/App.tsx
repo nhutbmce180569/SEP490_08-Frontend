@@ -31,6 +31,7 @@ import { FriendsManagement } from "./features/social/friends/pages/FriendsManage
 import { MomentsFeed } from "./features/social/moments/components/MomentsFeed";
 import { SocialProfile } from "./features/social/profile/pages/SocialProfile";
 import { useGetEligibleSchedules } from './features/social/moments/hooks/useEligibleSchedules';
+import { ChatPage } from './features/social/chat/pages/ChatPage';
 
 // Components dành cho Quản lý User (Admin)
 import UserList from "./features/auth/pages/UserList";
@@ -314,6 +315,7 @@ const App: React.FC = () => {
 
                 {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                 <Route element={<ProtectedRoute />}>
+                <Route path="/chat" element={<ChatPage />} />
                   <Route element={<ProfileLayout />}>
                     <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
                     <Route
@@ -356,6 +358,8 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
                     />
+                    <Route path="/social/chat" 
+                    element={<ChatPage />} />
                   </Route>
                 </Route>
               </Route>

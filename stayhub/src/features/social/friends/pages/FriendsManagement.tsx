@@ -8,7 +8,7 @@ import {
   useSendFriendRequest,
   friendQueryKeys
 } from '../hooks/useFriends';
-import { useCreateChatRoom } from '../../chat/hooks/useChats';
+import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
 
 import { useSearchUsers } from '../../../users/hooks/useUsers';
 import { useToast } from '../../../../contexts/ToastContext';
@@ -46,12 +46,12 @@ export const FriendsManagement: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-useEffect(() => {
+  useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      // 1. Sửa cổng 7004 thành 7010 để đi qua API Gateway
       .withUrl("https://localhost:7010/hubs/friendship", {
         accessTokenFactory: () => localStorage.getItem('accessToken') || ''
       })
+      .configureLogging(signalR.LogLevel.None)
       .withAutomaticReconnect()
       .build();
 
@@ -75,7 +75,13 @@ useEffect(() => {
       queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
     });
 
-    connection.start().catch((err) => console.error("SignalR Connection Error: ", err));
+    connection.start().catch((err) => {
+      if (err.name === 'AbortError' || err.message.includes('negotiation')) {
+        console.warn("SignalR: Hủy đàm phán do React Strict Mode re-mount (Bỏ qua được).");
+      } else {
+        console.error("SignalR Connection Error: ", err);
+      }
+    });
 
     return () => {
       connection.stop();
@@ -89,10 +95,8 @@ useEffect(() => {
       {
         onSuccess: () => success(isAccepted ? "Friend request accepted!" : "Friend request declined!"),
         onError: (err: any) => {
-
           console.error("LỖI ACCEPT/DECLINE:", err.response?.data);
           
- 
           const validationErrors = err.response?.data?.errors;
           let errorDetail = "";
           if (validationErrors) {
@@ -128,8 +132,30 @@ useEffect(() => {
     );
   };
 
+  const handleCreateChat = (friendId: number) => {
+    createChat(friendId, {
+      onSuccess: (newRoom) => {
+        // Bóc tách ID an toàn từ response
+        const roomId = newRoom?.data?.id || newRoom?.data?.Id || newRoom?.id || newRoom?.Id;
+
+        if (roomId) {
+          navigate('/social/chat?roomId=' + roomId);
+        } else {
+          error('Không lấy được thông tin phòng chat!');
+        }
+      },
+      onError: (err: any) => {
+        const msg =
+          err.response?.data?.message ||
+          err.response?.data ||
+          'Lỗi tạo phòng chat';
+        error(typeof msg === 'string' ? msg : 'Lỗi hệ thống không xác định');
+      },
+    });
+  };
+
   return (
-<div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+    <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-6">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Friends Management</h1>
 
       <div className="flex border-b border-slate-200 mb-6 overflow-x-auto custom-scrollbar">
@@ -183,7 +209,7 @@ useEffect(() => {
               </div>
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => createChat(friend?.friendId, { onSuccess: () => navigate('/social/chat') })}
+                  onClick={() => handleCreateChat(friend?.friendId)}
                   disabled={isCreatingChat}
                   className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-[#0068E0] rounded-md hover:bg-[#0058D0] transition-colors disabled:opacity-50"
                 >
@@ -314,12 +340,12 @@ useEffect(() => {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleSendRequest(user?.id)}
+                    onClick={() => handleCreateChat(user?.id)}
                     disabled={isSending}
                     className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50"
                   >
                     <Send className="w-4 h-4" />
-                    Send Request
+                    Message
                   </button>
                 </div>
               )})}

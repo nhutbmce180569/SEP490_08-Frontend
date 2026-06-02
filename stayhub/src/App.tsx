@@ -325,7 +325,10 @@ const App: React.FC = () => {
 
                 {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                 <Route element={<ProtectedRoute />}>
-                <Route path="/chat" element={<ChatPage />} />
+                  <Route
+                    path="/chat"
+                    element={<Navigate to={PATH.CUSTOMER.SOCIAL_CHAT} replace />}
+                  />
                   <Route element={<ProfileLayout />}>
                     <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
                     <Route
@@ -368,8 +371,10 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
                     />
-                    <Route path="/social/chat" 
-                    element={<ChatPage />} />
+                    <Route
+                      path={PATH.CUSTOMER.SOCIAL_CHAT}
+                      element={<ChatPage />}
+                    />
                   </Route>
                 </Route>
               </Route>

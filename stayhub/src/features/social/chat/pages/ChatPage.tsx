@@ -406,22 +406,36 @@ export const ChatPage: React.FC = () => {
 
   return (
     <>
-      <div className="flex h-[80vh] min-h-[600px] w-full max-w-6xl mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mt-6">
+      <div>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
+              <MessageSquare className="text-brand" size={24} />
+              Messages
+            </h1>
+            <p className="mt-1.5 text-sm text-slate-500">
+              Chat with friends and manage your conversations.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowNewChatModal(true)}
+            className="inline-flex items-center gap-2 rounded-2xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand/20 transition-colors hover:bg-brand-hover"
+          >
+            <SquarePen className="h-4 w-4" />
+            New chat
+          </button>
+        </div>
+
+        <div className="flex h-[min(62vh,520px)] min-h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white">
         
         {/* CỘT TRÁI: Danh sách phòng chat */}
         <div className="w-1/3 border-r border-slate-200 flex flex-col bg-slate-50/50">
           <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-brand" />
-              <h2 className="text-lg font-bold text-slate-800">Chats</h2>
+              <h2 className="text-base font-bold text-slate-800">Conversations</h2>
             </div>
-            <button
-              onClick={() => setShowNewChatModal(true)}
-              className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-600 hover:text-slate-800"
-              title="New Chat"
-            >
-              <SquarePen className="w-5 h-5" />
-            </button>
           </div>
           
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -663,6 +677,7 @@ export const ChatPage: React.FC = () => {
             </>
           )}
         </div>
+      </div>
       </div>
 
       {/* Add Member Modal */}

@@ -9,6 +9,7 @@ import {
   TicketPercent,
   Bell,
   Users,
+  MessageCircle,
   Sparkles,
   Compass,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import { UserAvatar } from "../components/ui/UserAvatar";
 const navItems = [
   { name: "Profile", path: PATH.CUSTOMER.PROFILE, icon: User },
   { name: "Friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
+  { name: "Messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
   { name: "My bookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
   { name: "Wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
   { name: "Reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },

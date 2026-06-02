@@ -15,6 +15,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import * as signalR from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { PATH } from '../../../config/routes/route';
 
 export const FriendsManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'add'>('friends');
@@ -139,7 +140,7 @@ export const FriendsManagement: React.FC = () => {
         const roomId = newRoom?.data?.id || newRoom?.data?.Id || newRoom?.id || newRoom?.Id;
 
         if (roomId) {
-          navigate('/social/chat?roomId=' + roomId);
+          navigate(`${PATH.CUSTOMER.SOCIAL_CHAT}?roomId=${roomId}`);
         } else {
           error('Could not get chat room information!');
         }

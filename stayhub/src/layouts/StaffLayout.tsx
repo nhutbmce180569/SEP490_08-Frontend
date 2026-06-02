@@ -1,10 +1,8 @@
 import React, { useMemo, useState, useContext } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  PieChart, Download, Users, Building, Map, 
-  ShieldAlert, CreditCard, Ticket, Image, 
-  Layers, Settings, Menu, Bell, Search, MoreVertical, Home, Compass,
-  BarChart3,
+  Menu, Bell, Search, MoreVertical, Home, 
+  Calendar, QrCode, Ticket, MapPin, Users 
 } from 'lucide-react';
 import { Sidebar, type AdminSidebarItem } from './Sidebar';
 import { PATH } from '../config/routes/route';
@@ -14,25 +12,7 @@ import { ConfirmDialog } from '../components/dashboard/ConfirmDialog';
 import { useToast } from '../contexts/ToastContext';
 import { ActionButton } from '../components/dashboard/ActionButton';
 
-// Danh sách phẳng các chức năng Admin
-const ADMIN_SIDEBAR_ITEMS: AdminSidebarItem[] = [
-  { label: 'Platform Analytics', to: PATH.ADMIN.PLATFORM_ANALYTICS, icon: <PieChart /> },
-  { label: 'Customer Analytics', to: PATH.ADMIN.CUSTOMER_ANALYTICS, icon: <BarChart3 /> },
-  { label: 'System Reports', to: '/admin/reports-export', icon: <Download /> },
-  { label: 'Users List', to: PATH.ADMIN.USER_MANAGEMENT, icon: <Users /> },
-  { label: 'Operator Approvals', to: PATH.ADMIN.PARTNER_APPROVAL, icon: <Building /> },
-  { label: 'Tours List', to: PATH.ADMIN.TOUR_MODERATION, icon: <Map /> },
-  { label: 'Violation Reports', to: PATH.ADMIN.REPORT_MODERATION, icon: <ShieldAlert /> },
-  { label: 'Withdrawal Requests', to: PATH.ADMIN.WITHDRAWALS, icon: <CreditCard /> },
-  { label: 'System Vouchers', to: PATH.ADMIN.SYSTEM_VOUCHERS, icon: <Ticket /> },
-  { label: 'Ticket Types', to: PATH.ADMIN.TICKET_TYPE_MANAGEMENT, icon: <Ticket /> },
-  { label: 'Banners', to: PATH.ADMIN.BANNER_MANAGEMENT, icon: <Image /> },
-  { label: 'Tour Categories', to: PATH.ADMIN.CATEGORY_MANAGEMENT, icon: <Layers /> },
-  { label: 'Tourism Information', to: PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT, icon: <Compass /> },
-  { label: 'Global Settings', to: PATH.ADMIN.SYSTEM_SETTINGS, icon: <Settings /> },
-];
-
-export const AdminLayout: React.FC = () => {
+export const StaffLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -44,6 +24,37 @@ export const AdminLayout: React.FC = () => {
   const { user, logout: contextLogout } = useContext(AuthContext);
   const { success } = useToast();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const items = useMemo<AdminSidebarItem[]>(
+    () => [
+      {
+        label: 'Assigned Schedules',
+        to: PATH.STAFF.SCHEDULES,
+        icon: <Calendar className="h-4 w-4" />,
+      },
+      {
+        label: 'QR Check-In',
+        to: PATH.STAFF.QR_CHECKIN,
+        icon: <QrCode className="h-4 w-4" />,
+      },
+      {
+        label: 'Ticket List',
+        to: PATH.STAFF.TICKETS,
+        icon: <Ticket className="h-4 w-4" />,
+      },
+      {
+        label: 'Track Locations',
+        to: PATH.STAFF.LOCATIONS,
+        icon: <MapPin className="h-4 w-4" />,
+      },
+      {
+        label: 'Tour Customers',
+        to: PATH.STAFF.CUSTOMERS,
+        icon: <Users className="h-4 w-4" />,
+      },
+    ],
+    [],
+  );
 
   const handleLogout = async () => {
     try {
@@ -61,12 +72,12 @@ export const AdminLayout: React.FC = () => {
   };
 
   const pageTitle = useMemo(() => {
-    const match = ADMIN_SIDEBAR_ITEMS
+    const match = items
       .slice()
       .sort((a, b) => b.to.length - a.to.length)
       .find((i) => location.pathname === i.to || location.pathname.startsWith(`${i.to}/`));
-    return match?.label ?? 'Admin Dashboard';
-  }, [location.pathname]);
+    return match?.label ?? 'Staff Dashboard';
+  }, [items, location.pathname]);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -82,12 +93,12 @@ export const AdminLayout: React.FC = () => {
 
       {/* Sidebar Component */}
       <Sidebar
-        items={ADMIN_SIDEBAR_ITEMS}
+        items={items}
         open={sidebarOpen}
         collapsed={sidebarCollapsed}
         onClose={() => setSidebarOpen(false)}
-        logoLink={PATH.ADMIN.DASHBOARD}
-        badge={<span className="ml-1.5 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-600">ADMIN</span>}
+        logoLink={PATH.STAFF.DASHBOARD} // Hoặc một trang Dashboard tổng quan của Staff nếu có
+        badge={<span className="ml-1.5 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">STAFF</span>}
       />
 
       {/* Main */}
@@ -130,12 +141,12 @@ export const AdminLayout: React.FC = () => {
                 <span className="text-sm font-semibold">Home</span>
               </ActionButton>
 
-              {/* Center-ish search (Figma style) */}
+              {/* Center-ish search */}
               <div className="hidden w-full max-w-[520px] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 md:flex">
                 <Search className="h-4 w-4 text-slate-500/70" />
                 <input
                   className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  placeholder="Search"
+                  placeholder="Search schedules, customers..."
                 />
               </div>
 
@@ -151,8 +162,8 @@ export const AdminLayout: React.FC = () => {
                   }}
                 >
                   <Bell className="h-5 w-5" />
-                  <span className="absolute right-2 top-2 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white">
-                    3
+                  <span className="absolute right-2 top-2 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-emerald-500 px-1 text-[11px] font-bold text-white">
+                    1
                   </span>
                 </button>
 
@@ -160,9 +171,8 @@ export const AdminLayout: React.FC = () => {
                   <div className="absolute right-0 top-full mt-2 w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-lg z-50">
                     <h3 className="mb-3 text-sm font-bold text-slate-800">Notifications</h3>
                     <div className="flex flex-col gap-3">
-                      <div className="text-sm text-slate-600">New partner approval request.</div>
-                      <div className="text-sm text-slate-600">A user submitted a violation report.</div>
-                      <button className="mt-2 text-sm font-semibold text-[#0068E0] hover:underline text-left">
+                      <div className="text-sm text-slate-600">New tour schedule assigned to you.</div>
+                      <button className="mt-2 text-sm font-semibold text-emerald-600 hover:underline text-left">
                         View all
                       </button>
                     </div>
@@ -195,8 +205,8 @@ export const AdminLayout: React.FC = () => {
               {/* Profile */}
               <div className="relative flex items-center gap-3">
                 <div className="hidden text-right md:block">
-              <div className="text-sm font-bold text-slate-700">{user?.fullName || user?.FullName || 'Admin User'}</div>
-                  <div className="text-xs font-semibold text-slate-500">Super Admin</div>
+                  <div className="text-sm font-bold text-slate-700">{user?.fullName || user?.FullName || 'Staff User'}</div>
+                  <div className="text-xs font-semibold text-slate-500">Staff Member</div>
                 </div>
                 <button
                   type="button"
@@ -206,29 +216,29 @@ export const AdminLayout: React.FC = () => {
                     setShowNotifications(false);
                   }}
                 >
-              <div className="h-10 w-10 overflow-hidden rounded-full border border-slate-200 bg-slate-100 flex items-center justify-center font-bold text-slate-600" aria-label="Avatar">
-                {user?.avatarUrl || user?.AvatarUrl ? (
-                  <img
-                    src={user.avatarUrl || user.AvatarUrl}
-                    alt="User Avatar"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  (user?.fullName || user?.FullName || 'A').charAt(0).toUpperCase()
-                )}
-              </div>
+                  <div className="h-10 w-10 overflow-hidden rounded-full border border-slate-200 bg-slate-100 flex items-center justify-center font-bold text-slate-600" aria-label="Avatar">
+                    {user?.avatarUrl || user?.AvatarUrl ? (
+                      <img
+                        src={user.avatarUrl || user.AvatarUrl}
+                        alt="User Avatar"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      (user?.fullName || user?.FullName || 'S').charAt(0).toUpperCase()
+                    )}
+                  </div>
                   <MoreVertical className="hidden h-5 w-5 text-slate-600 md:block" />
                 </button>
 
                 {showProfileMenu && (
                   <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-lg z-50">
-                <button 
-                  onClick={() => {
-                    setShowLogoutConfirm(true);
-                    setShowProfileMenu(false);
-                  }}
-                  className="block w-full px-4 py-2.5 text-left text-sm font-bold text-rose-600 hover:bg-rose-50"
-                >
+                    <button 
+                      onClick={() => {
+                        setShowLogoutConfirm(true);
+                        setShowProfileMenu(false);
+                      }}
+                      className="block w-full px-4 py-2.5 text-left text-sm font-bold text-rose-600 hover:bg-rose-50"
+                    >
                       Sign Out
                     </button>
                   </div>
@@ -254,3 +264,5 @@ export const AdminLayout: React.FC = () => {
     </div>
   );
 };
+
+export default StaffLayout;

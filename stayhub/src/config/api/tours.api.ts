@@ -45,6 +45,7 @@ export const TOURS_API = {
   CREATE_SCHEDULE: `${FULL_API}/TourSchedules`,
   UPDATE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
   DELETE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
+  GET_ASSIGNED_SCHEDULES: `${FULL_API}/TourSchedules/assigned`,
 
   // Gọi từ Booking API / Luồng đặt vé qua Gateway
   RESERVE_SEATS: (id: string | number) =>

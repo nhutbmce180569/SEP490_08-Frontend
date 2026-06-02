@@ -1,6 +1,6 @@
 import type { TourBasic } from "./tour";
 import type { TourScheduleItinerary } from "./tourScheduleItinerary";
-// import type { TourScheduleTicket } from "./tourScheduleTicket"; 
+import type { TourScheduleTicket } from "./tourScheduleTicket"; 
 import type { TourScheduleStaff } from "./tourScheduleStaff";
 
 // Map theo ReadTourScheduleDTO
@@ -13,7 +13,7 @@ export interface TourSchedule {
   tour?: TourBasic; 
   tourScheduleStaffs?: TourScheduleStaff[];
   tourScheduleItineraries?: TourScheduleItinerary[];
-  // tourScheduleTickets?: TourScheduleTicket[]; // 
+  tourScheduleTickets?: TourScheduleTicket[] | null;
 }
 
 export interface AssignedTourSchedule {
@@ -35,4 +35,4 @@ export interface CreateTourScheduleRequest {
 }
 
 // Update dùng chung form với Create
-export interface UpdateTourScheduleRequest extends CreateTourScheduleRequest { }
+export type UpdateTourScheduleRequest = CreateTourScheduleRequest;

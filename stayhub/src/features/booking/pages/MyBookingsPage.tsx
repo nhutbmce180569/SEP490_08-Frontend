@@ -25,15 +25,32 @@ const STATUS_STYLES: Record<string, string> = {
   Paid: "bg-emerald-100 text-emerald-700",
   Pending: "bg-amber-100 text-amber-700",
   Cancelled: "bg-rose-100 text-rose-700",
+  "Request to Cancel": "bg-violet-100 text-violet-700",
 };
 
 const getStatusStyle = (status?: string | null) =>
   STATUS_STYLES[status ?? ""] ?? "bg-slate-100 text-slate-600";
 
+const ORDER_STATUS_FILTERS = [
+  { label: "All", value: "All" },
+  { label: "Paid", value: "Paid" },
+  { label: "Cancelled", value: "Cancelled" },
+  { label: "Request to Cancel", value: "Request to Cancel" },
+] as const;
+
+type OrderStatusFilter = (typeof ORDER_STATUS_FILTERS)[number]["value"];
+
+const getValidStatusFilter = (status: string | null): OrderStatusFilter => {
+  const match = ORDER_STATUS_FILTERS.find((item) => item.value === status);
+  return match?.value ?? "All";
+};
+
 export const MyBookingsPage: React.FC = () => {
   const { user } = useContext(AuthContext);
-  const { orders, isLoading, error, hasNextPage, fetchNextPage, isFetchingNextPage } = useCustomerOrders(user?.id);
   const [searchParams, setSearchParams] = useSearchParams();
+  const activeStatus = getValidStatusFilter(searchParams.get("status"));
+  const orderStatus = activeStatus === "All" ? undefined : activeStatus;
+  const { orders, isLoading, error, hasNextPage, fetchNextPage, isFetchingNextPage } = useCustomerOrders(user?.id, orderStatus);
   const { error: showError } = useToast();
 
   const { ref, inView } = useInView({
@@ -49,12 +66,25 @@ export const MyBookingsPage: React.FC = () => {
   useEffect(() => {
     if (searchParams.get("payment") === "cancelled") {
       showError("Payment was cancelled or failed. Open the order to sync cancellation status.");
-      searchParams.delete("payment");
-      setSearchParams(searchParams, { replace: true });
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete("payment");
+      setSearchParams(nextParams, { replace: true });
     }
   }, [searchParams, setSearchParams, showError]);
 
   if (!user) return null;
+
+  const handleStatusFilterChange = (status: OrderStatusFilter) => {
+    const nextParams = new URLSearchParams(searchParams);
+
+    if (status === "All") {
+      nextParams.delete("status");
+    } else {
+      nextParams.set("status", status);
+    }
+
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <div>
@@ -76,6 +106,27 @@ export const MyBookingsPage: React.FC = () => {
         )}
       </div>
 
+      <div className="mb-6 flex flex-wrap gap-2">
+        {ORDER_STATUS_FILTERS.map((filter) => {
+          const isActive = activeStatus === filter.value;
+
+          return (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => handleStatusFilterChange(filter.value)}
+              className={`rounded-xl border px-4 py-2 text-sm font-bold transition-colors ${
+                isActive
+                  ? "border-brand bg-brand text-white shadow-sm shadow-brand/20"
+                  : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand"
+              }`}
+            >
+              {filter.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* States */}
       {isLoading ? (
         <div className="space-y-3">
@@ -95,9 +146,13 @@ export const MyBookingsPage: React.FC = () => {
       ) : orders.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 py-16 text-center">
           <ClipboardList size={36} className="text-slate-300" />
-          <p className="font-semibold text-slate-700">No bookings yet</p>
+          <p className="font-semibold text-slate-700">
+            {activeStatus === "All" ? "No bookings yet" : `No ${activeStatus} bookings`}
+          </p>
           <p className="text-sm text-slate-400">
-            Your future bookings will show up here.
+            {activeStatus === "All"
+              ? "Your future bookings will show up here."
+              : "Try another status filter to see more bookings."}
           </p>
         </div>
       ) : (

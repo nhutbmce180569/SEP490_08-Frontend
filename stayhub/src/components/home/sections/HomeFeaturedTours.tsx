@@ -1,7 +1,6 @@
 import React from "react";
 import { MapPin, Clock, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { usePublicTours } from "../../../hooks/usePublicTours";
 import type { Tour } from "../../../features/tour/types/tour";
 import { getNumberValue } from "../../../features/tour/utils/tourScheduleTicket";
 import { PATH } from "../../../config/routes/route";
@@ -26,8 +25,17 @@ const getTourMeta = (tour: Tour) => ({
   location: [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam",
 });
 
-export const HomeFeaturedTours: React.FC = () => {
-  const { tours, isLoading, error } = usePublicTours(1, 5);
+type HomeFeaturedToursProps = {
+  tours: Tour[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
+  tours,
+  isLoading,
+  error,
+}) => {
   const navigate = useNavigate();
 
   if (isLoading) {

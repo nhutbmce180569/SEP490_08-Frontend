@@ -1,85 +1,85 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { notificationService } from "../services/notification.service";
 import type { Notification } from "../types/notification";
 
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (err && typeof err === "object") {
+    const apiError = err as {
+      response?: { status?: number; data?: { message?: string } };
+      message?: string;
+    };
+
+    if (apiError.response?.status === 401) return null;
+    return apiError.response?.data?.message || apiError.message || fallback;
+  }
+
+  return fallback;
+};
+
 export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Hàm gọi API lấy danh sách
-const fetchNotifications = useCallback(async () => {
-    // Đổi thành "accessToken" ở đây nữa
-    const token = localStorage.getItem("accessToken"); 
-    
-    // Nếu chưa đăng nhập (không có token) thì ngưng luôn, không gọi API
+  const fetchNotifications = useCallback(async () => {
+    const token = localStorage.getItem("accessToken");
     if (!token) {
       setIsLoading(false);
-      return; 
+      return;
     }
 
     setIsLoading(true);
     setError(null);
+
     try {
       const data = await notificationService.getUserNotifications();
       setNotifications(data);
-    } catch (err: any) {
-      console.error("Lỗi khi lấy thông báo:", err);
-      if (err?.response?.status !== 401) {
-        setError(err?.response?.data?.message || "Không thể tải thông báo.");
-      }
+      setHasLoaded(true);
+    } catch (err: unknown) {
+      console.error("Failed to load notifications:", err);
+      const message = getErrorMessage(err, "Could not load notifications.");
+      if (message) setError(message);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Tự động gọi API khi khởi tạo hook
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Hàm đánh dấu đã đọc (cập nhật UI ngay lập tức, gọi API ngầm)
   const markAsRead = async (noti: Notification) => {
     if (noti.isRead) return;
 
-    // 1. Cập nhật UI ngay lập tức (Optimistic UI Update) cho cảm giác mượt mà
     setNotifications((prev) =>
-      prev.map((n) => (n.id === noti.id ? { ...n, isRead: true } : n))
+      prev.map((n) => (n.id === noti.id ? { ...n, isRead: true } : n)),
     );
 
-    // 2. Gọi API để lưu xuống DB
     try {
       await notificationService.markAsRead(noti.id);
     } catch (err) {
-      console.error("Lỗi khi đánh dấu đã đọc:", err);
-      // Nếu API lỗi, có thể roll-back state ở đây nếu muốn hệ thống cực kỳ chặt chẽ
+      console.error("Failed to mark notification as read:", err);
     }
   };
 
   const deleteNoti = async (id: number) => {
-    // 1. Cập nhật UI ngay lập tức: Lọc bỏ thông báo bị xóa
     setNotifications((prev) => prev.filter((n) => n.id !== id));
 
-    // 2. Gọi API để xóa thật dưới Database
     try {
       await notificationService.deleteNotification(id);
     } catch (err) {
-      console.error("Lỗi khi xóa thông báo:", err);
-      // Bổ sung: Nếu xóa thất bại, bạn có thể gọi lại fetchNotifications() để khôi phục UI
+      console.error("Failed to delete notification:", err);
     }
   };
 
-  // Tính sẵn số lượng chưa đọc trả về cho Component
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return {
     notifications,
-    setNotifications, // Xuất ra để sau này nhét data SignalR vào
+    setNotifications,
     isLoading,
+    hasLoaded,
     error,
     unreadCount,
     deleteNoti,
     markAsRead,
-    refresh: fetchNotifications, // Dành cho nút "Tải lại" nếu cần
+    refresh: fetchNotifications,
   };
 };

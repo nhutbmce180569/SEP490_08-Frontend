@@ -2,24 +2,41 @@ import { apiClient } from "../../../utils/axiosClient";
 import type { CreateOrderRequest, ReadOrderDTO } from "../types/booking";
 import { BOOKINGS_API } from "../../../config/api/bookings.api";
 
-const unwrapApiResponse = <T>(response: any): T => {
+export interface OrderPaginationResponse {
+  data: ReadOrderDTO[];
+  total?: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize?: number;
+}
+
+const unwrapApiResponse = <T>(response: unknown): T => {
   if (!response || typeof response !== "object" || !("data" in response)) {
     return response as T;
   }
 
+  const apiResponse = response as {
+    data?: unknown;
+    currentPage?: unknown;
+    totalPages?: unknown;
+    page?: unknown;
+    pageSize?: unknown;
+    totalCount?: unknown;
+  };
+
   const isPaginatedPayload =
-    Array.isArray(response.data) &&
-    ("currentPage" in response ||
-      "totalPages" in response ||
-      "page" in response ||
-      "pageSize" in response ||
-      "totalCount" in response);
+    Array.isArray(apiResponse.data) &&
+    ("currentPage" in apiResponse ||
+      "totalPages" in apiResponse ||
+      "page" in apiResponse ||
+      "pageSize" in apiResponse ||
+      "totalCount" in apiResponse);
 
   if (isPaginatedPayload) {
     return response as T;
   }
 
-  return unwrapApiResponse<T>(response.data);
+  return unwrapApiResponse<T>(apiResponse.data);
 };
 
 export const createOrder = async (data: CreateOrderRequest) => {
@@ -35,26 +52,34 @@ export const createOrder = async (data: CreateOrderRequest) => {
 };
 
 export const getOrdersByScheduleId = async (scheduleId: number) => {
-  const response: any = await apiClient.get(BOOKINGS_API.GET_ORDERS_BY_SCHEDULE(scheduleId));
+  const response: unknown = await apiClient.get(BOOKINGS_API.GET_ORDERS_BY_SCHEDULE(scheduleId));
   return unwrapApiResponse(response);
 };
 
 export const getScheduleCustomersByScheduleId = async (scheduleId: number) => {
-  const response: any = await apiClient.get(BOOKINGS_API.GET_SCHEDULE_CUSTOMERS(scheduleId));
+  const response: unknown = await apiClient.get(BOOKINGS_API.GET_SCHEDULE_CUSTOMERS(scheduleId));
   return unwrapApiResponse(response);
 };
 
-export const getOrdersByUserId = async (userId: string | number, page: number = 1, pageSize: number = 5) => {
-  const response: any = await apiClient.get(BOOKINGS_API.GET_CUSTOMER_ORDERS_BY_USER(userId), { params: { page, pageSize } });
-  return unwrapApiResponse(response);
+export const getOrdersByUserId = async (
+  userId: string | number,
+  page: number = 1,
+  pageSize: number = 5,
+  status?: string | null,
+): Promise<OrderPaginationResponse> => {
+  const response: unknown = await apiClient.get(
+    BOOKINGS_API.GET_CUSTOMER_ORDERS_BY_USER(userId),
+    { params: { page, pageSize, status: status || undefined } },
+  );
+  return unwrapApiResponse<OrderPaginationResponse>(response);
 };
 
 export const getOrderById = async (orderId: string | number) => {
-  const response: any = await apiClient.get(BOOKINGS_API.GET_ORDER_BY_ID(orderId));
+  const response: unknown = await apiClient.get(BOOKINGS_API.GET_ORDER_BY_ID(orderId));
   return unwrapApiResponse<ReadOrderDTO | null>(response);
 };
 
 export const cancelOrder = async (orderId: string | number) => {
-  const response: any = await apiClient.patch(BOOKINGS_API.CANCEL_ORDER(orderId));
+  const response: unknown = await apiClient.patch(BOOKINGS_API.CANCEL_ORDER(orderId));
   return unwrapApiResponse(response);
 };

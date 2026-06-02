@@ -1,4 +1,5 @@
 import { useState, useMemo, useContext } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Star,
@@ -1062,13 +1063,15 @@ export default function PublicTourDetail() {
       </div>
 
       {/* SCHEDULE MODAL */}
-      {isScheduleModalOpen && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
-          onClick={(e) =>
-            e.target === e.currentTarget && setIsScheduleModalOpen(false)
-          }
-        >
+      {isScheduleModalOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[99998] flex items-end sm:items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+            onClick={(e) =>
+              e.target === e.currentTarget && setIsScheduleModalOpen(false)
+            }
+          >
           <div className="w-full max-w-4xl overflow-hidden rounded-3xl bg-white shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-5">
               <div>
@@ -1293,8 +1296,9 @@ export default function PublicTourDetail() {
               )}
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

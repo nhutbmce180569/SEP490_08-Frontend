@@ -1,9 +1,24 @@
 import { useState } from "react";
 import { createOrder } from "../services/booking.service";
-import { createPayment } from "../services/payment.service";
+import {
+  createPayment,
+  rememberPaymentProvider,
+  type PaymentProvider,
+} from "../services/payment.service";
 // import { customerVoucherService } from "../../customer-voucher/services/customerVoucher.service";
 import { useToast } from "../../../contexts/ToastContext";
 import type { CreateOrderRequest } from "../types/booking";
+
+type ApiError = {
+  response?: {
+    status?: number;
+    data?: {
+      errors?: unknown;
+      message?: string;
+    };
+  };
+  message?: string;
+};
 
 export const useCreateBooking = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -13,7 +28,10 @@ export const useCreateBooking = () => {
 
   const { error: showError } = useToast();
 
-  const handleCreateBooking = async (data: CreateOrderRequest) => {
+  const handleCreateBooking = async (
+    data: CreateOrderRequest,
+    paymentProvider: PaymentProvider = "vnpay",
+  ) => {
     const hasFutureDOB = data.orderDetails?.some((detail) =>
       detail.tickets.some(
         (ticket) =>
@@ -29,18 +47,23 @@ export const useCreateBooking = () => {
     try {
       setIsSubmitting(true);
       const order = await createOrder(data);
-      const paymentUrl = await createPayment({
-        orderId: order.id,
-        amount: order.finalAmount,
-      });
+      rememberPaymentProvider(order.id, paymentProvider);
+      const paymentUrl = await createPayment(
+        {
+          orderId: order.id,
+          amount: order.finalAmount,
+        },
+        paymentProvider,
+      );
       window.location.href = paymentUrl;
-    }catch (error: any) {
-      if (error.response?.status === 400 && error.response.data?.errors) {
+    } catch (error: unknown) {
+      const apiError = error as ApiError;
+      if (apiError.response?.status === 400 && apiError.response.data?.errors) {
         showError("Please check the form for errors.");
       } else {
         showError(
-          error.response?.data?.message ||
-            error.message ||
+          apiError.response?.data?.message ||
+            apiError.message ||
             "Failed to create order.",
         );
       }

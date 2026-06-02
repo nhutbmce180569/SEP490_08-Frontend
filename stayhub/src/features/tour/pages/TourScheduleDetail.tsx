@@ -33,6 +33,7 @@ import { getScheduleItinerariesBySchedule } from "../services/tourScheduleItiner
 import { tourScheduleTicketService } from "../services/tourScheduleTicket.service";
 import type { TourScheduleItinerary } from "../types/tourScheduleItinerary";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+import { TourScheduleStaffManagement } from "../components/TourScheduleStaffManagement";
 import {
   formatTicketCurrency,
   getScheduleTicketAvailable,
@@ -773,6 +774,11 @@ export const TourScheduleDetail: React.FC = () => {
             )}
           </div>
         </div>
+      </div>
+
+      {/* SECTION: Quản lý Nhân sự */}
+      <div className="mt-8">
+        <TourScheduleStaffManagement scheduleId={Number(id)} />
       </div>
 
       <ConfirmDialog

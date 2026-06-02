@@ -42,6 +42,7 @@ import {
   getScheduleTicketName,
   getScheduleTicketTypeId,
 } from "../features/tour/utils/tourScheduleTicket";
+import { TourScheduleStaffManagement } from "../features/tour/components/TourScheduleStaffManagement";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -1306,3 +1307,19 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+export const TourScheduleDetail: React.FC = () => {
+  // Lấy ID lịch trình từ URL
+  const { id } = useParams(); 
+
+  return (
+    <div className="space-y-6">
+      {/* ... CÁC ĐOẠN CODE HIỂN THỊ THÔNG TIN LỊCH TRÌNH CŨ CỦA BẠN ... */}
+      
+      {/* THÊM KHỐI NÀY VÀO DƯỚI CÙNG */}
+      <div className="mt-8">
+         <TourScheduleStaffManagement scheduleId={Number(id)} />
+      </div>
+    </div>
+  );
+};

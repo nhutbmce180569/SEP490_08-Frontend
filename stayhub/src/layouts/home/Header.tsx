@@ -1,103 +1,58 @@
-import { useMemo, useState, useContext } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Heart,
+  Lock,
+  LogOut,
+  User,
+  LayoutDashboard,
+  Map,
+  Users,
+  Sparkles,
+  MessageCircle,
+  Search,
+  ShoppingBag,
+} from "lucide-react";
+
 import { ActionButton } from "../../components/home/ActionButton";
-import { PATH } from "../../config/routes/route";
-import { useNavigate, Link } from "react-router-dom";
+import { StayHubLogo } from "../../components/brand/StayHubLogo";
+import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
-import { useToast } from "../../contexts/ToastContext";
-
-import { AuthContext } from "../../contexts/AuthContext";
-import { logout as logoutApi } from "../../features/auth/services/auth.service";
-
-import { Heart, Lock, LogOut, User, LayoutDashboard, Map, Users, UserCheck, UserX, Sparkles , MessageCircle} from "lucide-react";
-import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
-import  NotificationBell  from "../../features/system/components/NotificationBell";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
-import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
-import logoBlue from "../../assets/logo_blue.png";
-
-type DropdownOption = { label: string; value: string };
-
-function HeaderDropdown({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: DropdownOption[];
-  value: string;
-  onChange: (next: string) => void;
-}) {
-  return (
-    <label
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 10,
-        height: 42,
-        padding: "0 14px 0 18px",
-        borderRadius: 12,
-        border: "1px solid rgba(5,7,60,0.08)",
-        background: "#fff",
-        cursor: "pointer",
-      }}
-    >
-      <span style={{ fontSize: 14.5, color: "#05073C", fontWeight: 500 }}>
-        {label}
-      </span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{
-          border: "none",
-          outline: "none",
-          background: "transparent",
-          fontSize: 14,
-          color: "#05073C",
-          cursor: "pointer",
-          paddingRight: 4,
-        }}
-        aria-label={label}
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
+import NotificationBell from "../../features/system/components/NotificationBell";
+import { PATH } from "../../config/routes/route";
+import { AuthContext } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
+import { logout as logoutApi } from "../../features/auth/services/auth.service";
+import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
 
 export default function Header() {
   const navigate = useNavigate();
   const { success } = useToast();
-  
   const { user, logout: contextLogout } = useContext(AuthContext);
-  
+
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
   const pendingCount = Array.isArray(pendingRequests) ? pendingRequests.length : 0;
 
   const userRoles = Array.isArray(user?.roles)
-    ? user?.roles
+    ? user.roles
     : typeof user?.roles === "string"
-    ? [user?.roles]
-    : [];
+      ? [user.roles]
+      : [];
   const upperRoles = userRoles.map((r: string) => r.toUpperCase());
-  const showDashboardButton = upperRoles.includes("ADMIN") || upperRoles.includes("OPERATOR") || upperRoles.includes("STAFF");
+  const showDashboardButton =
+    upperRoles.includes("ADMIN") ||
+    upperRoles.includes("OPERATOR") ||
+    upperRoles.includes("STAFF") ||
+    upperRoles.includes("MANAGER");
 
-  const handleGoToDashboard = () => {
-    if (upperRoles.includes("ADMIN")) {
-      navigate(PATH.ADMIN.DASHBOARD);
-    } else {
-      navigate(PATH.MANAGER.DASHBOARD);
-    }
-  };
+  const displayName = user?.fullName || user?.FullName || "User";
+  const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
 
-  const isSocialLogin = 
-    user?.provider === "Google" || 
-    user?.provider === "Facebook" || 
-    user?.authProvider === "Google" || 
+  const isSocialLogin =
+    user?.provider === "Google" ||
+    user?.provider === "Facebook" ||
+    user?.authProvider === "Google" ||
     user?.authProvider === "Facebook" ||
     user?.isSocial === true ||
     user?.rawClaims?.idp === "Google" ||
@@ -109,228 +64,176 @@ export default function Header() {
   const [showFriendMenu, setShowFriendMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
+  const userMenuRef = useRef<HTMLDivElement>(null);
+  const friendMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setShowUserMenu(false);
+      }
+      if (friendMenuRef.current && !friendMenuRef.current.contains(e.target as Node)) {
+        setShowFriendMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  const handleGoToDashboard = () => {
+    if (upperRoles.includes("ADMIN")) navigate(PATH.ADMIN.DASHBOARD);
+    else navigate(PATH.MANAGER.DASHBOARD);
+  };
+
+  const handleSearch = () => {
+    if (!query.trim()) return;
+    navigate(
+      `${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(query.trim())}`,
+    );
+  };
+
   const handleLogout = async () => {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
     setShowLogoutConfirm(false);
-    
     try {
       const refreshToken = localStorage.getItem("refreshToken");
-      if (refreshToken) {
-        await logoutApi({ refreshToken });
-      }
+      if (refreshToken) await logoutApi({ refreshToken });
     } catch (error) {
       console.error("Failed to logout on server", error);
     } finally {
-      contextLogout(); 
-      success("Logged out successfully.");
+      contextLogout();
+      success("Signed out successfully.");
       setIsLoggingOut(false);
     }
   };
 
   return (
-    <header
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100,
-        height: 88,
-        background: "#fff",
-        borderBottom: "1px solid rgba(5,7,60,0.08)",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1320,
-          height: "100%",
-          margin: "0 auto",
-          padding: "0 15px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 18,
-          fontFamily:
-            "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 18,
-            flex: 1,
-            paddingRight: 20,
-          }}
-        >
-        <Link
-          to={PATH.PUBLIC.HOME}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            textDecoration: "none",
-            flexShrink: 0,
-          }}
-          aria-label="StayHub home"
-        >
-          <img
-            src={logoBlue}
-            alt="StayHub"
-            style={{
-              display: "block",
-              height: 90,
-              width: "auto",
-              objectFit: "contain",
-            }}
-          />
-        </Link>
+    <header className="site-header">
+      <div className="page-container flex h-[72px] items-center gap-3 md:h-[76px] md:gap-4">
+        {/* Logo + search */}
+        <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
+          <StayHubLogo />
 
-          <div
-            style={{
-              flex: 1,
-              height: 44,
-              borderRadius: 12,
-              border: "1px solid rgba(5,7,60,0.12)",
-              display: "flex",
-              alignItems: "center",
-              padding: "0 16px",
-              gap: 10,
-              minWidth: 150,
-            }}
-          >
-            <span style={{ color: "#05073C", fontSize: 16 }} aria-hidden>
-              ⌕
-            </span>
+          <div className="search-bar-glass hidden max-w-xl flex-1 lg:flex">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && query.trim()) {
-                  navigate(`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(query.trim())}`);
-                }
-              }}
-              placeholder="Search destinations or activities"
-              style={{
-                width: "100%",
-                border: "none",
-                outline: "none",
-                fontSize: 14.5,
-                color: "#05073C",
-              }}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Search destinations, tours, or experiences..."
+              className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400"
+              aria-label="Search tours"
             />
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}
-        >
-
-          {/* <HeaderDropdown
-            label="Destinations"
-            options={destinationOptions}
-            value={destination}
-            onChange={setDestination}
-          />
-          <HeaderDropdown
-            label="Activities"
-            options={activityOptions}
-            value={activity}
-            onChange={setActivity}
-          />
-          <HeaderDropdown
-            label="Currency"
-            options={currencyOptions}
-            value={currency}
-            onChange={setCurrency}
-          /> */}
+        {/* Actions */}
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <button
+            type="button"
+            className="icon-btn lg:hidden"
+            aria-label="Search"
+            onClick={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
+          >
+            <Search className="h-5 w-5" />
+          </button>
 
           <ActionButton
-            variant="outline"
+            variant="ghost"
             onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
-            className="hidden md:flex !w-auto px-4 gap-2 !border-[#EB662B]/30 !text-[#EB662B] hover:!bg-[#FFF1EB]"
-            title="AI Tour Assistant"
+            className="hidden gap-1.5 sm:inline-flex"
+            title="AI tour recommendations"
           >
-            <Sparkles className="h-4 w-4" />
-            <span>AI Gợi ý</span>
+            <Sparkles className="h-4 w-4 text-brand" />
+            <span className="hidden text-brand md:inline">AI Guide</span>
           </ActionButton>
+
           {user ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "10px" }}>
+            <>
               {showDashboardButton && (
-                <ActionButton 
-                  variant="outline" 
-                  onClick={handleGoToDashboard} 
-                  title="Go to Dashboard" 
-                  className="hidden md:flex !w-auto px-4 gap-2"
+                <ActionButton
+                  variant="ghost"
+                  onClick={handleGoToDashboard}
+                  className="hidden gap-1.5 md:inline-flex"
+                  title="Dashboard"
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  <span>Dashboard</span>
+                  <span className="hidden lg:inline">Dashboard</span>
                 </ActionButton>
               )}
-              
-              
+
               <button
+                type="button"
                 onClick={() => navigate("/social/moments")}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
+                className="icon-btn"
                 title="Moments"
                 aria-label="Moments"
               >
                 <Map className="h-5 w-5" />
               </button>
 
-              <div className="relative">
+              <div className="relative" ref={friendMenuRef}>
                 <button
-                  onClick={() => setShowFriendMenu(!showFriendMenu)}
-                  className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
+                  type="button"
+                  onClick={() => setShowFriendMenu((v) => !v)}
+                  className="icon-btn relative"
                   title="Friends"
                   aria-label="Friends"
                 >
                   <Users className="h-5 w-5" />
                   {pendingCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white border-2 border-white shadow-sm">
-                      {pendingCount > 99 ? '99+' : pendingCount}
+                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
+                      {pendingCount > 99 ? "99+" : pendingCount}
                     </span>
                   )}
                 </button>
-                
+
                 {showFriendMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-lg border border-slate-100 p-2 z-50 flex flex-col">
-                    <div className="px-3 py-2 border-b border-slate-100 mb-1">
-                      <h3 className="text-sm font-bold text-slate-900">Friend Requests</h3>
+                  <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 p-2">
+                    <div className="mb-1 border-b border-slate-100/80 px-3 py-2">
+                      <h3 className="text-sm font-bold text-navy">Friend requests</h3>
                     </div>
-                    <div className="flex flex-col max-h-64 overflow-y-auto custom-scrollbar">
+                    <div className="custom-scrollbar max-h-64 overflow-y-auto">
                       {pendingCount === 0 ? (
-                        <div className="p-4 text-sm text-slate-500 text-center">No new requests</div>
+                        <p className="p-4 text-center text-sm text-slate-500">
+                          No new requests
+                        </p>
                       ) : (
-                        (pendingRequests as any[]).slice(0, 5).map((req: any) => {
-                          const avatar = req?.senderAvatarUrl;
-                          return (
-                            <div 
-                              key={req.id} 
-                              className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg transition-colors cursor-pointer group"
-                              onClick={() => { setShowFriendMenu(false); navigate(`/social/profile/${req.senderId}`); }}
+                        (pendingRequests as { id: string; senderId: string; senderName?: string; senderAvatarUrl?: string }[])
+                          .slice(0, 5)
+                          .map((req) => (
+                            <button
+                              key={req.id}
+                              type="button"
+                              className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-brand-light/50"
+                              onClick={() => {
+                                setShowFriendMenu(false);
+                                navigate(`/social/profile/${req.senderId}`);
+                              }}
                             >
-                              <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden flex items-center justify-center font-bold text-slate-500 shrink-0 border border-slate-200">
-                                {avatar ? (
-                                  <img src={avatar} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  (req?.senderName || 'U').charAt(0).toUpperCase()
-                                )}
+                              <UserAvatar
+                                name={req.senderName}
+                                avatarUrl={req.senderAvatarUrl}
+                                size="md"
+                              />
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-navy">
+                                  {req.senderName || "User"}
+                                </p>
+                                <p className="text-xs text-slate-500">Sent you a request</p>
                               </div>
-                              <div className="flex flex-col overflow-hidden">
-                                <span className="text-sm font-semibold text-slate-900 truncate group-hover:underline">{req?.senderName || 'Unknown'}</span>
-                                <span className="text-xs text-slate-500">Sent you a friend request</span>
-                              </div>
-                            </div>
-                          );
-                        })
+                            </button>
+                          ))
                       )}
                     </div>
                     <button
-                      onClick={() => { setShowFriendMenu(false); navigate("/social/friends"); }}
-                      className="w-full mt-2 py-2 text-center text-sm font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer border-t border-slate-50"
+                      type="button"
+                      onClick={() => {
+                        setShowFriendMenu(false);
+                        navigate(PATH.CUSTOMER.SOCIAL_FRIENDS);
+                      }}
+                      className="mt-1 w-full rounded-lg py-2 text-center text-sm font-semibold text-brand hover:bg-brand-light/60"
                     >
                       See all
                     </button>
@@ -338,120 +241,128 @@ export default function Header() {
                 )}
               </div>
 
-
               <button
+                type="button"
                 onClick={() => navigate(PATH.CUSTOMER.WISHLIST)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
-                title="My wishlist"
-                aria-label="My wishlist"
+                className="icon-btn"
+                title="Wishlist"
+                aria-label="Wishlist"
               >
                 <Heart className="h-5 w-5" />
               </button>
-              
-              <Link 
-                to="/social/chat" // 👉 ĐÃ SỬA LẠI ĐƯỜNG DẪN THÀNH /social/chat
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-blue-50 hover:text-blue-600"
+
+              <Link
+                to="/social/chat"
+                className="icon-btn relative"
                 title="Messages"
+                aria-label="Messages"
               >
                 <MessageCircle className="h-5 w-5" />
-                <span className="absolute top-2 right-2 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                </span>
+                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
               </Link>
 
-              {/* CÁI CHUÔNG ĐƯỢC GẮN Ở ĐÂY, NGAY BÊN TRÁI AVATAR */}
               <NotificationBell />
 
-              <div className="relative">
-                <div
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-3 cursor-pointer rounded-full hover:bg-slate-50 py-1 pl-1 pr-3 transition-colors"
+              <div className="relative ml-0.5" ref={userMenuRef}>
+                <button
+                  type="button"
+                  onClick={() => setShowUserMenu((v) => !v)}
+                  className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-brand-light/40 md:pr-3"
+                  aria-expanded={showUserMenu}
+                  aria-haspopup="menu"
                 >
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      background: "#0068E0",
-                      color: "#fff",
-                      display: "grid",
-                      placeItems: "center",
-                      fontWeight: 700,
-                      fontSize: 15,
-                  overflow: "hidden",
-                    }}
-                  >
-                {user?.avatarUrl || user?.AvatarUrl ? (
-                  <img
-                    src={user.avatarUrl || user.AvatarUrl}
-                    alt="User Avatar"
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  />
-                ) : (
-                  (user.fullName || user.FullName || "U").charAt(0).toUpperCase()
-                )}
-                  </div>
-                  <span style={{ fontSize: 15, fontWeight: 600, color: "#05073C", whiteSpace: "nowrap" }}>
-                    {user.fullName || user.FullName}
+                  <UserAvatar name={displayName} avatarUrl={avatarUrl} size="md" />
+                  <span className="hidden max-w-[140px] truncate text-sm font-semibold text-navy xl:inline">
+                    {displayName}
                   </span>
-                </div>
+                </button>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 p-2 z-50 flex flex-col gap-1">
+                  <div
+                    className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-56 p-1.5"
+                    role="menu"
+                  >
+                    <div className="border-b border-slate-100/80 px-3 py-2.5">
+                      <p className="truncate text-sm font-bold text-navy">{displayName}</p>
+                      <p className="truncate text-xs text-slate-500">{user?.email || user?.Email}</p>
+                    </div>
                     <button
-                      onClick={() => { navigate(PATH.CUSTOMER.PROFILE); setShowUserMenu(false); }}
-                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0068E0] rounded-lg transition-colors outline-none whitespace-nowrap"
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        navigate(PATH.CUSTOMER.PROFILE);
+                        setShowUserMenu(false);
+                      }}
+                      className="menu-item"
                     >
                       <User className="h-4 w-4" />
-                      My Profile
+                      My profile
                     </button>
                     <button
-                      onClick={() => { navigate(PATH.CUSTOMER.WISHLIST); setShowUserMenu(false); }}
-                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#EB662B] rounded-lg transition-colors outline-none whitespace-nowrap"
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        navigate(PATH.CUSTOMER.WISHLIST);
+                        setShowUserMenu(false);
+                      }}
+                      className="menu-item"
                     >
                       <Heart className="h-4 w-4" />
-                      My Wishlist
+                      Wishlist
                     </button>
                     {!isSocialLogin && (
                       <button
-                        onClick={() => { navigate(PATH.PUBLIC.CHANGE_PASSWORD); setShowUserMenu(false); }}
-                        className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-[#0068E0] rounded-lg transition-colors outline-none whitespace-nowrap"
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          navigate(PATH.PUBLIC.CHANGE_PASSWORD);
+                          setShowUserMenu(false);
+                        }}
+                        className="menu-item"
                       >
                         <Lock className="h-4 w-4" />
-                        Change Password
+                        Change password
                       </button>
                     )}
                     <button
-                      onClick={() => { setShowLogoutConfirm(true); setShowUserMenu(false); }}
-                      className="w-full flex items-center gap-2.5 text-left px-4 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors outline-none whitespace-nowrap"
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowLogoutConfirm(true);
+                        setShowUserMenu(false);
+                      }}
+                      className="menu-item menu-item-danger"
                     >
                       <LogOut className="h-4 w-4" />
-                      Log out
+                      Sign out
                     </button>
                   </div>
                 )}
               </div>
-            </div>
+            </>
           ) : (
             <>
-              <ActionButton variant="secondary" onClick={() => navigate(PATH.PUBLIC.REGISTER)}>
+              <ActionButton
+                variant="ghost"
+                onClick={() => navigate(PATH.PUBLIC.REGISTER)}
+                className="hidden sm:inline-flex"
+              >
                 Sign up
               </ActionButton>
-
               <ActionButton variant="primary" onClick={() => navigate(PATH.PUBLIC.LOGIN)}>
                 Log in
               </ActionButton>
             </>
           )}
 
-          <ActionButton
-            variant="outline"
-            aria-label="Cart"
-            className="text-[18px]"
+          <button
+            type="button"
+            className="icon-btn hidden sm:inline-flex"
+            aria-label="Browse tours"
+            onClick={() => navigate(PATH.PUBLIC.TOURS)}
           >
-            ⧉
-          </ActionButton>
+            <ShoppingBag className="h-5 w-5" />
+          </button>
         </div>
       </div>
 
@@ -459,11 +370,12 @@ export default function Header() {
         open={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
-        title="Log Out"
-        message="Are you sure you want to log out of your account?"
-        confirmText="Log Out"
+        title="Sign out"
+        message="Are you sure you want to sign out of your account?"
+        confirmText="Sign out"
+        cancelText="Cancel"
       />
-      <LoadingOverlay isOpen={isLoggingOut} message="Logging out..." />
+      <LoadingOverlay isOpen={isLoggingOut} message="Signing out..." />
     </header>
   );
 }

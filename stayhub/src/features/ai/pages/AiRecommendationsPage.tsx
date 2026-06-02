@@ -50,7 +50,7 @@ export const AiRecommendationsPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#F9F7F5" }}>
         <div
           className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
-          style={{ borderColor: "#EB662B", borderTopColor: "transparent" }}
+          style={{ borderColor: "var(--color-brand)", borderTopColor: "transparent" }}
         />
       </div>
     );
@@ -79,7 +79,7 @@ export const AiRecommendationsPage: React.FC = () => {
       <div className="container mx-auto max-w-7xl px-4 pt-10">
         <Link
           to={PATH.PUBLIC.AI_ASSISTANT}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-[#EB662B] mb-6 !no-underline"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-brand mb-6 !no-underline"
         >
           <ArrowLeft size={16} /> Làm lại khảo sát
         </Link>
@@ -97,10 +97,10 @@ export const AiRecommendationsPage: React.FC = () => {
               className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
               style={{ background: "rgba(235,102,43,0.2)" }}
             >
-              <Sparkles size={24} style={{ color: "#EB662B" }} />
+              <Sparkles size={24} style={{ color: "var(--color-brand)" }} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-orange-300 mb-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-light mb-2">
                 Gợi ý cá nhân hóa
               </p>
               <p className="text-white text-lg md:text-xl font-medium leading-relaxed">

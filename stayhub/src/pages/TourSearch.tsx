@@ -54,12 +54,12 @@ const SLIDER_CSS = `
   .ts-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 18px; height: 18px; border-radius: 50%;
-    background: #fff; border: 2.5px solid #0068E0;
+    background: #fff; border: 2.5px solid var(--color-brand);
     box-shadow: 0 1px 6px rgba(0,104,224,.28); margin-top: -8px; cursor: pointer;
   }
   .ts-range::-moz-range-thumb {
     width: 18px; height: 18px; border-radius: 50%;
-    background: #fff; border: 2.5px solid #0068E0;
+    background: #fff; border: 2.5px solid var(--color-brand);
     box-shadow: 0 1px 6px rgba(0,104,224,.28); cursor: pointer;
   }
   .ts-dual { position: relative; height: 20px; }
@@ -78,7 +78,7 @@ function SliderTrack({ lo, hi }: { lo: number; hi: number }) {
     >
       <div
         className="absolute inset-y-0 rounded-full"
-        style={{ left: `${lo}%`, right: `${100 - hi}%`, background: "#0068E0" }}
+        style={{ left: `${lo}%`, right: `${100 - hi}%`, background: "var(--color-brand)" }}
       />
     </div>
   );
@@ -138,7 +138,7 @@ function PriceSlider({
       </div>
       <div
         className="flex justify-between text-xs font-bold"
-        style={{ color: "#0068E0" }}
+        style={{ color: "var(--color-brand)" }}
       >
         <span>{fmt(valueMin)}</span>
         <span>{fmt(valueMax)}</span>
@@ -204,7 +204,7 @@ function DurationSlider({
       <div className="flex items-center justify-between">
         <span
           className="text-sm font-black"
-          style={{ color: "#0068E0", fontFamily: "'Sora', sans-serif" }}
+          style={{ color: "var(--color-brand)", fontFamily: "'Sora', sans-serif" }}
         >
           {value === 0 ? "Any duration" : `Up to ${value} days`}
         </span>
@@ -230,7 +230,7 @@ function FilterSection({
     >
       <p
         className="text-[10px] font-black uppercase tracking-[0.18em] mb-3"
-        style={{ color: "#0068E0" }}
+        style={{ color: "var(--color-brand)" }}
       >
         {label}
       </p>
@@ -286,12 +286,12 @@ function Sidebar({
           style={{ borderBottom: "1px solid rgba(5,7,60,0.07)" }}
         >
           <div className="flex items-center gap-2">
-            <SlidersHorizontal size={16} style={{ color: "#0068E0" }} />
+            <SlidersHorizontal size={16} style={{ color: "var(--color-brand)" }} />
             <span className="text-sm font-black text-slate-800">Filters</span>
           </div>
           <button
             onClick={onClear}
-            className="text-[11px] font-bold text-slate-400 hover:text-[#0068E0] transition-colors flex items-center gap-1"
+            className="text-[11px] font-bold text-slate-400 hover:text-brand transition-colors flex items-center gap-1"
           >
             <X size={12} /> Clear all
           </button>
@@ -376,10 +376,10 @@ function Sidebar({
                     onClick={() => upd({ categoryId: c.value })}
                     className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
                     style={{
-                      background: active ? "#0068E0" : "rgba(5,7,60,0.04)",
+                      background: active ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
                       color: active ? "#fff" : "#64748b",
                       border: active
-                        ? "1px solid #0068E0"
+                        ? "1px solid var(--color-brand)"
                         : "1px solid rgba(5,7,60,0.08)",
                     }}
                   >
@@ -444,7 +444,7 @@ function Pagination({
         <>
           <button
             onClick={() => onPage(1)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 transition-all hover:text-[#0068E0]"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 transition-all hover:text-brand"
             style={{ border: "1px solid rgba(5,7,60,0.1)", background: "#fff" }}
           >
             1
@@ -459,10 +459,10 @@ function Pagination({
           onClick={() => onPage(p)}
           className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all"
           style={{
-            background: p === page ? "#0068E0" : "#fff",
+            background: p === page ? "var(--color-brand)" : "#fff",
             color: p === page ? "#fff" : "#475569",
             border:
-              p === page ? "1px solid #0068E0" : "1px solid rgba(5,7,60,0.1)",
+              p === page ? "1px solid var(--color-brand)" : "1px solid rgba(5,7,60,0.1)",
             boxShadow: p === page ? "0 4px 16px rgba(0,104,224,0.28)" : "none",
             fontFamily: "'Sora', sans-serif",
           }}
@@ -478,7 +478,7 @@ function Pagination({
           )}
           <button
             onClick={() => onPage(totalPages)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 transition-all hover:text-[#0068E0]"
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 transition-all hover:text-brand"
             style={{ border: "1px solid rgba(5,7,60,0.1)", background: "#fff" }}
           >
             {totalPages}
@@ -653,12 +653,12 @@ export default function TourSearch() {
                 onClick={() => setMobileSidebarOpen(true)}
                 className="lg:hidden flex items-center gap-2 text-sm font-bold text-slate-700"
               >
-                <Filter size={15} style={{ color: "#0068E0" }} />
+                <Filter size={15} style={{ color: "var(--color-brand)" }} />
                 Filters
                 {activeFilterCount > 0 && (
                   <span
                     className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black text-white"
-                    style={{ background: "#0068E0" }}
+                    style={{ background: "var(--color-brand)" }}
                   >
                     {activeFilterCount}
                   </span>
@@ -702,7 +702,7 @@ export default function TourSearch() {
                 {searchTerm && (
                   <span
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white"
-                    style={{ background: "#0068E0" }}
+                    style={{ background: "var(--color-brand)" }}
                   >
                     "{searchTerm}"
                     <button onClick={() => upd({ searchTerm: null })}>
@@ -715,7 +715,7 @@ export default function TourSearch() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
                     style={{
                       background: "#EAF4FF",
-                      color: "#0068E0",
+                      color: "var(--color-brand)",
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
@@ -730,7 +730,7 @@ export default function TourSearch() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
                     style={{
                       background: "#EAF4FF",
-                      color: "#0068E0",
+                      color: "var(--color-brand)",
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
@@ -745,7 +745,7 @@ export default function TourSearch() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
                     style={{
                       background: "#EAF4FF",
-                      color: "#0068E0",
+                      color: "var(--color-brand)",
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
@@ -762,7 +762,7 @@ export default function TourSearch() {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
                     style={{
                       background: "#EAF4FF",
-                      color: "#0068E0",
+                      color: "var(--color-brand)",
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
@@ -774,7 +774,7 @@ export default function TourSearch() {
                 )}
                 <button
                   onClick={handleClear}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-[#0068E0] transition-colors"
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-brand transition-colors"
                   style={{ border: "1px solid rgba(5,7,60,0.1)" }}
                 >
                   Clear all
@@ -788,7 +788,7 @@ export default function TourSearch() {
                 <div
                   className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
                   style={{
-                    borderColor: "#0068E0",
+                    borderColor: "var(--color-brand)",
                     borderTopColor: "transparent",
                   }}
                 />

@@ -35,14 +35,14 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
   return (
     <div className={`relative ${className}`}>
       <div
-        className="flex items-center gap-2 rounded-2xl px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-[#EB662B]/30"
+        className="flex items-center gap-2 rounded-2xl px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-[var(--color-brand)]/30"
         style={{
           background: "#fff",
           border: "1px solid rgba(5,7,60,0.1)",
           boxShadow: "0 2px 12px rgba(5,7,60,0.04)",
         }}
       >
-        <Sparkles size={18} style={{ color: "#EB662B" }} className="shrink-0" />
+        <Sparkles size={18} style={{ color: "var(--color-brand)" }} className="shrink-0" />
         <input
           type="text"
           value={query}
@@ -61,7 +61,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
           onClick={handleSearch}
           disabled={isSearching || query.trim().length < 2}
           className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-black text-white disabled:opacity-50 transition-opacity shrink-0"
-          style={{ background: "#EB662B" }}
+          style={{ background: "var(--color-brand)" }}
         >
           {isSearching ? (
             <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -87,7 +87,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={goToAiAssistant}
-                className="text-xs font-bold text-[#EB662B] hover:underline"
+                className="text-xs font-bold text-brand hover:underline"
               >
                 Thử khảo sát AI chi tiết →
               </button>
@@ -118,7 +118,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={goToAiAssistant}
-                className="w-full py-3 text-xs font-black text-[#EB662B] hover:bg-[#FFF1EB] transition-colors"
+                className="w-full py-3 text-xs font-black text-brand hover:bg-brand-light transition-colors"
               >
                 Gợi ý cá nhân hóa với AI →
               </button>

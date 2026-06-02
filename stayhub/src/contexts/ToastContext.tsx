@@ -72,17 +72,17 @@ const ToastItem: React.FC<{ toast: ToastMessage; onClose: () => void }> = ({ toa
   }, []);
 
   const config = {
-    success: { icon: CheckCircle, className: "bg-emerald-600 text-white", iconColor: "text-white/90", progressClass: "bg-white/80" },
-    warning: { icon: AlertTriangle, className: "bg-amber-500 text-white", iconColor: "text-white/90", progressClass: "bg-white/80" },
-    error: { icon: XCircle, className: "bg-rose-600 text-white", iconColor: "text-white/90", progressClass: "bg-white/80" },
-    info: { icon: Info, className: "bg-blue-600 text-white", iconColor: "text-white/90", progressClass: "bg-white/80" },
+    success: { icon: CheckCircle, className: "glass-modal border-emerald-200/80 bg-emerald-600/95 text-white shadow-lg", iconColor: "text-white/90", progressClass: "bg-white/80" },
+    warning: { icon: AlertTriangle, className: "glass-modal border-amber-200/80 bg-amber-500/95 text-white shadow-lg", iconColor: "text-white/90", progressClass: "bg-white/80" },
+    error: { icon: XCircle, className: "glass-modal border-rose-200/80 bg-rose-600/95 text-white shadow-lg", iconColor: "text-white/90", progressClass: "bg-white/80" },
+    info: { icon: Info, className: "glass-modal border-brand/30 bg-brand/95 text-white shadow-lg", iconColor: "text-white/90", progressClass: "bg-white/80" },
   };
 
   const { icon: Icon, className, iconColor, progressClass } = config[toast.type];
 
   return (
     <div 
-      className={`relative flex w-full min-w-[300px] max-w-sm items-center gap-3 overflow-hidden rounded-lg px-4 py-3 shadow-lg transition-all duration-300 ${className}`}
+      className={`relative flex w-full min-w-[300px] max-w-sm items-center gap-3 overflow-hidden rounded-xl px-4 py-3 transition-all duration-300 ${className}`}
     >
       <Icon className={`h-5 w-5 shrink-0 ${iconColor}`} />
       <p className="m-0 flex-1 text-sm font-medium">{toast.message}</p>

@@ -148,7 +148,7 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
           <button
             type="button"
             onClick={() => onViewCustomer(c.customerId)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-[#0068E0] hover:bg-blue-50"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-brand hover:bg-brand-light"
             aria-label="View customer"
           >
             <Eye className="h-4 w-4" />

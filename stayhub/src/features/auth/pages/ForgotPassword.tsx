@@ -21,17 +21,17 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
       <div className="mb-8 flex items-center gap-2">
-        <div className="w-10 h-10 rounded-xl bg-[#05073C] flex items-center justify-center text-white font-black text-xl">
+        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center text-white font-black text-xl">
           S
         </div>
-        <span className="text-2xl font-extrabold tracking-tight text-[#05073C]">
+        <span className="text-2xl font-extrabold tracking-tight text-navy">
           StayHub
         </span>
       </div>
       
       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-[#05073C] mb-2">
+          <h2 className="text-2xl font-bold text-navy mb-2">
             Forgot Password
           </h2>
           <p className="text-slate-500 text-sm">
@@ -50,7 +50,7 @@ export default function ForgotPassword() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:border-[#0068E0] focus:ring-4 focus:ring-[#0068E0]/10"
+                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10"
                 placeholder="name@example.com"
                 required
               />
@@ -66,7 +66,7 @@ export default function ForgotPassword() {
       </div>
 
       <div className="mt-8">
-        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-[#0068E0] transition-colors !no-underline">
+        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-brand transition-colors !no-underline">
           &larr; Back to Login
         </Link>
       </div>

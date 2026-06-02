@@ -417,7 +417,7 @@ export const BookingPage: React.FC = () => {
           <div className="space-y-6">
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8">
               <h2 className="mb-6 flex items-center gap-2 border-b border-slate-100 pb-4 text-xl font-bold text-slate-800">
-                <Ticket className="text-[#0068E0]" /> Choose Tickets
+                <Ticket className="text-brand" /> Choose Tickets
               </h2>
 
               <div className="space-y-3">
@@ -468,7 +468,7 @@ export const BookingPage: React.FC = () => {
                             type="button"
                             onClick={() => handleAddTicket(ticketOption)}
                             disabled={isUnavailable || quantity >= available}
-                            className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0068E0] text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Plus className="h-4 w-4" />
                           </button>
@@ -494,14 +494,14 @@ export const BookingPage: React.FC = () => {
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   placeholder="E.g., Dietary requirements, special assistance..."
-                  className="h-24 w-full resize-none rounded-2xl border border-slate-200 p-4 text-sm outline-none focus:border-[#0068E0] focus:ring-1 focus:ring-[#0068E0]"
+                  className="h-24 w-full resize-none rounded-2xl border border-slate-200 p-4 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                 />
               </div>
             </div>
 
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8">
               <h2 className="mb-2 flex items-center gap-2 text-xl font-bold text-slate-800">
-                <Users className="text-[#0068E0]" /> Passengers Information
+                <Users className="text-brand" /> Passengers Information
               </h2>
               <p className="mb-6 border-b border-slate-100 pb-4 text-sm text-slate-500">
                 Please fill in details for every selected ticket.
@@ -521,7 +521,7 @@ export const BookingPage: React.FC = () => {
                       <div
                         key={ticket.passengerKey}
                         onClick={() => openTicketModal(index)}
-                        className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-[#0068E0] hover:bg-blue-50/30 hover:shadow-sm"
+                        className="flex cursor-pointer items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all hover:border-brand hover:bg-brand-light/30 hover:shadow-sm"
                       >
                         <div className="flex items-center gap-4">
                           <div
@@ -643,7 +643,7 @@ export const BookingPage: React.FC = () => {
 
                   <div className="mb-6 flex items-center justify-between border-t border-slate-200 pt-4">
                     <span className="font-bold text-slate-800">Total Price</span>
-                    <span className="text-2xl font-black text-[#0068E0]">
+                    <span className="text-2xl font-black text-brand">
                       {formatCurrency(finalPayable)}
                     </span>
                   </div>
@@ -652,7 +652,7 @@ export const BookingPage: React.FC = () => {
                     variant="primary"
                     onClick={onSubmit}
                     disabled={isSubmitting || ticketCount <= 0}
-                    className="w-full gap-2 py-4 text-base shadow-lg shadow-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full gap-2 py-4 text-base shadow-lg shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <CreditCard size={20} /> Checkout Securely
                   </ActionButton>
@@ -716,7 +716,7 @@ export const BookingPage: React.FC = () => {
                   className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${
                     ticketErrors.attendeeName
                       ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-                      : "border-slate-200 focus:border-[#0068E0]"
+                      : "border-slate-200 focus:border-brand"
                   }`}
                   required
                 />
@@ -740,7 +740,7 @@ export const BookingPage: React.FC = () => {
                   className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${
                     ticketErrors.idCard
                       ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-                      : "border-slate-200 focus:border-[#0068E0]"
+                      : "border-slate-200 focus:border-brand"
                   }`}
                   required
                 />
@@ -766,7 +766,7 @@ export const BookingPage: React.FC = () => {
                   className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${
                     ticketErrors.dateOfBirth
                       ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-                      : "border-slate-200 focus:border-[#0068E0]"
+                      : "border-slate-200 focus:border-brand"
                   }`}
                   required
                 />
@@ -786,7 +786,7 @@ export const BookingPage: React.FC = () => {
                     onChange={(event) =>
                       handleTicketFieldChange(editingTicketIndex, "gender", event.target.value)
                     }
-                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#0068E0]"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand"
                   >
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
@@ -811,7 +811,7 @@ export const BookingPage: React.FC = () => {
                     className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${
                       ticketErrors.nationality
                         ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-                        : "border-slate-200 focus:border-[#0068E0]"
+                        : "border-slate-200 focus:border-brand"
                     }`}
                     required
                   />

@@ -91,7 +91,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
             onClick={() => setViewMode('feed')}
             className={`flex items-center gap-2 rounded-lg px-6 py-2 text-sm font-bold transition-all duration-300 ${
               viewMode === 'feed'
-                ? 'bg-[#0068E0] text-white shadow-md'
+                ? 'bg-brand text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
             }`}
           >
@@ -101,7 +101,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
             onClick={() => setViewMode('map')}
             className={`flex items-center gap-2 rounded-lg px-6 py-2 text-sm font-bold transition-all duration-300 ${
               viewMode === 'map'
-                ? 'bg-[#0068E0] text-white shadow-md'
+                ? 'bg-brand text-white shadow-md'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
             }`}
           >
@@ -114,7 +114,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
       <div className="relative flex-1 overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-[#0068E0]"></div>
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-700 border-t-brand"></div>
           </div>
         )}
 
@@ -175,11 +175,11 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40">
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="group relative flex items-center justify-center w-16 h-16 bg-[#0068E0] text-white !rounded-full overflow-hidden shadow-[0_8px_32px_rgba(0,104,224,0.5)] border-4 border-slate-900 transition-all duration-300 hover:scale-110 active:scale-95"
+          className="group relative flex items-center justify-center w-16 h-16 bg-brand text-white !rounded-full overflow-hidden shadow-[0_8px_32px_rgba(0,104,224,0.5)] border-4 border-slate-900 transition-all duration-300 hover:scale-110 active:scale-95"
         >
           <Camera className="w-7 h-7" />
           {/* Zenly style ping effect */}
-          <div className="absolute inset-0 rounded-full border-2 border-[#0068E0] animate-ping opacity-40 group-hover:opacity-0 delay-75"></div>
+          <div className="absolute inset-0 rounded-full border-2 border-brand animate-ping opacity-40 group-hover:opacity-0 delay-75"></div>
         </button>
       </div>
 

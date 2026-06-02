@@ -1,10 +1,10 @@
-import React from 'react';
-import { Link, NavLink } from 'react-router-dom';
-import { X } from 'lucide-react';
+import React from "react";
+import { NavLink } from "react-router-dom";
+import { ChevronRight, X } from "lucide-react";
 
-import { PATH } from '../config/routes/route';
-import logoBlue from '../assets/logo_blue.png';
-import logoIcon from '../assets/stayhub_icon_transparent.png';
+import { PATH } from "../config/routes/route";
+import { StayHubLogo } from "../components/brand/StayHubLogo";
+import type { DashboardRole } from "./shared/DashboardTopBar";
 
 export type AdminSidebarItem = {
   label: string;
@@ -18,16 +18,69 @@ export type AdminSidebarGroup = {
 };
 
 const navItemBase =
-  'flex items-center gap-3 rounded-lg py-2.5 text-[14px] font-semibold tracking-[0.3px] transition !no-underline hover:!no-underline outline-none border-none';
+  "group flex items-center gap-3 rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-200 !no-underline outline-none";
 
 const navItemClassName = (isActive: boolean, collapsed: boolean) =>
   [
     navItemBase,
-    collapsed ? 'justify-center px-0' : 'px-4',
-    isActive
-      ? 'bg-[#0068E0] text-white shadow-sm'
-      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
-  ].join(' ');
+    collapsed ? "justify-center px-2" : "px-3",
+    isActive ? "nav-item-active" : "nav-item-inactive",
+  ].join(" ");
+
+function NavItems({
+  items,
+  collapsed,
+  logoLink,
+  onClose,
+  variant,
+}: {
+  items: AdminSidebarItem[];
+  collapsed: boolean;
+  logoLink: string;
+  onClose: () => void;
+  variant: DashboardRole;
+}) {
+  return (
+    <>
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end={item.to === logoLink}
+          className={({ isActive }) => navItemClassName(isActive, collapsed)}
+          onClick={onClose}
+          title={collapsed ? item.label : undefined}
+        >
+          {({ isActive }) => (
+            <>
+              <span
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors [&_*]:h-[18px] [&_*]:w-[18px] ${
+                  isActive
+                    ? "bg-white/20"
+                    : collapsed
+                      ? ""
+                      : "bg-slate-100/80 group-hover:bg-brand-light/60"
+                }`}
+              >
+                {item.icon}
+              </span>
+              {!collapsed && (
+                <>
+                  <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                  <ChevronRight
+                    className={`h-3.5 w-3.5 shrink-0 transition-opacity ${
+                      isActive ? "opacity-60" : "opacity-0 group-hover:opacity-40"
+                    }`}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </NavLink>
+      ))}
+    </>
+  );
+}
 
 export function Sidebar({
   items,
@@ -37,6 +90,7 @@ export function Sidebar({
   onClose,
   logoLink = PATH.MANAGER.DASHBOARD,
   badge,
+  variant = "partner",
 }: {
   items?: AdminSidebarItem[];
   groups?: AdminSidebarGroup[];
@@ -45,101 +99,85 @@ export function Sidebar({
   onClose: () => void;
   logoLink?: string;
   badge?: React.ReactNode;
+  variant?: DashboardRole;
 }) {
   return (
     <aside
       className={[
-        'fixed left-0 top-0 z-40 h-full border-r border-slate-200 bg-white transition-all duration-300',
-        collapsed ? 'w-[80px]' : 'w-[280px]',
-        open ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
-      ].join(' ')}
+        "dashboard-sidebar glass-sidebar fixed left-0 top-0 z-40 flex h-full flex-col transition-all duration-300",
+        variant === "admin" ? "dashboard-sidebar--admin" : "dashboard-sidebar--partner",
+        collapsed ? "w-[76px]" : "w-[272px]",
+        open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+      ].join(" ")}
     >
-      <div className={`flex h-16 shrink-0 items-center ${collapsed ? 'justify-center' : 'justify-between px-6'}`}>
-        <Link
-          to={logoLink}
-          className={`flex min-w-0 items-center !no-underline hover:!no-underline outline-none border-none ${collapsed ? 'justify-center' : 'gap-2'}`}
-          aria-label="StayHub dashboard"
-        >
-          {collapsed ? (
-            <img
-              src={logoIcon}
-              alt="StayHub"
-              className="h-10 w-10 object-contain"
-            />
-          ) : (
-            <>
-              <img
-                src={logoBlue}
-                alt="StayHub"
-                className="h-10 w-auto max-w-[150px] object-contain"
-              />
-              {badge}
-            </>
-          )}
-        </Link>
+      <div
+        className={`flex h-[72px] shrink-0 items-center border-b border-slate-200/60 ${
+          collapsed ? "justify-center px-2" : "justify-between px-4"
+        }`}
+      >
+        <div className={`flex min-w-0 items-center ${collapsed ? "justify-center" : "gap-2"}`}>
+          <StayHubLogo
+            variant={collapsed ? "compact" : "full"}
+            linkTo={logoLink}
+            className={collapsed ? "" : "origin-left scale-[0.92]"}
+          />
+          {!collapsed && badge}
+        </div>
 
         {!collapsed && (
-          <button
-            type="button"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 md:hidden"
-            onClick={onClose}
-            aria-label="Close menu"
-          >
+          <button type="button" className="icon-btn md:hidden" onClick={onClose} aria-label="Close menu">
             <X className="h-5 w-5" />
           </button>
         )}
       </div>
 
-      <div className="h-[calc(100vh-64px)] overflow-y-auto overflow-x-hidden p-4">
-        <div className="flex flex-col gap-6">
-          {/* Render danh sách phẳng (cho Dashboard Layout) */}
+      <div className="custom-scrollbar flex-1 overflow-x-hidden overflow-y-auto p-3">
+        <nav className="flex flex-col gap-1">
           {items && items.length > 0 && (
-            <div className="flex flex-col gap-1">
-              {items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === logoLink}
-                  className={({ isActive }) => navItemClassName(isActive, collapsed)}
-                  onClick={onClose}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <span className="[&_*]:h-[20px] [&_*]:w-[20px] flex shrink-0 items-center justify-center">
-                    {item.icon}
-                  </span>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </NavLink>
-              ))}
-            </div>
+            <NavItems
+              items={items}
+              collapsed={collapsed}
+              logoLink={logoLink}
+              onClose={onClose}
+              variant={variant}
+            />
           )}
 
-          {/* Render danh sách theo nhóm (cho Admin Layout) */}
-          {groups && groups.map((group, index) => (
-            <div key={index} className="flex flex-col gap-1">
+          {groups?.map((group, index) => (
+            <div key={index} className={index > 0 ? "mt-4" : ""}>
               {!collapsed && group.title && (
-                <div className="mb-1 px-4 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                   {group.title}
-                </div>
+                </p>
               )}
-              {group.items.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === logoLink}
-                  className={({ isActive }) => navItemClassName(isActive, collapsed)}
-                  onClick={onClose}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <span className="[&_*]:h-[20px] [&_*]:w-[20px] flex shrink-0 items-center justify-center">
-                    {item.icon}
-                  </span>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
-                </NavLink>
-              ))}
+              <div className="flex flex-col gap-0.5">
+                <NavItems
+                  items={group.items}
+                  collapsed={collapsed}
+                  logoLink={logoLink}
+                  onClose={onClose}
+                  variant={variant}
+                />
+              </div>
             </div>
           ))}
-        </div>
+        </nav>
       </div>
+
+      {!collapsed && (
+        <div className="shrink-0 border-t border-slate-200/60 p-4">
+          <div
+            className="rounded-2xl bg-brand-light/80 p-3.5 text-xs leading-relaxed text-brand"
+          >
+            <p className="font-bold">StayHub {variant === "admin" ? "Admin" : "Partner"}</p>
+            <p className="mt-1 opacity-80">
+              {variant === "admin"
+                ? "Centralized travel platform management."
+                : "Optimize tours, schedules, and revenue."}
+            </p>
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

@@ -20,7 +20,7 @@ export const WishlistSearchInput: React.FC<WishlistSearchInputProps> = ({
       onChange={(e) => onChange(e.target.value)}
       placeholder="Search saved tours by name..."
       maxLength={100}
-      className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-10 text-sm font-medium text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-[#EB662B]/50 focus:bg-white focus:ring-2 focus:ring-[#EB662B]/15"
+      className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-10 text-sm font-medium text-slate-800 outline-none transition-colors placeholder:text-slate-400 focus:border-brand/50 focus:bg-white focus:ring-2 focus:ring-brand/15"
       aria-label="Search wishlist"
     />
     {value && (

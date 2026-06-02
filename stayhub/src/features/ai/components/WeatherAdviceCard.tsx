@@ -15,7 +15,7 @@ export const WeatherAdviceCard: React.FC<Props> = ({ weather }) => (
       boxShadow: "0 2px 12px rgba(5,7,60,0.04)",
     }}
   >
-    <p className="text-[10px] font-black uppercase tracking-[0.18em] mb-2" style={{ color: "#EB662B" }}>
+    <p className="text-[10px] font-black uppercase tracking-[0.18em] mb-2" style={{ color: "var(--color-brand)" }}>
       Thời tiết dự báo
     </p>
     <h3 className="text-lg font-black text-slate-900 mb-1">{weather.city}</h3>

@@ -11,6 +11,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import ScrollToTop from "./components/ScrollToTop";
+import { CustomBrandCursor } from "./components/ui/CustomBrandCursor";
 import { PATH } from "./config/routes/route";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -121,11 +122,11 @@ const MockPage: React.FC<{ title: string; section?: string }> = ({
   title,
   section = "Mock UI",
 }) => (
-  <div className="mx-auto w-full max-w-6xl px-4 py-10">
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="page-container py-10">
+    <div className="glass-card p-6 md:p-8">
       <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-[#0068E0]">
+          <p className="travel-eyebrow">
             {section}
           </p>
           <h1 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
@@ -147,7 +148,7 @@ const MockPage: React.FC<{ title: string; section?: string }> = ({
             key={label}
             className="min-h-32 rounded-xl border border-slate-100 bg-slate-50 p-4"
           >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white text-sm font-black text-[#0068E0] shadow-sm">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-light text-sm font-black text-brand shadow-sm">
               {index + 1}
             </div>
             <h2 className="text-sm font-bold text-slate-800">{label}</h2>
@@ -179,8 +180,8 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#0068E0] border-t-transparent"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent"></div>
       </div>
     );
   }
@@ -234,7 +235,7 @@ const MomentsRouteWrapper = () => {
   
         <div className="relative">
           <select 
-            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0068E0] cursor-pointer"
+            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
             onChange={(e) => setSelectedSchedule(e.target.value ? Number(e.target.value) : null)}
             value={selectedSchedule || ""}
           >
@@ -264,6 +265,7 @@ const App: React.FC = () => {
       <ToastProvider>
         <AuthProvider>
           <Router>
+            <CustomBrandCursor />
             <ScrollToTop />
             <Routes>
               <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />

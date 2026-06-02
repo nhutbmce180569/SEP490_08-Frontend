@@ -74,7 +74,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
                     className="h-16 w-16 rounded-full border border-slate-200 object-cover"
                   />
                 ) : (
-                  <div className="grid h-16 w-16 place-items-center rounded-full bg-[#0068E0]/10 text-xl font-bold text-[#0068E0]">
+                  <div className="grid h-16 w-16 place-items-center rounded-full bg-brand/10 text-xl font-bold text-brand">
                     {data.fullName.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -172,7 +172,7 @@ const InfoSection: React.FC<{ title: string; children: React.ReactNode }> = ({
 }) => (
   <div>
     <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-800">
-      <ShoppingBag className="h-4 w-4 text-[#0068E0]" />
+      <ShoppingBag className="h-4 w-4 text-brand" />
       {title}
     </h3>
     <div className="space-y-2 rounded-xl border border-slate-100 p-4">{children}</div>

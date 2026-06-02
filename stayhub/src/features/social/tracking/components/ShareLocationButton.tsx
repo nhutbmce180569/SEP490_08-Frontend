@@ -29,7 +29,7 @@ export const ShareLocationButton: React.FC = () => {
     <button
       onClick={handleShare}
       disabled={isPending}
-      className="flex items-center gap-2 rounded-xl bg-[#0068E0] px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(0,104,224,0.3)] transition-all hover:scale-105 hover:bg-[#0058D0] active:scale-95 disabled:pointer-events-none disabled:opacity-70"
+      className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-[0_8px_20px_rgba(0,104,224,0.3)] transition-all hover:scale-105 hover:bg-brand-hover active:scale-95 disabled:pointer-events-none disabled:opacity-70"
     >
       {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Share2 className="h-5 w-5" />}
       <span>Chia sẻ vị trí</span>

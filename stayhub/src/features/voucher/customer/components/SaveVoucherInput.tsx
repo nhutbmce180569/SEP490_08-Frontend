@@ -16,9 +16,9 @@ export const SaveVoucherInput: React.FC<SaveVoucherInputProps> = ({
   onCodeChange,
   onSave,
 }) => (
-  <div className="overflow-hidden rounded-2xl border border-[#0068E0]/20 bg-gradient-to-r from-blue-50 via-white to-amber-50 p-5 shadow-sm">
+  <div className="overflow-hidden rounded-2xl border border-brand/20 bg-gradient-to-r from-blue-50 via-white to-amber-50 p-5 shadow-sm">
     <div className="mb-4 flex items-start gap-3">
-      <div className="rounded-xl bg-[#0068E0] p-2.5 text-white shadow-md shadow-blue-500/20">
+      <div className="rounded-xl bg-brand p-2.5 text-white shadow-md shadow-brand/20">
         <TicketPercent size={22} />
       </div>
       <div>
@@ -37,15 +37,15 @@ export const SaveVoucherInput: React.FC<SaveVoucherInputProps> = ({
         onKeyDown={(event) => { if (event.key === 'Enter') onSave(); }}
         placeholder="e.g. SUMMER2026"
         maxLength={50}
-        className={`flex-1 rounded-xl border bg-white px-4 py-3 text-sm font-semibold uppercase tracking-wide outline-none transition-all focus:ring-4 focus:ring-[#0068E0]/10 ${
-          error ? 'border-rose-300 focus:border-rose-400' : 'border-slate-200 focus:border-[#0068E0]'
+        className={`flex-1 rounded-xl border bg-white px-4 py-3 text-sm font-semibold uppercase tracking-wide outline-none transition-all focus:ring-4 focus:ring-brand/10 ${
+          error ? 'border-rose-300 focus:border-rose-400' : 'border-slate-200 focus:border-brand'
         }`}
       />
       <button
         type="button"
         onClick={onSave}
         disabled={isSaving || !code.trim()}
-        className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-xl bg-[#0068E0] px-5 py-3 text-sm font-bold text-white shadow-md shadow-blue-500/25 transition-all hover:bg-[#0058D0] disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white shadow-md shadow-brand/25 transition-all hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         {isSaving ? (<><Loader2 className="h-4 w-4 animate-spin" />Saving...</>) : 'Save Voucher'}
       </button>

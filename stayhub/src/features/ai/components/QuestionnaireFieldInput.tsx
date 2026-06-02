@@ -20,7 +20,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
   onChange,
 }) => {
   const baseInput =
-    "w-full rounded-xl py-3 px-4 text-sm text-slate-700 outline-none transition-colors font-medium focus:border-[#EB662B]";
+    "w-full rounded-xl py-3 px-4 text-sm text-slate-700 outline-none transition-colors font-medium focus:border-brand";
 
   switch (field.inputType) {
     case "single_select":
@@ -35,10 +35,10 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
                 onClick={() => onChange(field.fieldKey, opt.value)}
                 className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
                 style={{
-                  background: active ? "#EB662B" : "rgba(5,7,60,0.04)",
+                  background: active ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
                   color: active ? "#fff" : "#64748b",
                   border: active
-                    ? "1px solid #EB662B"
+                    ? "1px solid var(--color-brand)"
                     : "1px solid rgba(5,7,60,0.08)",
                 }}
               >
@@ -68,8 +68,8 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
                 }}
                 className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all"
                 style={{
-                  background: active ? "#FFF1EB" : "rgba(5,7,60,0.04)",
-                  color: active ? "#EB662B" : "#64748b",
+                  background: active ? "var(--color-brand-light)" : "rgba(5,7,60,0.04)",
+                  color: active ? "var(--color-brand)" : "#64748b",
                   border: active
                     ? "1px solid rgba(235,102,43,0.35)"
                     : "1px solid rgba(5,7,60,0.08)",
@@ -132,7 +132,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
             onClick={() => onChange(field.fieldKey, true)}
             className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
             style={{
-              background: value === true ? "#EB662B" : "rgba(5,7,60,0.04)",
+              background: value === true ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
               color: value === true ? "#fff" : "#64748b",
               border: "1px solid rgba(5,7,60,0.08)",
             }}
@@ -144,7 +144,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
             onClick={() => onChange(field.fieldKey, false)}
             className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
             style={{
-              background: value === false ? "#EB662B" : "rgba(5,7,60,0.04)",
+              background: value === false ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
               color: value === false ? "#fff" : "#64748b",
               border: "1px solid rgba(5,7,60,0.08)",
             }}

@@ -143,7 +143,7 @@ export const PlatformAnalyticsPage: React.FC = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
               activeTab === tab.id
-                ? 'bg-[#0068E0] text-white shadow-sm'
+                ? 'bg-brand text-white shadow-sm'
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -231,8 +231,8 @@ const OverviewTab: React.FC<{
             label="New Users"
             value={formatNumber(data.newUsersInPeriod)}
             subLabel="In selected period"
-            icon={<UserPlus className="h-5 w-5 text-blue-500" />}
-            iconBgClass="bg-blue-50"
+            icon={<UserPlus className="h-5 w-5 text-brand" />}
+            iconBgClass="bg-brand-light"
           />
           <StatCard
             label="Managers"
@@ -272,8 +272,8 @@ const OverviewTab: React.FC<{
             label="Occupancy Rate"
             value={formatPercent(data.scheduleOccupancyRate)}
             subLabel="Ticket capacity filled"
-            icon={<BarChart3 className="h-5 w-5 text-[#0068E0]" />}
-            iconBgClass="bg-blue-50"
+            icon={<BarChart3 className="h-5 w-5 text-brand" />}
+            iconBgClass="bg-brand-light"
           />
           <StatCard
             label="Check-in Rate"
@@ -348,7 +348,7 @@ const UsersTab: React.FC<{
           label="Customers"
           count={data.totalCustomers}
           description="End-user accounts"
-          colorClass="bg-blue-50 text-blue-500"
+          colorClass="bg-brand-light text-brand"
           icon={<Users className="h-5 w-5" />}
         />
         <SegmentCard
@@ -377,7 +377,7 @@ const UsersTab: React.FC<{
       <div className="rounded-2xl bg-white p-4 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
         <div className="text-sm font-semibold text-slate-600">
           Online recently:{' '}
-          <span className="text-lg font-bold text-[#0068E0]">
+          <span className="text-lg font-bold text-brand">
             {formatNumber(data.onlineRecently)}
           </span>
           <span className="ml-1 text-slate-400">users</span>
@@ -516,8 +516,8 @@ const VouchersTab: React.FC<{
           label="Redemption Rate"
           value={formatPercent(data.redemptionRate)}
           subLabel={`${formatNumber(data.totalRedemptions)} total redemptions`}
-          icon={<BarChart3 className="h-5 w-5 text-[#0068E0]" />}
-          iconBgClass="bg-blue-50"
+          icon={<BarChart3 className="h-5 w-5 text-brand" />}
+          iconBgClass="bg-brand-light"
         />
       </div>
 
@@ -576,8 +576,8 @@ const SocialTab: React.FC<{
           <StatCard
             label="Total Messages"
             value={formatNumber(data.totalChatMessages)}
-            icon={<MessageCircle className="h-5 w-5 text-blue-500" />}
-            iconBgClass="bg-blue-50"
+            icon={<MessageCircle className="h-5 w-5 text-brand" />}
+            iconBgClass="bg-brand-light"
           />
           <StatCard
             label="Unread Messages"
@@ -668,7 +668,7 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({
     <button
       type="button"
       onClick={onRetry}
-      className="mt-4 rounded-xl bg-[#0068E0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0058c0]"
+      className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-[#0058c0]"
     >
       Try Again
     </button>

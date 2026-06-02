@@ -315,7 +315,7 @@ export default function PublicTourDetail() {
     return (
       <div className="min-h-screen -mt-[88px] flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4 text-slate-500">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#0068E0]" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-brand" />
           Loading tour details...
         </div>
       </div>
@@ -538,7 +538,7 @@ export default function PublicTourDetail() {
 
               {tourItineraries.length > 0 ? (
                 <div className="relative">
-                  <div className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-[#0068E0] via-blue-200 to-transparent hidden sm:block" />
+                  <div className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-brand via-brand-light to-transparent hidden sm:block" />
                   <div className="space-y-6">
                     {Object.entries(groupedItineraries)
                       .map(([dayStr]) => Number(dayStr))
@@ -546,16 +546,16 @@ export default function PublicTourDetail() {
                       .map((dayNumber) => (
                       <div key={dayNumber} className="flex gap-5 sm:gap-8">
                         <div className="relative z-10 shrink-0 hidden sm:block">
-                          <div className="h-10 w-10 rounded-full bg-[#0068E0] flex items-center justify-center shadow-md shadow-blue-200">
+                          <div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center shadow-md shadow-blue-200">
                             <span className="text-white font-black text-xs">
                               {dayNumber}
                             </span>
                           </div>
                         </div>
-                        <div className="flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-blue-200 transition-colors overflow-hidden">
+                        <div className="flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-brand/20 transition-colors overflow-hidden">
                           <div className="border-b border-slate-100 bg-slate-50 px-5 py-4 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                               <span className="sm:hidden inline-flex items-center justify-center h-6 w-6 rounded-full bg-[#0068E0] text-white font-black text-[10px]">
+                               <span className="sm:hidden inline-flex items-center justify-center h-6 w-6 rounded-full bg-brand text-white font-black text-[10px]">
                                  {dayNumber}
                                </span>
                                <h3 className="text-lg font-bold text-slate-800">
@@ -580,7 +580,7 @@ export default function PublicTourDetail() {
                                      onClick={() => toggleIti(iti.id)}
                                    >
                                      <div className="flex items-center gap-4">
-                                       <div className="flex min-w-[90px] items-center justify-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-[#0068E0]">
+                                       <div className="flex min-w-[90px] items-center justify-center rounded-lg bg-brand-light px-3 py-1.5 text-xs font-bold text-brand">
                                          <Clock className="mr-1.5 h-3.5 w-3.5" />
                                          {timeStr}
                                        </div>
@@ -638,7 +638,7 @@ export default function PublicTourDetail() {
                                                   <div className="space-y-2 p-4">
                                                     <div className="flex flex-wrap items-center gap-2">
                                                       <span className="font-bold text-slate-800">{tourismInfo.name}</span>
-                                                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-[#0068E0]">
+                                                      <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-bold text-brand">
                                                         {tourismInfo.type}
                                                       </span>
                                                     </div>
@@ -665,7 +665,7 @@ export default function PublicTourDetail() {
                                                         href={tourismInfo.sourceUrl}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0068E0] hover:text-blue-700"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                                                       >
                                                         {tourismInfo.sourceName || "Source"}
                                                         <ExternalLink className="h-3.5 w-3.5" />
@@ -675,7 +675,7 @@ export default function PublicTourDetail() {
                                                 </div>
                                               ) : (
                                                 <div className="flex items-start gap-2 p-3">
-                                                  <Tag className="h-4 w-4 text-[#0068E0] shrink-0 mt-0.5" />
+                                                  <Tag className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                                                   <span className="font-semibold text-slate-700">
                                                     Tourism info ID #{iti.tourismInfoId}
                                                   </span>
@@ -788,7 +788,7 @@ export default function PublicTourDetail() {
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
                             {/* Avatar */}
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-[#0068E0] font-bold text-lg uppercase shrink-0 overflow-hidden border border-blue-200">
+                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-brand font-bold text-lg uppercase shrink-0 overflow-hidden border border-brand/20">
                               {review.customerAvatar ? (
                                 <img 
                                   src={review.customerAvatar} 
@@ -900,7 +900,7 @@ export default function PublicTourDetail() {
             <div className="sticky top-24">
               <div className="rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
                 {/* Price strip */}
-                <div className="bg-gradient-to-r from-[#0068E0] to-blue-400 px-6 py-5">
+                <div className="bg-gradient-to-r from-brand to-brand px-6 py-5">
                   <span className="text-blue-100 text-xs font-semibold uppercase tracking-widest">
                     Starting from
                   </span>
@@ -928,7 +928,7 @@ export default function PublicTourDetail() {
                     </h3>
 
                     {selectedSchedule ? (
-                      <div className="rounded-2xl border border-[#0068E0] bg-blue-50/30 p-4">
+                      <div className="rounded-2xl border border-brand bg-brand-light/30 p-4">
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="text-sm font-semibold text-slate-500">
@@ -944,12 +944,12 @@ export default function PublicTourDetail() {
                           </div>
                           <button
                             onClick={() => setIsScheduleModalOpen(true)}
-                            className="text-sm font-bold text-[#0068E0] hover:text-blue-700 underline"
+                            className="text-sm font-bold text-brand hover:text-brand-hover underline"
                           >
                             Change
                           </button>
                         </div>
-                        <div className="border-t border-blue-200/50 pt-3 flex justify-between items-center">
+                        <div className="border-t border-brand/20/50 pt-3 flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-600">
                             Price range
                           </span>
@@ -958,7 +958,7 @@ export default function PublicTourDetail() {
                           </span>
                         </div>
                         {selectedScheduleTickets.length > 0 && (
-                          <div className="mt-3 space-y-2 border-t border-blue-200/50 pt-3">
+                          <div className="mt-3 space-y-2 border-t border-brand/20/50 pt-3">
                             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-400">
                               <Ticket className="h-3.5 w-3.5" />
                               Ticket options
@@ -993,15 +993,15 @@ export default function PublicTourDetail() {
                     ) : (
                       <button
                         onClick={() => setIsScheduleModalOpen(true)}
-                        className="w-full flex items-center justify-between rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 hover:border-[#0068E0] hover:bg-blue-50 transition-all group"
+                        className="w-full flex items-center justify-between rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 hover:border-brand hover:bg-brand-light transition-all group"
                       >
-                        <div className="flex items-center gap-3 text-slate-600 group-hover:text-[#0068E0]">
+                        <div className="flex items-center gap-3 text-slate-600 group-hover:text-brand">
                           <Calendar className="h-5 w-5" />
                           <span className="font-medium">Select a date</span>
                         </div>
                         <ChevronRight
                           size={18}
-                          className="text-slate-300 group-hover:text-[#0068E0] transition-colors"
+                          className="text-slate-300 group-hover:text-brand transition-colors"
                         />
                       </button>
                     )}
@@ -1010,7 +1010,7 @@ export default function PublicTourDetail() {
                   {/* ActionButton - same as original */}
                   <ActionButton
                     variant="primary"
-                    className="w-full py-4 text-base shadow-lg shadow-blue-500/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
+                    className="w-full py-4 text-base shadow-lg shadow-brand/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
                     disabled={!selectedCheckoutSchedule}
                     onClick={() => {
                       navigate(PATH.CUSTOMER.CHECKOUT(tour.id), {
@@ -1030,7 +1030,7 @@ export default function PublicTourDetail() {
               {/* Quick stats */}
               <div className="mt-4 bg-white rounded-2xl border border-slate-200 p-4 grid grid-cols-3 gap-3 text-center">
                 <div>
-                  <div className="text-lg font-black text-[#0068E0]">
+                  <div className="text-lg font-black text-brand">
                     {days || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
@@ -1038,7 +1038,7 @@ export default function PublicTourDetail() {
                   </div>
                 </div>
                 <div className="border-x border-slate-100">
-                  <div className="text-lg font-black text-[#0068E0]">
+                  <div className="text-lg font-black text-brand">
                     {reviews || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
@@ -1046,7 +1046,7 @@ export default function PublicTourDetail() {
                   </div>
                 </div>
                 <div>
-                  <div className="text-lg font-black text-[#0068E0]">
+                  <div className="text-lg font-black text-brand">
                     {rating > 0 ? rating.toFixed(1) : "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
@@ -1094,7 +1094,7 @@ export default function PublicTourDetail() {
                     onClick={() => setSelectedMonth(month)}
                     className={`whitespace-nowrap py-4 text-sm font-bold border-b-2 transition-colors ${
                       activeMonth === month
-                        ? "border-[#0068E0] text-[#0068E0]"
+                        ? "border-brand text-brand"
                         : "border-transparent text-slate-500 hover:text-slate-800"
                     }`}
                   >
@@ -1130,14 +1130,14 @@ export default function PublicTourDetail() {
                         className={`relative text-left rounded-2xl border-2 p-4 transition-all
                           ${
                             isSelected
-                              ? "border-[#0068E0] bg-blue-50/50 ring-1 ring-[#0068E0] shadow-md"
+                              ? "border-brand bg-brand-light/50 ring-1 ring-brand shadow-md"
                               : isUnavailable
                               ? "border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed grayscale-[50%]"
                               : "border-slate-200 bg-white hover:shadow-md"
                           }`}
                       >
                         {isSelected && (
-                          <div className="absolute right-3 top-3 h-5 w-5 rounded-full bg-[#0068E0] flex items-center justify-center">
+                          <div className="absolute right-3 top-3 h-5 w-5 rounded-full bg-brand flex items-center justify-center">
                             <CheckCircle2 size={12} className="text-white" />
                           </div>
                         )}
@@ -1145,7 +1145,7 @@ export default function PublicTourDetail() {
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                           <div className="flex min-w-0 flex-1 items-center gap-4">
                             <div
-                              className={`rounded-xl px-3 py-2 text-center min-w-[58px] shrink-0 ${isSelected ? "bg-[#0068E0]" : "bg-slate-100"}`}
+                              className={`rounded-xl px-3 py-2 text-center min-w-[58px] shrink-0 ${isSelected ? "bg-brand" : "bg-slate-100"}`}
                             >
                               <div
                                 className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? "text-blue-200" : "text-slate-400"}`}
@@ -1243,7 +1243,7 @@ export default function PublicTourDetail() {
                                 setSelectedScheduleId(schedule.id);
                                 setIsScheduleModalOpen(false);
                               }}
-                              className="min-w-[132px] rounded-xl bg-[#0068E0] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
+                              className="min-w-[132px] rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
                             >
                               {isSelected ? "Selected" : "Select"}
                             </button>
@@ -1300,8 +1300,8 @@ export default function PublicTourDetail() {
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 mb-3">
-      <div className="h-[2px] w-6 bg-[#0068E0] rounded-full" />
-      <span className="text-[11px] font-black uppercase tracking-[0.15em] text-[#0068E0]">
+      <div className="h-[2px] w-6 bg-brand rounded-full" />
+      <span className="text-[11px] font-black uppercase tracking-[0.15em] text-brand">
         {children}
       </span>
     </div>

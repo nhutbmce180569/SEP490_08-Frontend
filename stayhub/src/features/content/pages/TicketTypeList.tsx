@@ -45,7 +45,7 @@ export const TicketTypeList: React.FC = () => {
         header: "Ticket Type",
         render: (ticketType) => (
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-100 bg-slate-50 text-[#4880ff]">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-100 bg-slate-50 text-brand">
               <Ticket className="h-5 w-5" />
             </div>
             <span className="font-semibold text-slate-800">{ticketType.name}</span>
@@ -146,7 +146,7 @@ export const TicketTypeList: React.FC = () => {
             placeholder="Search by ticket type name..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           />
         </div>
       </div>

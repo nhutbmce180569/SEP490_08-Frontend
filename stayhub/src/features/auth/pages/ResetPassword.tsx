@@ -80,17 +80,17 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
       <div className="mb-8 flex items-center gap-2">
-        <div className="w-10 h-10 rounded-xl bg-[#05073C] flex items-center justify-center text-white font-black text-xl">
+        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center text-white font-black text-xl">
           S
         </div>
-        <span className="text-2xl font-extrabold tracking-tight text-[#05073C]">
+        <span className="text-2xl font-extrabold tracking-tight text-navy">
           StayHub
         </span>
       </div>
       
       <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
         <div className="mb-6">
-          <h2 className="text-2xl font-bold text-[#05073C] mb-2">
+          <h2 className="text-2xl font-bold text-navy mb-2">
             Reset Password
           </h2>
           <p className="text-slate-500 text-sm">
@@ -127,7 +127,7 @@ export default function ResetPassword() {
                 type="button"
                 onClick={handleResendCode}
                 disabled={isResending || isSubmitting || countdown > 0}
-                className="text-xs font-bold text-[#0068E0] hover:text-[#0058D0] transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none"
+                className="text-xs font-bold text-brand hover:text-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none"
               >
                 {isResending ? "Resending..." : countdown > 0 ? `Resend Code (${countdown}s)` : "Resend Code"}
               </button>
@@ -139,7 +139,7 @@ export default function ResetPassword() {
                 name="code"
                 value={formData.code}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.code ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-brand/10 ${errors.code ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-brand"}`}
                 placeholder="Enter reset code"
                 required
               />
@@ -158,7 +158,7 @@ export default function ResetPassword() {
                 name="newPassword"
                 value={formData.newPassword}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.newPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-brand/10 ${errors.newPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-brand"}`}
                 placeholder="Create a new password"
                 required
               />
@@ -180,7 +180,7 @@ export default function ResetPassword() {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-[#0068E0]"}`}
+                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-brand/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-brand"}`}
                 placeholder="Repeat your new password"
                 required
               />
@@ -196,7 +196,7 @@ export default function ResetPassword() {
       </div>
 
       <div className="mt-8">
-        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-[#0068E0] transition-colors !no-underline">
+        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-brand transition-colors !no-underline">
           &larr; Back to Login
         </Link>
       </div>

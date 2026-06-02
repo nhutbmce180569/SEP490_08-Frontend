@@ -126,7 +126,7 @@ export const TourList: React.FC = () => {
               variant="secondary"
               aria-label="View"
               onClick={() => handleView(tour.id)}
-              className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+              className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
             >
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>

@@ -171,7 +171,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                             autoFocus
                           />
                           <div className="flex items-center gap-3">
-                            <button disabled={isUpdating} onClick={() => handleSaveEdit(c.id)} className="text-xs font-semibold text-blue-500 hover:text-blue-700">Save</button>
+                            <button disabled={isUpdating} onClick={() => handleSaveEdit(c.id)} className="text-xs font-semibold text-brand hover:text-brand-hover">Save</button>
                             <button disabled={isUpdating} onClick={() => setEditingCommentId(null)} className="text-xs text-slate-500 hover:text-slate-700">Cancel</button>
                           </div>
                         </div>
@@ -185,7 +185,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                                   setEditingCommentId(c.id);
                                   setEditCommentText(c.text || c.comment);
                                 }}
-                                className="text-[11px] font-semibold text-slate-400 hover:text-blue-500"
+                                className="text-[11px] font-semibold text-slate-400 hover:text-brand"
                               >
                                 Edit
                               </button>
@@ -233,7 +233,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
               <button 
                 type="submit" 
                 disabled={!newComment.trim() || isAdding}
-                className="flex items-center px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-[#0068E0] hover:bg-[#0058D0] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center px-4 py-1.5 rounded-full text-sm font-semibold text-white bg-brand hover:bg-brand-hover transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isAdding ? (
                   <>

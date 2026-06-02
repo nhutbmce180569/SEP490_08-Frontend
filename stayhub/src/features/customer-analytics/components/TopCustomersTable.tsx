@@ -85,7 +85,7 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
                       className="h-9 w-9 rounded-full border border-slate-200 object-cover"
                     />
                   ) : (
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-[#0068E0]/10 text-xs font-bold text-[#0068E0]">
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-brand/10 text-xs font-bold text-brand">
                       {c.fullName.charAt(0).toUpperCase()}
                     </span>
                   )}
@@ -98,7 +98,7 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
                   </div>
                 </div>
               </td>
-              <td className="px-5 py-3.5 font-bold text-[#0068E0]">
+              <td className="px-5 py-3.5 font-bold text-brand">
                 {formatCompactVnd(c.totalSpend)}
               </td>
               <td className="px-5 py-3.5 text-sm text-slate-700">{formatNumber(c.orderCount)}</td>

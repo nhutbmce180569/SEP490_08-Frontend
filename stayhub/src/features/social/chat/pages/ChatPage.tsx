@@ -121,7 +121,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {isSearching ? (
             <div className="flex justify-center items-center py-8">
-              <Loader2 className="w-5 h-5 text-blue-500 animate-spin" />
+              <Loader2 className="w-5 h-5 text-brand animate-spin" />
             </div>
           ) : !debouncedQuery ? (
             <div className="text-center text-slate-400 py-8 text-sm">
@@ -141,9 +141,9 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     name={isSingleSelect ? 'user-select' : undefined}
                     checked={isSelected}
                     onChange={() => handleToggleUser(user.id)}
-                    className="w-4 h-4 text-blue-600 rounded cursor-pointer"
+                    className="w-4 h-4 text-brand rounded cursor-pointer"
                   />
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm">
                     {userAvatar ? (
                       <img src={userAvatar} alt={user.fullName} className="w-full h-full object-cover" />
                     ) : (
@@ -177,7 +177,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
           <button
             onClick={handleConfirm}
             disabled={selectedUserIds.length === 0 || isLoading}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 px-4 py-2 bg-brand text-white font-semibold rounded-lg hover:bg-brand-hover disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
           >
             Confirm ({selectedUserIds.length})
           </button>
@@ -412,7 +412,7 @@ export const ChatPage: React.FC = () => {
         <div className="w-1/3 border-r border-slate-200 flex flex-col bg-slate-50/50">
           <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
+              <MessageSquare className="w-5 h-5 text-brand" />
               <h2 className="text-lg font-bold text-slate-800">Chats</h2>
             </div>
             <button
@@ -427,7 +427,7 @@ export const ChatPage: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
             {isLoadingRooms ? (
               <div className="flex justify-center items-center h-20">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-brand" />
               </div>
             ) : rooms.length === 0 ? (
               <div className="text-center text-slate-500 mt-6 text-sm">No chats available.</div>
@@ -438,11 +438,11 @@ export const ChatPage: React.FC = () => {
                   onClick={() => setSelectedRoomId(room.id)}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all outline-none relative ${
                     selectedRoomId === room.id
-                      ? 'bg-blue-50 border border-blue-200 text-blue-800 shadow-md'
+                      ? 'bg-brand-light border border-brand/20 text-blue-800 shadow-md'
                       : 'hover:bg-slate-100 text-slate-700'
                   }`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shrink-0 overflow-hidden border-2 border-slate-200 text-white font-semibold">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden border-2 border-slate-200 text-white font-semibold">
                     {room.avatarUrl ? (
                       <img src={room.avatarUrl} alt={getRoomDisplayName(room)} className="w-full h-full object-cover" />
                     ) : (
@@ -568,7 +568,7 @@ export const ChatPage: React.FC = () => {
               >
                 {isLoadingHistory ? (
                   <div className="flex justify-center items-center h-full">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-brand" />
                   </div>
                 ) : allMessages.length === 0 ? (
                   <div className="flex justify-center items-center h-full text-slate-400">
@@ -604,12 +604,12 @@ export const ChatPage: React.FC = () => {
                           <div
                             className={`relative max-w-[70%] px-4 py-2.5 rounded-2xl text-[15px] shadow-sm transition-shadow ${
                               isMe
-                                ? 'bg-blue-600 text-white rounded-br-none'
+                                ? 'bg-brand text-white rounded-br-none'
                                 : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
                             }`}
                           >
                             {!isMe && (
-                              <div className="text-[11px] font-bold text-blue-600 mb-1 tracking-wide uppercase">
+                              <div className="text-[11px] font-bold text-brand mb-1 tracking-wide uppercase">
                                 {msg.senderName}
                               </div>
                             )}
@@ -632,7 +632,7 @@ export const ChatPage: React.FC = () => {
                             {formatTime(msg.createdAt)}
                           </span>
                           {isMe && (
-                            <CheckCheck className="w-4 h-4 text-blue-500" />
+                            <CheckCheck className="w-4 h-4 text-brand" />
                           )}
                         </div>
                       </div>
@@ -654,7 +654,7 @@ export const ChatPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={!textValue.trim() || !isConnected}
-                    className="p-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-full transition-all flex items-center justify-center shrink-0 shadow-md shadow-blue-500/20 hover:shadow-lg active:scale-95"
+                    className="p-3 bg-brand hover:bg-brand-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-full transition-all flex items-center justify-center shrink-0 shadow-md shadow-brand/20 hover:shadow-lg active:scale-95"
                   >
                     <Send className="w-5 h-5" />
                   </button>

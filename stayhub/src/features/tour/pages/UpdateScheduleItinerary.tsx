@@ -79,7 +79,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
                 }
               }
             }}
-            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:bg-white ${error ? "border-rose-500 focus:border-rose-500 bg-rose-50/30" : "border-slate-200 focus:border-[#4880ff]"}`}
+            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:bg-white ${error ? "border-rose-500 focus:border-rose-500 bg-rose-50/30" : "border-slate-200 focus:border-brand"}`}
           />
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
@@ -116,7 +116,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
                 disabled={isSynced}
                 value={selectedDateStr}
                 onChange={(e) => onChange(e.target.value)}
-                className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors ${isSynced ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : error ? "bg-rose-50/30 border-rose-500" : "bg-slate-50 border-slate-200 focus:border-[#4880ff] focus:bg-white"}`}
+                className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors ${isSynced ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : error ? "bg-rose-50/30 border-rose-500" : "bg-slate-50 border-slate-200 focus:border-brand focus:bg-white"}`}
               />
             </div>
             {isSynced && (
@@ -180,7 +180,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
             required
             onChange={(e) => onChange(e.target.value)}
             value={value ? value.substring(0, 5) : ""}
-            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
           />
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
@@ -198,7 +198,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
             required
             onChange={(e) => onChange(e.target.value)}
             value={value ? value.substring(0, 5) : ""}
-            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
           />
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
@@ -264,7 +264,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
               <input
                 type="text"
                 onChange={(e) => onChange(e.target.value)}
-                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
                 placeholder="Type name or pick on map..."
                 value={value || ""}
               />

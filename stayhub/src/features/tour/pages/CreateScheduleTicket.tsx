@@ -190,7 +190,7 @@ export const CreateScheduleTicket: React.FC = () => {
                   setFormError(null);
                 }}
                 disabled={isLoadingTicketTypes || isSubmitting}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <option value="">
                   {isLoadingTicketTypes ? "Loading ticket types..." : "Select ticket type"}
@@ -205,7 +205,7 @@ export const CreateScheduleTicket: React.FC = () => {
           </div>
 
           {selectedTicketType && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-slate-700">
+            <div className="rounded-xl border border-blue-100 bg-brand-light px-4 py-3 text-sm text-slate-700">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-bold text-slate-900">{selectedTicketType.name}</span>
                 <span
@@ -240,7 +240,7 @@ export const CreateScheduleTicket: React.FC = () => {
                     setPrice(event.target.value);
                     setFormError(null);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                   placeholder="0"
                 />
               </div>
@@ -261,7 +261,7 @@ export const CreateScheduleTicket: React.FC = () => {
                     setQuantity(event.target.value);
                     setFormError(null);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                   placeholder="1"
                 />
               </div>
@@ -276,7 +276,7 @@ export const CreateScheduleTicket: React.FC = () => {
               value={note}
               onChange={(event) => setNote(event.target.value)}
               rows={3}
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
               placeholder="Optional internal note for this schedule ticket"
             />
           </div>
@@ -292,7 +292,7 @@ export const CreateScheduleTicket: React.FC = () => {
               type="checkbox"
               checked={isActive}
               onChange={(event) => setIsActive(event.target.checked)}
-              className="h-5 w-5 rounded border-slate-300 text-[#4880ff] focus:ring-[#4880ff]"
+              className="h-5 w-5 rounded border-slate-300 text-brand focus:ring-brand"
             />
           </label>
         </div>

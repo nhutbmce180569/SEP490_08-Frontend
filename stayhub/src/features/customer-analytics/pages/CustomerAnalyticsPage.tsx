@@ -73,7 +73,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
             {
               label: 'New Registrations',
               data: trends.registrationTrend.map((p) => p.count),
-              color: '#0068E0',
+              color: 'var(--color-brand)',
             },
             {
               label: 'Orders',
@@ -154,7 +154,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
             onClick={() => setActiveTab(tab.id)}
             className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
               activeTab === tab.id
-                ? 'bg-[#0068E0] text-white shadow-sm'
+                ? 'bg-brand text-white shadow-sm'
                 : 'text-slate-600 hover:bg-slate-50'
             }`}
           >
@@ -186,8 +186,8 @@ export const CustomerAnalyticsPage: React.FC = () => {
                   label="New Customers"
                   value={formatNumber(overview.newCustomersInPeriod)}
                   subLabel="In selected period"
-                  icon={<UserPlus className="h-5 w-5 text-blue-500" />}
-                  iconBgClass="bg-blue-50"
+                  icon={<UserPlus className="h-5 w-5 text-brand" />}
+                  iconBgClass="bg-brand-light"
                 />
                 <StatCard
                   label="Revenue"
@@ -326,7 +326,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
                   label="One-Time Buyer"
                   count={segmentsQuery.data.oneTimeBuyers}
                   description="Exactly 1 paid/completed order"
-                  colorClass="bg-blue-50 text-blue-500"
+                  colorClass="bg-brand-light text-brand"
                   icon={<ShoppingCart className="h-5 w-5" />}
                 />
                 <SegmentCard
@@ -362,7 +362,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
               <div className="rounded-2xl bg-white p-4 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
                 <div className="text-sm font-semibold text-slate-600">
                   Buyer conversion rate:{' '}
-                  <span className="text-lg font-bold text-[#0068E0]">
+                  <span className="text-lg font-bold text-brand">
                     {formatPercent(segmentsQuery.data.buyerConversionRate)}
                   </span>
                 </div>
@@ -418,7 +418,7 @@ const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({
     <button
       type="button"
       onClick={onRetry}
-      className="mt-4 rounded-xl bg-[#0068E0] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0058c0]"
+      className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-[#0058c0]"
     >
       Try Again
     </button>

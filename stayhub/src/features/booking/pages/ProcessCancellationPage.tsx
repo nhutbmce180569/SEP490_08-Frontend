@@ -101,7 +101,7 @@ export const ProcessCancellationPage: React.FC = () => {
             <div className="mb-4">
               <label className="text-sm font-medium text-slate-700">Reject Reason (Required if rejecting)</label>
               <textarea
-                className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#EB662B]"
+                className="mt-1 w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-brand"
                 rows={2}
                 placeholder="Why is this request rejected?"
                 value={rejectReason}

@@ -61,7 +61,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
             setIsOpen(true);
           }}
           placeholder="Search tourism info by name, type, city..."
-          className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${
+          className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${
             error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"
           }`}
         />
@@ -175,7 +175,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
                   href={selectedItem.sourceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4880ff] hover:text-blue-700"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                 >
                   {selectedItem.sourceName || "Source"}
                   <ExternalLink className="h-3.5 w-3.5" />

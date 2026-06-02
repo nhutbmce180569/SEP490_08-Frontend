@@ -196,7 +196,7 @@ export const CreateItinerary: React.FC = () => {
                       value={iti.title}
                       onChange={(e) => updateItinerary(index, "title", e.target.value)}
                       placeholder="e.g., Arrival and City Tour"
-                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "title") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-[#4880ff] focus:bg-white"}`}
+                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "title") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-brand focus:bg-white"}`}
                     />
                     {getError(index, "title") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "title")}</span>}
                   </div>
@@ -211,7 +211,7 @@ export const CreateItinerary: React.FC = () => {
                       value={iti.description}
                       onChange={(e) => updateItinerary(index, "description", e.target.value)}
                       placeholder="Describe the activities for this day..."
-                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "description") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-[#4880ff] focus:bg-white"}`}
+                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "description") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-brand focus:bg-white"}`}
                     />
                     {getError(index, "description") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "description")}</span>}
                   </div>
@@ -220,7 +220,7 @@ export const CreateItinerary: React.FC = () => {
                     <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                       <Clock className="h-4 w-4 text-slate-400" /> Start Time
                     </label>
-                    <input type="time" value={iti.startDuration ? iti.startDuration.substring(0, 5) : ""} onChange={(e) => updateItinerary(index, "startDuration", e.target.value)} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-[#4880ff] focus:bg-white ${getError(index, "startDuration") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
+                    <input type="time" value={iti.startDuration ? iti.startDuration.substring(0, 5) : ""} onChange={(e) => updateItinerary(index, "startDuration", e.target.value)} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "startDuration") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
                     {getError(index, "startDuration") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "startDuration")}</span>}
                   </div>
 
@@ -228,7 +228,7 @@ export const CreateItinerary: React.FC = () => {
                     <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                       <Clock className="h-4 w-4 text-slate-400" /> End Time
                     </label>
-                    <input type="time" value={iti.endDuration ? iti.endDuration.substring(0, 5) : ""} onChange={(e) => updateItinerary(index, "endDuration", e.target.value)} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-[#4880ff] focus:bg-white ${getError(index, "endDuration") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
+                    <input type="time" value={iti.endDuration ? iti.endDuration.substring(0, 5) : ""} onChange={(e) => updateItinerary(index, "endDuration", e.target.value)} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "endDuration") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
                     {getError(index, "endDuration") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "endDuration")}</span>}
                   </div>
 
@@ -257,7 +257,7 @@ export const CreateItinerary: React.FC = () => {
                         <MapPin className="h-4 w-4 text-emerald-500" /> Location Name
                       </label>
                       <div className="flex gap-2">
-                        <input type="text" value={iti.locationName} onChange={(e) => updateItinerary(index, "locationName", e.target.value)} placeholder="Type name or pick on map..." className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-[#4880ff] focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
+                        <input type="text" value={iti.locationName} onChange={(e) => updateItinerary(index, "locationName", e.target.value)} placeholder="Type name or pick on map..." className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
                       </div>
                       {getError(index, "locationName") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "locationName")}</span>}
                     </div>

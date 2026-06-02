@@ -167,7 +167,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
             className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${
               error 
                 ? 'border-rose-400 bg-rose-50/50' 
-                : 'border-slate-200 bg-slate-50 hover:border-[#4880ff] hover:bg-[#4880ff]/5'
+                : 'border-slate-200 bg-slate-50 hover:border-brand hover:bg-brand/5'
             } ${!preview ? 'cursor-pointer py-10' : 'py-8'}`}
             onClick={!preview ? triggerFileSelect : undefined}
           >
@@ -209,7 +209,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               </div>
             ) : (
               <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#4880ff]/10 text-[#4880ff]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-brand">
                   <UploadCloud className="h-6 w-6" />
                 </div>
                 <div className="flex flex-col items-center justify-center gap-1">
@@ -236,12 +236,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       );
     }
 
-    const baseInputClass = `w-full rounded-xl border bg-slate-50 py-2.5 pr-4 text-sm text-slate-700 outline-none transition-colors focus:bg-white ${
-      field.icon ? "pl-10" : "pl-4"
+    const baseInputClass = `input-field py-2.5 pr-4 text-sm ${
+      field.icon ? "pl-10" : ""
     } ${
       error
-        ? "border-rose-500 focus:border-rose-500 bg-rose-50/30"
-        : "border-slate-200 focus:border-[#4880ff]"
+        ? "!border-rose-500 focus:!border-rose-500 !bg-rose-50/30 focus:!shadow-[0_0_0_3px_rgba(244,63,94,0.12)]"
+        : ""
     }`;
 
     return (
@@ -349,7 +349,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       </div>
 
       {/* Form Container */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+      <div className="glass-card p-6 md:p-8">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {fields
             .filter((field) => (field.visible ? field.visible(formData) : true))

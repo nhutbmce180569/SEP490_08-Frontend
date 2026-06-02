@@ -1,9 +1,8 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
-import { PATH } from '../config/routes/route'; 
+import { PATH } from '../config/routes/route';
 
-const Unauthorized: React.FC = () => {
+const Unauthorized = () => {
   const navigate = useNavigate();
 
   const handleGoBack = () => {
@@ -19,17 +18,15 @@ const Unauthorized: React.FC = () => {
 
         const upperRoles = userRoles.map((r: string) => r.toUpperCase());
 
-        // Chuyển hướng về Dashboard mặc định dựa trên Role
         if (upperRoles.includes("ADMIN")) {
           return navigate(PATH.ADMIN.DASHBOARD);
-        } else if (upperRoles.includes("MANAGER")) {
+        } else if (upperRoles.includes("MANAGER") || upperRoles.includes("STAFF")) {
           return navigate(PATH.MANAGER.DASHBOARD);
         }
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
       }
     }
-    // Mặc định đối với Customer hoặc khi không có thông tin thì đưa về trang chủ
     navigate(PATH.PUBLIC.HOME);
   };
 
@@ -39,16 +36,17 @@ const Unauthorized: React.FC = () => {
         <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-rose-100">
           <ShieldAlert className="h-12 w-12 text-rose-600" />
         </div>
-        <h1 className="mb-2 text-3xl font-bold text-slate-900">Access Denied</h1>
+        <h1 className="travel-heading mb-2 text-3xl">Access denied</h1>
         <p className="mb-8 text-slate-600">
-          Bạn không có quyền truy cập vào trang này. Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là một sự nhầm lẫn.
+          You do not have permission to view this page. Contact an administrator if you believe this is a mistake.
         </p>
         <button
+          type="button"
           onClick={handleGoBack}
-          className="flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition-colors hover:bg-slate-800"
+          className="flex items-center gap-2 rounded-xl bg-navy px-6 py-3 font-semibold text-white transition-colors hover:bg-navy/90"
         >
           <ArrowLeft className="h-5 w-5" />
-          Quay lại
+          Go back
         </button>
       </div>
     </div>

@@ -109,7 +109,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
       <div className="px-6 pt-6 pb-2">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Sparkles size={18} style={{ color: "#EB662B" }} />
+            <Sparkles size={18} style={{ color: "var(--color-brand)" }} />
             <span className="text-sm font-black text-slate-800">
               Bước {step + 1}/{totalSteps}
             </span>
@@ -124,7 +124,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         >
           <div
             className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${progress}%`, background: "#EB662B" }}
+            style={{ width: `${progress}%`, background: "var(--color-brand)" }}
           />
         </div>
       </div>
@@ -134,7 +134,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         {isLastStep ? (
           <>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] mb-2" style={{ color: "#EB662B" }}>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] mb-2" style={{ color: "var(--color-brand)" }}>
                 Tùy chọn bổ sung
               </p>
               <p className="text-sm text-slate-500 font-medium">

@@ -25,14 +25,14 @@ export function Table<T>({
   skeletonRows = 5,
 }: TableProps<T>) {
   return (
-    <div className="overflow-x-auto bg-white border-b border-slate-100">
+    <div className="table-glass overflow-x-auto">
       <table className="w-full min-w-[680px] border-collapse">
         <thead>
-          <tr className="border-b border-solid border-slate-100 bg-slate-50/60">
+          <tr className="border-b border-slate-100/80 bg-slate-50/70">
             {columns.map((col, idx) => (
               <th
                 key={idx}
-                className={`px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400 ${col.className || ""}`}
+                className={`px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 ${col.className || ""}`}
               >
                 {col.header}
               </th>
@@ -44,14 +44,14 @@ export function Table<T>({
             Array.from({ length: skeletonRows }).map((_, rowIndex) => (
               <tr
                 key={`skeleton-row-${rowIndex}`}
-                className="border-b border-solid border-slate-100 bg-white"
+                className="border-b border-slate-100/80 bg-white/50"
               >
                 {columns.map((col, colIndex) => (
                   <td
                     key={`skeleton-col-${colIndex}`}
                     className={`px-5 py-3.5 ${col.className || ""}`}
                   >
-                    <div className="h-5 w-full animate-pulse rounded-md bg-slate-200"></div>
+                    <div className="h-5 w-full animate-pulse rounded-lg bg-slate-200/80"></div>
                   </td>
                 ))}
               </tr>
@@ -60,7 +60,7 @@ export function Table<T>({
             <tr>
               <td
                 colSpan={columns.length}
-                className="py-16 text-center text-sm text-slate-400"
+                className="py-16 text-center text-sm font-medium text-slate-400"
               >
                 {emptyMessage}
               </td>
@@ -69,17 +69,17 @@ export function Table<T>({
             data.map((item, rowIndex) => (
               <tr
                 key={keyExtractor ? keyExtractor(item, rowIndex) : rowIndex}
-                className="group transition-colors hover:bg-slate-50/80 border-b border-solid border-slate-100"
+                className="group border-b border-slate-100/80 bg-white/40 transition-colors last:border-b-0 hover:bg-brand-light/30"
               >
                 {columns.map((col, colIndex) => (
                   <td
                     key={colIndex}
-                    className={`px-5 py-3.5 ${col.className || ""}`}
+                    className={`px-5 py-3.5 text-sm text-slate-700 ${col.className || ""}`}
                   >
                     {col.render
                       ? col.render(item, rowIndex)
                       : col.accessor
-                        ? (item[col.accessor] as unknown as React.ReactNode)
+                        ? String((item as Record<string, unknown>)[col.accessor as string] ?? "")
                         : null}
                   </td>
                 ))}

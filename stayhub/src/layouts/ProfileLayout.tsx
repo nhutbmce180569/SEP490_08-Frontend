@@ -1,68 +1,134 @@
-import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
-import { User, Ticket, Heart, Settings, Star, TicketPercent, Bell, Users, Sparkles } from 'lucide-react';
-import { PATH } from '../config/routes/route';
+import { useContext } from "react";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
+import {
+  User,
+  Ticket,
+  Heart,
+  Settings,
+  Star,
+  TicketPercent,
+  Bell,
+  Users,
+  Sparkles,
+  Compass,
+} from "lucide-react";
 
-export const ProfileLayout: React.FC = () => {
-  const navItems = [
-    { name: 'My Profile', path: PATH.CUSTOMER.PROFILE, icon: User },
-    { name: 'Friends', path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
-    { name: 'My Bookings', path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
-    { name: 'Wishlist', path: PATH.CUSTOMER.WISHLIST, icon: Heart },
-    { name: 'Reviews', path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
-    { name: 'Vouchers', path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
-    { name: 'AI Gợi ý tour', path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
-    { name: 'Notifications', path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
-    { name: 'Settings', path: PATH.CUSTOMER.SETTINGS, icon: Settings },
-  ];
+import { PATH } from "../config/routes/route";
+import { AuthContext } from "../contexts/AuthContext";
+import { UserAvatar } from "../components/ui/UserAvatar";
+
+const navItems = [
+  { name: "Profile", path: PATH.CUSTOMER.PROFILE, icon: User },
+  { name: "Friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
+  { name: "My bookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
+  { name: "Wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
+  { name: "Reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
+  { name: "Vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
+  { name: "AI recommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
+  { name: "Notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
+  { name: "Settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
+];
+
+export const ProfileLayout = () => {
+  const { user } = useContext(AuthContext);
+  const location = useLocation();
+
+  const displayName = user?.fullName || user?.FullName || "Traveler";
+  const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
+  const activeItem = navItems.find(
+    (i) =>
+      location.pathname === i.path ||
+      location.pathname.startsWith(`${i.path}/`),
+  );
 
   return (
-    <div className="bg-slate-50 min-h-screen py-8">
-      <div className="container mx-auto px-4 max-w-6xl">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="w-full shrink-0 md:w-64">
-            <div className="sticky top-24 rounded-3xl border border-slate-200/60 bg-white/80 p-3 shadow-sm backdrop-blur-xl">
-              <div className="mb-4 px-4 pt-2">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Account Menu</h3>
+    <div className="account-shell">
+      <div className="page-container account-shell-inner">
+        <div className="account-welcome glass-card mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
+          <div className="flex items-center gap-4">
+            <UserAvatar name={displayName} avatarUrl={avatarUrl} size="lg" />
+            <div className="min-w-0">
+              <p className="travel-eyebrow">Your space</p>
+              <h1 className="travel-heading truncate text-xl md:text-2xl">
+                Welcome back, {displayName.split(" ")[0]}!
+              </h1>
+              <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
+                <Compass className="h-4 w-4 shrink-0 text-brand" aria-hidden />
+                Manage trips, vouchers, and travel experiences
+              </p>
+            </div>
+          </div>
+          {activeItem && (
+            <div className="rounded-2xl bg-brand-light/60 px-4 py-2.5 text-sm font-semibold text-brand">
+              {activeItem.name}
+            </div>
+          )}
+        </div>
+
+        <nav
+          className="account-mobile-nav custom-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1 md:hidden"
+          aria-label="Account menu"
+        >
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${
+                  isActive
+                    ? "bg-brand text-white shadow-md shadow-brand/25"
+                    : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80"
+                }`
+              }
+            >
+              <item.icon size={16} />
+              {item.name}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <aside className="hidden w-full shrink-0 lg:block lg:w-64">
+            <div className="account-sidebar glass-panel sticky top-[88px] rounded-3xl p-3">
+              <div className="mb-3 px-3 pt-2">
+                <p className="travel-eyebrow">Menu</p>
+                <h2 className="travel-heading mt-1 text-sm text-navy">Account</h2>
               </div>
-              <nav className="flex flex-col gap-1">
+              <nav className="flex flex-col gap-0.5">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
                     className={({ isActive }) =>
-                      `group flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-sm font-bold transition-all duration-300 !no-underline ${
-                        isActive
-                          ? 'bg-[#0068E0] text-white shadow-md shadow-[#0068E0]/20'
-                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                      `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${
+                        isActive ? "nav-item-active" : "nav-item-inactive"
                       }`
                     }
                   >
                     {({ isActive }) => (
                       <>
-                        <item.icon 
-                          size={20} 
+                        <item.icon
+                          size={18}
                           strokeWidth={isActive ? 2.5 : 2}
-                          className={`transition-all duration-300 ${
-                            isActive ? 'scale-110 text-white' : 'text-slate-400 group-hover:scale-110 group-hover:text-[#0068E0]'
-                          }`}
+                          className={
+                            isActive
+                              ? "text-white"
+                              : "text-slate-400 group-hover:text-brand"
+                          }
                         />
                         <span>{item.name}</span>
-                        {isActive && (
-                          <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white shadow-sm" />
-                        )}
                       </>
                     )}
                   </NavLink>
                 ))}
               </nav>
             </div>
-          </div>
+          </aside>
 
-          {/* Main Content Area */}
           <div className="min-w-0 flex-1">
-            <Outlet />
+            <div className="account-content glass-card min-h-[min(70vh,560px)] p-5 md:p-8">
+              <Outlet />
+            </div>
           </div>
         </div>
       </div>

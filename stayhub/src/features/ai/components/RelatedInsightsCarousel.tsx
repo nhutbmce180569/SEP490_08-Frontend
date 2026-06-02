@@ -19,21 +19,21 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
     <section className="mt-10">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Compass size={18} style={{ color: "#EB662B" }} />
+          <Compass size={18} style={{ color: "var(--color-brand)" }} />
           <h3 className="text-lg font-black text-slate-900">Thông tin du lịch liên quan</h3>
         </div>
         <div className="flex gap-2">
           <button
             type="button"
             onClick={() => scroll(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:border-[#EB662B] transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:border-brand transition-colors"
           >
             <ChevronLeft size={16} />
           </button>
           <button
             type="button"
             onClick={() => scroll(1)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:border-[#EB662B] transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:border-brand transition-colors"
           >
             <ChevronRight size={16} />
           </button>
@@ -54,7 +54,7 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
             <div className="flex items-center justify-between mb-2">
               <span
                 className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md"
-                style={{ background: "#FFF1EB", color: "#EB662B" }}
+                style={{ background: "var(--color-brand-light)", color: "var(--color-brand)" }}
               >
                 {item.type}
               </span>

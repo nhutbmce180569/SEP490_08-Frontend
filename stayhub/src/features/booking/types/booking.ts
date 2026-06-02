@@ -66,3 +66,17 @@ export interface ReadOrderDTO {
     comment?: string | null;
   } | null;
 }
+
+export interface ReadScheduleCustomerDTO {
+  ticketId: number;
+  orderId: number;
+  userId?: number;
+  attendeeName: string;
+  idCard: string;
+  dateOfBirth?: string | null;
+  gender?: string | null;
+  nationality?: string | null;
+  checkInStatus?: string | null;
+  phoneNumber?: string | null;
+  avatarUrl?: string | null;
+}

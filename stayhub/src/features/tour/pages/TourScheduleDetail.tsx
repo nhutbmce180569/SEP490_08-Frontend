@@ -17,6 +17,7 @@ import {
   PowerOff,
   Ticket,
   Trash2,
+  Users,
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
@@ -319,6 +320,22 @@ export const TourScheduleDetail: React.FC = () => {
               >
                 <Ticket className="h-4 w-4" />
                 View Orders
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
+                onClick={() => navigate(PATH.STAFF.SCHEDULE_CUSTOMERS(schedule.id))}
+                className="gap-2 px-4 py-2 text-sm"
+              >
+                <Users className="h-4 w-4" />
+                View Customers
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
+                onClick={() => navigate(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS(schedule.id))}
+                className="gap-2 px-4 py-2 text-sm"
+              >
+                <MapPin className="h-4 w-4" />
+                Live Tour Map
               </ActionButton>
               <ActionButton
                 variant="secondary"

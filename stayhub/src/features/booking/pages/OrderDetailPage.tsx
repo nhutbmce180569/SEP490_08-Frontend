@@ -534,7 +534,7 @@ export const OrderDetailPage: React.FC = () => {
 
       {/* 1. Schedule Itinerary Modal */}
       {isItineraryModalOpen && order.schedule?.tourScheduleItineraries && (
-        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
           <div className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -735,7 +735,7 @@ export const OrderDetailPage: React.FC = () => {
 
       {/* 2. Passenger Tickets Modal */}
       {isTicketsModalOpen && (
-        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsTicketsModalOpen(false)}>
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsTicketsModalOpen(false)}>
           <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -830,7 +830,7 @@ export const OrderDetailPage: React.FC = () => {
       {/* 💥 3. Review Modal Wrapper */}
       {isReviewModalOpen && order.tour && (
         <div 
-          className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
+          className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
           onClick={() => setIsReviewModalOpen(false)}
         >
           <div 

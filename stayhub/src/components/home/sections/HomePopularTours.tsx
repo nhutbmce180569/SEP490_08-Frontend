@@ -1,6 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { usePublicTours } from "../../../hooks/usePublicTours";
 import type { Tour } from "../../../features/tour/types/tour";
 import { getNumberValue } from "../../../features/tour/utils/tourScheduleTicket";
 import { PATH } from "../../../config/routes/route";
@@ -18,8 +17,17 @@ const getTourLowestTicketPrice = (tour: Tour) => {
   return prices.length > 0 ? Math.min(...prices) : null;
 };
 
-export const HomePopularTours: React.FC = () => {
-  const { tours, isLoading, error } = usePublicTours(1, 6);
+type HomePopularToursProps = {
+  tours: Tour[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+export const HomePopularTours: React.FC<HomePopularToursProps> = ({
+  tours,
+  isLoading,
+  error,
+}) => {
   const navigate = useNavigate();
 
   const toCard = (tour: Tour): TourCardProps => ({

@@ -1,31 +1,71 @@
-// Sửa lại file: src/hooks/useNotificationHub.ts
 import { useEffect } from "react";
 import * as signalR from "@microsoft/signalr";
+import { SIGNALR_HUB_BASE } from "../../../config/api/api";
 import type { Notification } from "../types/notification";
 
-// 💥 Cho phép truyền hàm setNotifications vào
-export const useNotificationHub = (setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>) => {
+const buildNotificationConnection = (
+  token: string,
+  useWebSocketsOnly: boolean,
+) => {
+  return new signalR.HubConnectionBuilder()
+    .withUrl(`${SIGNALR_HUB_BASE}/notifications`, {
+      accessTokenFactory: () => token,
+      ...(useWebSocketsOnly
+        ? {
+            skipNegotiation: true,
+            transport: signalR.HttpTransportType.WebSockets,
+          }
+        : {}),
+    })
+    .withAutomaticReconnect()
+    .build();
+};
+
+export const useNotificationHub = (
+  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>,
+) => {
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7010/hubs/notifications", {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect()
-      .build();
+    let disposed = false;
+    let connection: signalR.HubConnection | null = null;
 
-    connection.start().then(() => console.log("🟢 [SignalR] Connected!"));
+    const attachHandlers = (hubConnection: signalR.HubConnection) => {
+      hubConnection.on("ReceiveNewNotification", (newNoti: Notification) => {
+        setNotifications((prev) => {
+          if (prev.some((noti) => noti.id === newNoti.id)) return prev;
+          return [newNoti, ...prev];
+        });
+      });
+    };
 
-    // 💥 Khi có thông báo mới, nhét nó vào ĐẦU danh sách cũ
-    connection.on("ReceiveNewNotification", (newNoti: Notification) => {
-      console.log("📬 [SignalR] THÔNG BÁO MỚI:", newNoti);
-      setNotifications((prev) => [newNoti, ...prev]);
-    });
+    const startConnection = async () => {
+      try {
+        connection = buildNotificationConnection(token, true);
+        attachHandlers(connection);
+        await connection.start();
+      } catch (webSocketError) {
+        if (disposed) return;
+
+        console.warn(
+          "Notification SignalR WebSocket failed; falling back to default transport.",
+          webSocketError,
+        );
+
+        connection = buildNotificationConnection(token, false);
+        attachHandlers(connection);
+        await connection.start();
+      }
+    };
+
+    void startConnection();
 
     return () => {
-      connection.stop();
+      disposed = true;
+      if (connection) {
+        void connection.stop();
+      }
     };
   }, [setNotifications]);
 };

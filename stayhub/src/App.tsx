@@ -6,7 +6,6 @@ import {
   Routes,
   Navigate,
   Outlet,
-  useParams,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -31,7 +30,6 @@ import { Profile } from "./features/auth/pages/Profile";
 import { FriendsManagement } from "./features/social/friends/pages/FriendsManagement";
 import { MomentsFeed } from "./features/social/moments/components/MomentsFeed";
 import { SocialProfile } from "./features/social/profile/pages/SocialProfile";
-import { useGetEligibleSchedules } from './features/social/moments/hooks/useEligibleSchedules';
 import { ChatPage } from './features/social/chat/pages/ChatPage';
 
 // Components dành cho Quản lý User (Admin)
@@ -73,6 +71,7 @@ import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleIti
 import { CreateScheduleTicket } from "./features/tour/pages/CreateScheduleTicket";
 import { UpdateScheduleTicket } from "./features/tour/pages/UpdateScheduleTicket";
 import { DeleteScheduleTicket } from "./features/tour/pages/DeleteScheduleTicket";
+import { ScheduleCustomersPage } from "./features/booking/pages/ScheduleCustomersPage";
 import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
 import { AiQuestionnairePage } from "./features/ai/pages/AiQuestionnairePage";
@@ -80,6 +79,7 @@ import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
+import { StaffTicketListPage } from "./features/booking/pages/StaffTicketListPage";
 import { CreateCancellationRequestPage } from "./features/booking/pages/CreateCancellationRequestPage";
 import { CancellationListPage } from "./features/booking/pages/CancellationListPage";
 import { ProcessCancellationPage } from "./features/booking/pages/ProcessCancellationPage";
@@ -92,6 +92,8 @@ import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
+import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
+import { LocationTrackingPage } from "./features/social/tracking/pages/LocationTrackingPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 const queryClient = new QueryClient();
@@ -512,16 +514,16 @@ const App: React.FC = () => {
                   <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("Process Check-in", "Staff")} />
 
                   {/* UC-51: Tickets */}
-                  <Route path={childPath(PATH.STAFF.TICKETS)} element={mock("System Tickets", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.TICKETS)} element={<StaffTicketListPage />} />
                   <Route path={childPath(PATH.STAFF.TICKET_DETAIL())} element={mock("Ticket Details", "Staff")} />
 
                   {/* UC-52: Track Locations */}
-                  <Route path={childPath(PATH.STAFF.LOCATIONS)} element={mock("Location Tracking", "Staff")} />
-                  <Route path={childPath(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS())} element={mock("Live Map Tracking", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.LOCATIONS)} element={<LocationTrackingPage />} />
+                  <Route path={childPath(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS())} element={<ScheduleTrackingPage />} />
 
                   {/* UC-53: Customers */}
-                  <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={mock("Customers Overview", "Staff")} />
-                  <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={mock("Schedule Guest List", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={<ScheduleCustomersPage />} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={<ScheduleCustomersPage />} />
                 </Route>
               </Route>
 

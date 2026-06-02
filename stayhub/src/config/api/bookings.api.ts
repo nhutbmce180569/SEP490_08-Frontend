@@ -5,6 +5,7 @@ export const BOOKINGS_API = {
   CREATE_BOOKING: `${FULL_API}/bookings`,
   CREATE_ORDER: `${FULL_API}/orders`,
   GET_ORDERS_BY_SCHEDULE: (id: string | number) => `${FULL_API}/orders/schedule/${id}`,
+  GET_SCHEDULE_CUSTOMERS: (id: string | number) => `${FULL_API}/orders/schedule/${id}/customers`,
   GET_CUSTOMER_ORDERS: `${FULL_API}/customer/orders`,
   GET_CUSTOMER_ORDERS_BY_USER: (userId: string | number) => `${FULL_API}/orders/user/${userId}`,
   GET_ORDER_BY_ID: (id: string | number) => `${FULL_API}/orders/my/${id}`,

@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useParams } from "react-router-dom";
 import {
   Calendar,
@@ -24,11 +25,11 @@ import { useOrderDetail } from "../hooks/useOrderDetail";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useGroupedItineraries } from "../../tour/hooks/useGroupedItineraries";
 import { ReviewForm } from "../../tour/pages/ReviewForm"; 
-import { useToast } from "../../../contexts/ToastContext";
 import { useQuery } from "@tanstack/react-query";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import { useNavigate } from "react-router-dom";
+import type { TourScheduleItinerary } from "../../tour/types/tourScheduleItinerary";
 
 const currencyFormatter = new Intl.NumberFormat("vi-VN", {
   style: "currency",
@@ -56,6 +57,17 @@ const tripTimeFormatter = new Intl.DateTimeFormat("en-US", {
   minute: "2-digit",
 });
 
+type OrderItineraryItem = TourScheduleItinerary & {
+  startLocationName?: string | null;
+  endLocationName?: string | null;
+};
+
+const toValidDate = (value?: string | null) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 export const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -63,7 +75,6 @@ export const OrderDetailPage: React.FC = () => {
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const { success, error: showError } = useToast();
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
 
@@ -156,16 +167,42 @@ export const OrderDetailPage: React.FC = () => {
     );
   }
 
-  const isTourEnded = order.schedule?.returnDate
-    ? new Date(order.schedule.returnDate).getTime() < new Date().getTime()
-    : false;
-
   // Giữ canReview = true theo cấu hình test hiện tại của bạn
   const canReview = true;
     // isTourEnded &&
     // (order.status === "Paid" || order.status === "Completed");
 
   const orderDetails = order.orderDetails ?? [];
+  const tickets = order.tickets ?? [];
+  const ticketCount =
+    order.ticketCount ??
+    tickets.length ??
+    order.totalQuantity ??
+    orderDetails.reduce((sum, detail) => sum + detail.quantity, 0);
+  const bookedDate = toValidDate(order.orderedAt);
+  const departureDate = toValidDate(order.schedule?.departureDate);
+  const returnDate = toValidDate(order.schedule?.returnDate);
+  const itineraryDayCount = Object.keys(groupedItineraries).length;
+  const tripDurationDays =
+    departureDate && returnDate
+      ? Math.max(
+          1,
+          Math.ceil(
+            (returnDate.getTime() - departureDate.getTime()) /
+              (1000 * 60 * 60 * 24),
+          ) + 1,
+        )
+      : null;
+  const normalizedStatus = (order.status ?? "Pending").toLowerCase();
+  const isSettled =
+    normalizedStatus === "paid" || normalizedStatus === "completed";
+  const statusClasses =
+    normalizedStatus === "cancelled"
+      ? "border-rose-200 bg-rose-50 text-rose-700"
+      : isSettled
+        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+        : "border-amber-200 bg-amber-50 text-amber-700";
+  const canRequestCancellation = normalizedStatus === "paid";
   const subtotalAmount =
     order.totalAmount ??
     orderDetails.reduce((sum, detail) => sum + detail.totalPrice, 0);
@@ -175,7 +212,7 @@ export const OrderDetailPage: React.FC = () => {
     return ticketTypeNames[ticketTypeId] ?? `Ticket type #${ticketTypeId}`;
   };
 
-  const getTicketDetail = (ticket: (typeof order.tickets)[number]) =>
+  const getTicketDetail = (ticket: (typeof tickets)[number]) =>
     orderDetails.find((detail) => detail.id === ticket.orderDetailId) ??
     orderDetails.find((detail) => detail.ticketTypeId === ticket.ticketTypeId);
 
@@ -265,13 +302,12 @@ export const OrderDetailPage: React.FC = () => {
                         ? tripDateFormatter.format(departureDate)
                         : "N/A"}
                     </p>
-                    <ActionButton
-                      variant="outline"
-                      className="w-full !border-rose-200 !text-rose-600 hover:!bg-rose-100 hover:!border-rose-300"
-                      onClick={() => navigate(PATH.CUSTOMER.REQUEST_CANCELLATION(order.id))}
-                    >
-                      Request Cancellation
-                    </ActionButton>
+                    {departureDate && (
+                      <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
+                        <Clock className="h-4 w-4 text-emerald-600" />
+                        {tripTimeFormatter.format(departureDate)}
+                      </p>
+                    )}
                   </div>
 
                   <div className="hidden h-px w-10 bg-slate-200 xl:block" />
@@ -465,23 +501,24 @@ export const OrderDetailPage: React.FC = () => {
               </p>
             </section>
 
-            {canCancelBooking && (
+            {canRequestCancellation && (
               <section className="rounded-2xl border border-rose-200 bg-rose-50 p-5 shadow-sm sm:p-6">
                 <h2 className="mb-2 flex items-center gap-2 text-base font-bold text-rose-900">
                   <AlertTriangle className="h-5 w-5 text-rose-500" />
-                  Cancel Booking
+                  Cancellation Request
                 </h2>
                 <p className="mb-4 text-sm leading-relaxed text-rose-700">
-                  You can cancel this booking up to 5 days before departure.
-                  Cancellation fees may apply depending on the policy.
+                  You can request cancellation for paid bookings. The team will
+                  review the request and process any eligible refund.
                 </p>
                 <ActionButton
                   variant="outline"
-                  disabled={isCancelling}
                   className="w-full !border-rose-200 !text-rose-600 hover:!border-rose-300 hover:!bg-rose-100"
-                  onClick={handleCancelOrder}
+                  onClick={() =>
+                    navigate(PATH.CUSTOMER.REQUEST_CANCELLATION(order.id))
+                  }
                 >
-                  {isCancelling ? "Cancelling..." : "Cancel Order"}
+                  Request Cancellation
                 </ActionButton>
               </section>
             )}
@@ -492,10 +529,12 @@ export const OrderDetailPage: React.FC = () => {
       {/* ======================================================== */}
       {/* MODALS SECTION */}
       {/* ======================================================== */}
+      {createPortal(
+        <>
 
       {/* 1. Schedule Itinerary Modal */}
       {isItineraryModalOpen && order.schedule?.tourScheduleItineraries && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
+        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
           <div className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -516,8 +555,8 @@ export const OrderDetailPage: React.FC = () => {
                 .map(([dayStr]) => Number(dayStr))
                 .sort((a, b) => a - b)
                 .map((dayNumber) => {
-                  const itemsForDay = groupedItineraries[dayNumber];
-                  const isToday = itemsForDay.some((iti: any) => iti.itineraryDate && new Date(iti.itineraryDate).toDateString() === new Date().toDateString());
+                  const itemsForDay = groupedItineraries[dayNumber] as OrderItineraryItem[];
+                  const isToday = itemsForDay.some((iti) => iti.itineraryDate && new Date(iti.itineraryDate).toDateString() === new Date().toDateString());
                   const dayDate = itemsForDay[0]?.itineraryDate;
 
                   return (
@@ -557,7 +596,7 @@ export const OrderDetailPage: React.FC = () => {
                       
                       {/* Danh sách các khung giờ */}
                       <div className="flex flex-col divide-y divide-slate-100">
-                        {itemsForDay.map((iti: any) => {
+                        {itemsForDay.map((iti) => {
                           const isExpanded = expandedItiIds.includes(iti.id);
                           const timeStr = iti.startDuration && iti.endDuration
                             ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
@@ -696,7 +735,7 @@ export const OrderDetailPage: React.FC = () => {
 
       {/* 2. Passenger Tickets Modal */}
       {isTicketsModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsTicketsModalOpen(false)}>
+        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsTicketsModalOpen(false)}>
           <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -713,7 +752,7 @@ export const OrderDetailPage: React.FC = () => {
               </button>
             </div>
             <div className="overflow-y-auto p-6 bg-slate-50/50 space-y-4">
-              {order.tickets.map((ticket, idx) => {
+              {tickets.map((ticket, idx) => {
                 const detail = getTicketDetail(ticket);
                 const ticketTypeName = getTicketTypeName(
                   detail?.ticketTypeId ?? ticket.ticketTypeId,
@@ -791,7 +830,7 @@ export const OrderDetailPage: React.FC = () => {
       {/* 💥 3. Review Modal Wrapper */}
       {isReviewModalOpen && order.tour && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
+          className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
           onClick={() => setIsReviewModalOpen(false)}
         >
           <div 
@@ -819,6 +858,10 @@ export const OrderDetailPage: React.FC = () => {
             />
           </div>
         </div>
+      )}
+
+        </>,
+        document.body,
       )}
 
     </div>

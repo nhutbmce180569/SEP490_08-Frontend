@@ -19,7 +19,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen w-full flex bg-white font-sans text-slate-900">
+    <div className="flex min-h-screen w-full font-sans text-slate-900">
       {/* Cột trái: Hình ảnh (Ẩn trên mobile) */}
       <div className="hidden lg:flex w-1/2 relative bg-slate-900 overflow-hidden">
         <img
@@ -34,7 +34,7 @@ export default function Login() {
             to="/"
             className="flex w-max items-center gap-2 outline-none !no-underline"
           >
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#0068E0] font-black text-xl">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white font-black text-xl text-brand shadow-lg">
               S
             </div>
             <span className="text-2xl font-extrabold tracking-tight text-white">
@@ -55,23 +55,23 @@ export default function Login() {
       </div>
 
       {/* Cột phải: Form đăng nhập */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 md:p-16 lg:p-24 relative">
+      <div className="relative flex w-full items-center justify-center bg-white/60 p-6 backdrop-blur-sm sm:p-12 md:p-16 lg:w-1/2 lg:p-24">
         {/* Nút Back về Home cho Mobile */}
         <Link
           to="/"
           className="absolute left-6 top-6 flex items-center gap-2 outline-none lg:hidden !no-underline"
         >
-          <div className="w-8 h-8 rounded-lg bg-[#05073C] flex items-center justify-center text-white font-black text-base">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-navy font-black text-base text-white">
             S
           </div>
-          <span className="text-xl font-extrabold tracking-tight text-[#05073C]">
+          <span className="text-xl font-extrabold tracking-tight text-navy">
             StayHub
           </span>
         </Link>
 
-        <div className="w-full max-w-md mt-10 lg:mt-0">
+        <div className="glass-panel-solid mt-10 w-full max-w-md rounded-3xl p-8 lg:mt-0">
           <div className="mb-10">
-            <h2 className="text-3xl font-bold text-[#05073C] mb-2">
+            <h2 className="travel-heading mb-2 text-3xl text-navy">
               Welcome back
             </h2>
             <p className="text-slate-500">
@@ -98,7 +98,7 @@ export default function Login() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
+                  className="input-field h-[50px] pl-12 pr-4"
                   placeholder="Enter your email"
                   required
                 />
@@ -116,7 +116,7 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
+                  className="input-field h-[50px] pl-12 pr-12"
                   placeholder="••••••••"
                   required
                 />
@@ -139,7 +139,7 @@ export default function Login() {
               <label className="group flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#0068E0] focus:ring-[#0068E0]"
+                  className="h-4 w-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand"
                 />
                 <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">
                   Remember me
@@ -147,7 +147,7 @@ export default function Login() {
               </label>
               <Link
                 to="/forgot-password"
-                className="text-sm font-semibold text-[#0068E0] transition-colors hover:text-[#0058D0] !no-underline"
+                className="text-sm font-semibold text-brand transition-colors hover:text-brand-hover !no-underline"
               >
                 Forgot password?
               </Link>
@@ -189,7 +189,7 @@ export default function Login() {
             Don't have an account?{" "}
             <Link
               to="/register"
-              className="font-bold text-[#0068E0] transition-colors hover:text-[#0058D0] !no-underline"
+              className="font-bold text-brand transition-colors hover:text-brand-hover !no-underline"
             >
               Sign up for free
             </Link>

@@ -246,7 +246,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   if (!isLoaded) {
     return (
       <div className="w-full h-[80vh] flex items-center justify-center bg-slate-100 rounded-3xl">
-        <div className="animate-spin w-10 h-10 border-4 border-[#0068E0] border-t-transparent rounded-full"></div>
+        <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full"></div>
       </div>
     );
   }
@@ -323,7 +323,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={handleClusterClick}>
                 <div className="relative z-10 flex items-center justify-center w-14 h-14 !rounded-full border-4 border-white bg-white shadow-[0_8px_16px_rgba(0,0,0,0.15)] overflow-hidden">
                       {cAvatarUrl ? <img src={cAvatarUrl} alt="Moment" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{userInitial}</div>}
-                  <div className="absolute inset-0 !rounded-full border-[3px] border-[#4880ff] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                  <div className="absolute inset-0 !rounded-full border-[3px] border-brand opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                 <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[4px] border-b-[4px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
@@ -334,7 +334,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             } else {
               return (
                 <OverlayView key={`cluster-${cluster.id}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
-              <div className="group relative flex items-center justify-center w-14 h-14 !rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.2)] border-4 border-white cursor-pointer transform transition-all duration-300 hover:scale-110 bg-gradient-to-tr from-blue-600 to-blue-400" onClick={handleClusterClick}>
+              <div className="group relative flex items-center justify-center w-14 h-14 !rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.2)] border-4 border-white cursor-pointer transform transition-all duration-300 hover:scale-110 bg-gradient-to-tr from-blue-600 to-brand" onClick={handleClusterClick}>
                     <Users className="w-6 h-6 text-white" />
                 <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
                 <div className="absolute inset-0 !rounded-full border-[3px] border-blue-400 animate-ping opacity-20 group-hover:opacity-60 pointer-events-none"></div>
@@ -351,7 +351,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={() => onMarkerClick(momentId)}>
             <div className="relative z-10 flex items-center justify-center w-14 h-14 !rounded-full border-4 border-white bg-white shadow-[0_8px_16px_rgba(0,0,0,0.15)] overflow-hidden">
                   {avatarUrl ? <img src={avatarUrl} alt="Moment" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{userInitial}</div>}
-              <div className="absolute inset-0 !rounded-full border-[3px] border-[#4880ff] opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              <div className="absolute inset-0 !rounded-full border-[3px] border-brand opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
                 <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[4px] border-b-[4px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
                 <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
@@ -364,11 +364,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         {showLiveLocations && friendLocations.map((friend: any) => (
           <OverlayView key={`friend-${friend.userId}`} position={{ lat: friend.lat, lng: friend.lng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
             <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
-              <div className="w-12 h-12 rounded-full border-4 border-[#0068E0] overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
+              <div className="w-12 h-12 rounded-full border-4 border-brand overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
                 {friend.avatarUrl ? (
                   <img src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover rounded-full" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[#0068E0] font-bold text-lg">{friend.fullName?.charAt(0)}</div>
+                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-brand font-bold text-lg">{friend.fullName?.charAt(0)}</div>
                 )}
               </div>
               <span className="absolute top-full mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
@@ -392,7 +392,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               e.stopPropagation();
               setIsLayerMenuOpen(!isLayerMenuOpen);
             }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition-all hover:scale-110 hover:text-[#0068E0] focus:outline-none focus:ring-2 focus:ring-[#0068E0] focus:ring-offset-2"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition-all hover:scale-110 hover:text-brand focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
             aria-label="Toggle Layers"
           >
             <Layers className="h-6 w-6" />
@@ -406,7 +406,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               <div className="py-1">
                 <div onClick={() => setShowMoments(!showMoments)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
                   <span className="text-sm font-medium text-slate-800">Khoảnh khắc</span>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showMoments ? 'bg-[#0068E0]' : 'bg-slate-300'}`}>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showMoments ? 'bg-brand' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showMoments ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
@@ -420,13 +420,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                       </div>
                     )}
                   </div>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showLiveLocations ? 'bg-[#0068E0]' : 'bg-slate-300'}`}>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showLiveLocations ? 'bg-brand' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showLiveLocations ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
                 <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
                   <span className="text-sm font-medium text-slate-800">Dấu chân</span>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showFootprints ? 'bg-[#0068E0]' : 'bg-slate-300'}`}>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showFootprints ? 'bg-brand' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showFootprints ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
@@ -439,7 +439,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       {/* Giai đoạn 2: Nút "Đến ảnh mới nhất" */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <button onClick={handleJumpToNewest} className="flex items-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-lg ring-1 ring-slate-900/5 transition-all hover:scale-105 hover:bg-slate-50 active:scale-95">
-          <Navigation className="h-4 w-4 text-[#0068E0]" />
+          <Navigation className="h-4 w-4 text-brand" />
           Ảnh mới nhất
         </button>
       </div>
@@ -456,7 +456,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               </div>
             ))}
           </div>
-          <button className="absolute bottom-8 right-8 z-50 w-16 h-16 !rounded-full overflow-hidden flex items-center justify-center bg-[#0068E0]/90 backdrop-blur-md text-white border-4 border-white/80 shadow-[0_8px_20px_rgba(0,104,224,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer">
+          <button className="absolute bottom-8 right-8 z-50 w-16 h-16 !rounded-full overflow-hidden flex items-center justify-center bg-brand/90 backdrop-blur-md text-white border-4 border-white/80 shadow-[0_8px_20px_rgba(0,104,224,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 cursor-pointer">
             <Camera className="w-7 h-7 text-white" />
           </button>
         </div>

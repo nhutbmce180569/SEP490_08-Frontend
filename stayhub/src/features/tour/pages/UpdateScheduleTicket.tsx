@@ -216,7 +216,7 @@ export const UpdateScheduleTicket: React.FC = () => {
                   setTicketTypeId(event.target.value);
                   setFormError(null);
                 }}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
               >
                 <option value="">Select ticket type</option>
                 {ticketTypes.map((ticketType) => (
@@ -229,7 +229,7 @@ export const UpdateScheduleTicket: React.FC = () => {
           </div>
 
           {selectedTicketType && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-slate-700">
+            <div className="rounded-xl border border-blue-100 bg-brand-light px-4 py-3 text-sm text-slate-700">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-bold text-slate-900">{selectedTicketType.name}</span>
                 <span
@@ -264,7 +264,7 @@ export const UpdateScheduleTicket: React.FC = () => {
                     setPrice(event.target.value);
                     setFormError(null);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                 />
               </div>
             </div>
@@ -284,7 +284,7 @@ export const UpdateScheduleTicket: React.FC = () => {
                     setQuantity(event.target.value);
                     setFormError(null);
                   }}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                 />
               </div>
             </div>
@@ -301,7 +301,7 @@ export const UpdateScheduleTicket: React.FC = () => {
                 setFormError(null);
               }}
               rows={3}
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
               placeholder="Optional internal note for this schedule ticket"
             />
           </div>
@@ -320,7 +320,7 @@ export const UpdateScheduleTicket: React.FC = () => {
                 setIsActive(event.target.checked);
                 setFormError(null);
               }}
-              className="h-5 w-5 rounded border-slate-300 text-[#4880ff] focus:ring-[#4880ff]"
+              className="h-5 w-5 rounded border-slate-300 text-brand focus:ring-brand"
             />
           </label>
         </div>

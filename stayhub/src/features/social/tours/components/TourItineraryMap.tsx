@@ -265,7 +265,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
       <div className="absolute inset-0 z-0">
         {!isLoaded ? (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-slate-300 border-t-[#0068E0] rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-slate-300 border-t-brand rounded-full animate-spin"></div>
           </div>
         ) : (
           <GoogleMap
@@ -280,7 +280,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
                 <label className="flex items-center gap-2 cursor-pointer">
                   <div className="relative">
                     <input type="checkbox" checked={showLiveFriends} onChange={(e) => setShowLiveFriends(e.target.checked)} className="sr-only" />
-                    <div className={`block w-10 h-6 rounded-full transition-colors ${showLiveFriends ? 'bg-[#0068E0]' : 'bg-slate-300'}`}></div>
+                    <div className={`block w-10 h-6 rounded-full transition-colors ${showLiveFriends ? 'bg-brand' : 'bg-slate-300'}`}></div>
                     <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showLiveFriends ? 'translate-x-4' : ''}`}></div>
                   </div>
                   <span className="text-sm font-bold text-slate-700 select-none">Vị trí bạn bè</span>
@@ -297,7 +297,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
             <Polyline
               path={animatedPath}
               options={{
-                strokeColor: "#0068E0",
+                strokeColor: "var(--color-brand)",
                 strokeWeight: 4,
                 strokeOpacity: 0.8
               }}
@@ -314,7 +314,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
                   {/* Popup Tooltip (hiển thị khi active) */}
                   {activeLocId === loc.id && (
                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 bg-white rounded-xl shadow-xl border border-slate-100 p-3 z-50 animate-fade-in-up">
-                      <div className="text-[10px] font-bold text-[#0068E0] mb-1">
+                      <div className="text-[10px] font-bold text-brand mb-1">
                         {formatTime(loc.startDuration)} - {formatTime(loc.endDuration)}
                       </div>
                       <h4 className="text-sm font-bold text-slate-800 leading-tight mb-1">{loc.title}</h4>
@@ -329,8 +329,8 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
                     onClick={() => handleLocationClick(loc)}
                     className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 text-xs font-bold shadow-sm transition-all duration-300 ${
                       activeLocId === loc.id
-                        ? "scale-110 border-[#0068E0] bg-[#0068E0] text-white"
-                        : "border-[#0068E0] bg-white text-[#0068E0] hover:scale-110 hover:bg-[#0068E0] hover:text-white"
+                        ? "scale-110 border-brand bg-brand text-white"
+                        : "border-brand bg-white text-brand hover:scale-110 hover:bg-brand hover:text-white"
                     }`}
                   >
                     {index + 1}
@@ -342,8 +342,8 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
             {isTourStarted && userLocation && (
               <OverlayView position={userLocation} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
                 <div className="relative flex items-center justify-center w-8 h-8 pointer-events-none">
-                  <div className="absolute inset-0 bg-blue-500 rounded-full opacity-50 animate-ping"></div>
-                  <div className="relative w-4 h-4 bg-blue-600 border-2 border-white rounded-full shadow-[0_0_10px_rgba(0,0,0,0.3)]"></div>
+                  <div className="absolute inset-0 bg-brand-light0 rounded-full opacity-50 animate-ping"></div>
+                  <div className="relative w-4 h-4 bg-brand border-2 border-white rounded-full shadow-[0_0_10px_rgba(0,0,0,0.3)]"></div>
                 </div>
               </OverlayView>
             )}
@@ -351,11 +351,11 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
             {showLiveFriends && friendLocations.map((friend: any) => (
               <OverlayView key={`friend-${friend.userId}`} position={{ lat: friend.lat, lng: friend.lng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
                 <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
-                  <div className="w-12 h-12 rounded-full border-4 border-[#0068E0] overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-full border-4 border-brand overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
                     {friend.avatarUrl ? (
                       <img src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover rounded-full" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-slate-200 text-[#0068E0] font-bold text-lg">{friend.fullName?.charAt(0)}</div>
+                      <div className="w-full h-full flex items-center justify-center bg-slate-200 text-brand font-bold text-lg">{friend.fullName?.charAt(0)}</div>
                     )}
                   </div>
                   <span className="absolute top-full mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
@@ -374,10 +374,10 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
           onClick={handleShareLocation}
           disabled={isGeneratingToken}
           title="Chia sẻ hành trình"
-          className="absolute bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-white text-[#0068E0] shadow-[0_8px_20px_rgba(0,0,0,0.15)] border-2 border-[#0068E0] transition-all hover:scale-110 active:scale-95 disabled:opacity-70"
+          className="absolute bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-white text-brand shadow-[0_8px_20px_rgba(0,0,0,0.15)] border-2 border-brand transition-all hover:scale-110 active:scale-95 disabled:opacity-70"
         >
           {isGeneratingToken ? (
-            <div className="w-6 h-6 border-2 border-[#0068E0] border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-6 h-6 border-2 border-brand border-t-transparent rounded-full animate-spin"></div>
           ) : (
             <Share2 className="w-6 h-6" />
           )}
@@ -395,15 +395,15 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
           </button>
 
           {!isTourStarted && currentDayItineraries.length > 0 && (
-            <div className="mx-4 mt-4 mb-1 p-4 bg-blue-50 border border-blue-200 rounded-xl shrink-0">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-600 mb-1">Điểm tập trung chặng đầu</p>
+            <div className="mx-4 mt-4 mb-1 p-4 bg-brand-light border border-brand/20 rounded-xl shrink-0">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-brand mb-1">Điểm tập trung chặng đầu</p>
               <h4 className="text-sm font-bold text-slate-800 mb-3">{currentDayItineraries[0].locationName || currentDayItineraries[0].title}</h4>
               <button
                 onClick={() => {
                   const firstLoc = currentDayItineraries[0];
                   window.open(`https://www.google.com/maps/search/?api=1&query=${firstLoc.locationLat},${firstLoc.locationLng}`);
                 }}
-                className="flex items-center justify-center gap-2 w-full py-2 bg-[#0068E0] text-white rounded-lg text-sm font-bold shadow-sm transition-all hover:bg-blue-600 active:scale-95"
+                className="flex items-center justify-center gap-2 w-full py-2 bg-brand text-white rounded-lg text-sm font-bold shadow-sm transition-all hover:bg-brand active:scale-95"
               >
                 <Navigation className="w-4 h-4" /> Chỉ đường đến điểm hẹn
               </button>
@@ -412,13 +412,13 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
           
           <div className="p-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
             <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-[#0068E0]" /> Lịch trình chi tiết
+              <Calendar className="w-4 h-4 text-brand" /> Lịch trình chi tiết
             </h3>
             <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-2">
               <button
                 onClick={() => { setSelectedDay('ALL'); setActiveLocId(null); }}
                 className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
-                  selectedDay === 'ALL' ? "bg-[#0068E0] text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                  selectedDay === 'ALL' ? "bg-brand text-white shadow-sm" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                 }`}
               >
                 Tổng quan
@@ -429,7 +429,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
                   onClick={() => { setSelectedDay(day); setActiveLocId(null); }}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
                     selectedDay === day
-                      ? "bg-[#0068E0] text-white shadow-sm"
+                      ? "bg-brand text-white shadow-sm"
                       : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                   }`}
                 >
@@ -452,16 +452,16 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
                   >
                     <div 
                       className={`absolute -left-[27px] w-3 h-3 rounded-full border-2 border-white top-1 transition-all duration-300 ${
-                        activeLocId === loc.id ? "bg-[#0068E0] scale-150 ring-4 ring-[#0068E0]/20" : "bg-slate-300 group-hover:bg-[#0068E0]/50"
+                        activeLocId === loc.id ? "bg-brand scale-150 ring-4 ring-brand/20" : "bg-slate-300 group-hover:bg-brand/50"
                       }`} 
                     />
                     
                     <div className={`p-4 rounded-xl border transition-all duration-300 ${
                       activeLocId === loc.id 
-                        ? "bg-blue-50/50 border-blue-200 shadow-sm"
+                        ? "bg-brand-light/50 border-brand/20 shadow-sm"
                         : "bg-white border-slate-100 hover:border-blue-100 hover:bg-slate-50"
                     }`}>
-                      <div className="flex items-center gap-2 text-xs font-semibold text-[#0068E0] mb-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-brand mb-2">
                         <Clock className="w-3.5 h-3.5" />
                         {loc.startDuration ? formatTime(loc.startDuration) + (loc.endDuration ? ' - ' + formatTime(loc.endDuration) : '') : 'Tự do'}
                       </div>
@@ -485,7 +485,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
           onClick={() => setIsPanelExpanded(true)} 
           className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-white/95 backdrop-blur-md px-4 py-3 rounded-xl shadow-lg border border-slate-100 text-slate-800 font-bold hover:bg-slate-50 transition-all"
         >
-          <List className="w-5 h-5 text-[#0068E0]"/> Danh sách lịch trình
+          <List className="w-5 h-5 text-brand"/> Danh sách lịch trình
         </button>
       )}
     </div>

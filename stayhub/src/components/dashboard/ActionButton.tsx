@@ -1,7 +1,7 @@
 import React from "react";
 
 export interface ActionButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "warning";
+  variant?: "primary" | "secondary" | "warning" | "accent";
 }
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
@@ -11,18 +11,24 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   style,
   ...props
 }) => {
-  const baseStyles = "inline-flex items-center justify-center shadow-sm transition-all !rounded-lg";
-  
+  const baseStyles =
+    "inline-flex items-center justify-center transition-all duration-200 rounded-[var(--radius-button)] font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed";
+
   const variants = {
-    primary: "bg-[#4880ff] text-white font-semibold hover:bg-[#336efd] hover:shadow-md",
-    secondary: "border border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700",
-    warning: "border border-rose-100 bg-rose-50 text-rose-400 hover:border-rose-200 hover:bg-rose-100 hover:text-rose-600",
+    primary:
+      "bg-brand text-white shadow-md shadow-brand/20 hover:bg-brand-hover hover:shadow-lg",
+    secondary:
+      "border border-slate-200/80 bg-white/90 text-slate-600 backdrop-blur-sm hover:border-brand/20 hover:bg-brand-light/50 hover:text-brand",
+    accent:
+      "bg-brand text-white shadow-md shadow-brand/20 hover:bg-brand-hover",
+    warning:
+      "border border-rose-100 bg-rose-50/90 text-rose-500 backdrop-blur-sm hover:border-rose-200 hover:bg-rose-100 hover:text-rose-600",
   };
 
   return (
     <button
       className={`${baseStyles} ${variants[variant]} ${className}`}
-      style={{ borderRadius: "8px", ...style }}
+      style={style}
       {...props}
     >
       {children}

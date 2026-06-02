@@ -279,7 +279,7 @@ export const TourScheduleDetail: React.FC = () => {
     <div className="mx-auto max-w-4xl px-4 py-6">
       <button
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-blue-600"
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to Schedules
@@ -305,7 +305,7 @@ export const TourScheduleDetail: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <Hash className="h-4 w-4 text-slate-400" />
                   <span className="font-semibold text-slate-700">Tour Name:</span>
-                  <span className="font-bold text-blue-600">
+                  <span className="font-bold text-brand">
                     {schedule.tour?.name || `ID: ${schedule.tourId}`}
                   </span>
                 </div>
@@ -458,7 +458,7 @@ export const TourScheduleDetail: React.FC = () => {
                         >
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
                                 <Ticket className="h-4 w-4" />
                               </div>
                               <div className="min-w-0">
@@ -640,7 +640,7 @@ export const TourScheduleDetail: React.FC = () => {
                                   onClick={() => toggleIti(iti.id)}
                                 >
                                   <div className="flex items-center gap-4">
-                                    <div className="flex min-w-[110px] items-center justify-center rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-600">
+                                    <div className="flex min-w-[110px] items-center justify-center rounded-lg bg-brand-light px-3 py-1.5 text-xs font-bold text-brand">
                                       <Clock className="mr-1.5 h-3.5 w-3.5" />
                                       {timeStr}
                                     </div>
@@ -663,7 +663,7 @@ export const TourScheduleDetail: React.FC = () => {
                                             ),
                                           )
                                         }
-                                        className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                                        className="h-8 w-8 text-brand hover:bg-brand-light"
                                       >
                                         <Pencil className="h-3.5 w-3.5" />
                                       </ActionButton>
@@ -700,7 +700,7 @@ export const TourScheduleDetail: React.FC = () => {
                                       </p>
                                     )}
                                     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                                      <MapPin className="h-4 w-4 text-blue-500" />
+                                      <MapPin className="h-4 w-4 text-brand" />
                                       <span>{iti.locationName || "No location specification"}</span>
                                     </div>
                                     {iti.tourismInfoId && (
@@ -725,7 +725,7 @@ export const TourScheduleDetail: React.FC = () => {
                                             <div className="space-y-2 p-4">
                                               <div className="flex flex-wrap items-center gap-2">
                                                 <h5 className="font-bold text-slate-900">{tourismInfo.name}</h5>
-                                                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-bold text-blue-600">
+                                                <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-bold text-brand">
                                                   {tourismInfo.type}
                                                 </span>
                                               </div>
@@ -735,7 +735,7 @@ export const TourScheduleDetail: React.FC = () => {
                                                 </p>
                                               )}
                                               <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
-                                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
+                                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
                                                 <span>
                                                   {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
                                                     .filter(Boolean)
@@ -752,7 +752,7 @@ export const TourScheduleDetail: React.FC = () => {
                                                   href={tourismInfo.sourceUrl}
                                                   target="_blank"
                                                   rel="noreferrer"
-                                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700"
+                                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                                                 >
                                                   {tourismInfo.sourceName || "Source"}
                                                   <ExternalLink className="h-3.5 w-3.5" />
@@ -762,7 +762,7 @@ export const TourScheduleDetail: React.FC = () => {
                                           </div>
                                         ) : (
                                           <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
-                                            <MapPin className="h-4 w-4 text-blue-500" />
+                                            <MapPin className="h-4 w-4 text-brand" />
                                             Tourism info ID #{iti.tourismInfoId}
                                           </div>
                                         )}
@@ -808,7 +808,7 @@ export const TourScheduleDetail: React.FC = () => {
         variant={confirmAction?.type === "activateTicket" ? "primary" : "warning"}
         icon={
           confirmAction?.type === "activateTicket" ? (
-            <Power className="h-6 w-6 text-blue-500" />
+            <Power className="h-6 w-6 text-brand" />
           ) : confirmAction?.type === "deactivateTicket" ? (
             <PowerOff className="h-6 w-6 text-rose-500" />
           ) : (

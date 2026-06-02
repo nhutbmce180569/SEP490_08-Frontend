@@ -20,7 +20,7 @@ export const SimilarToursSection: React.FC<Props> = ({ tourId, top = 5 }) => {
   return (
     <section className="mt-16">
       <div className="flex items-center gap-2 mb-6">
-        <Sparkles size={20} style={{ color: "#EB662B" }} />
+        <Sparkles size={20} style={{ color: "var(--color-brand)" }} />
         <h2
           className="text-2xl font-black text-slate-900"
           style={{ fontFamily: "'Sora', sans-serif" }}

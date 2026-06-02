@@ -36,7 +36,7 @@ export const AiQuestionnairePage: React.FC = () => {
       <div className="container mx-auto max-w-3xl px-4 pt-10">
         <Link
           to={PATH.PUBLIC.HOME}
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-[#EB662B] mb-6 !no-underline transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-brand mb-6 !no-underline transition-colors"
         >
           <ArrowLeft size={16} /> Về trang chủ
         </Link>
@@ -44,7 +44,7 @@ export const AiQuestionnairePage: React.FC = () => {
         <div className="mb-8">
           <p
             className="text-[10px] font-black uppercase tracking-[0.2em] mb-2"
-            style={{ color: "#EB662B" }}
+            style={{ color: "var(--color-brand)" }}
           >
             AI Tour Assistant
           </p>
@@ -64,7 +64,7 @@ export const AiQuestionnairePage: React.FC = () => {
           <div className="flex flex-col items-center py-24 gap-4">
             <div
               className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
-              style={{ borderColor: "#EB662B", borderTopColor: "transparent" }}
+              style={{ borderColor: "var(--color-brand)", borderTopColor: "transparent" }}
             />
             <p className="text-sm font-bold text-slate-400">Đang tải khảo sát...</p>
           </div>

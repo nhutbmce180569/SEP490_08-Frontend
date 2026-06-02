@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Phone, Send } from "lucide-react";
 
 type FooterLinkGroup = { title: string; links: string[] };
 
@@ -11,7 +12,7 @@ export default function Footer() {
         title: "Company",
         links: [
           "About Us",
-          "Tourz Reviews",
+          "StayHub Reviews",
           "Contact Us",
           "Travel Guides",
           "Data Policy",
@@ -20,73 +21,35 @@ export default function Footer() {
           "Sitemap",
         ],
       },
-      { title: "Support", links: ["Get in Touch", "Help center", "Live chat", "How it works"] },
+      {
+        title: "Support",
+        links: ["Get in Touch", "Help center", "Live chat", "How it works"],
+      },
     ],
     [],
   );
 
   return (
-    <footer
-      style={{
-        background: "#fff",
-        borderTop: "1px solid rgba(0,104,224,0.15)",
-        fontFamily: "Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
-        color: "#05073C",
-      }}
-    >
-      <div style={{ margin: "0 auto", padding: "15px 110px" }}>
-        {/* Top info row */}
-        <div
-          style={{
-            height: 185,
-            borderBottom: "1px solid rgba(0,104,224,0.15)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 320 }}>
-            <div
-              aria-hidden
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 14,
-                background: "rgba(0,104,224,0.12)",
-                display: "grid",
-                placeItems: "center",
-                fontSize: 22,
-                color: "#0068E0",
-                fontWeight: 800,
-              }}
-            >
-              ☎
+    <footer className="mt-auto border-t border-brand/15 bg-white/80 backdrop-blur-xl">
+      <div className="page-container py-4">
+        <div className="flex flex-wrap items-center justify-between gap-6 border-b border-brand/10 py-8 md:py-10">
+          <div className="flex min-w-[280px] items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shadow-sm">
+              <Phone className="h-5 w-5" aria-hidden />
             </div>
-            <div style={{ fontSize: 19.5, fontWeight: 600 }}>
-              Speak to our expert at{" "}
-              <span style={{ color: "#0068E0" }}>1-800-453-6744</span>
-            </div>
+            <p className="text-base font-semibold text-navy md:text-lg">
+              Speak to our travel expert{" "}
+              <span className="text-brand">1-800-453-6744</span>
+            </p>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ fontSize: 16.2, fontWeight: 600 }}>Follow Us</div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-navy">Follow Us</span>
             {["in", "fb", "tw", "yt"].map((k) => (
               <button
                 key={k}
                 type="button"
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 999,
-                  border: "1px solid rgba(5,7,60,0.12)",
-                  background: "#fff",
-                  color: "#05073C",
-                  cursor: "pointer",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-navy/10 bg-white/90 text-xs font-bold text-navy transition-colors hover:border-brand/30 hover:bg-brand-light hover:text-brand"
                 aria-label={k}
               >
                 {k}
@@ -95,113 +58,75 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Columns */}
-        <div
-          style={{
-            padding: "40px 0",
-            display: "grid",
-            gridTemplateColumns: "minmax(260px, 1.3fr) 220px 220px minmax(280px, 1fr)",
-            gap: 30,
-          }}
-        >
-          {/* Contact */}
+        <div className="grid gap-8 py-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>Contact</div>
-            <div style={{ fontSize: 14.4, lineHeight: "28px", marginBottom: 10 }}>
+            <h4 className="travel-heading mb-3 text-lg">Contact</h4>
+            <p className="text-sm leading-7 text-slate-600">
               328 Queensberry Street, North Melbourne VIC3051, Australia.
-            </div>
-            <div style={{ fontSize: 14.9, lineHeight: "28px" }}>hi@viatours.com</div>
+            </p>
+            <p className="mt-2 text-sm font-medium text-brand">hi@stayhub.com</p>
           </div>
 
           {groups.map((g) => (
             <div key={g.title}>
-              <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 14 }}>{g.title}</div>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              <h4 className="travel-heading mb-3 text-lg">{g.title}</h4>
+              <ul className="space-y-2">
                 {g.links.map((l) => (
-                  <li key={l} style={{ marginBottom: 10 }}>
-                    <span style={{ fontSize: 14.6, lineHeight: "28px", cursor: "pointer" }}>
+                  <li key={l}>
+                    <button
+                      type="button"
+                      className="text-sm text-slate-600 transition-colors hover:text-brand"
+                    >
                       {l}
-                    </span>
+                    </button>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
 
-          {/* Newsletter */}
           <div>
-            <div style={{ fontSize: 19.5, fontWeight: 600, marginBottom: 14 }}>Newsletter</div>
-            <div style={{ fontSize: 14.6, lineHeight: "28px", marginBottom: 12 }}>
-              Subscribe to the free newsletter and stay up to date
-            </div>
+            <h4 className="travel-heading mb-3 text-lg">Newsletter</h4>
+            <p className="mb-4 text-sm text-slate-600">
+              Subscribe for tour deals and fresh travel inspiration
+            </p>
 
-            <div style={{ position: "relative", marginBottom: 28 }}>
+            <div className="relative mb-6">
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Your email address"
-                style={{
-                  width: "100%",
-                  height: 60,
-                  borderRadius: 12,
-                  border: "1px solid #E7E6E6",
-                  padding: "0 88px 0 18px",
-                  outline: "none",
-                  fontSize: 14.5,
-                }}
+                className="input-field h-14 pr-24"
               />
               <button
                 type="button"
-                style={{
-                  position: "absolute",
-                  right: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  fontSize: 14.5,
-                  fontWeight: 600,
-                  color: "#05073C",
-                }}
+                className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg px-3 py-2 text-sm font-bold text-brand transition-colors hover:bg-brand-light"
               >
+                <Send className="h-4 w-4" />
                 Send
               </button>
             </div>
 
-            <div style={{ fontSize: 19.7, fontWeight: 600, marginBottom: 12 }}>Mobile Apps</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {["iOS App", "Android App"].map((t) => (
-                <div key={t} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <span aria-hidden style={{ fontSize: 16 }}>
-                    {t.startsWith("iOS") ? "" : "⌁"}
-                  </span>
-                  <span style={{ fontSize: 14.9, lineHeight: "28px" }}>{t}</span>
-                </div>
-              ))}
+            <h4 className="mb-2 text-sm font-bold text-navy">Mobile Apps</h4>
+            <div className="flex flex-col gap-2 text-sm text-slate-600">
+              <span>iOS App</span>
+              <span>Android App</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div
-          style={{
-            borderTop: "1px solid rgba(5,7,60,0.08)",
-            padding: "18px 0",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: 12,
-            flexWrap: "wrap",
-            color: "rgba(5,7,60,0.7)",
-            fontSize: 13,
-          }}
-        >
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy/8 py-5 text-xs text-navy-70">
           <div>© {new Date().getFullYear()} StayHub. All rights reserved.</div>
-          <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-            <span style={{ cursor: "pointer" }}>Privacy</span>
-            <span style={{ cursor: "pointer" }}>Terms</span>
-            <span style={{ cursor: "pointer" }}>Support</span>
+          <div className="flex gap-4">
+            {["Privacy", "Terms", "Support"].map((t) => (
+              <button
+                key={t}
+                type="button"
+                className="transition-colors hover:text-brand"
+              >
+                {t}
+              </button>
+            ))}
           </div>
         </div>
       </div>

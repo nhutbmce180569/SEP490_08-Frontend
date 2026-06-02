@@ -19,7 +19,7 @@ export const CulturalFactsSidebar: React.FC<Props> = ({ facts }) => {
       }}
     >
       <div className="flex items-center gap-2 mb-4">
-        <BookOpen size={18} style={{ color: "#EB662B" }} />
+        <BookOpen size={18} style={{ color: "var(--color-brand)" }} />
         <h3 className="text-sm font-black text-slate-800">Tri thức địa phương</h3>
       </div>
 
@@ -37,7 +37,7 @@ export const CulturalFactsSidebar: React.FC<Props> = ({ facts }) => {
               {fact.authorityLevel && (
                 <span
                   className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase"
-                  style={{ background: "#FFF1EB", color: "#EB662B" }}
+                  style={{ background: "var(--color-brand-light)", color: "var(--color-brand)" }}
                 >
                   {fact.authorityLevel}
                 </span>

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Bell, Check, Loader2, X } from "lucide-react"; // 💥 Nhớ import thêm icon X
+import { useState, useRef, useEffect } from "react";
+import { Bell, Check, Loader2, X } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationHub } from "../hooks/useNotificationHub";
 
@@ -7,7 +7,6 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 💥 Lấy hàm deleteNoti ra xài
   const {
     notifications,
     setNotifications,
@@ -18,10 +17,8 @@ export default function NotificationBell() {
     deleteNoti,
   } = useNotifications();
 
-  // Truyền setNotifications vào SignalR
   useNotificationHub(setNotifications);
 
-  // Xử lý đóng popup khi click ra ngoài
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -37,41 +34,40 @@ export default function NotificationBell() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* ... (Giữ nguyên phần nút Chuông) ... */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full transition-colors ${
-          isOpen
-            ? "bg-[#0068E0]/10 text-[#0068E0]"
-            : "text-slate-500 hover:bg-[#0068E0]/10 hover:text-[#0068E0]"
-        }`}
+        className={`icon-btn relative ${isOpen ? "!bg-brand-light !text-brand" : ""}`}
+        aria-label="Notifications"
+        aria-expanded={isOpen}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0068E0] opacity-75"></span>
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#0068E0]"></span>
+          <span className="absolute right-1 top-1 flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-brand ring-2 ring-white" />
           </span>
         )}
       </button>
 
-      {/* Dropdown Popup */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 origin-top-right overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_rgb(0,0,0,0.12)] ring-1 ring-slate-900/5 z-50 animate-in fade-in zoom-in-95 duration-200">
-          <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-4 py-3">
-            <h3 className="text-sm font-bold text-slate-900">Notifications</h3>
+        <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden sm:w-96">
+          <div className="flex items-center justify-between border-b border-slate-100/80 bg-slate-50/60 px-4 py-3">
+            <h3 className="text-sm font-bold text-navy">Notifications</h3>
             {unreadCount > 0 && (
-              <button className="flex items-center gap-1 text-xs font-semibold text-[#0068E0] transition-colors hover:text-[#0058D0]">
+              <button
+                type="button"
+                className="flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand-hover"
+              >
                 <Check className="h-3.5 w-3.5" />
                 Mark all read
               </button>
             )}
           </div>
 
-          <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+          <div className="custom-scrollbar max-h-[400px] overflow-y-auto">
             {isLoading ? (
-              <div className="flex justify-center py-10 text-[#0068E0]">
+              <div className="flex justify-center py-10 text-brand">
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : error ? (
@@ -79,39 +75,37 @@ export default function NotificationBell() {
                 {error}
               </div>
             ) : notifications.length > 0 ? (
-              <div className="flex flex-col divide-y divide-slate-100">
+              <div className="flex flex-col divide-y divide-slate-100/80">
                 {notifications.map((noti) => (
                   <div
                     key={noti.id}
                     onClick={() => markAsRead(noti)}
-                    // 💥 Thêm class 'group' và 'relative' để xử lý hover hiện nút xóa
-                    className={`group relative flex cursor-pointer flex-col gap-1.5 p-4 transition-colors hover:bg-slate-50 ${
-                      !noti.isRead ? "bg-[#0068E0]/[0.03]" : ""
+                    className={`group relative flex cursor-pointer flex-col gap-1.5 p-4 transition-colors hover:bg-brand-light/30 ${
+                      !noti.isRead ? "bg-brand/5" : ""
                     }`}
                   >
-                    {/* Thêm pr-6 để chữ không đè lên nút Xóa */}
                     <div className="flex items-start justify-between gap-3 pr-6">
                       <h4
-                        className={`text-sm leading-snug ${!noti.isRead ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}
+                        className={`text-sm leading-snug ${!noti.isRead ? "font-bold text-navy" : "font-semibold text-slate-700"}`}
                       >
                         {noti.title}
                       </h4>
-                      <span className="shrink-0 text-[10px] font-medium text-slate-400 mt-0.5">
+                      <span className="mt-0.5 shrink-0 text-[10px] font-medium text-slate-400">
                         {new Date(noti.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     <p
-                      className={`text-xs line-clamp-2 leading-relaxed ${!noti.isRead ? "text-slate-700 font-medium" : "text-slate-500"}`}
+                      className={`line-clamp-2 text-xs leading-relaxed ${!noti.isRead ? "font-medium text-slate-700" : "text-slate-500"}`}
                     >
                       {noti.content}
                     </p>
 
                     <button
+                      type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         deleteNoti(noti.id);
                       }}
-                      // 💥 Đã sửa đoạn class: thay 'top-3.5' bằng 'top-1/2 -translate-y-1/2'
                       className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition-colors hover:bg-rose-100 hover:text-rose-500"
                       title="Delete notification"
                     >
@@ -125,18 +119,17 @@ export default function NotificationBell() {
                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-300">
                   <Bell className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-semibold text-slate-900">
-                  No notifications
-                </p>
-                <p className="mt-1 text-xs text-slate-500">
-                  You're all caught up!
-                </p>
+                <p className="text-sm font-semibold text-navy">No notifications</p>
+                <p className="mt-1 text-xs text-slate-500">You&apos;re all caught up</p>
               </div>
             )}
           </div>
 
-          <div className="border-t border-slate-100 bg-slate-50 p-2 text-center">
-            <button className="text-xs font-semibold text-slate-500 transition-colors hover:text-[#0068E0]">
+          <div className="border-t border-slate-100/80 bg-slate-50/50 p-2 text-center">
+            <button
+              type="button"
+              className="text-xs font-semibold text-slate-500 transition-colors hover:text-brand"
+            >
               View all notifications
             </button>
           </div>

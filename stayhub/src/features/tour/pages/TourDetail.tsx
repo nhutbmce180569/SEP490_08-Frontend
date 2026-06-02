@@ -328,7 +328,7 @@ export const TourDetail: React.FC = () => {
           {/* Quick Stats Grid */}
           <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-3">
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-brand">
                 <Clock className="h-5 w-5" />
               </div>
               <div>
@@ -465,7 +465,7 @@ export const TourDetail: React.FC = () => {
                                 <div className="flex items-center gap-4">
                                   {tour.status !== "Banned" && (
                                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                                      <ActionButton variant="secondary" onClick={() => navigate(PATH.MANAGER.EDIT_ITINERARY(tour.id, iti.id))} className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700">
+                                      <ActionButton variant="secondary" onClick={() => navigate(PATH.MANAGER.EDIT_ITINERARY(tour.id, iti.id))} className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover">
                                         <Pencil className="h-3.5 w-3.5" />
                                       </ActionButton>
                                       <ActionButton variant="warning" onClick={() => navigate(PATH.MANAGER.DELETE_ITINERARY(tour.id, iti.id))} className="h-8 w-8">
@@ -539,7 +539,7 @@ export const TourDetail: React.FC = () => {
                                                 href={tourismInfo.sourceUrl}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#4880ff] hover:text-blue-700"
+                                                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                                               >
                                                 {tourismInfo.sourceName || "Source"}
                                                 <ExternalLink className="h-3.5 w-3.5" />
@@ -618,7 +618,7 @@ export const TourDetail: React.FC = () => {
                               { state: { schedule, tourName: tour.name } },
                             )
                           }
-                          className="h-8 w-8 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                          className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
                         >
                           <Info className="h-3.5 w-3.5" />
                         </ActionButton>

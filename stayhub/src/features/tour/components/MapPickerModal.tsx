@@ -94,7 +94,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({ isOpen, mode = '
                 onChange={(e) => handleInputChange(e.target.value, 'single')}
                 onKeyDown={(e) => e.key === "Enter" && handleSearchLocation('single')}
                 placeholder="Search for a place or click on the map..."
-                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-[#4880ff] focus:bg-white"
+                className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
               />
               <ActionButton variant="secondary" onClick={handleLocateMe} disabled={isSearching} className="shrink-0 px-4 py-2.5" title="Use Current Location">
                 <Navigation className="h-4 w-4 text-indigo-600" />

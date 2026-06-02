@@ -200,7 +200,7 @@ export const VoucherList: React.FC = () => {
             placeholder="Search code or description..."
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           />
         </div>
 
@@ -210,7 +210,7 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setTourId(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#0068E0] focus:bg-white"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
           <option value="">All tours</option>
           {tourOptions
@@ -228,7 +228,7 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setDiscountType(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#0068E0] focus:bg-white"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
           <option value="">All discount types</option>
           <option value="Percent">Percent</option>
@@ -241,7 +241,7 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setStatus(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#0068E0] focus:bg-white"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
           <option value="">All statuses</option>
           <option value="Active">Active</option>
@@ -257,7 +257,7 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setIsActive(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-[#0068E0] focus:bg-white"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
           <option value="">Active flag</option>
           <option value="true">Enabled</option>

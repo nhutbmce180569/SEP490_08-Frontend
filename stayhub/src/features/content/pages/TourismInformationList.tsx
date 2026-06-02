@@ -216,14 +216,14 @@ export const TourismInformationList: React.FC = () => {
             placeholder="Search by name, description, address..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           />
         </div>
 
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-[#0068E0] focus:bg-white"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
         >
           <option value="">All types</option>
           {TOURISM_INFORMATION_TYPES.map((type) => (
@@ -236,7 +236,7 @@ export const TourismInformationList: React.FC = () => {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-[#0068E0] focus:bg-white"
+          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
         >
           <option value="">All statuses</option>
           <option value={TOURISM_INFORMATION_STATUS.ACTIVE}>Active</option>
@@ -249,7 +249,7 @@ export const TourismInformationList: React.FC = () => {
             placeholder="Filter by city..."
             value={cityInput}
             onChange={(e) => setCityInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition-colors focus:border-[#0068E0] focus:bg-white focus:ring-4 focus:ring-[#0068E0]/10"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           />
           {hasActiveFilters && (
             <ActionButton variant="secondary" onClick={handleResetFilters} className="shrink-0 px-3">

@@ -1,1 +1,776 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Sora:wght@500;600;700;800&display=swap");
 @import "tailwindcss";
+
+/* StayHub brand — logo blue #0068E0, accent #EB662B, navy #05073C */
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Sora", "Plus Jakarta Sans", system-ui, sans-serif;
+
+  --color-brand: #0068e0;
+  --color-brand-hover: #0058d0;
+  --color-brand-deep: #0048b0;
+  --color-brand-light: #e8f2ff;
+  --color-brand-muted: #0068e01a;
+
+  --color-accent: #eb662b;
+  --color-accent-hover: #d95a22;
+  --color-accent-light: #fff1eb;
+
+  --color-navy: #05073c;
+  --color-navy-70: #05073cb3;
+  --color-navy-40: #05073c66;
+
+  --radius-card: 1.25rem;
+  --radius-button: 0.75rem;
+  --radius-pill: 9999px;
+
+  --shadow-glass: 0 8px 32px rgba(5, 7, 60, 0.08);
+  --shadow-card: 0 4px 24px rgba(5, 7, 60, 0.06);
+  --shadow-card-hover: 0 16px 48px rgba(0, 104, 224, 0.14);
+  --shadow-modal: 0 24px 64px rgba(5, 7, 60, 0.18);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    color: var(--color-navy);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f4f7fc;
+    background-image:
+      radial-gradient(ellipse 90% 55% at 50% -15%, rgba(0, 104, 224, 0.09), transparent 55%),
+      radial-gradient(ellipse 50% 35% at 100% 0%, rgba(0, 104, 224, 0.05), transparent 50%),
+      radial-gradient(ellipse 40% 30% at 0% 100%, rgba(0, 104, 224, 0.04), transparent 45%);
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  ::selection {
+    background: rgba(0, 104, 224, 0.2);
+    color: var(--color-navy);
+  }
+
+  /* Fallback cursor (no JS / text fields) — PNG logo when available */
+  @media (hover: hover) and (pointer: fine) {
+    html:not(.has-brand-cursor) {
+      cursor:
+        url("/cursors/stayhub-cursor-64.png") 20 20,
+        url("/cursors/stayhub-cursor-32.png") 16 16,
+        auto;
+    }
+  }
+}
+
+/* Custom StayHub logo pointer (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  html.has-brand-cursor,
+  html.has-brand-cursor *:not(input):not(textarea):not([contenteditable="true"]) {
+    cursor: none !important;
+  }
+
+  html.has-brand-cursor input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+  html.has-brand-cursor textarea,
+  html.has-brand-cursor [contenteditable="true"] {
+    cursor: text !important;
+  }
+}
+
+.brand-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 99999;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.brand-cursor__img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  margin: -19px 0 0 -19px;
+  filter: drop-shadow(0 2px 8px rgba(0, 104, 224, 0.35));
+  transition: transform 0.15s ease;
+}
+
+.brand-cursor__img--hover {
+  transform: scale(1.12);
+}
+
+@layer components {
+  /* ── Glass / Tahoe-inspired surfaces ── */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-panel-solid {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px) saturate(160%);
+    -webkit-backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(5, 7, 60, 0.06);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border-bottom: 1px solid rgba(5, 7, 60, 0.07);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.9) inset,
+      0 4px 24px rgba(5, 7, 60, 0.04);
+  }
+
+  .glass-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(5, 7, 60, 0.07);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(5, 7, 60, 0.07);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.25s ease,
+      border-color 0.25s ease;
+  }
+
+  .glass-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    border-color: rgba(0, 104, 224, 0.12);
+  }
+
+  .glass-dropdown {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(5, 7, 60, 0.08);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-modal {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-modal);
+  }
+
+  .glass-sidebar {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border-right: 1px solid rgba(5, 7, 60, 0.06);
+  }
+
+  .glass-overlay {
+    background: rgba(5, 7, 60, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  /* ── Layout shells ── */
+  .page-container {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 1320px;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  /* ── Public (customer browsing) ── */
+  .public-shell {
+    min-height: 100vh;
+    background: transparent;
+  }
+
+  .public-shell--minimal {
+    background-color: #f8fafc;
+  }
+
+  .public-main {
+    position: relative;
+    z-index: 0;
+  }
+
+  /* ── Dashboard (partner / admin) ── */
+  .dashboard-shell {
+    min-height: 100vh;
+    background-color: #eef2f8;
+    background-image:
+      radial-gradient(ellipse 80% 45% at 0% 0%, rgba(0, 104, 224, 0.06), transparent 55%),
+      radial-gradient(ellipse 55% 40% at 100% 100%, rgba(0, 104, 224, 0.04), transparent 50%);
+  }
+
+  .dashboard-shell--admin {
+    background-image:
+      radial-gradient(ellipse 80% 45% at 100% 0%, rgba(0, 104, 224, 0.06), transparent 55%),
+      radial-gradient(ellipse 55% 40% at 0% 100%, rgba(0, 104, 224, 0.04), transparent 50%);
+  }
+
+  .dashboard-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    height: 4rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 1rem;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(5, 7, 60, 0.07);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.85) inset;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-topbar {
+      padding: 0 1.5rem;
+      height: 4.25rem;
+    }
+  }
+
+  .dashboard-content {
+    padding: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-content {
+      padding: 1.5rem;
+    }
+  }
+
+  .dashboard-content-inner {
+    margin: 0 auto;
+    max-width: 1400px;
+  }
+
+  .dashboard-sidebar--partner .nav-item-active span:first-child {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .dashboard-sidebar--admin .nav-item-active span:first-child,
+  .dashboard-sidebar--admin a.bg-gradient-to-r span:first-child {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* ── Customer account ── */
+  .account-shell {
+    min-height: calc(100vh - 76px);
+    padding-top: 1.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .account-shell {
+      padding-top: 2rem;
+      padding-bottom: 3rem;
+    }
+  }
+
+  .account-welcome {
+    border: 1px solid rgba(0, 104, 224, 0.1);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(232, 242, 255, 0.5) 100%
+    );
+  }
+
+  .account-content {
+    border: 1px solid rgba(5, 7, 60, 0.06);
+  }
+
+  .account-content:hover {
+    transform: none;
+    box-shadow: var(--shadow-card);
+  }
+
+  .profile-shell {
+    min-height: 100vh;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    background: transparent;
+  }
+
+  /* ── Typography (travel marketing) ── */
+  .travel-eyebrow {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-brand);
+  }
+
+  .travel-heading {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--color-navy);
+  }
+
+  /* ── Form controls ── */
+  .input-field {
+    width: 100%;
+    border-radius: var(--radius-button);
+    border: 1px solid rgba(5, 7, 60, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-navy);
+    outline: none;
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s,
+      background 0.2s;
+  }
+
+  .input-field::placeholder {
+    color: #94a3b8;
+  }
+
+  .input-field:focus {
+    border-color: var(--color-brand);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0, 104, 224, 0.12);
+  }
+
+  .search-bar-glass {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    height: 2.75rem;
+    flex: 1;
+    min-width: 150px;
+    padding: 0 1rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(5, 7, 60, 0.08);
+    background: rgba(248, 250, 252, 0.95);
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s,
+      background 0.2s;
+  }
+
+  .search-bar-glass:focus-within {
+    border-color: rgba(0, 104, 224, 0.35);
+    box-shadow: 0 0 0 3px rgba(0, 104, 224, 0.1);
+    background: #fff;
+  }
+
+  /* ── Nav active states ── */
+  .nav-item-active {
+    background: linear-gradient(135deg, #0068e0 0%, #0058d0 100%);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 104, 224, 0.35);
+  }
+
+  .nav-item-inactive {
+    color: #64748b;
+  }
+
+  .nav-item-inactive:hover {
+    background: rgba(0, 104, 224, 0.06);
+    color: var(--color-navy);
+  }
+
+  /* ── Icon button (header / toolbar) ── */
+  .icon-btn {
+    display: inline-flex;
+    height: 2.5rem;
+    width: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    color: #64748b;
+    transition:
+      background 0.2s,
+      color 0.2s;
+  }
+
+  .icon-btn:hover {
+    background: rgba(0, 104, 224, 0.1);
+    color: var(--color-brand);
+  }
+
+  /* ── Tables (dashboard) ── */
+  .table-glass {
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    border: 1px solid rgba(5, 7, 60, 0.07);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* ── Scrollbar ── */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(5, 7, 60, 0.15);
+    border-radius: 999px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 104, 224, 0.35);
+  }
+
+  /* ── Dropdown menu items (header) ── */
+  .menu-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.625rem;
+    border-radius: 0.625rem;
+    padding: 0.625rem 1rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    outline: none;
+    transition:
+      background 0.15s,
+      color 0.15s;
+  }
+
+  .menu-item:hover {
+    background: rgba(0, 104, 224, 0.08);
+    color: var(--color-brand);
+  }
+
+  .menu-item-danger {
+    color: #e11d48;
+  }
+
+  .menu-item-danger:hover {
+    background: #fff1f2;
+    color: #be123c;
+  }
+
+  /* ── Page sections (customer) ── */
+  .section-shell {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-shell {
+      padding-top: 4rem;
+      padding-bottom: 4rem;
+    }
+  }
+
+  /* ── Brand gradients (logo tones only) ── */
+  .bg-brand-gradient {
+    background: linear-gradient(
+      135deg,
+      var(--color-brand) 0%,
+      var(--color-brand-deep) 50%,
+      var(--color-navy) 100%
+    );
+  }
+
+  .bg-brand-gradient-soft {
+    background: linear-gradient(
+      135deg,
+      var(--color-brand) 0%,
+      var(--color-brand-hover) 100%
+    );
+  }
+
+  /* AI surfaces — same brand blue as the rest of the app */
+  .ai-surface-header {
+    background: linear-gradient(
+      135deg,
+      var(--color-brand) 0%,
+      var(--color-brand-hover) 100%
+    );
+  }
+
+  .ai-fab {
+    background: linear-gradient(
+      135deg,
+      var(--color-brand) 0%,
+      var(--color-brand-hover) 100%
+    );
+    box-shadow: 0 8px 28px rgba(0, 104, 224, 0.35);
+  }
+
+  .ai-chip {
+    background: var(--color-brand-light);
+    color: var(--color-brand);
+    border: 1px solid rgba(0, 104, 224, 0.15);
+  }
+
+  .ai-user-bubble {
+    background: var(--color-brand);
+  }
+
+  /* ── Home page (unified canvas + glass) ── */
+  .home-page {
+    position: relative;
+    background-color: #f0f4fa;
+    background-image:
+      radial-gradient(ellipse 90% 50% at 50% 0%, rgba(0, 104, 224, 0.06), transparent 55%),
+      radial-gradient(ellipse 50% 30% at 100% 40%, rgba(0, 104, 224, 0.04), transparent 50%);
+  }
+
+  .home-section {
+    padding-top: 2.75rem;
+    padding-bottom: 2.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .home-section {
+      padding-top: 3.5rem;
+      padding-bottom: 3.5rem;
+    }
+  }
+
+  .home-section--tight-top {
+    padding-top: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .home-section--tight-top {
+      padding-top: 1.25rem;
+    }
+  }
+
+  .home-section--tight-bottom {
+    padding-bottom: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .home-section--tight-bottom {
+      padding-bottom: 1.5rem;
+    }
+  }
+
+  .home-section + .home-section::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    z-index: 0;
+    width: min(calc(100% - 2rem), 1240px);
+    height: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(5, 7, 60, 0.07),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  .home-glass {
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    border-radius: var(--radius-card);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      var(--shadow-glass);
+    transition:
+      box-shadow 0.25s ease,
+      transform 0.25s ease,
+      border-color 0.25s ease,
+      background 0.25s ease;
+  }
+
+  .home-glass:hover {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(0, 104, 224, 0.14);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      var(--shadow-card-hover);
+  }
+
+  .home-page .glass-card {
+    background: rgba(255, 255, 255, 0.62);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      var(--shadow-glass);
+  }
+
+  .home-page .glass-card:hover {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(0, 104, 224, 0.14);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      var(--shadow-card-hover);
+  }
+
+  .home-glass-media {
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.75);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 4px 20px rgba(5, 7, 60, 0.06);
+    transition:
+      box-shadow 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease;
+  }
+
+  .home-glass-media:hover {
+    border-color: rgba(0, 104, 224, 0.2);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      0 12px 32px rgba(0, 104, 224, 0.1);
+  }
+
+  .home-glass--accent {
+    background: linear-gradient(
+      135deg,
+      rgba(0, 104, 224, 0.94) 0%,
+      rgba(0, 72, 176, 0.9) 100%
+    );
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 16px 48px rgba(0, 104, 224, 0.22);
+    color: #fff;
+  }
+
+  .home-glass--accent:hover {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 20px 56px rgba(0, 104, 224, 0.28);
+  }
+
+  .home-section-bridge {
+    margin: 1.75rem 0 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(5, 7, 60, 0.08),
+      transparent
+    );
+  }
+
+  @media (min-width: 768px) {
+    .home-section-bridge {
+      margin-top: 2.25rem;
+    }
+  }
+
+  .home-explore-tile {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Tahoe / liquid glass (hero on imagery) */
+  .home-glass-tahoe {
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    backdrop-filter: blur(44px) saturate(200%);
+    -webkit-backdrop-filter: blur(44px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      0 8px 32px rgba(5, 7, 60, 0.12),
+      0 24px 48px rgba(0, 0, 0, 0.15);
+  }
+
+  .home-glass-field {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition:
+      background 0.2s,
+      border-color 0.2s;
+  }
+
+  .home-glass-field:hover,
+  .home-glass-field:focus-within {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .home-glass-field input {
+    color: #fff;
+  }
+
+  .home-glass-field input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  .home-glass-field input[type="date"] {
+    color-scheme: dark;
+  }
+
+  .home-glass-chip {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .home-glass-chip:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.45);
+  }
+
+  .home-dest-tile {
+    border-radius: 1.25rem;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  @media (min-width: 1024px) {
+    .home-dest-tile--hero {
+      grid-row: span 2;
+      grid-column: span 2;
+      min-height: 100%;
+    }
+  }
+
+}

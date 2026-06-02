@@ -65,14 +65,14 @@ const Metric: React.FC<{ label: string; value: string; highlight?: boolean }> = 
   <div
     className="rounded-xl p-3"
     style={{
-      background: highlight ? "#FFF1EB" : "#fff",
+      background: highlight ? "var(--color-brand-light)" : "#fff",
       border: "1px solid rgba(5,7,60,0.06)",
     }}
   >
     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
     <p
       className="text-lg font-black mt-0.5"
-      style={{ color: highlight ? "#EB662B" : "#0f172a" }}
+      style={{ color: highlight ? "var(--color-brand)" : "#0f172a" }}
     >
       {value}
     </p>
@@ -82,7 +82,7 @@ const Metric: React.FC<{ label: string; value: string; highlight?: boolean }> = 
 const BarRow: React.FC<{ label: string; value: number; color?: string }> = ({
   label,
   value,
-  color = "#EB662B",
+  color = "var(--color-brand)",
 }) => (
   <div>
     <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">

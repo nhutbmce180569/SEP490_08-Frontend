@@ -195,7 +195,7 @@ export const CreateEditSchedule: React.FC = () => {
                 value={form.tourId ?? ""}
                 onChange={(e) => handleChange("tourId", Number(e.target.value))}
                 disabled={loading}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <option value="">-- Select tour --</option>
                 {tours.map((t) => (
@@ -220,7 +220,7 @@ export const CreateEditSchedule: React.FC = () => {
                   value={form.departureDate ?? ""}
                   onChange={(e) => handleChange("departureDate", e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                 />
               </div>
             </div>
@@ -236,7 +236,7 @@ export const CreateEditSchedule: React.FC = () => {
                   value={form.returnDate ?? ""}
                   onChange={(e) => handleChange("returnDate", e.target.value)}
                   disabled={loading}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                 />
               </div>
             </div>
@@ -252,7 +252,7 @@ export const CreateEditSchedule: React.FC = () => {
               onChange={(e) => handleChange("note", e.target.value)}
               rows={3}
               disabled={loading}
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
               placeholder="Optional internal note for this schedule..."
             />
           </div>

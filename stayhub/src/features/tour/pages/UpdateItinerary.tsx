@@ -76,7 +76,7 @@ export const UpdateItinerary: React.FC = () => {
             type="time"
             onChange={(e) => onChange(e.target.value)}
             value={value ? value.substring(0, 5) : ""}
-            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
           />
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
@@ -92,7 +92,7 @@ export const UpdateItinerary: React.FC = () => {
             type="time"
             onChange={(e) => onChange(e.target.value)}
             value={value ? value.substring(0, 5) : ""}
-            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
           />
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
@@ -158,7 +158,7 @@ export const UpdateItinerary: React.FC = () => {
               <input
                 type="text"
                 onChange={(e) => onChange(e.target.value)}
-                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-[#4880ff] focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
                 placeholder="Type name or pick on map..."
                 value={value || ""}
               />

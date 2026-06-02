@@ -47,7 +47,7 @@ export const TipsTabsPanel: React.FC<Props> = ({
       }}
     >
       <div className="flex items-center gap-2 mb-4">
-        <Lightbulb size={18} style={{ color: "#EB662B" }} />
+        <Lightbulb size={18} style={{ color: "var(--color-brand)" }} />
         <h3 className="text-sm font-black text-slate-800">Mẹo du lịch</h3>
       </div>
 
@@ -59,7 +59,7 @@ export const TipsTabsPanel: React.FC<Props> = ({
             onClick={() => setActive(tab.key)}
             className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
             style={{
-              background: active === tab.key ? "#EB662B" : "rgba(5,7,60,0.04)",
+              background: active === tab.key ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
               color: active === tab.key ? "#fff" : "#64748b",
               border: "1px solid rgba(5,7,60,0.08)",
             }}
@@ -74,11 +74,11 @@ export const TipsTabsPanel: React.FC<Props> = ({
           <li
             key={i}
             className="text-sm text-slate-600 font-medium leading-relaxed pl-4 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full"
-            style={{ ["--tw-before-bg" as string]: "#EB662B" }}
+            style={{ ["--tw-before-bg" as string]: "var(--color-brand)" }}
           >
             <span
               className="absolute left-0 top-2 w-1.5 h-1.5 rounded-full"
-              style={{ background: "#EB662B" }}
+              style={{ background: "var(--color-brand)" }}
             />
             {tip}
           </li>

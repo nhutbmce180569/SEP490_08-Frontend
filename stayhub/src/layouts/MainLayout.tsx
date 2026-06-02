@@ -1,25 +1,34 @@
-import React from 'react';
-import { Outlet } from 'react-router-dom';
-import Header from './home/Header';
-import Footer from './home/Footer';
-import { TourAssistantChatWidget } from '../features/ai/components/TourAssistantChatWidget';
+import { Outlet, useLocation } from "react-router-dom";
 
+import Header from "./home/Header";
+import Footer from "./home/Footer";
+import { TourAssistantChatWidget } from "../features/ai/components/TourAssistantChatWidget";
 
-export const MainLayout: React.FC = () => {
+/** Trang auth full-screen — không header/footer */
+const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
+
+export const MainLayout = () => {
+  const { pathname } = useLocation();
+  const isAuthPage = AUTH_PATHS.some((p) => pathname.startsWith(p));
+  const isTrackPage = pathname.startsWith("/track/");
+
+  if (isAuthPage || isTrackPage) {
+    return (
+      <div className="public-shell public-shell--minimal min-h-screen">
+        <Outlet />
+        {!isAuthPage && <TourAssistantChatWidget />}
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header cố định ở trên cùng */}
+    <div className="public-shell flex min-h-screen flex-col">
       <Header />
-      
-      {/* Phần nội dung chính: 
-          - flex-grow để đẩy Footer xuống đáy trang
-          - padding-top để nội dung không bị Header (sticky) che mất 
-      */}
-      <main className="flex-grow bg-white">
-        {/* Outlet là nơi React Router sẽ render các page con (Home, Tours, v.v.) */}
+
+      <main className="public-main flex-1">
         <Outlet />
       </main>
-      
+
       <Footer />
       <TourAssistantChatWidget />
     </div>

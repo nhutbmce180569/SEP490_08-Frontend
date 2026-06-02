@@ -43,7 +43,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   return (
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
-        <CalendarDays className="h-4 w-4 text-[#0068E0]" />
+        <CalendarDays className="h-4 w-4 text-brand" />
         <span>Date range</span>
       </div>
 
@@ -55,7 +55,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
             onClick={() => handlePreset(p.value)}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
               preset === p.value
-                ? 'bg-[#0068E0] text-white shadow-sm'
+                ? 'bg-brand text-white shadow-sm'
                 : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
             }`}
           >

@@ -22,7 +22,7 @@ export const SocialProfile: React.FC = () => {
   if (isProfileLoading) {
     return (
       <div className="flex h-[60vh] w-full items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-[#0068E0]" />
+        <Loader2 className="h-10 w-10 animate-spin text-brand" />
       </div>
     );
   }
@@ -42,7 +42,7 @@ export const SocialProfile: React.FC = () => {
   const renderPrivacyBadge = (privacy: string) => {
     switch(privacy) {
       case 'Public':
-        return <div className="flex items-center gap-1 rounded-full bg-blue-100/90 px-2.5 py-1 text-[10px] font-bold text-blue-700 shadow-sm backdrop-blur-md"><Globe className="h-3 w-3" /> Public</div>;
+        return <div className="flex items-center gap-1 rounded-full bg-blue-100/90 px-2.5 py-1 text-[10px] font-bold text-brand-hover shadow-sm backdrop-blur-md"><Globe className="h-3 w-3" /> Public</div>;
       case 'Friend':
         return <div className="flex items-center gap-1 rounded-full bg-emerald-100/90 px-2.5 py-1 text-[10px] font-bold text-emerald-700 shadow-sm backdrop-blur-md"><Users className="h-3 w-3" /> Friend</div>;
       case 'Private':
@@ -56,7 +56,7 @@ export const SocialProfile: React.FC = () => {
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       {/* --- PHẦN HEADER THÔNG TIN PROFILE --- */}
       <div className="mb-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="h-32 w-full bg-gradient-to-r from-blue-100 to-[#0068E0]/20 sm:h-48"></div>
+        <div className="h-32 w-full bg-gradient-to-r from-brand-light to-[var(--color-brand)]/20 sm:h-48"></div>
         <div className="relative px-6 pb-8 sm:px-10">
           <div className="relative -mt-16 mb-4 flex items-end sm:-mt-20">
             <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white shadow-md sm:h-40 sm:w-40">
@@ -100,7 +100,7 @@ export const SocialProfile: React.FC = () => {
         
         {isMomentsLoading ? (
           <div className="flex h-40 items-center justify-center">
-             <Loader2 className="h-6 w-6 animate-spin text-[#0068E0]" />
+             <Loader2 className="h-6 w-6 animate-spin text-brand" />
           </div>
         ) : momentsError ? (
           <div className="rounded-2xl border border-rose-100 bg-rose-50 p-6 text-center text-sm font-medium text-rose-500">

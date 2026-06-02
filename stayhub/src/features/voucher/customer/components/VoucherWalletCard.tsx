@@ -37,9 +37,9 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
 
   return (
     <div className={`group relative flex overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
-      isUsable ? 'border-slate-200 hover:border-[#0068E0]/40 hover:shadow-md' : 'border-slate-100 opacity-75'
+      isUsable ? 'border-slate-200 hover:border-brand/40 hover:shadow-md' : 'border-slate-100 opacity-75'
     }`}>
-      <div className="relative flex w-[88px] shrink-0 flex-col items-center justify-center bg-gradient-to-b from-[#0068E0] to-[#0058D0] px-2 py-4 text-white">
+      <div className="relative flex w-[88px] shrink-0 flex-col items-center justify-center bg-gradient-to-b from-brand to-brand-hover px-2 py-4 text-white">
         <div className="text-center">
           <div className="text-2xl font-black leading-none">
             {isPercent ? `${voucher.discountValue}%` : formatVnd(voucher.discountValue).replace(/\s?₫/, '')}
@@ -67,7 +67,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
               WALLET_STATUS_STYLES[voucher.status] ?? 'bg-slate-100 text-slate-600'
             }`}>{voucher.status}</span>
             {voucher.quantity > 1 && (
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-600">x{voucher.quantity}</span>
+              <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand">x{voucher.quantity}</span>
             )}
           </div>
 
@@ -103,7 +103,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
           {isUsable && (
             <Link
               to={voucher.tourId ? PATH.PUBLIC.TOUR_DETAIL(voucher.tourId) : PATH.PUBLIC.TOUR_SEARCH}
-              className="inline-flex items-center gap-1 rounded-lg bg-[#0068E0] px-3 py-1.5 text-xs font-bold text-white hover:bg-[#0058D0] !no-underline"
+              className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-hover !no-underline"
             >
               <TicketPercent className="h-3.5 w-3.5" />
               {voucher.tourId ? 'Use Now' : 'Browse Tours'}

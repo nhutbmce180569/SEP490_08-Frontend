@@ -217,7 +217,7 @@ export const OrderDetailPage: React.FC = () => {
                   {order.tour?.name || "Tour Booking"}
                 </h1>
                 <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                  <MapPin className="h-4 w-4 shrink-0 text-[#0068E0]" />
+                  <MapPin className="h-4 w-4 shrink-0 text-brand" />
                   <span className="truncate">
                     {[order.tour?.city, order.tour?.country]
                       .filter(Boolean)
@@ -340,7 +340,7 @@ export const OrderDetailPage: React.FC = () => {
                   className="group flex min-h-[118px] items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-5 text-left transition hover:border-blue-300 hover:bg-white hover:shadow-sm"
                 >
                   <span className="flex min-w-0 items-center gap-4">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[#0068E0]">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-brand">
                       <Users className="h-6 w-6" />
                     </span>
                     <span className="min-w-0">
@@ -352,7 +352,7 @@ export const OrderDetailPage: React.FC = () => {
                       </span>
                     </span>
                   </span>
-                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-[#0068E0]" />
+                  <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-brand" />
                 </button>
               </div>
             </section>
@@ -362,7 +362,7 @@ export const OrderDetailPage: React.FC = () => {
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
                   <div className="min-w-0 space-y-2">
                     <h2 className="flex items-center gap-2 text-base font-bold text-slate-950">
-                      <Star className="h-5 w-5 shrink-0 text-[#0068E0]" />
+                      <Star className="h-5 w-5 shrink-0 text-brand" />
                       {order.review ? "Your Review" : "Rate Your Experience"}
                     </h2>
                     <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
@@ -373,7 +373,7 @@ export const OrderDetailPage: React.FC = () => {
                   </div>
                   <ActionButton
                     variant="primary"
-                    className="w-full shrink-0 !border-[#0068E0] !bg-[#0068E0] px-6 text-sm font-bold hover:!bg-[#0058D0] xl:w-auto"
+                    className="w-full shrink-0 !border-brand !bg-brand px-6 text-sm font-bold hover:!bg-[var(--color-brand-hover)] xl:w-auto"
                     onClick={() => setIsReviewModalOpen(true)}
                   >
                     {order.review ? "Edit Review" : "Write a Review"}
@@ -440,9 +440,9 @@ export const OrderDetailPage: React.FC = () => {
                   ) : null}
                 </div>
 
-                <div className="flex items-center justify-between gap-4 rounded-xl bg-blue-50 px-4 py-3">
+                <div className="flex items-center justify-between gap-4 rounded-xl bg-brand-light px-4 py-3">
                   <span className="font-bold text-slate-950">Total Paid</span>
-                  <span className="whitespace-nowrap text-lg font-bold text-[#0068E0]">
+                  <span className="whitespace-nowrap text-lg font-bold text-brand">
                     {currencyFormatter.format(order.finalAmount)}
                   </span>
                 </div>
@@ -523,17 +523,17 @@ export const OrderDetailPage: React.FC = () => {
                   return (
                     <div
                       key={dayNumber}
-                      className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${isToday ? "border-[#0068E0] ring-1 ring-[#0068E0]/30" : "border-slate-200"}`}
+                      className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${isToday ? "border-brand ring-1 ring-brand/30" : "border-slate-200"}`}
                     >
                       {/* Day Header */}
-                      <div className={`flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b ${isToday ? "border-blue-100 bg-blue-50/50" : "border-slate-100 bg-slate-50"}`}>
+                      <div className={`flex flex-col sm:flex-row sm:items-center justify-between px-5 py-4 border-b ${isToday ? "border-blue-100 bg-brand-light/50" : "border-slate-100 bg-slate-50"}`}>
                         <div className="flex items-center gap-3">
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isToday ? "bg-[#0068E0] text-white shadow-md shadow-blue-200" : "bg-indigo-100 text-indigo-700"}`}>
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${isToday ? "bg-brand text-white shadow-md shadow-blue-200" : "bg-indigo-100 text-indigo-700"}`}>
                             <span className="text-sm font-black">D{dayNumber}</span>
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <h3 className={`text-base font-bold ${isToday ? "text-[#0068E0]" : "text-slate-800"}`}>
+                              <h3 className={`text-base font-bold ${isToday ? "text-brand" : "text-slate-800"}`}>
                                 Day {dayNumber}
                               </h3>
                               {isToday && (
@@ -573,7 +573,7 @@ export const OrderDetailPage: React.FC = () => {
                                 onClick={() => toggleIti(iti.id)}
                               >
                                 <div className="flex items-center gap-4">
-                                  <div className={`flex min-w-[90px] items-center justify-center rounded-lg px-3 py-1.5 text-xs font-bold ${isToday ? "bg-blue-50 text-[#0068E0]" : "bg-slate-100 text-slate-600"}`}>
+                                  <div className={`flex min-w-[90px] items-center justify-center rounded-lg px-3 py-1.5 text-xs font-bold ${isToday ? "bg-brand-light text-brand" : "bg-slate-100 text-slate-600"}`}>
                                     <Clock className="mr-1.5 h-3.5 w-3.5" />
                                     {timeStr}
                                   </div>
@@ -700,7 +700,7 @@ export const OrderDetailPage: React.FC = () => {
           <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-[#0068E0]">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-brand">
                   <Users size={20} />
                 </div>
                 <div>
@@ -727,7 +727,7 @@ export const OrderDetailPage: React.FC = () => {
                           <span className="block text-sm font-semibold text-slate-800">
                             Passenger {idx + 1}
                           </span>
-                          <span className="mt-0.5 block truncate text-xs font-medium text-[#0068E0]">
+                          <span className="mt-0.5 block truncate text-xs font-medium text-brand">
                             {ticketTypeName}
                           </span>
                         </div>

@@ -46,7 +46,7 @@ export const TopToursTable: React.FC<TopToursTableProps> = ({ tours, isLoading }
                 <span
                   className={`inline-flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold ${
                     index < 3
-                      ? 'bg-[#0068E0]/10 text-[#0068E0]'
+                      ? 'bg-brand/10 text-brand'
                       : 'bg-slate-100 text-slate-500'
                   }`}
                 >

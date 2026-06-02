@@ -168,7 +168,7 @@ const filteredStaffs = React.useMemo(() => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-blue-100 rounded-lg">
-            <Users className="w-6 h-6 text-blue-600" />
+            <Users className="w-6 h-6 text-brand" />
           </div>
           <div>
           <h2 className="text-xl font-bold text-slate-900">Staff Management</h2>
@@ -180,7 +180,7 @@ const filteredStaffs = React.useMemo(() => {
 
         <button
           onClick={() => setShowAssignModal(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white font-semibold rounded-lg transition-all shadow-sm active:scale-95"
+          className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-hover disabled:bg-slate-300 text-white font-semibold rounded-lg transition-all shadow-sm active:scale-95"
           disabled={isAssigning}
         >
           <UserPlus className="w-5 h-5" />
@@ -192,7 +192,7 @@ const filteredStaffs = React.useMemo(() => {
       <div className="overflow-x-auto border border-slate-200 rounded-lg">
         {isLoadingStaff ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-slate-500">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-4" />
+            <Loader2 className="w-8 h-8 animate-spin text-brand mb-4" />
             <p className="text-sm font-medium text-slate-600">Loading staff...</p>
           </div>
         ) : staffList.length === 0 ? (
@@ -274,9 +274,9 @@ const filteredStaffs = React.useMemo(() => {
                 
                 {selectedStaff ? (
                   // Đã chọn nhân viên
-                  <div className="flex items-center justify-between p-3 bg-blue-50/50 border border-blue-100 rounded-xl">
+                  <div className="flex items-center justify-between p-3 bg-brand-light/50 border border-blue-100 rounded-xl">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold overflow-hidden shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-brand-hover font-bold overflow-hidden shrink-0">
                         {selectedStaff.avatarUrl || selectedStaff.avatar ? (
                           <img src={selectedStaff.avatarUrl || selectedStaff.avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -369,7 +369,7 @@ const filteredStaffs = React.useMemo(() => {
                 <button
                   type="submit"
                   disabled={isAssigning || !selectedStaff}
-                  className="flex-1 px-4 py-2.5 bg-[#0068E0] hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+                  className="flex-1 px-4 py-2.5 bg-brand hover:bg-brand-hover disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
                 >
                   {isAssigning ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm'}
                 </button>

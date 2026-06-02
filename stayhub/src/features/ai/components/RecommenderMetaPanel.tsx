@@ -25,7 +25,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
         className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-2">
-          <Info size={18} style={{ color: "#EB662B" }} />
+          <Info size={18} style={{ color: "var(--color-brand)" }} />
           <span className="text-sm font-black text-slate-800">
             Tại sao các tour này được gợi ý?
           </span>
@@ -82,7 +82,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
                     style={{ background: "rgba(5,7,60,0.03)" }}
                   >
                     <span className="text-slate-600">{formatDimensionKey(k)}</span>
-                    <span style={{ color: "#EB662B" }}>{v.toFixed(2)}</span>
+                    <span style={{ color: "var(--color-brand)" }}>{v.toFixed(2)}</span>
                   </div>
                 ))}
               </div>

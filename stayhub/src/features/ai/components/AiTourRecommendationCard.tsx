@@ -62,7 +62,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
 
           <div
             className="absolute left-3 top-3 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black backdrop-blur-md"
-            style={{ background: "rgba(255,255,255,0.96)", borderRadius: 999, color: "#EB662B" }}
+            style={{ background: "rgba(255,255,255,0.96)", borderRadius: 999, color: "var(--color-brand)" }}
           >
             <Sparkles size={12} />
             Khớp {formatMatchPercent(tour.score)}
@@ -82,7 +82,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
 
       <div className="flex flex-1 flex-col p-5">
         <div className="mb-2 flex items-center gap-1.5">
-          <MapPin size={13} style={{ color: "#EB662B" }} />
+          <MapPin size={13} style={{ color: "var(--color-brand)" }} />
           <span className="truncate text-[11px] font-black uppercase tracking-[0.15em] text-slate-400">
             {location}
           </span>
@@ -93,7 +93,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           onClick={() => onTourClick?.(tour.tourId)}
           className="!no-underline"
         >
-          <h3 className="mb-2 line-clamp-2 text-base font-black text-slate-900 hover:text-[#EB662B] transition-colors">
+          <h3 className="mb-2 line-clamp-2 text-base font-black text-slate-900 hover:text-brand transition-colors">
             {tour.name}
           </h3>
         </Link>
@@ -109,8 +109,8 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
                 key={reason}
                 className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
                 style={{
-                  background: "#FFF1EB",
-                  color: "#EB662B",
+                  background: "var(--color-brand-light)",
+                  color: "var(--color-brand)",
                   border: "1px solid rgba(235,102,43,0.15)",
                 }}
               >
@@ -127,7 +127,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
             {tour.durationDays != null && (
               <span className="flex items-center gap-1">
-                <Clock size={14} style={{ color: "#EB662B" }} />
+                <Clock size={14} style={{ color: "var(--color-brand)" }} />
                 {tour.durationDays} ngày
               </span>
             )}
@@ -136,7 +136,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
               Từ
             </div>
-            <div className="text-base font-black" style={{ color: "#EB662B" }}>
+            <div className="text-base font-black" style={{ color: "var(--color-brand)" }}>
               {formatVnd(tour.minPrice)}
             </div>
           </div>
@@ -151,7 +151,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               style={{ border: "1px solid rgba(5,7,60,0.08)" }}
             >
               <span className="flex items-center gap-1.5">
-                <Sparkles size={14} style={{ color: "#EB662B" }} />
+                <Sparkles size={14} style={{ color: "var(--color-brand)" }} />
                 Giải thích AI
               </span>
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -168,7 +168,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           to={PATH.PUBLIC.TOUR_DETAIL(tour.tourId)}
           onClick={() => onTourClick?.(tour.tourId)}
           className="mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-white !no-underline transition-opacity hover:opacity-90"
-          style={{ background: "#EB662B" }}
+          style={{ background: "var(--color-brand)" }}
         >
           Xem chi tiết <ArrowRight size={14} />
         </Link>

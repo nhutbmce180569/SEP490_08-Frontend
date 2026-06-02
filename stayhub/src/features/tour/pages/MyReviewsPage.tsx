@@ -21,7 +21,7 @@ export const MyReviewsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-3xl bg-white shadow-sm border border-slate-100">
+      <div className="flex h-64 flex-col items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
         <p className="text-sm font-medium text-slate-500">
           Loading your reviews...
@@ -32,7 +32,7 @@ export const MyReviewsPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex h-64 flex-col items-center justify-center gap-2 rounded-3xl bg-white shadow-sm border border-slate-100 p-6 text-center">
+      <div className="flex h-64 flex-col items-center justify-center gap-2 text-center">
         <p className="text-rose-500 font-semibold">{error}</p>
         <button
           onClick={() => fetchAllMyReviews()}

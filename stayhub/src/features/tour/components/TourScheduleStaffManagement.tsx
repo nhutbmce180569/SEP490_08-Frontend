@@ -253,7 +253,7 @@ const filteredStaffs = React.useMemo(() => {
 
       {/* ========== ASSIGN MODAL ========== */}
       {showAssignModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[500] p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white z-10">
             <h3 className="text-lg font-bold text-slate-900">Assign Staff</h3>
@@ -381,7 +381,7 @@ const filteredStaffs = React.useMemo(() => {
 
       {/* ========== CONFIRM REMOVE MODAL ========== */}
       {staffToRemove && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[500] p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
             <div className="flex flex-col items-center text-center">
               <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">

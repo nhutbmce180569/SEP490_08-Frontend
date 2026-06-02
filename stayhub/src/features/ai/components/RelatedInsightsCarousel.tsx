@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { ChevronLeft, ChevronRight, Compass } from "lucide-react";
+import { ChevronLeft, ChevronRight, Compass, ExternalLink } from "lucide-react";
 import type { TourismInsight } from "../types/tourAssistant";
 
 interface Props {
@@ -9,7 +9,7 @@ interface Props {
 export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  if (insights.length === 0) return null;
+  if (!insights || insights.length === 0) return null;
 
   const scroll = (dir: -1 | 1) => {
     scrollRef.current?.scrollBy({ left: dir * 280, behavior: "smooth" });
@@ -17,68 +17,81 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
 
   return (
     <section className="mt-10">
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Compass size={18} style={{ color: "var(--color-brand)" }} />
-          <h3 className="text-lg font-black text-slate-900">Thông tin du lịch liên quan</h3>
+          <Compass size={17} className="text-brand" />
+          <h3 className="travel-heading text-lg text-navy">Related travel insights</h3>
         </div>
         <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => scroll(-1)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:border-brand transition-colors"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <button
-            type="button"
-            onClick={() => scroll(1)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 hover:border-brand transition-colors"
-          >
-            <ChevronRight size={16} />
-          </button>
+          {([-1, 1] as const).map((dir) => (
+            <button
+              key={dir}
+              type="button"
+              onClick={() => scroll(dir)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white transition-colors hover:border-brand hover:text-brand"
+            >
+              {dir === -1 ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+            </button>
+          ))}
         </div>
       </div>
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: "none" }}
+        className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar"
       >
-        {insights.map((item) => (
-          <article
-            key={item.id}
-            className="snap-start shrink-0 w-[260px] rounded-2xl p-4 bg-white"
-            style={{ border: "1px solid rgba(5,7,60,0.08)" }}
+        {insights.map((insight) => (
+          <div
+            key={insight.id}
+            className="glass-card w-64 shrink-0 p-4"
           >
-            <div className="flex items-center justify-between mb-2">
-              <span
-                className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md"
-                style={{ background: "var(--color-brand-light)", color: "var(--color-brand)" }}
-              >
-                {item.type}
-              </span>
-              {item.city && (
-                <span className="text-[10px] font-bold text-slate-400">{item.city}</span>
-              )}
-            </div>
-            <h4 className="text-sm font-black text-slate-800 mb-2 line-clamp-2">{item.name}</h4>
-            {item.description && (
-              <p className="text-xs text-slate-500 font-medium line-clamp-3 mb-3">
-                {item.description}
+            {/* type → eyebrow label */}
+            {insight.type && (
+              <p className="travel-eyebrow mb-2">{insight.type}</p>
+            )}
+
+            {/* name → card title */}
+            <p className="mb-2 text-sm font-bold leading-snug text-navy">
+              {insight.name}
+            </p>
+
+            {/* description → body */}
+            {insight.description && (
+              <p className="text-xs font-medium leading-relaxed text-slate-500">
+                {insight.description}
               </p>
             )}
-            {item.sourceUrl && (
+
+            {/* city + authority */}
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {insight.city && (
+                <span className="rounded-md bg-brand-light px-2 py-0.5 text-[10px] font-semibold text-brand">
+                  {insight.city}
+                </span>
+              )}
+              {insight.authorityLevel && (
+                <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+                  {insight.authorityLevel}
+                </span>
+              )}
+            </div>
+
+            {/* source link */}
+            {insight.sourceUrl ? (
               <a
-                href={item.sourceUrl}
+                href={insight.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[11px] font-bold text-sky-600 hover:underline"
+                className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:underline"
               >
-                {item.sourceName ?? "Xem nguồn"}
+                {insight.sourceName || "Source"} <ExternalLink size={10} />
               </a>
-            )}
-          </article>
+            ) : insight.sourceName ? (
+              <p className="mt-2 text-[11px] font-medium text-slate-400">
+                {insight.sourceName}
+              </p>
+            ) : null}
+          </div>
         ))}
       </div>
     </section>

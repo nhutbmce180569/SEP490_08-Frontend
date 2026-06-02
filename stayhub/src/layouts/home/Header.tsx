@@ -16,6 +16,7 @@ import {
 
 import { ActionButton } from "../../components/home/ActionButton";
 import { StayHubLogo } from "../../components/brand/StayHubLogo";
+import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
@@ -29,6 +30,7 @@ import { useGetPendingRequests } from "../../features/social/friends/hooks/useFr
 export default function Header() {
   const navigate = useNavigate();
   const { success } = useToast();
+  const { open: openAiPlanner } = useAiPlanner();
   const { user, logout: contextLogout } = useContext(AuthContext);
 
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
@@ -144,7 +146,7 @@ export default function Header() {
 
           <ActionButton
             variant="ghost"
-            onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
+            onClick={openAiPlanner}
             className="hidden gap-1.5 sm:inline-flex"
             title="AI tour recommendations"
           >

@@ -80,7 +80,7 @@ export const Profile: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200/60 bg-white p-6 shadow-sm md:p-8">
+    <div>
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">

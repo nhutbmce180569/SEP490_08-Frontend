@@ -25,7 +25,7 @@ export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
       {dimensions.length > 0 && (
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-            Điểm theo chiều
+            Score by dimension
           </p>
           <div className="space-y-2">
             {dimensions.map(([key, score]) => (

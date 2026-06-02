@@ -25,11 +25,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
 }) => {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<QuestionnaireFormValues>(() => {
-    const init: QuestionnaireFormValues = {
-      hasElderly: false,
-      hasChildren: false,
-      top: 8,
-    };
+    const init: QuestionnaireFormValues = { hasElderly: false, hasChildren: false, top: 8 };
     questions.forEach((q) => {
       if (q.inputType === "boolean") init[q.fieldKey] = false;
       if (q.inputType === "multi_select") init[q.fieldKey] = [];
@@ -40,10 +36,9 @@ export const QuestionnaireWizard: React.FC<Props> = ({
 
   const steps = useMemo(() => {
     const chunks: QuestionnaireField[][] = [];
-    for (let i = 0; i < questions.length; i += STEPS_PER_PAGE) {
+    for (let i = 0; i < questions.length; i += STEPS_PER_PAGE)
       chunks.push(questions.slice(i, i + STEPS_PER_PAGE));
-    }
-    chunks.push([]); // extra step for counts + top
+    chunks.push([]); // extra step for group size + top
     return chunks;
   }, [questions]);
 
@@ -65,12 +60,10 @@ export const QuestionnaireWizard: React.FC<Props> = ({
     const fieldErrors = isLastStep
       ? validateExtraCounts(values)
       : validateQuestionnaireStep(currentFields, values);
-
     if (!isLastStep) {
       const dateErr = validateExtraCounts(values);
       if (dateErr.preferredEndDate) fieldErrors.preferredEndDate = dateErr.preferredEndDate;
     }
-
     setErrors(fieldErrors);
     return Object.keys(fieldErrors).length === 0;
   };
@@ -78,67 +71,51 @@ export const QuestionnaireWizard: React.FC<Props> = ({
   const handleNext = () => {
     if (!validateCurrent()) return;
     if (isLastStep) {
-      const allFieldErrors = {
+      const allErrors = {
         ...validateQuestionnaireStep(questions, values),
         ...validateExtraCounts(values),
       };
-      setErrors(allFieldErrors);
-      if (Object.keys(allFieldErrors).length > 0) return;
-
+      setErrors(allErrors);
+      if (Object.keys(allErrors).length > 0) return;
       onSubmit(buildRecommendPayload(values, getOrCreateAiSessionId()));
       return;
     }
     setStep((s) => s + 1);
   };
 
-  useEffect(() => {
-    setErrors({});
-  }, [step]);
+  useEffect(() => { setErrors({}); }, [step]);
 
   return (
-    <div
-      className="rounded-3xl overflow-hidden"
-      style={{
-        background: "#fff",
-        border: "1px solid rgba(5,7,60,0.08)",
-        boxShadow: "0 4px 24px rgba(5,7,60,0.06)",
-        fontFamily: "'Sora', 'Plus Jakarta Sans', system-ui, sans-serif",
-      }}
-    >
-      {/* Progress */}
-      <div className="px-6 pt-6 pb-2">
-        <div className="flex items-center justify-between mb-3">
+    <div>
+      {/* Progress bar */}
+      <div className="px-6 pt-5 pb-1">
+        <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles size={18} style={{ color: "var(--color-brand)" }} />
-            <span className="text-sm font-black text-slate-800">
-              Bước {step + 1}/{totalSteps}
+            <Sparkles size={15} className="text-brand" />
+            <span className="text-xs font-bold text-slate-700">
+              Step {step + 1} of {totalSteps}
             </span>
           </div>
-          <span className="text-xs font-bold text-slate-400">
-            {Math.round(progress)}% hoàn thành
+          <span className="text-xs font-medium text-slate-400">
+            {Math.round(progress)}% complete
           </span>
         </div>
-        <div
-          className="h-2 rounded-full overflow-hidden"
-          style={{ background: "rgba(5,7,60,0.06)" }}
-        >
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${progress}%`, background: "var(--color-brand)" }}
+            className="h-full rounded-full bg-brand transition-all duration-500"
+            style={{ width: `${progress}%` }}
           />
         </div>
       </div>
 
       {/* Fields */}
-      <div className="px-6 py-6 space-y-6 min-h-[320px]">
+      <div className="min-h-[260px] space-y-5 px-6 py-5">
         {isLastStep ? (
           <>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.18em] mb-2" style={{ color: "var(--color-brand)" }}>
-                Tùy chọn bổ sung
-              </p>
-              <p className="text-sm text-slate-500 font-medium">
-                Cung cấp thêm chi tiết để AI gợi ý chính xác hơn cho cả nhóm du lịch.
+            <div className="mb-1">
+              <p className="travel-eyebrow mb-1">Extra details</p>
+              <p className="text-sm font-medium text-slate-500">
+                Help AI personalise results for every member of your group.
               </p>
             </div>
             <ExtraCountFields values={values} errors={errors} onChange={handleChange} />
@@ -146,12 +123,12 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         ) : (
           currentFields.map((field) => (
             <div key={field.fieldKey}>
-              <label className="block text-sm font-black text-slate-800 mb-1">
+              <label className="mb-1 block text-sm font-bold text-slate-800">
                 {field.label}
-                {field.required && <span className="text-rose-500 ml-1">*</span>}
+                {field.required && <span className="ml-1 text-rose-500">*</span>}
               </label>
               {field.hint && (
-                <p className="text-xs text-slate-400 font-medium mb-3 leading-relaxed">
+                <p className="mb-2.5 text-xs font-medium leading-relaxed text-slate-400">
                   {field.hint}
                 </p>
               )}
@@ -166,38 +143,38 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         )}
       </div>
 
-      {/* Actions */}
-      <div
-        className="flex items-center justify-between gap-4 px-6 py-5"
-        style={{ borderTop: "1px solid rgba(5,7,60,0.07)" }}
-      >
+      {/* Footer actions */}
+      <div className="flex items-center justify-between gap-4 border-t border-slate-100 px-6 py-4">
         <ActionButton
           variant="outline"
           onClick={() => setStep((s) => Math.max(0, s - 1))}
           disabled={step === 0 || isSubmitting}
-          className="!px-5 flex items-center gap-1"
+          className="!px-4 flex items-center gap-1"
         >
-          <ChevronLeft size={16} /> Quay lại
+          <ChevronLeft size={16} />
+          Back
         </ActionButton>
 
         <ActionButton
           variant="primary"
           onClick={handleNext}
           disabled={isSubmitting}
-          className="!px-8 flex items-center gap-2"
+          className="!px-7 flex items-center gap-2"
         >
           {isSubmitting ? (
             <>
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Đang phân tích...
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Analysing…
             </>
           ) : isLastStep ? (
             <>
-              Nhận gợi ý AI <Sparkles size={16} />
+              Get AI recommendations
+              <Sparkles size={15} />
             </>
           ) : (
             <>
-              Tiếp theo <ChevronRight size={16} />
+              Next
+              <ChevronRight size={16} />
             </>
           )}
         </ActionButton>

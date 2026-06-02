@@ -155,7 +155,7 @@ export const FriendsManagement: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+    <div className="w-full">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Friends Management</h1>
 
       <div className="flex border-b border-slate-200 mb-6 overflow-x-auto custom-scrollbar">

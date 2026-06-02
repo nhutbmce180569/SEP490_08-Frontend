@@ -57,7 +57,7 @@ export const MyBookingsPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="rounded-3xl border border-slate-200/60 bg-white p-6 shadow-sm md:p-8">
+    <div>
       {/* Header */}
       <div className="mb-8 flex items-center justify-between">
         <div>

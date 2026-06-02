@@ -70,7 +70,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({ isOpen, mode = '
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
       <div className="flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-4">
           <h3 className="text-[15px] font-bold text-slate-800">

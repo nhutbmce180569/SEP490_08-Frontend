@@ -76,8 +76,9 @@ import { UpdateScheduleTicket } from "./features/tour/pages/UpdateScheduleTicket
 import { DeleteScheduleTicket } from "./features/tour/pages/DeleteScheduleTicket";
 import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
-import { AiQuestionnairePage } from "./features/ai/pages/AiQuestionnairePage";
+import { AiQuestionnairePage, AiPlannerModal } from "./features/ai/pages/AiQuestionnairePage";
 import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
+import { AiPlannerProvider } from "./contexts/AiPlannerContext";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
@@ -267,8 +268,10 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <AuthProvider>
+          <AiPlannerProvider>
           <Router>
             <CustomBrandCursor />
+            <AiPlannerModal />
             <ScrollToTop />
             <Routes>
               <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
@@ -624,6 +627,7 @@ const App: React.FC = () => {
               />
             </Routes>
           </Router>
+          </AiPlannerProvider>
         </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>

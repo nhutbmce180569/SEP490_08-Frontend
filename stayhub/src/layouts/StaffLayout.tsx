@@ -48,7 +48,7 @@ export const StaffLayout: React.FC = () => {
         icon: <MapPin className="h-4 w-4" />,
       },
       {
-        label: 'Tour Customers',
+        label: 'Tour Customer',
         to: PATH.STAFF.CUSTOMERS,
         icon: <Users className="h-4 w-4" />,
       },

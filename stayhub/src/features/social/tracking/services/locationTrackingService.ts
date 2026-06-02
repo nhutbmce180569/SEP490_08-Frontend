@@ -4,7 +4,6 @@ import { API_BASE_URL } from '../../../../config/api/api';
 
 export const locationTrackingService = {
   // 1. API Tạo mã chia sẻ (Có Auth)
-  // 1. API Tạo mã chia sẻ (Có Auth)
   shareLocation: async (): Promise<string> => {
     const response = await apiClient.post<any>('/locations/share');
     

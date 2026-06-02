@@ -24,11 +24,11 @@ export const useTourAssistantChat = () => {
     async (message: string) => {
       const trimmed = message.trim();
       if (trimmed.length < 2) {
-        showError("Tin nhắn phải có ít nhất 2 ký tự.");
+        showError("Message must be at least 2 characters.");
         return null;
       }
       if (trimmed.length > 2000) {
-        showError("Tin nhắn tối đa 2000 ký tự.");
+        showError("Message must be 2000 characters or fewer.");
         return null;
       }
 
@@ -51,7 +51,7 @@ export const useTourAssistantChat = () => {
         setMessages((prev) => [...prev, assistantMsg]);
         return response;
       } catch (err: unknown) {
-        showError(getApiErrorMessage(err, "Không thể gửi tin nhắn."));
+        showError(getApiErrorMessage(err, "Unable to send message."));
         return null;
       } finally {
         setIsSending(false);

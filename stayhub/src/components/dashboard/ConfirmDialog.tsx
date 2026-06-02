@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { X, AlertTriangle } from 'lucide-react';
 import { ActionButton, type ActionButtonProps } from './ActionButton';
 
@@ -27,15 +28,15 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 }) => {
   if (!open) return null;
 
-  return (
+  return ReactDOM.createPortal(
     <div
-      className="glass-overlay fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity"
+      className="glass-overlay fixed inset-0 z-[500] flex items-center justify-center p-4"
       onClick={onClose}
       aria-modal="true"
       role="dialog"
     >
       <div
-        className="glass-modal relative w-full max-w-md transform overflow-hidden p-6 transition-all sm:p-8"
+        className="glass-modal relative w-full max-w-md overflow-hidden p-6 sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -66,6 +67,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

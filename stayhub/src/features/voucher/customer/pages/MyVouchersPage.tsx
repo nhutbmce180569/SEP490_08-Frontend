@@ -34,7 +34,7 @@ export const MyVouchersPage: React.FC = () => {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200/60 bg-white p-6 shadow-sm md:p-8">
+    <div>
       <div className="mb-6">
         <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
           <TicketPercent className="text-brand" size={24} />

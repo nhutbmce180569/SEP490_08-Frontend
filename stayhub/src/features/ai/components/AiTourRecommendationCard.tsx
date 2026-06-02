@@ -27,18 +27,11 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   compact,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const location = [tour.city, tour.country].filter(Boolean).join(", ") || "Việt Nam";
+  const location = [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam";
   const imageUrl = tour.imageUrl ? getImg(tour.imageUrl) : "";
 
   return (
-    <div
-      className="flex flex-col overflow-hidden bg-white transition-all duration-300 hover:shadow-xl"
-      style={{
-        borderRadius: 24,
-        border: "1px solid rgba(5,7,60,0.07)",
-        boxShadow: "0 2px 16px rgba(5,7,60,0.05)",
-      }}
-    >
+    <div className="glass-card flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
       <Link
         to={PATH.PUBLIC.TOUR_DETAIL(tour.tourId)}
         onClick={() => onTourClick?.(tour.tourId)}
@@ -65,7 +58,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             style={{ background: "rgba(255,255,255,0.96)", borderRadius: 999, color: "var(--color-brand)" }}
           >
             <Sparkles size={12} />
-            Khớp {formatMatchPercent(tour.score)}
+            {formatMatchPercent(tour.score)} match
           </div>
 
           {tour.averageStar != null && tour.averageStar > 0 && (
@@ -128,13 +121,13 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             {tour.durationDays != null && (
               <span className="flex items-center gap-1">
                 <Clock size={14} style={{ color: "var(--color-brand)" }} />
-                {tour.durationDays} ngày
+                {tour.durationDays} day{tour.durationDays !== 1 ? "s" : ""}
               </span>
             )}
           </div>
           <div className="text-right">
             <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-              Từ
+              From
             </div>
             <div className="text-base font-black" style={{ color: "var(--color-brand)" }}>
               {formatVnd(tour.minPrice)}
@@ -152,7 +145,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             >
               <span className="flex items-center gap-1.5">
                 <Sparkles size={14} style={{ color: "var(--color-brand)" }} />
-                Giải thích AI
+                AI explanation
               </span>
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
@@ -170,7 +163,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           className="mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-white !no-underline transition-opacity hover:opacity-90"
           style={{ background: "var(--color-brand)" }}
         >
-          Xem chi tiết <ArrowRight size={14} />
+          View details <ArrowRight size={14} />
         </Link>
       </div>
     </div>

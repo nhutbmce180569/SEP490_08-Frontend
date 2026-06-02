@@ -15,52 +15,42 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
   const weights = Object.entries(meta.dimensionWeights ?? {});
 
   return (
-    <section
-      className="mt-10 rounded-2xl overflow-hidden"
-      style={{ border: "1px solid rgba(5,7,60,0.08)", background: "#fff" }}
-    >
+    <section className="glass-card mt-8 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+        className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-slate-50"
       >
         <div className="flex items-center gap-2">
-          <Info size={18} style={{ color: "var(--color-brand)" }} />
-          <span className="text-sm font-black text-slate-800">
-            Tại sao các tour này được gợi ý?
+          <Info size={17} className="text-brand" />
+          <span className="text-sm font-bold text-navy">
+            Why were these tours recommended?
           </span>
         </div>
-        {open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+        {open ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
       </button>
 
       {open && (
-        <div className="px-5 pb-5 space-y-4 border-t border-slate-100 pt-4">
-          <div className="grid sm:grid-cols-2 gap-3 text-sm">
-            {meta.modelFamily && (
-              <MetaItem label="Model" value={meta.modelFamily} />
-            )}
-            {meta.modelVersion && (
-              <MetaItem label="Version" value={meta.modelVersion} />
-            )}
+        <div className="space-y-4 border-t border-slate-100 px-5 pb-5 pt-4">
+          <div className="grid gap-3 sm:grid-cols-2 text-sm">
+            {meta.modelFamily && <MetaItem label="Model" value={meta.modelFamily} />}
+            {meta.modelVersion && <MetaItem label="Version" value={meta.modelVersion} />}
             {meta.fairnessAlpha != null && (
               <MetaItem label="Fairness α" value={String(meta.fairnessAlpha)} />
             )}
             {meta.aggregationFormula && (
-              <MetaItem label="Công thức" value={meta.aggregationFormula} />
+              <MetaItem label="Formula" value={meta.aggregationFormula} />
             )}
           </div>
 
           {meta.personaTypesUsed?.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-                Personas
-              </p>
+              <p className="travel-eyebrow mb-2">Personas used</p>
               <div className="flex flex-wrap gap-2">
                 {meta.personaTypesUsed.map((p) => (
                   <span
                     key={p}
-                    className="px-3 py-1 rounded-lg text-xs font-bold"
-                    style={{ background: "rgba(5,7,60,0.04)", color: "#475569" }}
+                    className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600"
                   >
                     {p}
                   </span>
@@ -71,18 +61,15 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
 
           {weights.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-                Trọng số chiều
-              </p>
-              <div className="grid sm:grid-cols-2 gap-2">
+              <p className="travel-eyebrow mb-2">Dimension weights</p>
+              <div className="grid gap-2 sm:grid-cols-2">
                 {weights.map(([k, v]) => (
                   <div
                     key={k}
-                    className="flex justify-between text-xs font-bold px-3 py-2 rounded-lg"
-                    style={{ background: "rgba(5,7,60,0.03)" }}
+                    className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold"
                   >
                     <span className="text-slate-600">{formatDimensionKey(k)}</span>
-                    <span style={{ color: "var(--color-brand)" }}>{v.toFixed(2)}</span>
+                    <span className="text-brand">{v.toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -91,9 +78,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
 
           {meta.knowledgeSources?.length > 0 && (
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-                Nguồn tri thức
-              </p>
+              <p className="travel-eyebrow mb-2">Knowledge sources</p>
               <ul className="space-y-1">
                 {meta.knowledgeSources.map((src) => (
                   <li key={src.name}>
@@ -106,7 +91,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
                       {src.name}
                     </a>
                     {src.authority && (
-                      <span className="text-xs text-slate-400 ml-2">({src.authority})</span>
+                      <span className="ml-2 text-xs text-slate-400">({src.authority})</span>
                     )}
                   </li>
                 ))}
@@ -120,8 +105,8 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
 };
 
 const MetaItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div className="rounded-xl p-3" style={{ background: "rgba(5,7,60,0.03)" }}>
-    <p className="text-[10px] font-bold text-slate-400 uppercase">{label}</p>
-    <p className="text-sm font-bold text-slate-700 mt-0.5">{value}</p>
+  <div className="rounded-xl bg-slate-50 p-3">
+    <p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{label}</p>
+    <p className="mt-0.5 text-sm font-bold text-slate-700">{value}</p>
   </div>
 );

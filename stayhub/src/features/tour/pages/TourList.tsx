@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Search, Pencil, Trash2, Plus, Eye, Star, Power } from "lucide-react";
+import { Search, Pencil, Trash2, Plus, Eye, Star, Power, ListFilter, X } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -20,10 +20,14 @@ export const TourList: React.FC = () => {
     data,
     isLoading,
     error,
-    page,
     setPage,
     search,
     setSearch,
+    categoryId,
+    setCategoryId,
+    clearFilters,
+    categories,
+    isCategoryLoading,
     handleCreate,
     handleEdit,
     handleDelete,
@@ -36,6 +40,11 @@ export const TourList: React.FC = () => {
   const totalPages = data?.totalPages || 1;
   const currentPage = data?.currentPage || 1;
   const totalItems = data?.total || 0;
+  const categoryNameById = useMemo(
+    () => new Map(categories.map((category) => [category.id, category.name])),
+    [categories],
+  );
+  const hasActiveFilters = search.trim() !== "" || categoryId !== null;
 
   const columns: Column<Tour>[] = useMemo(
     () => [
@@ -71,12 +80,14 @@ export const TourList: React.FC = () => {
           </span>
         ),
       },
-      // {
-      //   header: "Category ID",
-      //   render: (tour) => (
-      //     <span className="text-sm text-slate-600">{tour.categoryId}</span>
-      //   ),
-      // },
+      {
+        header: "Category",
+        render: (tour) => (
+          <span className="text-sm text-slate-600">
+            {categoryNameById.get(tour.categoryId) ?? `ID ${tour.categoryId}`}
+          </span>
+        ),
+      },
       {
         header: "Status",
         render: (tour) => (
@@ -168,7 +179,14 @@ export const TourList: React.FC = () => {
         ),
       },
     ],
-    [handleEdit, handleDelete, handleToggleStatus, handleView, togglingTourId],
+    [
+      categoryNameById,
+      handleEdit,
+      handleDelete,
+      handleToggleStatus,
+      handleView,
+      togglingTourId,
+    ],
   );
 
   return (
@@ -195,6 +213,37 @@ export const TourList: React.FC = () => {
               }}
             />
           </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-56">
+            <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <select
+              className="w-full bg-transparent text-sm text-slate-700 outline-none disabled:text-slate-400"
+              value={categoryId ?? ""}
+              disabled={isCategoryLoading}
+              onChange={(e) =>
+                setCategoryId(e.target.value ? Number(e.target.value) : null)
+              }
+            >
+              <option value="">
+                {isCategoryLoading ? "Loading categories..." : "All categories"}
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <ActionButton
+            variant="secondary"
+            onClick={clearFilters}
+            disabled={!hasActiveFilters}
+            className="gap-2 px-4 py-2 text-sm"
+          >
+            <X className="h-4 w-4" />
+            Clear
+          </ActionButton>
 
           <ActionButton
             variant="primary"

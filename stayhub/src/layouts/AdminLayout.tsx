@@ -16,7 +16,7 @@ import { ActionButton } from '../components/dashboard/ActionButton';
 
 // Danh sách phẳng các chức năng Admin
 const ADMIN_SIDEBAR_ITEMS: AdminSidebarItem[] = [
-  { label: 'Overview', to: PATH.ADMIN.DASHBOARD, icon: <PieChart /> },
+  { label: 'Platform Analytics', to: PATH.ADMIN.PLATFORM_ANALYTICS, icon: <PieChart /> },
   { label: 'Customer Analytics', to: PATH.ADMIN.CUSTOMER_ANALYTICS, icon: <BarChart3 /> },
   { label: 'System Reports', to: '/admin/reports-export', icon: <Download /> },
   { label: 'Users List', to: PATH.ADMIN.USER_MANAGEMENT, icon: <Users /> },

@@ -1,32 +1,125 @@
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { activeTour, getTours } from "../services/tour.service";
-import { type Tour } from "../types/tour";
-import { PATH } from "../../../config/routes/route";
-import type { PaginatedResponse } from "../types/paginatedReponse";
 import { useToast } from "../../../contexts/ToastContext";
+import { categoryService } from "../../content/services/category.service";
+import type { ReadCategoryDTO } from "../../content/types/category";
+import { PATH } from "../../../config/routes/route";
+import { activeTour, getTours } from "../services/tour.service";
+import type { PaginatedResponse } from "../types/paginatedReponse";
+import type { Tour } from "../types/tour";
+
+const CATEGORY_PAGE_SIZE = 1000;
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (err && typeof err === "object") {
+    const error = err as { response?: { data?: { message?: string } }; message?: string };
+    return error.response?.data?.message || error.message || fallback;
+  }
+
+  return fallback;
+};
 
 export const useTours = (initialPageSize: number = 5) => {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearchState] = useState("");
+  const [categoryId, setCategoryIdState] = useState<number | null>(null);
+  const [categories, setCategories] = useState<ReadCategoryDTO[]>([]);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [data, setData] = useState<PaginatedResponse<Tour> | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [togglingTourId, setTogglingTourId] = useState<number | null>(null);
 
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
 
-  useEffect(() => {
-    fetchTours();
-    // Thêm user.id vào dependency array để hook chạy lại khi user thay đổi
-  }, [page, initialPageSize, search]);
+  const fetchTours = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const res = await getTours(page, initialPageSize, search, categoryId);
+      setData(res);
+      setError(null);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to load tours"));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [categoryId, initialPageSize, page, search]);
 
-  // Tách luôn logic điều hướng ra khỏi component
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchTours();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchTours]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchAllCategories = async () => {
+      setIsCategoryLoading(true);
+      try {
+        const firstPage = await categoryService.getAllCategories(
+          1,
+          CATEGORY_PAGE_SIZE,
+        );
+        const allCategories = [...(firstPage.data ?? [])];
+
+        if (firstPage.totalPages > 1) {
+          const remainingPages = await Promise.all(
+            Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+              categoryService.getAllCategories(index + 2, CATEGORY_PAGE_SIZE),
+            ),
+          );
+
+          remainingPages.forEach((pageResult) => {
+            allCategories.push(...(pageResult.data ?? []));
+          });
+        }
+
+        if (!cancelled) {
+          setCategories(allCategories);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          showError(getErrorMessage(err, "Failed to load categories."));
+        }
+      } finally {
+        if (!cancelled) {
+          setIsCategoryLoading(false);
+        }
+      }
+    };
+
+    void fetchAllCategories();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [showError]);
+
+  const setSearch = (value: string) => {
+    setSearchState(value);
+    setPage(1);
+  };
+
+  const setCategoryId = (value: number | null) => {
+    setCategoryIdState(value);
+    setPage(1);
+  };
+
+  const clearFilters = () => {
+    setSearchState("");
+    setCategoryIdState(null);
+    setPage(1);
+  };
+
   const handleCreate = () => navigate(PATH.MANAGER.CREATE_TOUR);
   const handleEdit = (id: number) => navigate(PATH.MANAGER.EDIT_TOUR(id));
   const handleDelete = (id: number) => navigate(PATH.MANAGER.DELETE_TOUR(id));
   const handleView = (id: number) => navigate(PATH.MANAGER.TOUR_DETAIL(id));
+
   const handleToggleStatus = async (tour: Tour) => {
     const shouldActivate = tour.status !== "Active";
 
@@ -35,27 +128,32 @@ export const useTours = (initialPageSize: number = 5) => {
       await activeTour(tour.id, shouldActivate);
       success(`Tour successfully ${shouldActivate ? "activated" : "deactivated"}!`);
       await fetchTours();
-    } catch (err: any) {
-      showError(err?.response?.data?.message || err.message || "Failed to update tour status.");
+    } catch (err: unknown) {
+      showError(getErrorMessage(err, "Failed to update tour status."));
     } finally {
       setTogglingTourId(null);
     }
   };
-  const fetchTours = async () => {
-    setIsLoading(true);
-    try {
-      // Truyền operatorId (user.id) vào service
-      const res = await getTours(page, initialPageSize);
-      setData(res);
-      setError(null);
-    } catch (err: any) {
-      setError(err.message || "Failed to load tours");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
   return {
-    data, isLoading, error, page, setPage, search, setSearch, pageSize: initialPageSize,
-    handleCreate, handleEdit, handleDelete, handleView, handleToggleStatus, togglingTourId
+    data,
+    isLoading,
+    error,
+    page,
+    setPage,
+    search,
+    setSearch,
+    categoryId,
+    setCategoryId,
+    clearFilters,
+    categories,
+    isCategoryLoading,
+    pageSize: initialPageSize,
+    handleCreate,
+    handleEdit,
+    handleDelete,
+    handleView,
+    handleToggleStatus,
+    togglingTourId,
   };
 };

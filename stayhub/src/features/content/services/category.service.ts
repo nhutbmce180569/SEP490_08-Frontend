@@ -1,82 +1,154 @@
-import { apiClient } from "../../../utils/axiosClient";
 import { FULL_API } from "../../../config/api/api";
-import type { ReadCategoryDTO, CreateCategoryDTO, UpdateCategoryDTO, PaginationDTO } from "../types/category";
+import { apiClient } from "../../../utils/axiosClient";
+import type {
+  CreateCategoryDTO,
+  PaginationDTO,
+  ReadCategoryDTO,
+  UpdateCategoryDTO,
+} from "../types/category";
 
-// Đường dẫn này có thể điều chỉnh lại nếu bạn quản lý trong file content.api.ts
 const CATEGORY_API = `${FULL_API}/categories`;
 
-export const getAllCategories = async (page: number = 1, pageSize: number = 10, keyword?: string): Promise<PaginationDTO<ReadCategoryDTO>> => {
-  if (keyword && keyword.trim() !== "") {
-    const response: any = await apiClient.get(`${CATEGORY_API}/search`, {
+type ApiEnvelope<T> = T | { data: T };
+type MessageResponse = { message: string };
+
+const hasObjectData = <T>(response: ApiEnvelope<T>): response is { data: T } =>
+  Boolean(response && typeof response === "object" && "data" in response);
+
+const unwrapData = <T>(response: ApiEnvelope<T>): T =>
+  hasObjectData(response) ? response.data : response;
+
+const unwrapPagination = (
+  response: ApiEnvelope<PaginationDTO<ReadCategoryDTO>>,
+): PaginationDTO<ReadCategoryDTO> => {
+  if (
+    response &&
+    typeof response === "object" &&
+    "data" in response &&
+    Array.isArray(response.data) &&
+    "totalPages" in response
+  ) {
+    return response as PaginationDTO<ReadCategoryDTO>;
+  }
+
+  return unwrapData(response);
+};
+
+export const getAllCategories = async (
+  page: number = 1,
+  pageSize: number = 10,
+  keyword?: string,
+): Promise<PaginationDTO<ReadCategoryDTO>> => {
+  if (keyword?.trim()) {
+    const response = await apiClient.get<
+      ApiEnvelope<PaginationDTO<ReadCategoryDTO>>
+    >(`${CATEGORY_API}/search`, {
       params: { q: keyword, page, pageSize },
     });
-    if (response.data && response.data.totalPages !== undefined) {
-      return response.data;
-    }
-    return response.totalPages !== undefined ? response : response.data;
-  } else {
-    const response: any = await apiClient.get(CATEGORY_API, {
-      params: { page, pageSize },
-    });
-    return response.totalPages !== undefined ? response : response.data;
+    return unwrapPagination(response);
   }
+
+  const response = await apiClient.get<
+    ApiEnvelope<PaginationDTO<ReadCategoryDTO>>
+  >(CATEGORY_API, {
+    params: { page, pageSize },
+  });
+  return unwrapPagination(response);
 };
 
-export const getActiveCategories = async (page: number = 1, pageSize: number = 10): Promise<PaginationDTO<ReadCategoryDTO>> => {
-  const response: any = await apiClient.get(`${CATEGORY_API}/active`, { params: { page, pageSize } });
-  return response.totalPages !== undefined ? response : response.data;
+export const getActiveCategories = async (
+  page: number = 1,
+  pageSize: number = 10,
+): Promise<PaginationDTO<ReadCategoryDTO>> => {
+  const response = await apiClient.get<
+    ApiEnvelope<PaginationDTO<ReadCategoryDTO>>
+  >(`${CATEGORY_API}/active`, { params: { page, pageSize } });
+  return unwrapPagination(response);
 };
 
-export const getCategoryById = async (id: number | string): Promise<ReadCategoryDTO> => {
-  const response: any = await apiClient.get(`${CATEGORY_API}/${id}`);
-  return response.id !== undefined ? response : response.data;
+export const getCategoryById = async (
+  id: number | string,
+): Promise<ReadCategoryDTO> => {
+  const response = await apiClient.get<ApiEnvelope<ReadCategoryDTO>>(
+    `${CATEGORY_API}/${id}`,
+  );
+  return unwrapData(response);
 };
 
-export const createCategory = async (data: CreateCategoryDTO): Promise<ReadCategoryDTO> => {
+export const createCategory = async (
+  data: CreateCategoryDTO,
+): Promise<ReadCategoryDTO> => {
   const formData = new FormData();
   formData.append("name", data.name);
   formData.append("slug", data.slug);
   if (data.description) formData.append("description", data.description);
-  if (data.isActive !== undefined) formData.append("isActive", data.isActive.toString());
+  if (data.isActive !== undefined) {
+    formData.append("isActive", data.isActive.toString());
+  }
   if (data.iconFile) formData.append("iconFile", data.iconFile);
 
-  const response: any = await apiClient.post(CATEGORY_API, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
+  const response = await apiClient.post<ApiEnvelope<ReadCategoryDTO>>(
+    CATEGORY_API,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
-  return response.id !== undefined ? response : response.data;
+  );
+  return unwrapData(response);
 };
 
-export const updateCategory = async (id: number | string, data: UpdateCategoryDTO): Promise<{ message: string }> => {
+export const updateCategory = async (
+  id: number | string,
+  data: UpdateCategoryDTO,
+): Promise<MessageResponse> => {
   const formData = new FormData();
   formData.append("name", data.name);
   formData.append("slug", data.slug);
   if (data.description) formData.append("description", data.description);
-  if (data.isActive !== undefined) formData.append("isActive", data.isActive.toString());
+  if (data.isActive !== undefined) {
+    formData.append("isActive", data.isActive.toString());
+  }
   if (data.iconFile) formData.append("iconFile", data.iconFile);
 
-  const response: any = await apiClient.put(`${CATEGORY_API}/${id}`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
+  const response = await apiClient.put<ApiEnvelope<MessageResponse>>(
+    `${CATEGORY_API}/${id}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     },
-  });
-  return response.message !== undefined ? response : response.data;
+  );
+  return unwrapData(response);
 };
 
-export const deleteCategory = async (id: number | string): Promise<{ message: string }> => {
-  const response: any = await apiClient.delete(`${CATEGORY_API}/${id}`);
-  return response.message !== undefined ? response : response.data;
+export const deleteCategory = async (
+  id: number | string,
+): Promise<MessageResponse> => {
+  const response = await apiClient.delete<ApiEnvelope<MessageResponse>>(
+    `${CATEGORY_API}/${id}`,
+  );
+  return unwrapData(response);
 };
 
-export const activateCategory = async (id: number | string): Promise<{ message: string }> => {
-  const response: any = await apiClient.patch(`${CATEGORY_API}/${id}/activate`);
-  return response.message !== undefined ? response : response.data;
+export const activateCategory = async (
+  id: number | string,
+): Promise<MessageResponse> => {
+  const response = await apiClient.patch<ApiEnvelope<MessageResponse>>(
+    `${CATEGORY_API}/${id}/activate`,
+  );
+  return unwrapData(response);
 };
 
-export const deactivateCategory = async (id: number | string): Promise<{ message: string }> => {
-  const response: any = await apiClient.patch(`${CATEGORY_API}/${id}/deactivate`);
-  return response.message !== undefined ? response : response.data;
+export const deactivateCategory = async (
+  id: number | string,
+): Promise<MessageResponse> => {
+  const response = await apiClient.patch<ApiEnvelope<MessageResponse>>(
+    `${CATEGORY_API}/${id}/deactivate`,
+  );
+  return unwrapData(response);
 };
 
 export const categoryService = {

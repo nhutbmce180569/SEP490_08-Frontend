@@ -1,4 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  createFallbackPlace,
+  getPlaceCoordinates,
+  reverseGeocodePlace,
+  searchPlaces,
+  toPrediction,
+  type MapPlace,
+  type MapPrediction,
+} from "../services/mapGeocoding.service";
 
 export type MapPickerMode = "single" | "route";
 export type ActivePin = "single" | "start" | "end";
@@ -18,49 +27,6 @@ type MapPickerInitialData = {
 type Coordinates = {
   lat: number;
   lng: number;
-};
-
-type NominatimAddress = Record<string, string | undefined>;
-
-type NominatimResult = {
-  place_id?: number | string;
-  osm_type?: string;
-  osm_id?: number | string;
-  lat: string;
-  lon: string;
-  name?: string;
-  display_name?: string;
-  address?: NominatimAddress;
-};
-
-type AddressComponent = {
-  long_name: string;
-  short_name: string;
-  types: string[];
-};
-
-type MapPlace = {
-  place_id: string;
-  name: string;
-  formatted_address: string;
-  address_components: AddressComponent[];
-  geometry: {
-    location: {
-      lat: () => number;
-      lng: () => number;
-    };
-  };
-  raw?: NominatimResult;
-};
-
-type MapPrediction = {
-  place_id: string;
-  description: string;
-  structured_formatting: {
-    main_text: string;
-    secondary_text: string;
-  };
-  place: MapPlace;
 };
 
 type LeafletLatLngTuple = [number, number];
@@ -142,7 +108,6 @@ const LEAFLET_SCRIPT_ID = "stayhub-leaflet-script";
 const LEAFLET_STYLE_ID = "stayhub-leaflet-style";
 const LEAFLET_SCRIPT_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
 const LEAFLET_STYLE_URL = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
-const NOMINATIM_BASE_URL = "https://nominatim.openstreetmap.org";
 const OSRM_ROUTE_URL = "https://router.project-osrm.org/route/v1/driving";
 
 const getLeaflet = (): LeafletRuntime | undefined =>
@@ -208,200 +173,6 @@ const toCoordinates = (location?: InitialLocation): Coordinates | null => {
   };
 };
 
-const createLocation = (coordinates: Coordinates) => ({
-  lat: () => coordinates.lat,
-  lng: () => coordinates.lng,
-});
-
-const splitDisplayName = (displayName: string) => {
-  const [main, ...rest] = displayName.split(",").map((part) => part.trim());
-  return {
-    mainText: main || displayName,
-    secondaryText: rest.join(", "),
-  };
-};
-
-const firstAvailableAddressValue = (
-  address: NominatimAddress | undefined,
-  keys: string[],
-) => {
-  for (const key of keys) {
-    const value = address?.[key];
-    if (value) return value;
-  }
-  return "";
-};
-
-const createAddressComponents = (
-  address: NominatimAddress | undefined,
-): AddressComponent[] => {
-  const components: AddressComponent[] = [];
-  const country = address?.country;
-  const city = firstAvailableAddressValue(address, [
-    "city",
-    "town",
-    "village",
-    "municipality",
-    "county",
-    "state_district",
-    "state",
-  ]);
-  const state = address?.state;
-
-  if (country) {
-    components.push({
-      long_name: country,
-      short_name: country,
-      types: ["country"],
-    });
-  }
-
-  if (city) {
-    components.push({
-      long_name: city,
-      short_name: city,
-      types: ["locality"],
-    });
-  }
-
-  if (state && state !== city) {
-    components.push({
-      long_name: state,
-      short_name: state,
-      types: ["administrative_area_level_1"],
-    });
-  }
-
-  return components;
-};
-
-const getResultName = (result: NominatimResult) => {
-  const addressName = firstAvailableAddressValue(result.address, [
-    "tourism",
-    "amenity",
-    "building",
-    "road",
-    "suburb",
-    "neighbourhood",
-    "city",
-    "town",
-    "village",
-  ]);
-
-  return (
-    result.name ||
-    addressName ||
-    splitDisplayName(result.display_name || "").mainText ||
-    "Selected location"
-  );
-};
-
-const hasResultCoordinates = (result: NominatimResult) => {
-  return Number.isFinite(Number(result.lat)) && Number.isFinite(Number(result.lon));
-};
-
-const createPlaceFromNominatim = (result: NominatimResult): MapPlace => {
-  if (!hasResultCoordinates(result)) {
-    throw new Error("Location result is missing coordinates.");
-  }
-
-  const coordinates = {
-    lat: Number(result.lat),
-    lng: Number(result.lon),
-  };
-  const formattedAddress =
-    result.display_name ||
-    `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`;
-  const placeId =
-    result.place_id?.toString() ||
-    `${result.osm_type || "osm"}-${result.osm_id || formattedAddress}`;
-
-  return {
-    place_id: placeId,
-    name: getResultName(result),
-    formatted_address: formattedAddress,
-    address_components: createAddressComponents(result.address),
-    geometry: {
-      location: createLocation(coordinates),
-    },
-    raw: result,
-  };
-};
-
-const createFallbackPlace = (coordinates: Coordinates): MapPlace => {
-  const formattedAddress = `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`;
-
-  return {
-    place_id: `coords-${formattedAddress}`,
-    name: formattedAddress,
-    formatted_address: formattedAddress,
-    address_components: [],
-    geometry: {
-      location: createLocation(coordinates),
-    },
-  };
-};
-
-const getPlaceCoordinates = (place: MapPlace): Coordinates => ({
-  lat: place.geometry.location.lat(),
-  lng: place.geometry.location.lng(),
-});
-
-const toPrediction = (place: MapPlace): MapPrediction => {
-  const { mainText, secondaryText } = splitDisplayName(place.formatted_address);
-
-  return {
-    place_id: place.place_id,
-    description: place.formatted_address,
-    structured_formatting: {
-      main_text: place.name || mainText,
-      secondary_text: secondaryText,
-    },
-    place,
-  };
-};
-
-const fetchNominatimSearch = async (query: string, limit = 5) => {
-  const url = new URL(`${NOMINATIM_BASE_URL}/search`);
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("q", query);
-  url.searchParams.set("addressdetails", "1");
-  url.searchParams.set("countrycodes", "vn");
-  url.searchParams.set("accept-language", "vi,en");
-  url.searchParams.set("limit", String(limit));
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error("Location search failed.");
-  }
-
-  const results = (await response.json()) as NominatimResult[];
-  return results
-    .filter(hasResultCoordinates)
-    .map(createPlaceFromNominatim);
-};
-
-const fetchNominatimReverse = async (coordinates: Coordinates) => {
-  const url = new URL(`${NOMINATIM_BASE_URL}/reverse`);
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("lat", String(coordinates.lat));
-  url.searchParams.set("lon", String(coordinates.lng));
-  url.searchParams.set("addressdetails", "1");
-  url.searchParams.set("accept-language", "vi,en");
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error("Reverse geocoding failed.");
-  }
-
-  const result = (await response.json()) as NominatimResult;
-  if (!hasResultCoordinates(result)) {
-    throw new Error("Reverse geocoding did not return coordinates.");
-  }
-
-  return createPlaceFromNominatim(result);
-};
-
 const createMarkerIcon = (type: ActivePin) => {
   const L = getLeaflet();
   if (!L) {
@@ -441,6 +212,7 @@ export const useMapPicker = (
   });
   const [isSearching, setIsSearching] = useState(false);
   const [predictions, setPredictions] = useState<MapPrediction[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<LeafletMap | null>(null);
@@ -449,6 +221,7 @@ export const useMapPicker = (
   const routeLayerRef = useRef<LeafletLayer | null>(null);
   const initialDataRef = useRef(initialData);
   const suggestionRequestRef = useRef(0);
+  const suggestionTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     initialDataRef.current = initialData;
@@ -470,7 +243,7 @@ export const useMapPicker = (
   }, []);
 
   const searchPlaceByNameOrAddress = useCallback(async (query: string) => {
-    const places = await fetchNominatimSearch(query, 1);
+    const places = await searchPlaces(query, 1);
     return places[0] || null;
   }, []);
 
@@ -498,6 +271,7 @@ export const useMapPicker = (
         ...prev,
         [pin]: place.name || place.formatted_address,
       }));
+      setSearchError(null);
     },
     [setMarkerPosition],
   );
@@ -508,12 +282,13 @@ export const useMapPicker = (
       setPredictions([]);
 
       try {
-        const place = await fetchNominatimReverse(coordinates);
+        const place = await reverseGeocodePlace(coordinates);
         setLocations((prev) => ({ ...prev, [pin]: place }));
         setQueries((prev) => ({
           ...prev,
           [pin]: place.name || place.formatted_address,
         }));
+        setSearchError(null);
 
         if (switchPin && mode === "route") {
           if (pin === "start") {
@@ -533,6 +308,7 @@ export const useMapPicker = (
           ...prev,
           [pin]: fallbackPlace.formatted_address,
         }));
+        setSearchError("Could not resolve full address. Coordinates were saved.");
       } finally {
         setIsSearching(false);
       }
@@ -549,6 +325,10 @@ export const useMapPicker = (
     ) => {
       const coordinates = toCoordinates(initial) || fallbackCoordinates;
       marker.setLatLng([coordinates.lat, coordinates.lng]);
+
+      if (initial?.address) {
+        setQueries((prev) => ({ ...prev, [pin]: initial.address || "" }));
+      }
 
       if (toCoordinates(initial)) {
         await reverseGeocode(coordinates, pin);
@@ -603,13 +383,10 @@ export const useMapPicker = (
         ? [startLoc.lat, startLoc.lng]
         : [singleLoc.lat, singleLoc.lng];
 
-    const marker = L.marker(
-      primaryMarkerCoordinates,
-      {
-        draggable: true,
-        icon: createMarkerIcon(mode === "route" ? "start" : "single"),
-      },
-    ).addTo(map);
+    const marker = L.marker(primaryMarkerCoordinates, {
+      draggable: true,
+      icon: createMarkerIcon(mode === "route" ? "start" : "single"),
+    }).addTo(map);
 
     const endMarker = L.marker([endLoc.lat, endLoc.lng], {
       draggable: true,
@@ -744,11 +521,13 @@ export const useMapPicker = (
         setActivePin(mode === "route" ? "start" : "single");
         activePinRef.current = mode === "route" ? "start" : "single";
         setPredictions([]);
+        setSearchError(null);
         initMap();
       })
       .catch((error) => {
         console.error(error);
         setIsSearching(false);
+        setSearchError("Unable to load map. Please refresh and try again.");
       });
 
     return () => {
@@ -757,20 +536,32 @@ export const useMapPicker = (
     };
   }, [cleanupMap, initMap, isOpen, mode]);
 
+  useEffect(() => {
+    return () => {
+      if (suggestionTimerRef.current) {
+        window.clearTimeout(suggestionTimerRef.current);
+      }
+    };
+  }, []);
+
   const handleSearchLocation = async (pin: ActivePin) => {
     const query = queries[pin];
     if (!query.trim()) return;
 
     setPredictions([]);
     setIsSearching(true);
+    setSearchError(null);
 
     try {
       const place = await searchPlaceByNameOrAddress(query);
       if (place) {
         applyPlaceToPin(place, pin);
+      } else {
+        setSearchError("No matching places found. Try a different keyword.");
       }
     } catch (error) {
       console.error("Location search failed", error);
+      setSearchError("Location search failed. Please try again.");
     } finally {
       setIsSearching(false);
     }
@@ -811,27 +602,39 @@ export const useMapPicker = (
   const handleInputChange = (value: string, pin: ActivePin) => {
     setQueries((prev) => ({ ...prev, [pin]: value }));
     activePinRef.current = pin;
+    setSearchError(null);
 
     const query = value.trim();
-    const requestId = suggestionRequestRef.current + 1;
-    suggestionRequestRef.current = requestId;
+
+    if (suggestionTimerRef.current) {
+      window.clearTimeout(suggestionTimerRef.current);
+    }
 
     if (query.length < 2) {
       setPredictions([]);
       return;
     }
 
-    fetchNominatimSearch(query, 5)
-      .then((places) => {
-        if (suggestionRequestRef.current !== requestId) return;
-        setPredictions(places.map(toPrediction));
-      })
-      .catch((error) => {
-        console.error("Autocomplete search failed", error);
-        if (suggestionRequestRef.current === requestId) {
-          setPredictions([]);
-        }
-      });
+    suggestionTimerRef.current = window.setTimeout(() => {
+      const requestId = suggestionRequestRef.current + 1;
+      suggestionRequestRef.current = requestId;
+
+      searchPlaces(query, 5)
+        .then((places) => {
+          if (suggestionRequestRef.current !== requestId) return;
+          setPredictions(places.map(toPrediction));
+          if (places.length === 0) {
+            setSearchError("No suggestions found.");
+          }
+        })
+        .catch((error) => {
+          console.error("Autocomplete search failed", error);
+          if (suggestionRequestRef.current === requestId) {
+            setPredictions([]);
+            setSearchError("Search is temporarily unavailable. Click the map to pick a location.");
+          }
+        });
+    }, 350);
   };
 
   const handleSelectPrediction = (
@@ -843,6 +646,7 @@ export const useMapPicker = (
 
     setQueries((prev) => ({ ...prev, [pin]: description }));
     setPredictions([]);
+    setSearchError(null);
 
     if (selectedPlace) {
       applyPlaceToPin(selectedPlace, pin);
@@ -854,10 +658,13 @@ export const useMapPicker = (
       .then((place) => {
         if (place) {
           applyPlaceToPin(place, pin);
+        } else {
+          setSearchError("Could not load the selected place.");
         }
       })
       .catch((error) => {
         console.error("Selected location search failed", error);
+        setSearchError("Could not load the selected place.");
       })
       .finally(() => {
         setIsSearching(false);
@@ -885,6 +692,7 @@ export const useMapPicker = (
     isSearching,
     locations,
     activePin,
+    searchError,
     handleSearchLocation,
     handleLocateMe,
     predictions,

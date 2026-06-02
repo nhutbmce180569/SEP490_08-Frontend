@@ -61,7 +61,11 @@ const unwrapPagination = <T>(
     ? raw.data
     : Array.isArray(raw.items)
       ? raw.items
-      : [];
+      : Array.isArray(raw.Data)
+        ? raw.Data
+        : Array.isArray(raw.Items)
+          ? raw.Items
+          : [];
   const normalizedPageSize = raw.pageSize ?? pageSize;
   const total =
     raw.total ??

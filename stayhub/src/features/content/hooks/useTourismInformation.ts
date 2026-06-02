@@ -24,9 +24,9 @@ export const useTourismInformation = (filters: TourismInformationFilters = {}) =
     queryFn: () => tourismInformationService.getAll(page, PAGE_SIZE, filters),
   });
 
-  const handleCreate = () => navigate(`${PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT}/create`);
-  const handleEdit = (id: number) =>
-    navigate(`${PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT}/${id}/edit`);
+  const handleCreate = () => navigate(PATH.ADMIN.CREATE_TOURISM_INFORMATION);
+  const handleViewDetail = (id: number) => navigate(PATH.ADMIN.TOURISM_INFORMATION_DETAIL(id));
+  const handleEdit = (id: number) => navigate(PATH.ADMIN.EDIT_TOURISM_INFORMATION(id));
 
   return {
     data: query.data,
@@ -36,6 +36,7 @@ export const useTourismInformation = (filters: TourismInformationFilters = {}) =
     pageSize: PAGE_SIZE,
     setPage,
     handleCreate,
+    handleViewDetail,
     handleEdit,
   };
 };

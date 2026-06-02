@@ -2,6 +2,7 @@ import {
   TOURISM_INFORMATION_TYPES,
   TOURISM_DEFAULT_COUNTRY,
 } from "../types/tourismInformation";
+import { isCoordinateOnlyAddress } from "../../tour/services/mapGeocoding.service";
 
 const isValidHttpUrl = (value: string) => {
   try {
@@ -43,16 +44,26 @@ export const validateTourismInformationForm = (
     errors.type = `Invalid type. Allowed values: ${TOURISM_INFORMATION_TYPES.join(", ")}.`;
   }
 
-  if (address.length > 255) {
+  if (!address || isCoordinateOnlyAddress(address)) {
+    errors.address = "Please pick a location on the map or search by place name.";
+  } else if (address.length > 255) {
     errors.address = "Address cannot exceed 255 characters.";
   }
 
-  if (city.length > 100) {
+  if (!city) {
+    errors.address = errors.address || "Could not detect city from map. Try searching again.";
+  } else if (city.length > 100) {
     errors.city = "City cannot exceed 100 characters.";
   }
 
-  if (country.length > 100) {
+  if (!country) {
+    errors.address = errors.address || "Could not detect country from map. Try searching again.";
+  } else if (country.length > 100) {
     errors.country = "Country cannot exceed 100 characters.";
+  }
+
+  if (address && (!hasLatitude || !hasLongitude)) {
+    errors.address = errors.address || "Please drop a pin on the map to save coordinates.";
   }
 
   if (hasLatitude !== hasLongitude) {

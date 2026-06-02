@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react';
 import { CHART_COLORS } from '../utils/analyticsHelpers';
 import type { AnalyticsLabelCount } from '../types/customerAnalytics.types';
 import { formatNumber, formatPercent } from '../utils/analyticsHelpers';
@@ -7,44 +8,143 @@ interface DistributionChartProps {
   title: string;
   data: AnalyticsLabelCount[];
   emptyMessage?: string;
+  /** Show only first N items until expanded. Ignored when `pageSize` is set. */
+  collapseLimit?: number;
+  /** Paginate long lists instead of expand/collapse. */
+  pageSize?: number;
 }
 
 export const DistributionChart: React.FC<DistributionChartProps> = ({
   title,
   data,
   emptyMessage = 'No data available',
+  collapseLimit,
+  pageSize,
 }) => {
-  const maxCount = Math.max(...data.map((d) => d.count), 1);
+  const [expanded, setExpanded] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setExpanded(false);
+    setCurrentPage(1);
+  }, [data, collapseLimit, pageSize]);
+
+  const usePagination = Boolean(pageSize && data.length > pageSize);
+  const useCollapse = !usePagination && Boolean(collapseLimit && data.length > collapseLimit);
+
+  const visibleData = useMemo(() => {
+    if (usePagination && pageSize) {
+      const start = (currentPage - 1) * pageSize;
+      return data.slice(start, start + pageSize);
+    }
+
+    if (useCollapse && collapseLimit && !expanded) {
+      return data.slice(0, collapseLimit);
+    }
+
+    return data;
+  }, [collapseLimit, currentPage, data, expanded, pageSize, useCollapse, usePagination]);
+
+  const maxCount = Math.max(...visibleData.map((d) => d.count), 1);
+  const totalPages = usePagination && pageSize ? Math.ceil(data.length / pageSize) : 1;
+  const pageStart = usePagination && pageSize ? (currentPage - 1) * pageSize : 0;
 
   return (
-    <section className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
-      <h3 className="mb-4 text-base font-bold text-slate-900">{title}</h3>
+    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <h3 className="text-base font-bold text-slate-900">{title}</h3>
+        {data.length > 0 && (
+          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
+            {data.length} {data.length === 1 ? 'item' : 'items'}
+          </span>
+        )}
+      </div>
 
       {data.length === 0 ? (
         <p className="py-8 text-center text-sm text-slate-400">{emptyMessage}</p>
       ) : (
-        <div className="space-y-3">
-          {data.map((item, i) => (
-            <div key={item.label}>
-              <div className="mb-1 flex items-center justify-between text-sm">
-                <span className="font-semibold text-slate-700">{item.label}</span>
-                <span className="text-slate-500">
-                  {formatNumber(item.count)}{' '}
-                  <span className="text-slate-400">({formatPercent(item.percentage)})</span>
+        <>
+          <div className="space-y-3">
+            {visibleData.map((item, i) => {
+              const colorIndex = usePagination ? pageStart + i : i;
+              return (
+                <div key={`${item.label}-${colorIndex}`}>
+                  <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                    <span className="min-w-0 truncate font-semibold text-slate-700">{item.label}</span>
+                    <span className="shrink-0 text-slate-500">
+                      {formatNumber(item.count)}{' '}
+                      <span className="text-slate-400">({formatPercent(item.percentage)})</span>
+                    </span>
+                  </div>
+                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${(item.count / maxCount) * 100}%`,
+                        backgroundColor: CHART_COLORS[colorIndex % CHART_COLORS.length],
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {useCollapse && collapseLimit && (
+            <button
+              type="button"
+              onClick={() => setExpanded((value) => !value)}
+              className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100"
+            >
+              {expanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  Show less
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Show all {data.length} items
+                </>
+              )}
+            </button>
+          )}
+
+          {usePagination && pageSize && (
+            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+              <p className="text-xs text-slate-500">
+                Showing{' '}
+                <span className="font-semibold text-slate-700">
+                  {pageStart + 1}–{Math.min(pageStart + pageSize, data.length)}
+                </span>{' '}
+                of <span className="font-semibold text-slate-700">{data.length}</span>
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((page) => page - 1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="min-w-[4.5rem] text-center text-xs font-semibold text-slate-600">
+                  {currentPage} / {totalPages}
                 </span>
-              </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${(item.count / maxCount) * 100}%`,
-                    backgroundColor: CHART_COLORS[i % CHART_COLORS.length],
-                  }}
-                />
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage((page) => page + 1)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </section>
   );

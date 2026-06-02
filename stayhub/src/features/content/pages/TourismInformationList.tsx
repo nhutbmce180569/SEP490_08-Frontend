@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  Eye,
   Image as ImageIcon,
   Lock,
   MapPin,
@@ -46,7 +47,7 @@ export const TourismInformationList: React.FC = () => {
     status: "",
   });
 
-  const { data, isLoading, error, pageSize, setPage, handleCreate, handleEdit } =
+  const { data, isLoading, error, pageSize, setPage, handleCreate, handleViewDetail, handleEdit } =
     useTourismInformation(filters);
   const { executeStatusChange, updatingId, isActiveStatus } =
     useChangeTourismInformationStatus();
@@ -168,6 +169,14 @@ export const TourismInformationList: React.FC = () => {
               </ActionButton>
               <ActionButton
                 variant="secondary"
+                onClick={() => handleViewDetail(item.id)}
+                className="h-8 w-8 text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-slate-800"
+                title="View details"
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
                 onClick={() => handleEdit(item.id)}
                 className="h-8 w-8"
                 title="Edit"
@@ -179,7 +188,7 @@ export const TourismInformationList: React.FC = () => {
         },
       },
     ],
-    [executeStatusChange, handleEdit, isActiveStatus, updatingId],
+    [executeStatusChange, handleEdit, handleViewDetail, isActiveStatus, updatingId],
   );
 
   const handleResetFilters = () => {

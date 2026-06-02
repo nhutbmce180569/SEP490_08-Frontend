@@ -1,3 +1,4 @@
+import type { AnalyticsLabelCount } from '../../customer-analytics/types/customerAnalytics.types';
 import type { HealthStatus, OverallHealthStatus } from '../types/platformAnalytics.types';
 
 export const OVERALL_STATUS_LABELS: Record<OverallHealthStatus, string> = {
@@ -43,3 +44,17 @@ export const ROLE_LABELS: Record<string, string> = {
 };
 
 export const getRoleLabel = (role: string) => ROLE_LABELS[role] ?? role;
+
+const CATEGORY_ID_LABEL = /^Category\s+(\d+)$/i;
+
+export const resolveCategoryLabels = (
+  items: AnalyticsLabelCount[],
+  categoryNames: Record<number, string>,
+): AnalyticsLabelCount[] =>
+  items.map((item) => {
+    const match = item.label.match(CATEGORY_ID_LABEL);
+    if (!match) return item;
+
+    const name = categoryNames[Number(match[1])];
+    return name ? { ...item, label: name } : item;
+  });

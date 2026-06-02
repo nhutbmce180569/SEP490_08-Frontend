@@ -9,6 +9,7 @@ import {
   OVERALL_STATUS_STYLES,
 } from '../utils/platformHelpers';
 import { formatNumber, formatPercent } from '../../customer-analytics/utils/analyticsHelpers';
+import { AnalyticsPanel, LoadingPanel, MetricStrip } from './AnalyticsLayout';
 
 interface HealthPanelProps {
   data: PlatformHealthAnalytics | undefined;
@@ -27,11 +28,11 @@ const OverallIcon: React.FC<{ status: PlatformHealthAnalytics['overallStatus'] }
 export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => {
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="h-36 animate-pulse rounded-2xl bg-slate-100" />
+      <div className="space-y-5">
+        <LoadingPanel height="h-36" />
         <div className="grid gap-4 md:grid-cols-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-slate-100" />
+            <LoadingPanel key={i} height="h-28" />
           ))}
         </div>
       </div>
@@ -40,46 +41,38 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
 
   if (!data) return null;
 
-  const summaryCards = [
-    { label: 'Schedule Occupancy', value: formatPercent(data.scheduleOccupancyRate) },
-    { label: 'Check-in Rate', value: formatPercent(data.checkInRate) },
-    { label: 'Review Response', value: formatPercent(data.reviewResponseRate) },
-    { label: 'Voucher Redemption', value: formatPercent(data.voucherRedemptionRate) },
-  ];
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <section
-        className={`flex flex-col gap-4 rounded-2xl p-6 ring-1 sm:flex-row sm:items-center sm:justify-between ${OVERALL_STATUS_STYLES[data.overallStatus]}`}
+        className={`overflow-hidden rounded-2xl border p-5 ring-1 ring-inset sm:p-6 ${OVERALL_STATUS_STYLES[data.overallStatus]}`}
       >
-        <div className="flex items-center gap-4">
-          <OverallIcon status={data.overallStatus} />
-          <div>
-            <div className="text-xs font-bold uppercase tracking-wider opacity-70">
-              Platform Health
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex items-center gap-4">
+            <OverallIcon status={data.overallStatus} />
+            <div>
+              <div className="text-xs font-bold uppercase tracking-wider opacity-70">
+                Platform health
+              </div>
+              <div className="text-2xl font-bold">{OVERALL_STATUS_LABELS[data.overallStatus]}</div>
+              <p className="mt-1 text-sm opacity-80">
+                {data.pendingCancellationRequests > 0
+                  ? `${formatNumber(data.pendingCancellationRequests)} pending cancellation request(s)`
+                  : 'Operational indicators within acceptable range'}
+              </p>
             </div>
-            <div className="text-2xl font-bold">
-              {OVERALL_STATUS_LABELS[data.overallStatus]}
-            </div>
-            <p className="mt-1 text-sm opacity-80">
-              {data.pendingCancellationRequests > 0
-                ? `${formatNumber(data.pendingCancellationRequests)} pending cancellation request(s)`
-                : 'All operational indicators within acceptable range'}
-            </p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {summaryCards.map((card) => (
-            <div
-              key={card.label}
-              className="rounded-xl bg-white/60 px-4 py-3 text-center backdrop-blur-sm"
-            >
-              <div className="text-[10px] font-semibold uppercase tracking-wide opacity-70">
-                {card.label}
-              </div>
-              <div className="mt-1 text-lg font-bold">{card.value}</div>
-            </div>
-          ))}
+
+        <div className="mt-5">
+          <MetricStrip
+            columns={4}
+            items={[
+              { label: 'Schedule occupancy', value: formatPercent(data.scheduleOccupancyRate) },
+              { label: 'Check-in rate', value: formatPercent(data.checkInRate) },
+              { label: 'Review response', value: formatPercent(data.reviewResponseRate) },
+              { label: 'Voucher redemption', value: formatPercent(data.voucherRedemptionRate) },
+            ]}
+          />
         </div>
       </section>
 
@@ -92,16 +85,10 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
               : Math.min((indicator.value / maxValue) * 100, 100);
 
           return (
-            <div
-              key={indicator.name}
-              className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]"
-            >
-              <div className="mb-3 flex items-start justify-between gap-2">
-                <div>
-                  <h4 className="font-bold text-slate-900">{indicator.name}</h4>
-                  {indicator.description && (
-                    <p className="mt-0.5 text-xs text-slate-500">{indicator.description}</p>
-                  )}
+            <AnalyticsPanel key={indicator.name} title={indicator.name} subtitle={indicator.description}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="text-2xl font-bold text-slate-900">
+                  {formatIndicatorValue(indicator.value, indicator.unit)}
                 </div>
                 <span
                   className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold ${INDICATOR_STATUS_BADGE[indicator.status]}`}
@@ -109,16 +96,13 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
                   {indicator.status}
                 </span>
               </div>
-              <div className="mb-2 text-2xl font-bold text-slate-900">
-                {formatIndicatorValue(indicator.value, indicator.unit)}
-              </div>
-              <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-100">
                 <div
                   className={`h-full rounded-full transition-all duration-500 ${INDICATOR_STATUS_STYLES[indicator.status]}`}
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
-            </div>
+            </AnalyticsPanel>
           );
         })}
       </div>

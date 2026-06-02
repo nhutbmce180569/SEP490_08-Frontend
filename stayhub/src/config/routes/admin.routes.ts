@@ -15,6 +15,7 @@ export const ADMIN_ROUTES = {
   BANNER_MANAGEMENT: '/admin/banners',
   TOURISM_INFORMATION_MANAGEMENT: '/admin/tourism-information',
   REPORT_MODERATION: '/admin/reports',
+  CUSTOMER_ANALYTICS: '/admin/customer-analytics',
   SYSTEM_SETTINGS: '/admin/settings',
 
   // Dynamic Routes & Delete Confirms

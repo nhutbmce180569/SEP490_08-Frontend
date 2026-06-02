@@ -90,6 +90,7 @@ import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
+import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -484,6 +485,10 @@ const App: React.FC = () => {
                     element={<DashboardReviewManager />}
                   />
                   <Route
+                    path={childPath(PATH.MANAGER.CUSTOMER_ANALYTICS)}
+                    element={<CustomerAnalyticsPage />}
+                  />
+                  <Route
                     path={childPath(PATH.MANAGER.PAYOUT)}
                     element={mock("Payout", "Partner")}
                   />
@@ -494,6 +499,10 @@ const App: React.FC = () => {
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                 <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
                   <Route index element={mock("Admin Dashboard", "Admin")} />
+                  <Route
+                    path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
+                    element={<CustomerAnalyticsPage />}
+                  />
                   <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                     <Route index element={<UserList />} />
                     <Route path="create" element={<CreateUser />} />

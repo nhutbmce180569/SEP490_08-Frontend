@@ -523,7 +523,7 @@ export default function PublicTourDetail() {
                 Itinerary
               </h2>
               
-              <div className="mb-10">
+              {/* <div className="mb-10">
                 <h2 className="mb-6 text-2xl font-bold text-slate-900">Itinerary Map</h2>
                 {isItinerariesLoading ? (
                   <div className="flex h-[400px] items-center justify-center rounded-2xl bg-slate-50 border border-slate-100">
@@ -534,7 +534,7 @@ export default function PublicTourDetail() {
                 ) : (
                   <p className="text-slate-500 italic">No map data available.</p>
                 )}
-              </div>
+              </div> */}
 
               {tourItineraries.length > 0 ? (
                 <div className="relative">

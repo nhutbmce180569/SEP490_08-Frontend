@@ -40,14 +40,21 @@ export default function Header() {
       ? [user.roles]
       : [];
   const upperRoles = userRoles.map((r: string) => r.toUpperCase());
-  const showDashboardButton =
-    upperRoles.includes("ADMIN") ||
-    upperRoles.includes("OPERATOR") ||
-    upperRoles.includes("STAFF") ||
-    upperRoles.includes("MANAGER");
+
 
   const displayName = user?.fullName || user?.FullName || "User";
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
+  const showDashboardButton = upperRoles.includes("ADMIN") || upperRoles.includes("STAFF");
+
+  const handleGoToDashboard = () => {
+    if (upperRoles.includes("ADMIN")) {
+      navigate(PATH.ADMIN.DASHBOARD);
+    } else  if(upperRoles.includes("MANAGER")){
+      navigate(PATH.MANAGER.DASHBOARD);
+    }else{
+      navigate(PATH.STAFF.DASHBOARD);
+    }
+  };
 
   const isSocialLogin =
     user?.provider === "Google" ||
@@ -80,10 +87,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  const handleGoToDashboard = () => {
-    if (upperRoles.includes("ADMIN")) navigate(PATH.ADMIN.DASHBOARD);
-    else navigate(PATH.MANAGER.DASHBOARD);
-  };
 
   const handleSearch = () => {
     if (!query.trim()) return;

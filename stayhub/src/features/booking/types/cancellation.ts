@@ -7,8 +7,8 @@ export interface CreateCancellationRequestDTO {
 }
 
 export interface ProcessCancellationDTO {
-  action: "Approve" | "Reject";
-  rejectReason?: string;
+  Action: "Approve" | "Reject";
+  RejectReason?: string;
 }
 
 export interface CancellationRequestListDTO {
@@ -20,10 +20,42 @@ export interface CancellationRequestListDTO {
   status: string;
 }
 
+export interface CancellationRequestPaginationDTO {
+  data: CancellationRequestListDTO[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
+export interface CancellationTourDTO {
+  id: number;
+  operatorId: number;
+  categoryId: number;
+  name: string;
+  description?: string | null;
+  status?: string | null;
+  imageUrl?: string | null;
+  country?: string | null;
+  city?: string | null;
+  address?: string | null;
+  averageStar?: number | null;
+  reviews?: unknown[] | null;
+}
+
+export interface CancellationCustomerDTO {
+  id: number;
+  fullName: string;
+  avatarUrl?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  createdAt?: string | null;
+}
+
 export interface CancellationRequestDetailDTO {
   id: number;
-  orderId: number;
-  customerId: number;
+  tour?: CancellationTourDTO | null;
+  customer?: CancellationCustomerDTO | null;
   bankName: string;
   accountNumber: string;
   accountHolderName: string;

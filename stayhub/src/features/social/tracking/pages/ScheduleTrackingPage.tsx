@@ -24,6 +24,8 @@ export const ScheduleTrackingPage: React.FC = () => {
   const [locations, setLocations] = useState<LiveLocation[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
+  const connectionRef = useRef<signalR.HubConnection | null>(null);
+  const isMountedRef = useRef<boolean>(true);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -31,53 +33,97 @@ export const ScheduleTrackingPage: React.FC = () => {
   });
 
   useEffect(() => {
-    if (data) {
+    if (data && isMountedRef.current) {
       setLocations(data);
     }
   }, [data]);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (scheduleIdNumber <= 0) {
-      setErrorMessage("Schedule ID is invalid.");
+      if (isMountedRef.current) {
+        setErrorMessage("Schedule ID is invalid.");
+      }
       return;
     }
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      setErrorMessage("Bạn cần đăng nhập để theo dõi tour.");
+      if (isMountedRef.current) {
+        setErrorMessage("Bạn cần đăng nhập để theo dõi tour.");
+      }
       return;
+    }
+
+    // Stop existing connection if any
+    if (connectionRef.current) {
+      connectionRef.current.stop().catch(() => {});
     }
 
     const connection = new signalR.HubConnectionBuilder()
       .withUrl(`${SIGNALR_HUB_BASE}/tracking`, {
         accessTokenFactory: () => token,
       })
-      .withAutomaticReconnect()
+      .withAutomaticReconnect([0, 0, 1000, 3000, 5000, 10000])
       .build();
+
+    connectionRef.current = connection;
+
+    // Set up error handler before starting
+    connection.onclose(async () => {
+      if (isMountedRef.current) {
+        setErrorMessage("Kết nối bị ngắt. Đang kết nối lại...");
+      }
+    });
+
+    connection.on("ReceiveTourLocationUpdate", (update: LiveLocation) => {
+      if (isMountedRef.current) {
+        setLocations((prev) => {
+          const index = prev.findIndex((item) => item.userId === update.userId);
+          if (index >= 0) {
+            const next = [...prev];
+            next[index] = { ...next[index], ...update };
+            return next;
+          }
+          return [...prev, update];
+        });
+      }
+    });
 
     connection
       .start()
       .then(async () => {
-        await connection.invoke("JoinTourTrackingGroup", scheduleIdNumber);
-        connection.on("ReceiveTourLocationUpdate", (update: LiveLocation) => {
-          setLocations((prev) => {
-            const index = prev.findIndex((item) => item.userId === update.userId);
-            if (index >= 0) {
-              const next = [...prev];
-              next[index] = { ...next[index], ...update };
-              return next;
-            }
-            return [...prev, update];
-          });
-        });
+        if (!isMountedRef.current) return;
+        try {
+          await connection.invoke("JoinTourTrackingGroup", scheduleIdNumber);
+          if (isMountedRef.current) {
+            setErrorMessage(null);
+          }
+        } catch (err) {
+          console.error("Failed to join tour tracking group:", err);
+          if (isMountedRef.current) {
+            setErrorMessage("Không thể tham gia nhóm theo dõi. Vui lòng thử lại sau.");
+          }
+        }
       })
       .catch((err) => {
         console.error("SignalR connection failed:", err);
-        setErrorMessage("Không thể kết nối Real-time. Vui lòng thử lại sau.");
+        if (isMountedRef.current) {
+          setErrorMessage("Không thể kết nối Real-time. Vui lòng thử lại sau.");
+        }
       });
 
     return () => {
-      connection.stop();
+      if (connectionRef.current) {
+        connectionRef.current.stop().catch(() => {});
+      }
     };
   }, [scheduleIdNumber]);
 

@@ -19,7 +19,7 @@ export const BOOKINGS_API = {
   PROCESS_CANCELLATION_REQUEST: (id: string | number) => `${FULL_API}/CancellationRequest/${id}/process`,
 
   // Check-in
-  CHECK_IN: (sId: string | number) => `${FULL_API}/schedules/${sId}/check-in`,
+  CHECK_IN: `${FULL_API}/Tickets/check-in`,
   
   // Vouchers (Customer)
   SAVE_VOUCHER: `${FULL_API}/customer/vouchers`,

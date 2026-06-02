@@ -11,6 +11,11 @@ export const checkInTicket = async (data: UpdateTicketDTO) => {
 export const ticketService = {
   checkInTicket,
 
+  checkInByQR: async (qrCode: string) => {
+    const response: any = await apiClient.put(TICKETS_API.CHECK_IN, { qrCode });
+    return response.data !== undefined ? response.data : response;
+  },
+
   getMyTickets: async (): Promise<ReadTicketDTO[]> => {
     return await apiClient.get<ReadTicketDTO[]>(TICKETS_API.MY_TICKETS);
   },

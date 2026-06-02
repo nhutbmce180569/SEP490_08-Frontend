@@ -97,6 +97,7 @@ import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleT
 import { LocationTrackingPage } from "./features/social/tracking/pages/LocationTrackingPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
+import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -512,7 +513,7 @@ const App: React.FC = () => {
                   <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<TourScheduleDetail />} />
 
                   {/* UC-50: QR Check-In */}
-                  <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={mock("QR Check-in Scanner", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={<QRCheckinPage />} />
                   <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("Process Check-in", "Staff")} />
 
                   {/* UC-51: Tickets */}

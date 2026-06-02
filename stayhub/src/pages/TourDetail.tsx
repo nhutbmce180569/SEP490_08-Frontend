@@ -138,7 +138,7 @@ export default function PublicTourDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id);
-  const { isInWishlist, toggleWishlist, isSubmitting } = useWishlist();
+  const { isInWishlist, toggleWishlist, isSubmitting, isSubmittingTourId } = useWishlist();
   const { error: showError } = useToast();
   const { user } = useContext(AuthContext);
   const currentUserId = user?.id;
@@ -165,6 +165,8 @@ export default function PublicTourDetail() {
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
   const isWished = tour ? isInWishlist(Number(tour.id)) : false;
+  const isWishlistBusy =
+    tour ? isSubmitting && isSubmittingTourId === Number(tour.id) : false;
 
   const sortedSchedules = useMemo(() => {
     const arr = [...(tour?.tourSchedules || [])];
@@ -387,9 +389,9 @@ export default function PublicTourDetail() {
             <button
               onClick={(e) => {
                 e.preventDefault();
-                if (!isSubmitting) toggleWishlist(Number(tour.id));
+                if (!isWishlistBusy) toggleWishlist(Number(tour.id), tour.status);
               }}
-              disabled={isSubmitting}
+              disabled={isWishlistBusy}
               className="flex h-12 w-12 items-center justify-center backdrop-blur-md shadow-sm transition-all duration-200"
               style={{
                 borderRadius: 999,

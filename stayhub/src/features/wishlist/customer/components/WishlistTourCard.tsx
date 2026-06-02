@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Loader2, MapPin, Ticket } from 'lucide-react';
 import { PATH } from '../../../../config/routes/route';
+import { getImg } from '../../../../config/api/api';
 import type { ReadWishlistItemDTO } from '../types/customerWishlist';
 import { isTourActive } from '../utils/wishlistHelpers';
 
@@ -37,7 +38,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
         {item.tourImageUrl ? (
           <img
-            src={item.tourImageUrl}
+            src={getImg(item.tourImageUrl)}
             alt={item.tourName}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />

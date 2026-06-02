@@ -65,6 +65,7 @@ import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
 import { TourScheduleList } from "./features/tour/pages/TourScheduleList";
 import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
+import { AssignedSchedulesPage } from "./features/tour/pages/AssignedSchedulesPage";
 import {CreateEditSchedule} from "./features/tour/pages/CreateEditSchedule";
 import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
 import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
@@ -499,11 +500,11 @@ const App: React.FC = () => {
 
               <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
                 <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
-                  <Route index element={mock("Assigned Schedules", "Staff")} />
+                  <Route index element={<AssignedSchedulesPage />} />
                   
                   {/* UC-49: Assigned Schedules */}
-                  <Route path={childPath(PATH.STAFF.SCHEDULES)} element={mock("Assigned Schedules List", "Staff")} />
-                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={mock("Schedule Details", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULES)} element={<AssignedSchedulesPage />} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<TourScheduleDetail />} />
 
                   {/* UC-50: QR Check-In */}
                   <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={mock("QR Check-in Scanner", "Staff")} />

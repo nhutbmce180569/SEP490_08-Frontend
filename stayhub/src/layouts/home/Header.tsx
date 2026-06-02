@@ -84,13 +84,15 @@ export default function Header() {
     ? [user?.roles]
     : [];
   const upperRoles = userRoles.map((r: string) => r.toUpperCase());
-  const showDashboardButton = upperRoles.includes("ADMIN") || upperRoles.includes("OPERATOR") || upperRoles.includes("STAFF");
+  const showDashboardButton = upperRoles.includes("ADMIN") || upperRoles.includes("STAFF");
 
   const handleGoToDashboard = () => {
     if (upperRoles.includes("ADMIN")) {
       navigate(PATH.ADMIN.DASHBOARD);
-    } else {
+    } else  if(upperRoles.includes("MANAGER")){
       navigate(PATH.MANAGER.DASHBOARD);
+    }else{
+      navigate(PATH.STAFF.DASHBOARD);
     }
   };
 

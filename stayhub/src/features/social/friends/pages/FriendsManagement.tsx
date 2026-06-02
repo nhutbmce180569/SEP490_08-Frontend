@@ -15,7 +15,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import * as signalR from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { PATH } from '../../../config/routes/route';
+import { PATH } from '../../../../config/routes/route';
 
 export const FriendsManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'add'>('friends');

@@ -12,6 +12,7 @@ import {
   Star,
   Ticket,
   TicketPercent,
+  BarChart3,
   MoreVertical,
   Home,
 } from 'lucide-react';
@@ -89,6 +90,11 @@ export const DashboardLayout: React.FC = () => {
         label: 'Reviews',
         to: PATH.MANAGER.REVIEWS,
         icon: <Star className="h-4 w-4" />,
+      },
+      {
+        label: 'Customer Analytics',
+        to: PATH.MANAGER.CUSTOMER_ANALYTICS,
+        icon: <BarChart3 className="h-4 w-4" />,
       },
       {
         label: 'Finance',

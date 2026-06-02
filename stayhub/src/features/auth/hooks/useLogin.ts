@@ -66,8 +66,10 @@ export const useLogin = () => {
       // Chuyển hướng theo mức độ ưu tiên của Role
       if (upperRoles.includes("ADMIN")) {
         navigate(PATH.ADMIN.DASHBOARD);
-      } else if (upperRoles.includes("OPERATOR") || upperRoles.includes("STAFF")) {
+      } else if (upperRoles.includes("MANAGER") || upperRoles.includes("OPERATOR")) {
         navigate(PATH.MANAGER.DASHBOARD);
+      } else if (upperRoles.includes("STAFF")) {
+        navigate(PATH.STAFF.DASHBOARD);
       } else {
         navigate(PATH.PUBLIC.HOME);
       }

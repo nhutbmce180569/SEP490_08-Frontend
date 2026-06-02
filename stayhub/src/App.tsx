@@ -18,6 +18,7 @@ import { AdminLayout } from "./layouts/AdminLayout";
 import { DashboardLayout } from "./layouts/DashboardLayout";
 import { MainLayout } from "./layouts/MainLayout";
 import { ProfileLayout } from "./layouts/ProfileLayout";
+import { StaffLayout } from "./layouts/StaffLayout";
 import Unauthorized from "./pages/Unauthorized";
 import Home from "./pages/Home";
 
@@ -167,7 +168,8 @@ const mock = (title: string, section?: string) => (
 const childPath = (path: string) =>
   path
     .replace(`${PATH.MANAGER.DASHBOARD}/`, "")
-    .replace(`${PATH.ADMIN.DASHBOARD}/`, "");
+    .replace(`${PATH.ADMIN.DASHBOARD}/`, "")
+    .replace(`${PATH.STAFF.DASHBOARD}/`, "");
 
 // Component bảo vệ các tuyến đường yêu cầu đăng nhập và phân quyền (RBAC)
 const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
@@ -366,7 +368,7 @@ const App: React.FC = () => {
 
               {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
               <Route
-                element={<ProtectedRoute allowedRoles={["MANAGER", "STAFF"]} />}
+                element={<ProtectedRoute allowedRoles={["MANAGER"]} />}
               >
                 <Route
                   path={PATH.MANAGER.DASHBOARD}
@@ -487,6 +489,32 @@ const App: React.FC = () => {
                     path={childPath(PATH.MANAGER.PAYOUT)}
                     element={mock("Payout", "Partner")}
                   />
+                </Route>
+              </Route>
+
+              <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
+                <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
+                  <Route index element={mock("Assigned Schedules", "Staff")} />
+                  
+                  {/* UC-49: Assigned Schedules */}
+                  <Route path={childPath(PATH.STAFF.SCHEDULES)} element={mock("Assigned Schedules List", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={mock("Schedule Details", "Staff")} />
+
+                  {/* UC-50: QR Check-In */}
+                  <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={mock("QR Check-in Scanner", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("Process Check-in", "Staff")} />
+
+                  {/* UC-51: Tickets */}
+                  <Route path={childPath(PATH.STAFF.TICKETS)} element={mock("System Tickets", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.TICKET_DETAIL())} element={mock("Ticket Details", "Staff")} />
+
+                  {/* UC-52: Track Locations */}
+                  <Route path={childPath(PATH.STAFF.LOCATIONS)} element={mock("Location Tracking", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS())} element={mock("Live Map Tracking", "Staff")} />
+
+                  {/* UC-53: Customers */}
+                  <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={mock("Customers Overview", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={mock("Schedule Guest List", "Staff")} />
                 </Route>
               </Route>
 

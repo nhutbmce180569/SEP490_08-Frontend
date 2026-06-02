@@ -10,3 +10,4 @@ export * from './content.api';
 export * from './voucher.api';
 export * from './ai.api';
 export * from './customer-analytics.api';
+export * from './platform-analytics.api';

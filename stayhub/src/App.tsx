@@ -93,6 +93,7 @@ import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
+import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -527,7 +528,11 @@ const App: React.FC = () => {
               {/* Phân hệ Quản trị viên cấp cao (Admin) */}
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                 <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
-                  <Route index element={mock("Admin Dashboard", "Admin")} />
+                  <Route index element={<Navigate to={PATH.ADMIN.PLATFORM_ANALYTICS} replace />} />
+                  <Route
+                    path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}
+                    element={<PlatformAnalyticsPage />}
+                  />
                   <Route
                     path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
                     element={<CustomerAnalyticsPage />}

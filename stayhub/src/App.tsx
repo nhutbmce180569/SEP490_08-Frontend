@@ -75,8 +75,9 @@ import { DeleteScheduleTicket } from "./features/tour/pages/DeleteScheduleTicket
 import { ScheduleCustomersPage } from "./features/booking/pages/ScheduleCustomersPage";
 import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
-import { AiQuestionnairePage } from "./features/ai/pages/AiQuestionnairePage";
+import { AiQuestionnairePage, AiPlannerModal } from "./features/ai/pages/AiQuestionnairePage";
 import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
+import { AiPlannerProvider } from "./contexts/AiPlannerContext";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
@@ -270,8 +271,10 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <AuthProvider>
+          <AiPlannerProvider>
           <Router>
             <CustomBrandCursor />
+            <AiPlannerModal />
             <ScrollToTop />
             <Routes>
               <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
@@ -325,7 +328,10 @@ const App: React.FC = () => {
 
                 {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                 <Route element={<ProtectedRoute />}>
-                <Route path="/chat" element={<ChatPage />} />
+                  <Route
+                    path="/chat"
+                    element={<Navigate to={PATH.CUSTOMER.SOCIAL_CHAT} replace />}
+                  />
                   <Route element={<ProfileLayout />}>
                     <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
                     <Route
@@ -368,8 +374,10 @@ const App: React.FC = () => {
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
                     />
-                    <Route path="/social/chat" 
-                    element={<ChatPage />} />
+                    <Route
+                      path={PATH.CUSTOMER.SOCIAL_CHAT}
+                      element={<ChatPage />}
+                    />
                   </Route>
                 </Route>
               </Route>
@@ -627,6 +635,7 @@ const App: React.FC = () => {
               />
             </Routes>
           </Router>
+          </AiPlannerProvider>
         </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>

@@ -20,47 +20,40 @@ export const AiModelsNotReadyBanner: React.FC<Props> = ({ onRetry }) => {
   }, [countdown, onRetry]);
 
   return (
-    <div
-      className="rounded-2xl p-8 text-center"
-      style={{
-        background: "#FFFBEB",
-        border: "1px solid rgba(245,158,11,0.25)",
-      }}
-    >
-      <div className="flex justify-center mb-4">
-        <div
-          className="w-14 h-14 rounded-full flex items-center justify-center animate-pulse"
-          style={{ background: "#FEF3C7" }}
-        >
-          <AlertTriangle size={28} className="text-amber-600" />
-        </div>
+    <div className="glass-card rounded-2xl p-7 text-center">
+      <div className="mb-4 flex justify-center">
+        <span className="flex h-14 w-14 animate-pulse items-center justify-center rounded-full bg-amber-100 text-amber-600">
+          <AlertTriangle size={26} />
+        </span>
       </div>
-      <h3 className="text-lg font-black text-slate-800 mb-2">
-        AI đang khởi động...
-      </h3>
-      <p className="text-sm text-slate-600 font-medium max-w-md mx-auto mb-6">
-        Mô hình ML chưa sẵn sàng. Hệ thống sẽ thử lại tự động sau {countdown}s.
+      <h3 className="travel-heading mb-2 text-lg text-navy">AI is warming up…</h3>
+      <p className="mx-auto mb-6 max-w-sm text-sm font-medium text-slate-500">
+        The recommendation model is starting. Will retry automatically in{" "}
+        <span className="font-bold text-navy">{countdown}s</span>.
       </p>
 
-      {/* Skeleton cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-3">
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="rounded-2xl overflow-hidden animate-pulse"
-            style={{ border: "1px solid rgba(5,7,60,0.06)" }}
+            className="animate-pulse overflow-hidden rounded-xl border border-slate-200"
           >
-            <div className="bg-slate-200 aspect-[4/3]" />
-            <div className="p-4 space-y-3">
-              <div className="h-3 bg-slate-200 rounded w-3/4" />
-              <div className="h-3 bg-slate-200 rounded w-1/2" />
+            <div className="aspect-[4/3] bg-slate-200" />
+            <div className="space-y-2 p-3">
+              <div className="h-2.5 w-3/4 rounded bg-slate-200" />
+              <div className="h-2.5 w-1/2 rounded bg-slate-200" />
             </div>
           </div>
         ))}
       </div>
 
-      <ActionButton variant="primary" onClick={onRetry} className="!px-6 inline-flex gap-2">
-        <RefreshCw size={16} /> Thử lại ngay
+      <ActionButton
+        variant="primary"
+        onClick={onRetry}
+        className="!px-6 inline-flex gap-2"
+      >
+        <RefreshCw size={15} />
+        Retry now
       </ActionButton>
     </div>
   );

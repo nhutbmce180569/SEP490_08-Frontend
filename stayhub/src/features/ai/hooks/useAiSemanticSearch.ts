@@ -13,7 +13,7 @@ export const useAiSemanticSearch = () => {
     async (query: string, options?: { top?: number; maxPrice?: number }) => {
       const trimmed = query.trim();
       if (trimmed.length < 2) {
-        showError("Từ khóa tìm kiếm phải có ít nhất 2 ký tự.");
+        showError("Search query must be at least 2 characters.");
         return [];
       }
 
@@ -28,7 +28,7 @@ export const useAiSemanticSearch = () => {
         setResults(list);
         return list;
       } catch (err: unknown) {
-        showError(getApiErrorMessage(err, "Tìm kiếm AI thất bại."));
+        showError(getApiErrorMessage(err, "AI search failed. Please try again."));
         return [];
       } finally {
         setIsSearching(false);

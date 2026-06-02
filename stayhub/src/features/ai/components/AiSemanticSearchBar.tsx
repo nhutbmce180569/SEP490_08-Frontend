@@ -11,7 +11,7 @@ interface Props {
 
 export const AiSemanticSearchBar: React.FC<Props> = ({
   className = "",
-  placeholder = "Tìm tour bằng AI — VD: tour văn hóa miền Trung 4 ngày",
+  placeholder = "Search tours with AI — e.g. 4-day cultural tour in Central Vietnam",
 }) => {
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -83,13 +83,13 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
         >
           {results.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm font-bold text-slate-600 mb-2">Không tìm thấy tour phù hợp</p>
+              <p className="text-sm font-bold text-slate-600 mb-2">No matching tours found</p>
               <button
                 type="button"
                 onClick={goToAiAssistant}
                 className="text-xs font-bold text-brand hover:underline"
               >
-                Thử khảo sát AI chi tiết →
+                Try a detailed AI survey →
               </button>
             </div>
           ) : (
@@ -120,7 +120,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
                 onClick={goToAiAssistant}
                 className="w-full py-3 text-xs font-black text-brand hover:bg-brand-light transition-colors"
               >
-                Gợi ý cá nhân hóa với AI →
+                Get personalised AI recommendations →
               </button>
             </>
           )}

@@ -37,7 +37,7 @@ export const useRecommendFromProfile = () => {
         setData(result);
         return result;
       } catch (err: unknown) {
-        const message = getApiErrorMessage(err, "Không thể lấy gợi ý tour.");
+        const message = getApiErrorMessage(err, "Unable to get tour recommendations.");
         const validation = getApiValidationErrors(err);
 
         if (isAiModelsNotReadyMessage(message)) {

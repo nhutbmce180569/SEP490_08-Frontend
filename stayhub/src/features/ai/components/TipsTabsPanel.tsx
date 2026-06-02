@@ -11,10 +11,10 @@ interface Props {
 type TabKey = "general" | "foreign" | "elderly" | "children";
 
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "general", label: "Chung" },
-  { key: "foreign", label: "Khách quốc tế" },
-  { key: "elderly", label: "Người cao tuổi" },
-  { key: "children", label: "Trẻ em" },
+  { key: "general", label: "General" },
+  { key: "foreign", label: "International" },
+  { key: "elderly", label: "Elderly" },
+  { key: "children", label: "Families" },
 ];
 
 export const TipsTabsPanel: React.FC<Props> = ({
@@ -38,48 +38,33 @@ export const TipsTabsPanel: React.FC<Props> = ({
   const currentTips = tipsMap[active] ?? [];
 
   return (
-    <div
-      className="rounded-2xl p-5 h-full flex flex-col"
-      style={{
-        background: "#fff",
-        border: "1px solid rgba(5,7,60,0.08)",
-        boxShadow: "0 2px 12px rgba(5,7,60,0.04)",
-      }}
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <Lightbulb size={18} style={{ color: "var(--color-brand)" }} />
-        <h3 className="text-sm font-black text-slate-800">Mẹo du lịch</h3>
+    <div className="glass-card flex h-full flex-col p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <Lightbulb size={17} className="text-brand" />
+        <h3 className="text-sm font-bold text-navy">Travel tips</h3>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="mb-4 flex flex-wrap gap-2">
         {availableTabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActive(tab.key)}
-            className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
-            style={{
-              background: active === tab.key ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
-              color: active === tab.key ? "#fff" : "#64748b",
-              border: "1px solid rgba(5,7,60,0.08)",
-            }}
+            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all ${
+              active === tab.key
+                ? "bg-brand text-white"
+                : "border border-slate-200 bg-white text-slate-500 hover:border-brand/30 hover:text-brand"
+            }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      <ul className="space-y-3 flex-1 overflow-y-auto max-h-64">
+      <ul className="max-h-60 flex-1 space-y-2.5 overflow-y-auto pr-1">
         {currentTips.map((tip, i) => (
-          <li
-            key={i}
-            className="text-sm text-slate-600 font-medium leading-relaxed pl-4 relative before:content-[''] before:absolute before:left-0 before:top-2 before:w-1.5 before:h-1.5 before:rounded-full"
-            style={{ ["--tw-before-bg" as string]: "var(--color-brand)" }}
-          >
-            <span
-              className="absolute left-0 top-2 w-1.5 h-1.5 rounded-full"
-              style={{ background: "var(--color-brand)" }}
-            />
+          <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-slate-600">
+            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
             {tip}
           </li>
         ))}

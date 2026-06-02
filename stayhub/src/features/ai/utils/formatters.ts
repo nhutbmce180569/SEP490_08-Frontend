@@ -1,5 +1,5 @@
 export const formatVnd = (amount?: number | null) => {
-  if (amount == null || Number.isNaN(amount)) return "Liên hệ";
+  if (amount == null || Number.isNaN(amount)) return "Contact us";
   return `${amount.toLocaleString("vi-VN")} đ`;
 };
 

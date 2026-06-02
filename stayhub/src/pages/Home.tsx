@@ -8,7 +8,7 @@ import { HomeCTA } from "../components/home/sections/HomeCTA";
 
 export default function Home() {
   return (
-    <div className="-mt-[76px]">
+    <div className="-mt-[68px]">
       <HomeHero />
       <div className="home-page">
         <HomeExploreStrip />

@@ -25,7 +25,7 @@ export const SimilarToursSection: React.FC<Props> = ({ tourId, top = 5 }) => {
           className="text-2xl font-black text-slate-900"
           style={{ fontFamily: "'Sora', sans-serif" }}
         >
-          Tour tương tự (AI)
+          Similar tours (AI)
         </h2>
       </div>
 

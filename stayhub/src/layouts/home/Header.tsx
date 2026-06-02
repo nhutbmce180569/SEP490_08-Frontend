@@ -9,13 +9,13 @@ import {
   Map,
   Users,
   Sparkles,
-  MessageCircle,
   Search,
   ShoppingBag,
 } from "lucide-react";
 
 import { ActionButton } from "../../components/home/ActionButton";
 import { StayHubLogo } from "../../components/brand/StayHubLogo";
+import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
@@ -29,6 +29,7 @@ import { useGetPendingRequests } from "../../features/social/friends/hooks/useFr
 export default function Header() {
   const navigate = useNavigate();
   const { success } = useToast();
+  const { open: openAiPlanner } = useAiPlanner();
   const { user, logout: contextLogout } = useContext(AuthContext);
 
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
@@ -113,7 +114,7 @@ export default function Header() {
 
   return (
     <header className="site-header">
-      <div className="page-container flex h-[72px] items-center gap-3 md:h-[76px] md:gap-4">
+      <div className="page-container flex h-16 items-center gap-3 md:h-[68px] md:gap-4">
         {/* Logo + search */}
         <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
           <StayHubLogo />
@@ -144,7 +145,7 @@ export default function Header() {
 
           <ActionButton
             variant="ghost"
-            onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
+            onClick={openAiPlanner}
             className="hidden gap-1.5 sm:inline-flex"
             title="AI tour recommendations"
           >
@@ -253,16 +254,6 @@ export default function Header() {
               >
                 <Heart className="h-5 w-5" />
               </button>
-
-              <Link
-                to="/social/chat"
-                className="icon-btn relative"
-                title="Messages"
-                aria-label="Messages"
-              >
-                <MessageCircle className="h-5 w-5" />
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
-              </Link>
 
               <NotificationBell />
 

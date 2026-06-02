@@ -20,42 +20,42 @@ export const validateQuestionnaireField = (
 
   switch (field.inputType) {
     case "single_select":
-      if (isEmpty(raw)) return `${field.label} là bắt buộc.`;
+      if (isEmpty(raw)) return `${field.label} is required.`;
       return null;
 
     case "multi_select": {
       const arr = Array.isArray(raw) ? raw : [];
       if (field.required && arr.length < 1)
-        return "Chọn ít nhất một sở thích du lịch.";
+        return "Please select at least one travel interest.";
       return null;
     }
 
     case "date":
-      if (isEmpty(raw)) return `${field.label} là bắt buộc.`;
+      if (isEmpty(raw)) return `${field.label} is required.`;
       if (typeof raw === "string" && !/^\d{4}-\d{2}-\d{2}$/.test(raw))
-        return "Ngày không hợp lệ (YYYY-MM-DD).";
+        return "Invalid date format (YYYY-MM-DD).";
       return null;
 
     case "number": {
-      if (isEmpty(raw)) return field.required ? `${field.label} là bắt buộc.` : null;
+      if (isEmpty(raw)) return field.required ? `${field.label} is required.` : null;
       const n = Number(raw);
-      if (Number.isNaN(n) || n < 0) return "Số tiền phải là số không âm.";
+      if (Number.isNaN(n) || n < 0) return "Amount must be a non-negative number.";
       return null;
     }
 
     case "boolean":
       if (field.required && typeof raw !== "boolean")
-        return `${field.label} là bắt buộc.`;
+        return `${field.label} is required.`;
       return null;
 
     case "text":
-      if (field.required && isEmpty(raw)) return `${field.label} là bắt buộc.`;
+      if (field.required && isEmpty(raw)) return `${field.label} is required.`;
       if (typeof raw === "string" && raw.length > 100)
-        return "Tối đa 100 ký tự.";
+        return "Maximum 100 characters.";
       return null;
 
     default:
-      if (field.required && isEmpty(raw)) return `${field.label} là bắt buộc.`;
+      if (field.required && isEmpty(raw)) return `${field.label} is required.`;
       return null;
   }
 };
@@ -86,28 +86,28 @@ export const validateExtraCounts = (
   if (values.hasElderly === true) {
     const count = values.elderlyCount;
     if (count == null || Number(count) < 1)
-      errors.elderlyCount = "Nhập số người cao tuổi (≥ 1).";
-    else if (Number(count) > 20) errors.elderlyCount = "Tối đa 20 người.";
+      errors.elderlyCount = "Enter number of elderly travelers (≥ 1).";
+    else if (Number(count) > 20) errors.elderlyCount = "Maximum 20 people.";
   }
 
   if (values.hasChildren === true) {
     const count = values.childrenCount;
     if (count == null || Number(count) < 1)
-      errors.childrenCount = "Nhập số trẻ em (≥ 1).";
-    else if (Number(count) > 20) errors.childrenCount = "Tối đa 20 người.";
+      errors.childrenCount = "Enter number of children (≥ 1).";
+    else if (Number(count) > 20) errors.childrenCount = "Maximum 20 people.";
   }
 
   const start = values.preferredStartDate as string | undefined;
   const end = values.preferredEndDate as string | undefined;
   if (start && end && end < start) {
-    errors.preferredEndDate = "Ngày kết thúc phải sau ngày bắt đầu.";
+    errors.preferredEndDate = "End date must be after start date.";
   }
 
   const top = values.top;
   if (top != null && top !== "") {
     const n = Number(top);
     if (Number.isNaN(n) || n < 1 || n > 30)
-      errors.top = "Số tour gợi ý từ 1 đến 30.";
+      errors.top = "Number of results must be between 1 and 30.";
   }
 
   return errors;

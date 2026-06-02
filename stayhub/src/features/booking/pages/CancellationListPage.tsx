@@ -2,24 +2,33 @@ import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, FileText, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
+import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useCancellationRequests } from "../hooks/useCancellationRequests";
 import type { CancellationRequestListDTO } from "../types/cancellation";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
+
+const PAGE_SIZE = 5;
 
 const formatDate = (date?: string) => {
   if (!date) return "N/A";
   return new Date(date).toLocaleString();
 };
 
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+const formatCurrency = (amount?: number) => {
+  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0);
 };
 
 export const CancellationListPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("");
-  const { data: requests, isLoading, error } = useCancellationRequests(statusFilter);
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useCancellationRequests(statusFilter, page, PAGE_SIZE);
   const navigate = useNavigate();
+
+  const requests = data?.data ?? [];
+  const totalPages = data?.totalPages ?? 1;
+  const currentPage = data?.currentPage ?? page;
+  const totalItems = data?.total ?? 0;
 
   const columns: Column<CancellationRequestListDTO>[] = useMemo(
     () => [
@@ -46,8 +55,9 @@ export const CancellationListPage: React.FC = () => {
       {
         header: "Status",
         render: (item) => {
-          const isPending = item.status === "Pending";
-          const isApproved = item.status === "Approved";
+          const normalizedStatus = item.status?.toLowerCase();
+          const isPending = normalizedStatus === "pending";
+          const isApproved = normalizedStatus === "approved";
           return (
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -88,7 +98,10 @@ export const CancellationListPage: React.FC = () => {
       <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center">
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
         >
           <option value="">All Statuses</option>
@@ -103,8 +116,16 @@ export const CancellationListPage: React.FC = () => {
       ) : error ? (
         <div className="flex justify-center p-10 text-rose-500">Failed to load requests.</div>
       ) : (
-        <Table data={requests || []} columns={columns} keyExtractor={(item) => item.id} emptyMessage="No cancellation requests found." />
+        <Table data={requests} columns={columns} keyExtractor={(item) => item.id} emptyMessage="No cancellation requests found." />
       )}
+
+      <PaginationButton
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 };

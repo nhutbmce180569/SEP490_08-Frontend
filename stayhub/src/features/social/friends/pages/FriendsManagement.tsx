@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserCheck, UserX, Clock, Search, Send, Loader2, MessageCircle } from 'lucide-react';
+import { UserCheck, UserX, Clock, Search, Send, Loader2, MessageCircle, UserPlus } from 'lucide-react';
 import { 
   useGetFriendships, 
   useGetPendingRequests, 
@@ -56,13 +56,13 @@ export const FriendsManagement: React.FC = () => {
       .build();
 
     connection.on("ReceiveFriendRequest", (payload: any) => {
-      success('Bạn có lời mời kết bạn mới!');
+      success('You have a new friend request!');
       queryClient.invalidateQueries({ queryKey: friendQueryKeys.pending() });
     });
 
     connection.on("FriendRequestResponded", (responderId: number, status: string) => {
       if (status === 'Accepted') {
-        success('Một lời mời kết bạn đã được chấp nhận!');
+        success('A friend request has been accepted!');
         queryClient.invalidateQueries({ queryKey: friendQueryKeys.pending() });
         queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
       } else if (status === 'Declined') {
@@ -71,13 +71,13 @@ export const FriendsManagement: React.FC = () => {
     });
 
     connection.on("FriendshipDeleted", (deletedFriendId: number) => {
-      warning('Một người bạn đã hủy kết bạn.');
+      warning('A friend has unfriended you.');
       queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
     });
 
     connection.start().catch((err) => {
       if (err.name === 'AbortError' || err.message.includes('negotiation')) {
-        console.warn("SignalR: Hủy đàm phán do React Strict Mode re-mount (Bỏ qua được).");
+        console.warn("SignalR: Negotiation cancelled due to React Strict Mode re-mount (Ignorable).");
       } else {
         console.error("SignalR Connection Error: ", err);
       }
@@ -95,7 +95,7 @@ export const FriendsManagement: React.FC = () => {
       {
         onSuccess: () => success(isAccepted ? "Friend request accepted!" : "Friend request declined!"),
         onError: (err: any) => {
-          console.error("LỖI ACCEPT/DECLINE:", err.response?.data);
+          console.error("ERROR ACCEPT/DECLINE:", err.response?.data);
           
           const validationErrors = err.response?.data?.errors;
           let errorDetail = "";
@@ -103,8 +103,8 @@ export const FriendsManagement: React.FC = () => {
              errorDetail = Object.values(validationErrors).flat().join(" | ");
           }
           
-          const msg = errorDetail || err.response?.data?.message || err.response?.data || "Lỗi 400: Sai định dạng dữ liệu DTO.";
-          error(typeof msg === 'string' ? msg : "Lỗi hệ thống không xác định");
+          const msg = errorDetail || err.response?.data?.message || err.response?.data || "Error 400: Invalid DTO data format.";
+          error(typeof msg === 'string' ? msg : "Unknown system error");
         }
       }
     );
@@ -141,15 +141,15 @@ export const FriendsManagement: React.FC = () => {
         if (roomId) {
           navigate('/social/chat?roomId=' + roomId);
         } else {
-          error('Không lấy được thông tin phòng chat!');
+          error('Could not get chat room information!');
         }
       },
       onError: (err: any) => {
         const msg =
           err.response?.data?.message ||
           err.response?.data ||
-          'Lỗi tạo phòng chat';
-        error(typeof msg === 'string' ? msg : 'Lỗi hệ thống không xác định');
+          'Error creating chat room';
+        error(typeof msg === 'string' ? msg : 'Unknown system error');
       },
     });
   };
@@ -339,14 +339,24 @@ export const FriendsManagement: React.FC = () => {
                       <p className="text-xs text-slate-500">{user?.email}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={() => handleCreateChat(user?.id)}
-                    disabled={isSending}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50"
-                  >
-                    <Send className="w-4 h-4" />
-                    Message
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleSendRequest(user?.id)}
+                      disabled={isSending}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Add Friend
+                    </button>
+                    <button
+                      onClick={() => handleCreateChat(user?.id)}
+                      disabled={isCreatingChat}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Message
+                    </button>
+                  </div>
                 </div>
               )})}
             </div>

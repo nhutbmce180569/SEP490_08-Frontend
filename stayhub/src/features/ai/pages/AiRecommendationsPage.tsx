@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw, Sparkles } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
@@ -14,7 +14,11 @@ import { useRecommendFromProfile } from "../hooks/useRecommendFromProfile";
 import { useLogAiInteraction } from "../hooks/useLogAiInteraction";
 import type { PersonalizedRecommendationResponse } from "../types/tourAssistant";
 
+import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
+
 export const AiRecommendationsPage: React.FC = () => {
+  const { t } = useTranslation();
+  const { locale } = useLocale();
   const location = useLocation();
   const navigate = useNavigate();
   const stateData = location.state as PersonalizedRecommendationResponse | undefined;
@@ -22,8 +26,32 @@ export const AiRecommendationsPage: React.FC = () => {
     useRecommendFromProfile();
   const logInteraction = useLogAiInteraction();
   const retriedRef = useRef(false);
+  const [data, setData] = useState<PersonalizedRecommendationResponse | undefined>(
+    stateData ?? hookData ?? undefined,
+  );
+  const prevLocaleRef = useRef(locale);
 
-  const data = stateData ?? hookData;
+  useEffect(() => {
+    setData(stateData ?? hookData ?? undefined);
+  }, [stateData, hookData]);
+
+  useEffect(() => {
+    if (prevLocaleRef.current === locale) return;
+    prevLocaleRef.current = locale;
+
+    const profile = data?.appliedProfile;
+    if (!profile) return;
+
+    submit(profile)
+      .then((result) => {
+        if (result) {
+          setData(result);
+          navigate(PATH.PUBLIC.AI_RECOMMENDATIONS, { state: result, replace: true });
+        }
+      })
+      .catch(() => { /* keep previous results on failure */ });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch when user switches language
+  }, [locale]);
 
   useEffect(() => {
     if (!data && !retriedRef.current) {

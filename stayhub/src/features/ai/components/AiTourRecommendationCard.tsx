@@ -13,6 +13,7 @@ import { PATH } from "../../../config/routes/route";
 import { getImg } from "../../../config/api/api";
 import type { TourRecommendationItem } from "../types/tourAssistant";
 import { formatMatchPercent, formatVnd } from "../utils/formatters";
+import { resolvePublicTourId } from "../utils/catalogTourId";
 import { ScoreBreakdownPanel } from "./ScoreBreakdownPanel";
 
 interface Props {
@@ -27,14 +28,15 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   compact,
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const location = [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam";
+  const publicTourId = resolvePublicTourId(tour.tourId);
+  const location = [tour.city, tour.country].filter(Boolean).join(", ") || ("home.vietnam");
   const imageUrl = tour.imageUrl ? getImg(tour.imageUrl) : "";
 
   return (
     <div className="glass-card flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
       <Link
-        to={PATH.PUBLIC.TOUR_DETAIL(tour.tourId)}
-        onClick={() => onTourClick?.(tour.tourId)}
+        to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
+        onClick={() => onTourClick?.(publicTourId)}
         className="group block !no-underline"
       >
         <div
@@ -82,8 +84,8 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
         </div>
 
         <Link
-          to={PATH.PUBLIC.TOUR_DETAIL(tour.tourId)}
-          onClick={() => onTourClick?.(tour.tourId)}
+          to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
+          onClick={() => onTourClick?.(publicTourId)}
           className="!no-underline"
         >
           <h3 className="mb-2 line-clamp-2 text-base font-black text-slate-900 hover:text-brand transition-colors">
@@ -158,8 +160,8 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
         )}
 
         <Link
-          to={PATH.PUBLIC.TOUR_DETAIL(tour.tourId)}
-          onClick={() => onTourClick?.(tour.tourId)}
+          to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
+          onClick={() => onTourClick?.(publicTourId)}
           className="mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-white !no-underline transition-opacity hover:opacity-90"
           style={{ background: "var(--color-brand)" }}
         >

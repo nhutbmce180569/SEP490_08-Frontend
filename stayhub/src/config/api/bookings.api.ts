@@ -11,6 +11,7 @@ export const BOOKINGS_API = {
   GET_ORDER_BY_ID: (id: string | number) => `${FULL_API}/orders/my/${id}`,
   CANCEL_ORDER: (id: string | number) => `${FULL_API}/orders/${id}/cancel`,
   GET_OPERATOR_ORDERS: `${FULL_API}/operator/orders`,
+  GET_BOOKING_STATISTICS: `${FULL_API}/internal/analytics/orders/booking-statistics`,
   
   // Cancellation Requests
   CREATE_CANCELLATION_REQUEST: `${FULL_API}/CancellationRequest`,

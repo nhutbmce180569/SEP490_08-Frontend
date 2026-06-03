@@ -100,6 +100,7 @@ import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleT
 import { LocationTrackingPage } from "./features/social/tracking/pages/LocationTrackingPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
+import { BookingStatisticsPage } from "./features/booking/pages/BookingStatisticsPage";
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
@@ -484,6 +485,10 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.MANAGER.CUSTOMER_ANALYTICS)}
                     element={<CustomerAnalyticsPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.BOOKING_STATISTICS)}
+                    element={<BookingStatisticsPage />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.PAYOUT)}

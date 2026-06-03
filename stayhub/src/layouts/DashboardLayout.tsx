@@ -82,6 +82,11 @@ export const DashboardLayout = () => {
             icon: <BarChart3 className={iconClass} />,
           },
           {
+            label: t("manager.bookingStatistics"),
+            to: PATH.MANAGER.BOOKING_STATISTICS,
+            icon: <TicketPercent className={iconClass} />,
+          },
+          {
             label: t("manager.finance"),
             to: PATH.MANAGER.PAYOUT,
             icon: <CircleDollarSign className={iconClass} />,

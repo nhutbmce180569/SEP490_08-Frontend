@@ -15,6 +15,7 @@ export const MANAGER_ROUTES = {
   EDIT_OPERATOR_VOUCHER: (id: string | number = ':id') => `/manager/vouchers/${id}/edit`,
   REVIEWS: '/manager/reviews',
   CUSTOMER_ANALYTICS: '/manager/customer-analytics',
+  BOOKING_STATISTICS: '/manager/booking-statistics',
   PAYOUT: '/manager/payout',
 
   // Dynamic Routes & Delete Confirms

@@ -13,6 +13,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { CustomBrandCursor } from "./components/ui/CustomBrandCursor";
 import { PATH } from "./config/routes/route";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { AdminLayout } from "./layouts/AdminLayout";
 import { DashboardLayout } from "./layouts/DashboardLayout";
@@ -272,6 +273,7 @@ const MomentsRouteWrapper = () => {
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
           <AiPlannerProvider>
@@ -644,6 +646,7 @@ const App: React.FC = () => {
           </AiPlannerProvider>
         </AuthProvider>
       </ToastProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 };

@@ -47,7 +47,7 @@ export const TourAssistantChatWidget = () => {
       )}
 
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 flex h-[min(80vh,560px)] w-[min(100vw-2rem,400px)] flex-col overflow-hidden rounded-3xl border border-navy/10 bg-white shadow-2xl shadow-brand/10">
+        <div className="ai-chat-panel fixed bottom-6 right-6 z-50 flex h-[min(80vh,560px)] w-[min(100vw-2rem,400px)] flex-col overflow-hidden rounded-3xl">
           <div className="ai-surface-header flex shrink-0 items-center justify-between px-4 py-3 text-white">
             <div className="flex items-center gap-2">
               <Sparkles size={18} />
@@ -76,13 +76,13 @@ export const TourAssistantChatWidget = () => {
             </div>
           </div>
 
-          <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/80 p-4">
+          <div className="ai-chat-messages custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4">
             {messages.length === 0 && (
               <div className="px-4 py-8 text-center">
-                <p className="mb-2 text-sm font-bold text-navy">
+                <p className="mb-2 text-sm font-bold text-[var(--color-navy)]">
                   Hi! How can I help you plan your trip?
                 </p>
-                <p className="mb-4 text-xs font-medium text-slate-500">
+                <p className="mb-4 text-xs font-medium text-[var(--text-muted)]">
                   Ask in natural language — budget, destination, group size, and more.
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
@@ -91,7 +91,7 @@ export const TourAssistantChatWidget = () => {
                       key={q}
                       type="button"
                       onClick={() => handleSend(q)}
-                      className="ai-chip rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors hover:bg-brand-light/80"
+                      className="ai-chip rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors"
                     >
                       {q}
                     </button>
@@ -109,7 +109,7 @@ export const TourAssistantChatWidget = () => {
                     className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm font-medium leading-relaxed ${
                       msg.role === "user"
                         ? "ai-user-bubble rounded-br-md text-white"
-                        : "rounded-bl-md border border-slate-200/80 bg-white text-slate-700"
+                        : "ai-chat-bubble-assistant rounded-bl-md"
                     }`}
                   >
                     {msg.text}
@@ -137,7 +137,7 @@ export const TourAssistantChatWidget = () => {
                         key={q}
                         type="button"
                         onClick={() => handleSend(q)}
-                        className="ai-chip rounded-full px-2.5 py-1 text-[10px] font-semibold"
+                        className="ai-chip rounded-full px-2.5 py-1 text-[10px] font-semibold transition-colors"
                       >
                         {q}
                       </button>
@@ -149,7 +149,7 @@ export const TourAssistantChatWidget = () => {
 
             {isSending && (
               <div className="flex justify-start">
-                <div className="flex gap-1 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <div className="ai-chat-bubble-assistant flex gap-1 rounded-2xl px-4 py-3">
                   {[0, 1, 2].map((i) => (
                     <span
                       key={i}
@@ -163,7 +163,7 @@ export const TourAssistantChatWidget = () => {
             <div ref={bottomRef} />
           </div>
 
-          <div className="flex shrink-0 gap-2 border-t border-slate-100 bg-white p-3">
+          <div className="ai-chat-footer flex shrink-0 gap-2 p-3">
             <input
               ref={inputRef}
               type="text"

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { StayHubLogo } from "../../../components/brand/StayHubLogo";
+import { ThemeToggle } from "../../../components/ui/ThemeToggle";
 import { PATH } from "../../../config/routes/route";
 
 export type AuthLayoutProps = {
@@ -48,14 +49,18 @@ export function AuthLayout({
       </div>
 
       <div
-        className={`relative flex w-full bg-slate-50 lg:w-1/2 lg:bg-white/60 lg:backdrop-blur-sm ${
+        className={`relative flex w-full bg-slate-50 dark:bg-slate-900 lg:w-1/2 lg:bg-white/60 lg:dark:bg-slate-900/80 lg:backdrop-blur-sm ${
           scrollable
             ? "min-h-screen flex-col overflow-y-auto px-4 py-6 sm:px-8 sm:py-10 lg:items-center lg:justify-center lg:p-16"
             : "items-center justify-center px-4 py-8 sm:px-8 lg:p-16"
         }`}
       >
+        <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+          <ThemeToggle />
+        </div>
+
         <div
-          className={`w-full max-w-md border border-slate-200 bg-white shadow-sm ${
+          className={`w-full max-w-md border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800/90 dark:shadow-black/20 ${
             scrollable
               ? "mx-auto rounded-lg px-5 py-6 sm:px-7 sm:py-8 lg:rounded-xl"
               : "rounded-lg px-5 py-6 sm:rounded-xl sm:px-7 sm:py-8"

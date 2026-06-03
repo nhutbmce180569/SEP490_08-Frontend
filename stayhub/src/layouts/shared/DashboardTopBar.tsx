@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { ActionButton } from "../../components/dashboard/ActionButton";
+import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -135,6 +136,8 @@ export function DashboardTopBar({
           <Home className="h-4 w-4" />
           <span className="text-xs font-semibold">Home</span>
         </ActionButton>
+
+        <ThemeToggle />
 
         <div className="relative">
           <button

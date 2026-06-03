@@ -47,8 +47,7 @@ const AiQuestionnaireDialog: React.FC = () => {
   return ReactDOM.createPortal(
     /* Backdrop — z-[200] to sit above everything (header z-50, chat widget z-50) */
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6"
-      style={{ background: "rgba(5,7,60,0.6)", backdropFilter: "blur(7px)" }}
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-[var(--overlay-backdrop)] p-4 backdrop-blur-md md:p-6"
       onClick={(e) => { if (e.target === e.currentTarget) close(); }}
       role="dialog"
       aria-modal="true"
@@ -56,24 +55,18 @@ const AiQuestionnaireDialog: React.FC = () => {
     >
       {/* Dialog */}
       <div
-        className="relative flex w-full max-w-xl flex-col overflow-hidden"
-        style={{
-          maxHeight: "min(90vh, 680px)",
-          borderRadius: "1.5rem",
-          border: "1px solid rgba(255,255,255,0.82)",
-          background: "#fff",
-          boxShadow: "0 24px 64px rgba(5,7,60,0.28), 0 4px 16px rgba(5,7,60,0.12)",
-        }}
+        className="ai-planner-dialog relative flex w-full max-w-xl flex-col overflow-hidden rounded-3xl"
+        style={{ maxHeight: "min(90vh, 680px)" }}
       >
         {/* Header */}
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-100 px-6 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-[var(--border-subtle)] px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-light text-brand">
               <Sparkles size={20} strokeWidth={2.25} />
             </span>
             <div>
               <p className="travel-eyebrow leading-none">AI Travel Planner</p>
-              <h2 className="text-base font-bold text-navy mt-0.5">
+              <h2 className="mt-0.5 text-base font-bold text-[var(--color-navy)]">
                 Find your perfect tour
               </h2>
             </div>
@@ -81,7 +74,7 @@ const AiQuestionnaireDialog: React.FC = () => {
           <button
             type="button"
             onClick={close}
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+            className="icon-btn !h-9 !w-9 rounded-xl"
             aria-label="Close"
           >
             <X size={18} />
@@ -89,15 +82,15 @@ const AiQuestionnaireDialog: React.FC = () => {
         </div>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="custom-scrollbar flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex flex-col items-center gap-4 py-20">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-              <p className="text-sm font-semibold text-slate-400">Loading survey…</p>
+              <p className="text-sm font-semibold text-[var(--text-muted)]">Loading survey…</p>
             </div>
           ) : error ? (
-            <div className="m-6 rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
-              <p className="mb-4 font-bold text-rose-600">Failed to load survey</p>
+            <div className="m-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-8 text-center dark:bg-rose-950/30">
+              <p className="mb-4 font-bold text-rose-500 dark:text-rose-400">Failed to load survey</p>
               <ActionButton variant="primary" onClick={() => refetch()}>
                 Try again
               </ActionButton>
@@ -117,9 +110,9 @@ const AiQuestionnaireDialog: React.FC = () => {
               />
             </div>
           ) : questions.length === 0 ? (
-            <div className="m-6 rounded-2xl border border-slate-200 bg-slate-50 p-10 text-center">
-              <Sparkles size={32} className="mx-auto mb-3 text-slate-300" />
-              <p className="font-medium text-slate-500">No questions available from server.</p>
+            <div className="m-6 rounded-2xl border border-[var(--border-default)] bg-[var(--surface-dashboard)] p-10 text-center">
+              <Sparkles size={32} className="mx-auto mb-3 text-[var(--text-placeholder)]" />
+              <p className="font-medium text-[var(--text-muted)]">No questions available from server.</p>
             </div>
           ) : (
             <QuestionnaireWizard

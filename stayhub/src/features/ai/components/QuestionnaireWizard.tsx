@@ -92,15 +92,15 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         <div className="mb-2 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles size={15} className="text-brand" />
-            <span className="text-xs font-bold text-slate-700">
+            <span className="text-xs font-bold text-[var(--color-navy)]">
               Step {step + 1} of {totalSteps}
             </span>
           </div>
-          <span className="text-xs font-medium text-slate-400">
+          <span className="text-xs font-medium text-[var(--text-muted)]">
             {Math.round(progress)}% complete
           </span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
           <div
             className="h-full rounded-full bg-brand transition-all duration-500"
             style={{ width: `${progress}%` }}
@@ -114,7 +114,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
           <>
             <div className="mb-1">
               <p className="travel-eyebrow mb-1">Extra details</p>
-              <p className="text-sm font-medium text-slate-500">
+              <p className="text-sm font-medium text-[var(--text-muted)]">
                 Help AI personalise results for every member of your group.
               </p>
             </div>
@@ -123,12 +123,12 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         ) : (
           currentFields.map((field) => (
             <div key={field.fieldKey}>
-              <label className="mb-1 block text-sm font-bold text-slate-800">
+              <label className="mb-1 block text-sm font-bold text-[var(--color-navy)]">
                 {field.label}
                 {field.required && <span className="ml-1 text-rose-500">*</span>}
               </label>
               {field.hint && (
-                <p className="mb-2.5 text-xs font-medium leading-relaxed text-slate-400">
+                <p className="mb-2.5 text-xs font-medium leading-relaxed text-[var(--text-muted)]">
                   {field.hint}
                 </p>
               )}
@@ -144,7 +144,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
       </div>
 
       {/* Footer actions */}
-      <div className="flex items-center justify-between gap-4 border-t border-slate-100 px-6 py-4">
+      <div className="flex items-center justify-between gap-4 border-t border-[var(--border-subtle)] px-6 py-4">
         <ActionButton
           variant="outline"
           onClick={() => setStep((s) => Math.max(0, s - 1))}

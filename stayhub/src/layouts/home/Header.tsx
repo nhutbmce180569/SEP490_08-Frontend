@@ -20,6 +20,7 @@ import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
 import NotificationBell from "../../features/system/components/NotificationBell";
+import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
@@ -132,7 +133,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions: discovery → social → preferences → account */}
         <div className="flex items-center gap-1 sm:gap-1.5">
           <button
             type="button"
@@ -152,6 +153,16 @@ export default function Header() {
             <Sparkles className="h-4 w-4 text-brand" />
             <span className="hidden text-brand md:inline">AI Guide</span>
           </ActionButton>
+
+          <button
+            type="button"
+            className="icon-btn hidden sm:inline-flex"
+            aria-label="Browse tours"
+            title="Browse tours"
+            onClick={() => navigate(PATH.PUBLIC.TOURS)}
+          >
+            <ShoppingBag className="h-5 w-5" />
+          </button>
 
           {user ? (
             <>
@@ -257,6 +268,8 @@ export default function Header() {
 
               <NotificationBell />
 
+              <ThemeToggle />
+
               <div className="relative ml-0.5" ref={userMenuRef}>
                 <button
                   type="button"
@@ -336,6 +349,8 @@ export default function Header() {
             </>
           ) : (
             <>
+              <ThemeToggle />
+
               <ActionButton
                 variant="ghost"
                 onClick={() => navigate(PATH.PUBLIC.REGISTER)}
@@ -348,15 +363,6 @@ export default function Header() {
               </ActionButton>
             </>
           )}
-
-          <button
-            type="button"
-            className="icon-btn hidden sm:inline-flex"
-            aria-label="Browse tours"
-            onClick={() => navigate(PATH.PUBLIC.TOURS)}
-          >
-            <ShoppingBag className="h-5 w-5" />
-          </button>
         </div>
       </div>
 

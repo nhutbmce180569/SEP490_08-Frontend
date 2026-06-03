@@ -2,9 +2,12 @@ import React from "react";
 import type { QuestionnaireField, QuestionnaireFormValues } from "../types/tourAssistant";
 
 const inputBase =
-  "w-full rounded-xl border border-slate-200 bg-slate-50 py-3 px-4 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white focus:ring-2 focus:ring-brand/10";
+  "w-full rounded-xl border border-[var(--border-default)] bg-[var(--surface-input)] py-3 px-4 text-sm font-medium text-[var(--color-navy)] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10";
 
-const inputError = "border-rose-400 bg-rose-50";
+const inputError = "border-rose-400 bg-rose-50 dark:border-rose-500/50 dark:bg-rose-950/25";
+
+const optionInactive =
+  "border border-[var(--border-default)] bg-[var(--surface-input)] text-[var(--text-menu)] hover:border-brand/40 hover:text-brand";
 
 interface Props {
   field: QuestionnaireField;
@@ -33,7 +36,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
                 className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                   active
                     ? "bg-brand text-white shadow-sm shadow-brand/25"
-                    : "border border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand"
+                    : optionInactive
                 }`}
               >
                 {opt.label}
@@ -63,7 +66,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
                 className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-all ${
                   active
                     ? "bg-brand-light text-brand ring-1 ring-brand/30"
-                    : "border border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand"
+                    : optionInactive
                 }`}
               >
                 {opt.label}
@@ -102,7 +105,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
             }
             className={`${inputBase} ${error ? inputError : ""}`}
           />
-          <p className="mt-1 text-[11px] font-medium text-slate-400">Per person · VND</p>
+          <p className="mt-1 text-[11px] font-medium text-[var(--text-muted)]">Per person · VND</p>
           {error && <p className="mt-1 text-xs font-bold text-rose-500">{error}</p>}
         </div>
       );
@@ -121,7 +124,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
               className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition-all ${
                 value === v
                   ? "bg-brand text-white shadow-sm shadow-brand/25"
-                  : "border border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand"
+                  : optionInactive
               }`}
             >
               {label}
@@ -157,7 +160,7 @@ export const ExtraCountFields: React.FC<{
   <div className="space-y-4">
     {values.hasElderly === true && (
       <div>
-        <label className="mb-1.5 block text-sm font-bold text-slate-700">
+        <label className="mb-1.5 block text-sm font-bold text-[var(--color-navy)]">
           Number of elderly travelers
         </label>
         <input
@@ -178,7 +181,7 @@ export const ExtraCountFields: React.FC<{
 
     {values.hasChildren === true && (
       <div>
-        <label className="mb-1.5 block text-sm font-bold text-slate-700">
+        <label className="mb-1.5 block text-sm font-bold text-[var(--color-navy)]">
           Number of children
         </label>
         <input
@@ -198,9 +201,9 @@ export const ExtraCountFields: React.FC<{
     )}
 
     <div>
-      <label className="mb-1.5 block text-sm font-bold text-slate-700">
+      <label className="mb-1.5 block text-sm font-bold text-[var(--color-navy)]">
         Max tours to show{" "}
-        <span className="font-normal text-slate-400">(default 8)</span>
+        <span className="font-normal text-[var(--text-muted)]">(default 8)</span>
       </label>
       <input
         type="number"

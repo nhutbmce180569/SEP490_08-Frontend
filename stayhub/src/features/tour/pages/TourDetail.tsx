@@ -266,7 +266,7 @@ export const TourDetail: React.FC = () => {
                       : "bg-slate-800/80 text-white"
               }`}
             >
-              {getStatusLabel(tour.status)}
+              {getStatusLabel(tour.status || "")}
             </span>
           </div>
         </div>

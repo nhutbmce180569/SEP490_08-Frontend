@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -7,6 +8,7 @@ import {
   Minus,
   Plus,
   ShieldCheck,
+  Smartphone,
   Ticket,
   Users,
   X,
@@ -21,6 +23,7 @@ import type { Tour } from "../../tour/types/tour";
 import type { TourSchedule } from "../../tour/types/tourSchedule";
 import type { TourScheduleTicket } from "../../tour/types/tourScheduleTicket";
 import type { CreateTicketRequest } from "../types/ticket";
+import type { PaymentProvider } from "../services/payment.service";
 import {
   getNumberValue,
   getScheduleTicketAvailable,
@@ -31,6 +34,7 @@ import {
 type CheckoutSchedule = TourSchedule & {
   price?: number | string | null;
   availableSeats?: number | string | null;
+  tourScheduleTickets?: TourScheduleTicket[] | null;
 };
 
 type BookingLocationState = {
@@ -106,6 +110,7 @@ export const BookingPage: React.FC = () => {
   const [ticketErrors, setTicketErrors] = useState<Record<string, string>>({});
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [currentTime] = useState(() => Date.now());
+  const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("vnpay");
 
   const errorHandledRef = useRef(false);
   const passengerSequenceRef = useRef(0);
@@ -121,6 +126,7 @@ export const BookingPage: React.FC = () => {
   const ticketCount = tickets.length;
   const totalPrice = tickets.reduce((sum, ticket) => sum + ticket.price, 0);
   const finalPayable = appliedVoucher?.finalAmount ?? totalPrice;
+  const paymentProviderLabel = paymentProvider === "momo" ? "MoMo" : "VNPay";
 
   const ticketQuantities = useMemo(() => {
     return tickets.reduce<Record<number, number>>((acc, ticket) => {
@@ -389,14 +395,17 @@ export const BookingPage: React.FC = () => {
       }>()),
     ).map(([, detail]) => detail);
 
-    handleCreateBooking({
-      scheduleId: schedule.id,
-      totalQuantity: ticketCount,
-      ticketCount,
-      note,
-      finalAmount: finalPayable,
-      orderDetails,
-    });
+    handleCreateBooking(
+      {
+        scheduleId: schedule.id,
+        totalQuantity: ticketCount,
+        ticketCount,
+        note,
+        finalAmount: finalPayable,
+        orderDetails,
+      },
+      paymentProvider,
+    );
   };
 
   return (
@@ -648,13 +657,87 @@ export const BookingPage: React.FC = () => {
                     </span>
                   </div>
 
+                  <div className="mb-5">
+                    <div className="mb-3 text-sm font-bold text-slate-800">
+                      Payment Method
+                    </div>
+                    <div className="space-y-3" role="radiogroup" aria-label="Payment method">
+                      <button
+                        type="button"
+                        onClick={() => setPaymentProvider("vnpay")}
+                        className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-colors ${
+                          paymentProvider === "vnpay"
+                            ? "border-brand bg-brand-light/40"
+                            : "border-slate-200 bg-white hover:border-brand/40"
+                        }`}
+                        role="radio"
+                        aria-checked={paymentProvider === "vnpay"}
+                      >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sky-700">
+                          <CreditCard className="h-5 w-5" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-extrabold text-slate-900">
+                            VNPay
+                          </span>
+                          <span className="block text-xs font-medium text-slate-500">
+                            ATM card, bank account, or QR payment
+                          </span>
+                        </span>
+                        <span
+                          className={`h-4 w-4 rounded-full border ${
+                            paymentProvider === "vnpay"
+                              ? "border-brand bg-brand"
+                              : "border-slate-300 bg-white"
+                          }`}
+                        />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPaymentProvider("momo")}
+                        className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-colors ${
+                          paymentProvider === "momo"
+                            ? "border-fuchsia-500 bg-fuchsia-50"
+                            : "border-slate-200 bg-white hover:border-fuchsia-300"
+                        }`}
+                        role="radio"
+                        aria-checked={paymentProvider === "momo"}
+                      >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-fuchsia-100 text-fuchsia-700">
+                          <Smartphone className="h-5 w-5" />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-extrabold text-slate-900">
+                            MoMo
+                          </span>
+                          <span className="block text-xs font-medium text-slate-500">
+                            Pay through MoMo wallet checkout
+                          </span>
+                        </span>
+                        <span
+                          className={`h-4 w-4 rounded-full border ${
+                            paymentProvider === "momo"
+                              ? "border-fuchsia-500 bg-fuchsia-500"
+                              : "border-slate-300 bg-white"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
                   <ActionButton
                     variant="primary"
                     onClick={onSubmit}
                     disabled={isSubmitting || ticketCount <= 0}
                     className="w-full gap-2 py-4 text-base shadow-lg shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    <CreditCard size={20} /> Checkout Securely
+                    {paymentProvider === "momo" ? (
+                      <Smartphone size={20} />
+                    ) : (
+                      <CreditCard size={20} />
+                    )}
+                    Pay with {paymentProviderLabel}
                   </ActionButton>
                 </div>
               </div>
@@ -670,13 +753,18 @@ export const BookingPage: React.FC = () => {
           </div>
         </div>
       </div>
-      <LoadingOverlay isOpen={isSubmitting} message="Creating order and redirecting to VNPay..." />
+      <LoadingOverlay
+        isOpen={isSubmitting}
+        message={`Creating order and redirecting to ${paymentProviderLabel}...`}
+      />
 
-      {editingTicketIndex !== null && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
-          onClick={() => setEditingTicketIndex(null)}
-        >
+      {editingTicketIndex !== null &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+            onClick={() => setEditingTicketIndex(null)}
+          >
           <div
             className="w-full max-w-lg animate-in overflow-hidden rounded-3xl bg-white shadow-2xl fade-in zoom-in-95 duration-200"
             onClick={(event) => event.stopPropagation()}
@@ -833,8 +921,9 @@ export const BookingPage: React.FC = () => {
               </ActionButton>
             </div>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

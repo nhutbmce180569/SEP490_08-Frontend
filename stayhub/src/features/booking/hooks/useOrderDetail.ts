@@ -2,8 +2,34 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { ReadOrderDTO } from "../types/booking";
 import { getOrderById } from "../services/booking.service";
-import { cancelPayment, confirmPayment } from "../services/payment.service";
+import {
+  cancelPayment,
+  confirmPayment,
+  getRememberedPaymentProvider,
+  type PaymentProvider,
+} from "../services/payment.service";
 import { useToast } from "../../../contexts/ToastContext";
+
+const getPaymentProviderFromQuery = (provider: string | null): PaymentProvider | null => {
+  const normalizedProvider = provider?.toLowerCase();
+  if (normalizedProvider === "momo" || normalizedProvider === "vnpay") {
+    return normalizedProvider;
+  }
+  return null;
+};
+
+const getErrorMessage = (err: unknown, fallback: string) => {
+  if (err && typeof err === "object") {
+    const apiError = err as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+
+    return apiError.response?.data?.message || apiError.message || fallback;
+  }
+
+  return fallback;
+};
 
 export const useOrderDetail = (orderId?: string | number | null) => {
   const [order, setOrder] = useState<ReadOrderDTO | null>(null);
@@ -46,12 +72,7 @@ export const useOrderDetail = (orderId?: string | number | null) => {
       }
     } catch (err: unknown) {
       // Giữ nguyên cách bắt lỗi cũ của bạn trên Git
-      if (err && typeof err === "object") {
-        const e = err as { response?: { data?: { message?: string } }; message?: string };
-        setError(e.response?.data?.message || e.message || "Failed to load order details.");
-      } else {
-        setError("Failed to load order details.");
-      }
+      setError(getErrorMessage(err, "Failed to load order details."));
     } finally {
       setIsLoading(false);
       setIsRefetching(false); // Nhớ tắt cờ refetch
@@ -60,7 +81,11 @@ export const useOrderDetail = (orderId?: string | number | null) => {
 
   // Load data lần đầu khi vào trang
   useEffect(() => {
-    fetchOrder(false); // false = có hiển thị màn hình loading
+    const loadOrder = async () => {
+      await fetchOrder(false);
+    };
+
+    void loadOrder();
   }, [fetchOrder]);
 
   // Luồng xử lý thanh toán VNPay (Giữ nguyên logic của bạn, chỉ đổi cách gọi fetchOrder)
@@ -77,23 +102,28 @@ export const useOrderDetail = (orderId?: string | number | null) => {
     paymentHandledRef.current = true;
 
     const syncPayment = async () => {
+      const paymentProvider =
+        getPaymentProviderFromQuery(searchParams.get("provider")) ??
+        getRememberedPaymentProvider(orderId) ??
+        "vnpay";
+
       if (paymentStatus === "success") {
         try {
-          await confirmPayment(orderId.toString());
+          await confirmPayment(orderId.toString(), paymentProvider);
           await fetchOrder();
           success("Payment successful! Your booking is now confirmed.");
-        } catch (err: any) {
-          showError(err.response?.data?.message || err.message || "Failed to confirm payment. Please contact support.");
+        } catch (err: unknown) {
+          showError(getErrorMessage(err, "Failed to confirm payment. Please contact support."));
         }
       } else {
         try {
-          await cancelPayment(orderId.toString());
+          await cancelPayment(orderId.toString(), paymentProvider);
           
           // 3. SỬA: Tải lại ngầm dữ liệu
           await fetchOrder(true); 
           showError("Payment was cancelled. Your order has been cancelled.");
-        } catch (err: any) {
-          showError(err.response?.data?.message || err.message || "Payment was cancelled, but we could not update the order. Please try again.");
+        } catch (err: unknown) {
+          showError(getErrorMessage(err, "Payment was cancelled, but we could not update the order. Please try again."));
         }
       }
 

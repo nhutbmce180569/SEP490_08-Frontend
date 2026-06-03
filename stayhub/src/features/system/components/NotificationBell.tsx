@@ -11,10 +11,12 @@ export default function NotificationBell() {
     notifications,
     setNotifications,
     isLoading,
+    hasLoaded,
     error,
     unreadCount,
     markAsRead,
     deleteNoti,
+    refresh,
   } = useNotifications();
 
   useNotificationHub(setNotifications);
@@ -31,6 +33,12 @@ export default function NotificationBell() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && !hasLoaded && !isLoading) {
+      void refresh();
+    }
+  }, [hasLoaded, isLoading, isOpen, refresh]);
 
   return (
     <div className="relative" ref={dropdownRef}>

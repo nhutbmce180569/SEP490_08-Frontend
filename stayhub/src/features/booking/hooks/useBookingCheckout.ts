@@ -1,17 +1,24 @@
 import { useCreateBooking } from './useCreateBooking';
 import { useApplyVoucher } from '../../voucher/customer/hooks/useApplyVoucher';
 import type { CreateOrderRequest } from '../types/booking';
+import type { PaymentProvider } from '../services/payment.service';
 
 export const useBookingCheckout = () => {
   const booking = useCreateBooking();
   const voucher = useApplyVoucher();
 
-  const handleCreateBooking = async (data: CreateOrderRequest) => {
-    await booking.handleCreateBooking({
-      ...data,
-      voucherCode: voucher.voucherCode?.trim() || undefined,
-      finalAmount: voucher.appliedVoucher?.finalAmount ?? data.finalAmount,
-    });
+  const handleCreateBooking = async (
+    data: CreateOrderRequest,
+    paymentProvider: PaymentProvider = "vnpay",
+  ) => {
+    await booking.handleCreateBooking(
+      {
+        ...data,
+        voucherCode: voucher.voucherCode?.trim() || undefined,
+        finalAmount: voucher.appliedVoucher?.finalAmount ?? data.finalAmount,
+      },
+      paymentProvider,
+    );
   };
 
   return {

@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   AlertTriangle,
+  ArrowLeft,
   Star,
   ChevronRight,
   X,
@@ -68,6 +69,15 @@ const toValidDate = (value?: string | null) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const getCancellationFeePercent = (daysUntilDeparture: number) => {
+  if (daysUntilDeparture <= 1) return null;
+  if (daysUntilDeparture <= 2) return 10;
+  if (daysUntilDeparture <= 5) return 15;
+  if (daysUntilDeparture <= 10) return 10;
+  if (daysUntilDeparture <= 15) return 5;
+  return 0;
+};
+
 export const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -75,6 +85,7 @@ export const OrderDetailPage: React.FC = () => {
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [isCancellationPolicyOpen, setIsCancellationPolicyOpen] = useState(false);
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
 
@@ -194,6 +205,9 @@ export const OrderDetailPage: React.FC = () => {
         )
       : null;
   const normalizedStatus = (order.status ?? "Pending").toLowerCase();
+  const compactStatus = normalizedStatus.replace(/[\s_-]+/g, "");
+  const isCancellationBlockedStatus =
+    compactStatus === "requesttocancelled" || compactStatus === "cancelled";
   const isSettled =
     normalizedStatus === "paid" || normalizedStatus === "completed";
   const statusClasses =
@@ -202,10 +216,28 @@ export const OrderDetailPage: React.FC = () => {
       : isSettled
         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
         : "border-amber-200 bg-amber-50 text-amber-700";
-  const canRequestCancellation = normalizedStatus === "paid";
+  const canRequestCancellation =
+    normalizedStatus === "paid" && !isCancellationBlockedStatus;
   const subtotalAmount =
     order.totalAmount ??
     orderDetails.reduce((sum, detail) => sum + detail.totalPrice, 0);
+  const daysUntilDeparture = departureDate
+    ? Math.ceil((departureDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    : null;
+  const cancellationFeePercent =
+    daysUntilDeparture === null
+      ? null
+      : getCancellationFeePercent(daysUntilDeparture);
+  const canCancelByDepartureDate =
+    cancellationFeePercent !== null && daysUntilDeparture !== null && daysUntilDeparture > 1;
+  const cancellationFeeAmount =
+    cancellationFeePercent === null
+      ? null
+      : Math.round(subtotalAmount * (cancellationFeePercent / 100));
+  const estimatedRefundAmount =
+    cancellationFeeAmount === null
+      ? null
+      : Math.max(0, order.finalAmount - cancellationFeeAmount);
 
   const getTicketTypeName = (ticketTypeId?: number | null) => {
     if (!ticketTypeId) return "Ticket";
@@ -216,9 +248,28 @@ export const OrderDetailPage: React.FC = () => {
     orderDetails.find((detail) => detail.id === ticket.orderDetailId) ??
     orderDetails.find((detail) => detail.ticketTypeId === ticket.ticketTypeId);
 
+  const handleRequestCancellation = () => {
+    setIsCancellationPolicyOpen(true);
+  };
+
+  const handleConfirmCancellationPolicy = () => {
+    if (!canCancelByDepartureDate) return;
+    setIsCancellationPolicyOpen(false);
+    navigate(PATH.CUSTOMER.REQUEST_CANCELLATION(order.id));
+  };
+
   return (
     <div className="w-full">
       <div className="space-y-6">
+        <button
+          type="button"
+          onClick={() => navigate(PATH.CUSTOMER.MY_BOOKINGS)}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-brand/30 hover:bg-brand-light/40 hover:text-brand"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to My Bookings
+        </button>
+
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="grid">
             <div className="relative min-h-[220px] bg-slate-100 sm:min-h-[260px]">
@@ -508,15 +559,14 @@ export const OrderDetailPage: React.FC = () => {
                   Cancellation Request
                 </h2>
                 <p className="mb-4 text-sm leading-relaxed text-rose-700">
-                  You can request cancellation for paid bookings. The team will
-                  review the request and process any eligible refund.
+                  You can request cancellation for paid bookings before the
+                  last day. A cancellation fee may be deducted based on the
+                  departure date.
                 </p>
                 <ActionButton
                   variant="outline"
                   className="w-full !border-rose-200 !text-rose-600 hover:!border-rose-300 hover:!bg-rose-100"
-                  onClick={() =>
-                    navigate(PATH.CUSTOMER.REQUEST_CANCELLATION(order.id))
-                  }
+                  onClick={handleRequestCancellation}
                 >
                   Request Cancellation
                 </ActionButton>
@@ -532,9 +582,107 @@ export const OrderDetailPage: React.FC = () => {
       {createPortal(
         <>
 
+      {isCancellationPolicyOpen && (
+        <div
+          className="fixed inset-0 z-[9000] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsCancellationPolicyOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="border-b border-slate-100 bg-rose-50 px-6 py-5">
+              <div className="flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                  <AlertTriangle className="h-5 w-5" />
+                </span>
+                <div>
+                  <h3 className="text-base font-bold text-slate-950">
+                    Cancellation policy
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                    Please review the estimated fee before creating a
+                    cancellation request.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 px-6 py-5 text-sm">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div className="flex justify-between gap-4">
+                  <span className="text-slate-500">Departure</span>
+                  <span className="text-right font-semibold text-slate-900">
+                    {departureDate ? dateFormatter.format(departureDate) : "N/A"}
+                  </span>
+                </div>
+                <div className="mt-3 flex justify-between gap-4">
+                  <span className="text-slate-500">Time remaining</span>
+                  <span className="font-semibold text-slate-900">
+                    {daysUntilDeparture === null
+                      ? "N/A"
+                      : `${Math.max(daysUntilDeparture, 0)} day(s)`}
+                  </span>
+                </div>
+              </div>
+
+              {canCancelByDepartureDate ? (
+                <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-amber-800">Cancellation fee</span>
+                    <span className="font-bold text-amber-900">
+                      {cancellationFeePercent}% (
+                      {currencyFormatter.format(cancellationFeeAmount ?? 0)})
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-amber-800">Estimated refund</span>
+                    <span className="font-bold text-emerald-700">
+                      {currencyFormatter.format(estimatedRefundAmount ?? 0)}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-amber-700">
+                    Fee rule: within 15 days is 5%, within 10 days is 10%,
+                    within 5 days is 15%, and within 2 days is 20%.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="font-semibold text-rose-800">
+                    This booking cannot be cancelled.
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-rose-700">
+                    Cancellation is not allowed when the tour starts within 1
+                    day, or when the departure date cannot be verified.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setIsCancellationPolicyOpen(false)}
+                className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                disabled={!canCancelByDepartureDate}
+                onClick={handleConfirmCancellationPolicy}
+                className="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 1. Schedule Itinerary Modal */}
       {isItineraryModalOpen && order.schedule?.tourScheduleItineraries && (
-        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsItineraryModalOpen(false)}>
           <div className="flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -735,7 +883,7 @@ export const OrderDetailPage: React.FC = () => {
 
       {/* 2. Passenger Tickets Modal */}
       {isTicketsModalOpen && (
-        <div className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsTicketsModalOpen(false)}>
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsTicketsModalOpen(false)}>
           <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div className="flex items-center gap-3">
@@ -808,7 +956,7 @@ export const OrderDetailPage: React.FC = () => {
                           <p className="font-medium text-slate-900">
                             {ticket.dateOfBirth ? new Date(ticket.dateOfBirth).toLocaleDateString() : "—"}
                           </p>
-                        </div>
+                       </div>
                       </div>
                     </div>
                     {ticket.qrCode && (
@@ -830,7 +978,7 @@ export const OrderDetailPage: React.FC = () => {
       {/* 💥 3. Review Modal Wrapper */}
       {isReviewModalOpen && order.tour && (
         <div 
-          className="fixed inset-0 z-[2147483646] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
+          className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200" 
           onClick={() => setIsReviewModalOpen(false)}
         >
           <div 

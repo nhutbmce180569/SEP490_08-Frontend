@@ -11,29 +11,21 @@ import {
   Hash,
   Image as ImageIcon,
   MapPin,
-  Pencil,
-  Plus,
-  Power,
-  PowerOff,
   Ticket,
-  Trash2,
-  Users,
 } from "lucide-react";
-import { ActionButton } from "../../../components/dashboard/ActionButton";
-import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useToast } from "../../../contexts/ToastContext";
 import { getApiErrorMessage } from "../../content/utils/apiError";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import type { ReadTicketTypeDTO } from "../../content/types/ticketType";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
-import { PATH } from "../../../config/routes/route";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
 import { useTourSchedule } from "../hooks/useTourSchedule";
 import { getScheduleItinerariesBySchedule } from "../services/tourScheduleItinerary.service";
 import { tourScheduleTicketService } from "../services/tourScheduleTicket.service";
 import type { TourScheduleItinerary } from "../types/tourScheduleItinerary";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+// Lưu ý: Đảm bảo component TourScheduleStaffManagement bên dưới cũng chỉ hiển thị danh sách (read-only)
 import { TourScheduleStaffManagement } from "../components/TourScheduleStaffManagement";
 import {
   formatTicketCurrency,
@@ -44,17 +36,17 @@ import {
 } from "../utils/tourScheduleTicket";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
-export const TourScheduleDetail: React.FC = () => {
+export const StaffTourScheduleDetail: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { error: showError } = useToast();
+  
   const {
     currentSchedule: schedule,
     isLoading,
     error,
     fetchScheduleById,
-    deleteSchedule,
   } = useTourSchedule();
 
   const [tickets, setTickets] = React.useState<TourScheduleTicket[]>([]);
@@ -65,14 +57,9 @@ export const TourScheduleDetail: React.FC = () => {
   const [tourismInformationById, setTourismInformationById] = React.useState<
     Record<number, TourismInformation>
   >({});
+  
   const [isTicketsLoading, setIsTicketsLoading] = React.useState(false);
   const [isItinerariesLoading, setIsItinerariesLoading] = React.useState(false);
-  const [updatingTicketId, setUpdatingTicketId] = React.useState<number | null>(null);
-  const [confirmAction, setConfirmAction] = React.useState<
-    | { type: "deleteSchedule" }
-    | { type: "activateTicket" | "deactivateTicket"; ticket: TourScheduleTicket }
-    | null
-  >(null);
 
   const renderedItineraries = React.useMemo(
     () =>
@@ -214,69 +201,6 @@ export const TourScheduleDetail: React.FC = () => {
     if (!itineraryDayNumbers.includes(i)) missingItineraryDays.push(i);
   }
 
-  const handleConfirmAction = async () => {
-    if (!confirmAction) return;
-
-    if (confirmAction.type === "deleteSchedule") {
-      try {
-        await deleteSchedule(schedule.id);
-        navigate(-1);
-      } catch {
-        // Toast is handled by the hook.
-      } finally {
-        setConfirmAction(null);
-      }
-      return;
-    }
-
-    const ticket = confirmAction.ticket;
-    const shouldDeactivate = confirmAction.type === "deactivateTicket";
-
-    try {
-      setUpdatingTicketId(ticket.id);
-      setConfirmAction(null);
-      if (shouldDeactivate) {
-        await tourScheduleTicketService.deactivate(ticket.id);
-      } else {
-        await tourScheduleTicketService.activate(ticket.id);
-      }
-
-      await fetchTickets(schedule.id);
-    } catch (err: unknown) {
-      showError(
-        getApiErrorMessage(
-          err,
-          shouldDeactivate
-            ? t("tour.failedDeactivateTicket")
-            : t("tour.failedActivateTicket"),
-        ),
-      );
-    } finally {
-      setUpdatingTicketId(null);
-    }
-  };
-
-  const confirmTitle =
-    confirmAction?.type === "deleteSchedule"
-      ? t("tour.deleteScheduleTitle")
-      : confirmAction?.type === "deactivateTicket"
-        ? t("tour.deactivateTicket")
-        : t("tour.activateTicket");
-
-  const confirmMessage =
-    confirmAction?.type === "deleteSchedule"
-      ? t("tour.deleteScheduleQuestion")
-      : confirmAction?.type === "deactivateTicket"
-        ? t("tour.deactivateTicketDesc")
-        : t("tour.activateTicketDesc");
-
-  const confirmButtonText =
-    confirmAction?.type === "deleteSchedule"
-      ? t("tour.delete")
-      : confirmAction?.type === "deactivateTicket"
-        ? t("tour.deactivate")
-        : t("tour.activate");
-
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <button
@@ -298,7 +222,6 @@ export const TourScheduleDetail: React.FC = () => {
         </div>
 
         <div className="p-6 sm:p-10">
-          {/* HEADER SECTION - Đã xóa 3 nút và căn thẳng hàng */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
@@ -313,26 +236,6 @@ export const TourScheduleDetail: React.FC = () => {
                   {schedule.tour?.name || `ID: ${schedule.tourId}`}
                 </span>
               </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-3">
-              <ActionButton
-                variant="secondary"
-                onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Pencil className="h-4 w-4" />
-                {t("tour.edit")}
-              </ActionButton>
-              <ActionButton
-                type="button"
-                variant="warning"
-                onClick={() => setConfirmAction({ type: "deleteSchedule" })}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Trash2 className="h-4 w-4" />
-                {t("tour.delete")}
-              </ActionButton>
             </div>
           </div>
 
@@ -387,14 +290,6 @@ export const TourScheduleDetail: React.FC = () => {
                     : t("tour.noTicketSetupSchedule")}
                 </p>
               </div>
-              <ActionButton
-                variant="primary"
-                onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Plus className="h-4 w-4" />
-                {t("tour.addTicket")}
-              </ActionButton>
             </div>
 
             {isTicketsLoading ? (
@@ -417,9 +312,6 @@ export const TourScheduleDetail: React.FC = () => {
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("common.status")}
-                      </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {t("common.actions")}
                       </th>
                     </tr>
                   </thead>
@@ -479,47 +371,6 @@ export const TourScheduleDetail: React.FC = () => {
                               {isActive ? t("common.active") : t("common.inactive")}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <ActionButton
-                                variant="secondary"
-                                onClick={() =>
-                                  navigate(
-                                    PATH.MANAGER.EDIT_SCHEDULE_TICKET(
-                                      schedule.id,
-                                      ticket.id,
-                                    ),
-                                  )
-                                }
-                                className="h-8 w-8"
-                                title={t("tour.editTicket")}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </ActionButton>
-                              <ActionButton
-                                variant={isActive ? "warning" : "secondary"}
-                                onClick={() =>
-                                  setConfirmAction({
-                                    type: isActive ? "deactivateTicket" : "activateTicket",
-                                    ticket,
-                                  })
-                                }
-                                disabled={updatingTicketId === ticket.id}
-                                className={`h-8 w-8 ${
-                                  !isActive
-                                    ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-                                    : ""
-                                }`}
-                                title={isActive ? t("tour.deactivateTicketAction") : t("tour.activateTicketAction")}
-                              >
-                                {isActive ? (
-                                  <PowerOff className="h-3.5 w-3.5" />
-                                ) : (
-                                  <Power className="h-3.5 w-3.5" />
-                                )}
-                              </ActionButton>
-                            </div>
-                          </td>
                         </tr>
                       );
                     })}
@@ -532,17 +383,6 @@ export const TourScheduleDetail: React.FC = () => {
                 <h3 className="mb-1 text-sm font-bold text-slate-900">
                   {t("tour.noTicketsConfigured")}
                 </h3>
-                <p className="mb-4 text-xs text-slate-500">
-                  {t("tour.addTicketHint")}
-                </p>
-                <ActionButton
-                  variant="primary"
-                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("tour.addTicket")}
-                </ActionButton>
               </div>
             )}
           </div>
@@ -553,14 +393,6 @@ export const TourScheduleDetail: React.FC = () => {
                 <h2 className="text-base font-bold text-slate-900">
                   {t("tour.scheduleItinerarySection")}
                 </h2>
-                <ActionButton
-                  variant="primary"
-                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("tour.addItineraries")}
-                </ActionButton>
               </div>
               {missingItineraryDays.length > 0 && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -630,39 +462,6 @@ export const TourScheduleDetail: React.FC = () => {
                                     </h4>
                                   </div>
                                   <div className="flex items-center gap-4">
-                                    <div
-                                      className="flex gap-2"
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      <ActionButton
-                                        variant="secondary"
-                                        onClick={() =>
-                                          navigate(
-                                            PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(
-                                              schedule.id,
-                                              iti.id,
-                                            ),
-                                          )
-                                        }
-                                        className="h-8 w-8 text-brand hover:bg-brand-light"
-                                      >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                      </ActionButton>
-                                      <ActionButton
-                                        variant="warning"
-                                        onClick={() =>
-                                          navigate(
-                                            PATH.MANAGER.DELETE_SCHEDULE_ITINERARY(
-                                              schedule.id,
-                                              iti.id,
-                                            ),
-                                          )
-                                        }
-                                        className="h-8 w-8"
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                      </ActionButton>
-                                    </div>
                                     <div className="text-slate-400">
                                       {isExpanded ? (
                                         <ChevronUp className="h-5 w-5" />
@@ -768,9 +567,6 @@ export const TourScheduleDetail: React.FC = () => {
                 <h3 className="mb-1 text-sm font-bold text-slate-900">
                   {t("tour.noItineraryItemsYet")}
                 </h3>
-                <p className="mb-4 text-xs text-slate-500">
-                  {t("tour.createScheduleItineraryHint")}
-                </p>
               </div>
             )}
           </div>
@@ -779,27 +575,11 @@ export const TourScheduleDetail: React.FC = () => {
 
       {/* SECTION: Quản lý Nhân sự */}
       <div className="mt-8">
-        <TourScheduleStaffManagement scheduleId={Number(id)} />
+        <TourScheduleStaffManagement 
+          scheduleId={Number(id)} 
+          isReadOnly={true} // <-- Thêm dòng này
+        />
       </div>
-
-      <ConfirmDialog
-        open={!!confirmAction}
-        onClose={() => setConfirmAction(null)}
-        onConfirm={handleConfirmAction}
-        title={confirmTitle}
-        message={confirmMessage}
-        confirmText={confirmButtonText}
-        variant={confirmAction?.type === "activateTicket" ? "primary" : "warning"}
-        icon={
-          confirmAction?.type === "activateTicket" ? (
-            <Power className="h-6 w-6 text-brand" />
-          ) : confirmAction?.type === "deactivateTicket" ? (
-            <PowerOff className="h-6 w-6 text-rose-500" />
-          ) : (
-            <Trash2 className="h-6 w-6 text-rose-500" />
-          )
-        }
-      />
     </div>
   );
-};  
+};

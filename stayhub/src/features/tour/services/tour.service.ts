@@ -1,5 +1,5 @@
 import { TOURS_API } from "../../../config/api/tours.api";
-import { type Tour} from "../types/tour";
+import { type Tour } from "../types/tour";
 import { apiClient } from "../../../utils/axiosClient";
 import type { PaginatedResponse } from "../types/paginatedReponse";
 
@@ -43,7 +43,10 @@ export const getTourById = async (id: string | number): Promise<Tour> => {
   return await apiClient.get<Tour>(TOURS_API.GET_DETAIL(id));
 };
 
-export const updateTour = async (id: string | number, data: FormData): Promise<Tour> => {
+export const updateTour = async (
+  id: string | number,
+  data: FormData,
+): Promise<Tour> => {
   return await apiClient.put<Tour>(TOURS_API.UPDATE(id), data, {
     headers: {
       "Content-Type": "multipart/form-data",
@@ -63,27 +66,30 @@ export const deleteTour = async (id: string | number): Promise<void> => {
   await apiClient.delete(TOURS_API.DELETE(id));
 };
 
-export const activeTour = async (id: string | number, isActive: boolean): Promise<void> => {
+export const activeTour = async (
+  id: string | number,
+  isActive: boolean,
+): Promise<void> => {
   await apiClient.put(`${TOURS_API.ACTIVE_TOUR(id)}?isActive=${isActive}`);
 };
 
 export const getAllToursForAdmin = async (
-  page: number = 1, 
-  pageSize: number = 10, 
-  searchTerm?: string
+  page: number = 1,
+  pageSize: number = 10,
+  searchTerm?: string,
 ): Promise<PaginatedResponse<Tour>> => {
   return await apiClient.get<PaginatedResponse<Tour>>(TOURS_API.GET_BY_ADMIN, {
-    params: { 
-      page, 
+    params: {
+      page,
       pageSize,
-      searchTerm: searchTerm || undefined 
-    }
+      searchTerm: searchTerm || undefined,
+    },
   });
 };
 
 export const updateTourStatusByAdmin = async (
-  id: string | number, 
-  status: string
+  id: string | number,
+  status: string,
 ): Promise<void> => {
   await apiClient.put(TOURS_API.UPDATE_STATUS(id), { status });
 };
@@ -92,6 +98,13 @@ export const updateTourStatusByAdmin = async (
 export const tourService = {
   getAllTours: async (): Promise<Tour[]> => {
     const res = await apiClient.get<unknown>(TOURS_API.GET_ALL);
+    return normalizeTourArray(res);
+  },
+
+  getAllToursForDropdown: async (): Promise<Tour[]> => {
+    const res = await apiClient.get<unknown>(TOURS_API.GET_ALL, {
+      params: { pageSize: 1000, page: 1 },
+    });
     return normalizeTourArray(res);
   },
 

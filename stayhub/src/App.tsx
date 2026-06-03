@@ -105,6 +105,7 @@ import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
 import { useTranslation } from "./contexts/LocaleContext";
+import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -503,7 +504,7 @@ const App: React.FC = () => {
                   
                   {/* UC-49: Assigned Schedules */}
                   <Route path={childPath(PATH.STAFF.SCHEDULES)} element={<AssignedSchedulesPage />} />
-                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<TourScheduleDetail />} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<StaffTourScheduleDetail />} />
 
                   {/* UC-50: QR Check-In */}
                   <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={<QRCheckinPage />} />

@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 import { ActionButton } from "../../components/home/ActionButton";
-import { StayHubLogo } from "../../components/brand/StayHubLogo";
+import dragonLogoVideo from "../../assets/làm_hiệu_ứng_cho_con_rồng_bay-Picsart-BackgroundRemover.mp4";
 import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
@@ -121,7 +121,21 @@ export default function Header() {
       <div className="page-container flex h-16 items-center gap-3 md:h-[68px] md:gap-4">
         {/* Logo + search */}
         <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
-          <StayHubLogo />
+          <Link
+            to={PATH.PUBLIC.HOME}
+            className="relative inline-flex h-16 w-20 shrink-0 items-center !no-underline outline-none"
+            aria-label="StayHub home"
+          >
+            <video
+              src={dragonLogoVideo}
+              className="absolute left-1/2 top-1/2 h-28 w-28 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain md:h-32 md:w-32"
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden
+            />
+          </Link>
 
           <div className="search-bar-glass hidden max-w-xl flex-1 lg:flex">
             <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />

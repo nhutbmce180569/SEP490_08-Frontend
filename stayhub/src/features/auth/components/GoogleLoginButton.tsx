@@ -1,34 +1,56 @@
-import React from 'react';
-import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
-import { useGoogleLogin } from '../hooks/useGoogleLogin';
-import { useToast } from '../../../contexts/ToastContext';
+import React, { useRef } from "react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useGoogleLogin } from "../hooks/useGoogleLogin";
+import { useToast } from "../../../contexts/ToastContext";
+import { SOCIAL_AUTH_BUTTON_CLASS, SocialAuthButtonShell } from "./SocialAuthButtons";
 
-// Lấy Client ID từ biến môi trường
-const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "1007115094738-i4re3khhtf8hlvnv1a5u57680il4p6ba.apps.googleusercontent.com";
+const GOOGLE_ICON =
+  "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg";
 
 export const GoogleLoginButton: React.FC = () => {
+  const hiddenRef = useRef<HTMLDivElement>(null);
   const { handleGoogleLoginSubmit, isSubmitting, serverError } = useGoogleLogin();
   const { error } = useToast();
 
+  const triggerGoogleLogin = () => {
+    const btn = hiddenRef.current?.querySelector('[role="button"]') as HTMLElement | null;
+    btn?.click();
+  };
+
   return (
-    <GoogleOAuthProvider clientId={CLIENT_ID}>
-      <div className="flex flex-col items-center justify-start w-full gap-1">
+    <SocialAuthButtonShell>
+      {/* Nút Google ẩn — chỉ dùng để lấy idToken, UI hiển thị bằng nút custom bên dưới */}
+      <div
+        ref={hiddenRef}
+        className="pointer-events-none fixed -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0"
+        aria-hidden
+      >
         <GoogleLogin
-          theme="outline"
-          size="large"
+          type="icon"
+          shape="circle"
           onSuccess={(credentialResponse) => {
             if (credentialResponse.credential) {
               handleGoogleLoginSubmit({ idToken: credentialResponse.credential });
             }
           }}
           onError={() => {
-            console.error('Google login failed');
-            error('Google login failed. Please try again.');
+            error("Google login failed. Please try again.");
           }}
         />
-        {isSubmitting && <p className="mt-1 text-sm text-slate-500">Processing login...</p>}
-        {serverError && <p className="mt-1 text-sm text-rose-500">{serverError}</p>}
       </div>
-    </GoogleOAuthProvider>
+
+      <button
+        type="button"
+        onClick={triggerGoogleLogin}
+        disabled={isSubmitting}
+        className={SOCIAL_AUTH_BUTTON_CLASS}
+      >
+        <img src={GOOGLE_ICON} alt="" aria-hidden className="h-5 w-5 shrink-0" />
+        Google
+      </button>
+
+      {isSubmitting && <p className="text-xs text-slate-500">Processing login...</p>}
+      {serverError && <p className="text-xs text-rose-500">{serverError}</p>}
+    </SocialAuthButtonShell>
   );
 };

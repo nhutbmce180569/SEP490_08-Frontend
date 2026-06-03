@@ -4,6 +4,8 @@ import { Mail, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import { PATH } from "../../../config/routes/route";
+import { AuthLayout } from "../components/AuthLayout";
+import { AuthFormField } from "../components/AuthFormField";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -19,57 +21,44 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
-      <div className="mb-8 flex items-center gap-2">
-        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center text-white font-black text-xl">
-          S
+    <AuthLayout
+      title="Forgot Password"
+      subtitle="Enter your email address and we'll send you a code to reset your password."
+      heroTitle="We've got you covered."
+      heroSubtitle="Reset your password securely and get back to planning your next unforgettable trip."
+      imageSeed="stayhub-forgot"
+      footer={
+        <div className="mt-8 text-center">
+          <Link
+            to={PATH.PUBLIC.LOGIN}
+            className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
+          >
+            &larr; Back to Login
+          </Link>
         </div>
-        <span className="text-2xl font-extrabold tracking-tight text-navy">
-          StayHub
-        </span>
-      </div>
-      
-      <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-navy mb-2">
-            Forgot Password
-          </h2>
-          <p className="text-slate-500 text-sm">
-            Enter your email address and we'll send you a code to reset your password.
-          </p>
-        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <AuthFormField
+          label="Email Address"
+          type="email"
+          icon={Mail}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="name@example.com"
+          required
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10"
-                placeholder="name@example.com"
-                required
-              />
-            </div>
-          </div>
-
-          <ActionButton type="submit" variant="primary" disabled={isSubmitting || !email} className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]">
-            {isSubmitting ? "Sending..." : "Send Reset Code"}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </ActionButton>
-        </form>
-        
-      </div>
-
-      <div className="mt-8">
-        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-brand transition-colors !no-underline">
-          &larr; Back to Login
-        </Link>
-      </div>
-    </div>
+        <ActionButton
+          type="submit"
+          variant="primary"
+          disabled={isSubmitting || !email}
+          className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+        >
+          {isSubmitting ? "Sending..." : "Send Reset Code"}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </ActionButton>
+      </form>
+    </AuthLayout>
   );
 }

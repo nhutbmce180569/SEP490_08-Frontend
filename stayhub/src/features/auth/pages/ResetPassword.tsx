@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Mail, Lock, KeyRound, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, KeyRound, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useResetPassword } from "../hooks/useResetPassword";
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import { PATH } from "../../../config/routes/route";
+import { AuthLayout } from "../components/AuthLayout";
+import { AuthFormField } from "../components/AuthFormField";
 
 export default function ResetPassword() {
   const location = useLocation();
@@ -19,7 +21,7 @@ export default function ResetPassword() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [countdown, setCountdown] = useState(60); // Bắt đầu đếm ngược 60s ngay khi vào trang
+  const [countdown, setCountdown] = useState(60);
 
   const { handleResetPasswordSubmit, isSubmitting, serverErrors } = useResetPassword();
   const { handleForgotPasswordSubmit, isSubmitting: isResending } = useForgotPassword();
@@ -33,7 +35,6 @@ export default function ResetPassword() {
   }, [countdown]);
 
   useEffect(() => {
-    // Nếu không có email (truy cập trực tiếp), bắt buộc quay lại trang Forgot Password
     if (!prefilledEmail) {
       navigate(PATH.PUBLIC.FORGOT_PASSWORD);
       return;
@@ -72,134 +73,105 @@ export default function ResetPassword() {
     if (formData.email) {
       const isSuccess = await handleForgotPasswordSubmit({ email: formData.email });
       if (isSuccess) {
-        setCountdown(60); // Reset lại đếm ngược nếu gửi lại thành công
+        setCountdown(60);
       }
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
-      <div className="mb-8 flex items-center gap-2">
-        <div className="w-10 h-10 rounded-xl bg-navy flex items-center justify-center text-white font-black text-xl">
-          S
+    <AuthLayout
+      title="Reset Password"
+      subtitle="Enter the verification code sent to your email and choose a new password."
+      heroTitle="Almost there."
+      heroSubtitle="Verify your identity and set a new password to regain access to your account."
+      imageSeed="stayhub-reset"
+      footer={
+        <div className="mt-8 text-center">
+          <Link
+            to={PATH.PUBLIC.LOGIN}
+            className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
+          >
+            &larr; Back to Login
+          </Link>
         </div>
-        <span className="text-2xl font-extrabold tracking-tight text-navy">
-          StayHub
-        </span>
-      </div>
-      
-      <div className="w-full max-w-md bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-navy mb-2">
-            Reset Password
-          </h2>
-          <p className="text-slate-500 text-sm">
-            Enter your email, the verification code, and your new password.
-          </p>
-        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <AuthFormField
+          label="Email Address"
+          name="email"
+          type="email"
+          icon={Mail}
+          value={formData.email}
+          readOnly
+          placeholder="name@example.com"
+          error={errors.email}
+          required
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">
-              Email Address
-            </label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                readOnly
-                className="h-[50px] w-full rounded-xl border border-slate-200 bg-slate-100 pl-12 pr-4 text-slate-500 outline-none cursor-not-allowed"
-                placeholder="name@example.com"
-                required
-              />
-            </div>
-            {errors.email && <span className="mt-1.5 text-xs font-medium text-rose-500">{errors.email}</span>}
-          </div>
+        <AuthFormField
+          label="Verification Code"
+          name="code"
+          type="text"
+          icon={KeyRound}
+          value={formData.code}
+          onChange={handleChange}
+          placeholder="Enter reset code"
+          error={errors.code}
+          labelExtra={
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={isResending || isSubmitting || countdown > 0}
+              className="text-xs font-bold text-brand outline-none transition-colors hover:text-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isResending
+                ? "Resending..."
+                : countdown > 0
+                  ? `Resend Code (${countdown}s)`
+                  : "Resend Code"}
+            </button>
+          }
+          required
+        />
 
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-semibold text-slate-700">
-                Verification Code
-              </label>
-              <button
-                type="button"
-                onClick={handleResendCode}
-                disabled={isResending || isSubmitting || countdown > 0}
-                className="text-xs font-bold text-brand hover:text-brand-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none"
-              >
-                {isResending ? "Resending..." : countdown > 0 ? `Resend Code (${countdown}s)` : "Resend Code"}
-              </button>
-            </div>
-            <div className="relative">
-              <KeyRound className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                name="code"
-                value={formData.code}
-                onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-4 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-brand/10 ${errors.code ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-brand"}`}
-                placeholder="Enter reset code"
-                required
-              />
-            </div>
-            {errors.code && <span className="mt-1.5 text-xs font-medium text-rose-500">{errors.code}</span>}
-          </div>
+        <AuthFormField
+          label="New Password"
+          name="newPassword"
+          type={showPassword ? "text" : "password"}
+          icon={Lock}
+          value={formData.newPassword}
+          onChange={handleChange}
+          placeholder="Create a new password"
+          error={errors.newPassword}
+          showToggle
+          showPassword={showPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
+          required
+        />
 
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">
-              New Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-brand/10 ${errors.newPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-brand"}`}
-                placeholder="Create a new password"
-                required
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 rounded-xl p-1.5 text-slate-400 outline-none transition-colors hover:bg-slate-100 hover:text-slate-600">
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </div>
-            {errors.newPassword && <span className="mt-1.5 text-xs font-medium text-rose-500">{errors.newPassword}</span>}
-          </div>
+        <AuthFormField
+          label="Confirm New Password"
+          name="confirmPassword"
+          type={showPassword ? "text" : "password"}
+          icon={Lock}
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          placeholder="Repeat your new password"
+          error={errors.confirmPassword}
+          required
+        />
 
-          <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">
-              Confirm New Password
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`h-[50px] w-full rounded-xl border bg-slate-50 pl-12 pr-12 text-slate-900 outline-none transition-all focus:bg-white focus:ring-4 focus:ring-brand/10 ${errors.confirmPassword ? "border-rose-500 focus:border-rose-500" : "border-slate-200 focus:border-brand"}`}
-                placeholder="Repeat your new password"
-                required
-              />
-            </div>
-            {errors.confirmPassword && <span className="mt-1.5 text-xs font-medium text-rose-500">{errors.confirmPassword}</span>}
-          </div>
-
-          <ActionButton type="submit" variant="primary" disabled={isSubmitting} className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]">
-            {isSubmitting ? "Resetting..." : "Reset Password"}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </ActionButton>
-        </form>
-      </div>
-
-      <div className="mt-8">
-        <Link to={PATH.PUBLIC.LOGIN} className="text-sm font-semibold text-slate-500 hover:text-brand transition-colors !no-underline">
-          &larr; Back to Login
-        </Link>
-      </div>
-    </div>
+        <ActionButton
+          type="submit"
+          variant="primary"
+          disabled={isSubmitting}
+          className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+        >
+          {isSubmitting ? "Resetting..." : "Reset Password"}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+        </ActionButton>
+      </form>
+    </AuthLayout>
   );
 }

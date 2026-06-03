@@ -5,6 +5,8 @@ import { PATH } from "../../config/routes/route";
 type StayHubLogoProps = {
   /** compact: chỉ icon (sidebar thu gọn) */
   variant?: "full" | "compact";
+  /** light: wordmark sáng cho nền tối (auth hero panel) */
+  theme?: "default" | "light";
   className?: string;
   linkTo?: string;
 };
@@ -12,9 +14,17 @@ type StayHubLogoProps = {
 /** Logo không nền — dùng PNG trong suốt + wordmark, tránh logo_blue (nền trắng). */
 export function StayHubLogo({
   variant = "full",
+  theme = "default",
   className = "",
   linkTo = PATH.PUBLIC.HOME,
 }: StayHubLogoProps) {
+  const wordmarkClass =
+    theme === "light"
+      ? "font-display text-xl font-extrabold tracking-tight text-white md:text-[1.35rem]"
+      : "font-display text-xl font-extrabold tracking-tight text-navy md:text-[1.35rem]";
+
+  const hubClass = theme === "light" ? "text-sky-300" : "text-brand";
+
   const content =
     variant === "compact" ? (
       <img
@@ -29,11 +39,13 @@ export function StayHubLogo({
           src={logoIcon}
           alt=""
           aria-hidden
-          className="h-10 w-10 shrink-0 object-contain drop-shadow-sm md:h-11 md:w-11"
+          className={`h-10 w-10 shrink-0 object-contain md:h-11 md:w-11 ${
+            theme === "light" ? "drop-shadow-md" : "drop-shadow-sm"
+          }`}
           draggable={false}
         />
-        <span className="font-display text-xl font-extrabold tracking-tight text-navy md:text-[1.35rem]">
-          Stay<span className="text-brand">Hub</span>
+        <span className={wordmarkClass}>
+          Stay<span className={hubClass}>Hub</span>
         </span>
       </span>
     );

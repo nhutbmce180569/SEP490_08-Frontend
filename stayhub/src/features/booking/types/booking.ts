@@ -76,7 +76,4 @@ export interface ReadScheduleCustomerDTO {
   dateOfBirth?: string | null;
   gender?: string | null;
   nationality?: string | null;
-  checkInStatus?: string | null;
-  phoneNumber?: string | null;
-  avatarUrl?: string | null;
 }

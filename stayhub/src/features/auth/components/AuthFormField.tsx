@@ -1,6 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 type AuthFormFieldProps = {
   label: string;
@@ -35,6 +36,7 @@ export function AuthFormField({
   readOnly,
   ...inputProps
 }: AuthFormFieldProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1.5">
       <div className={`flex items-center ${labelExtra ? "justify-between" : ""}`}>
@@ -54,7 +56,7 @@ export function AuthFormField({
             type="button"
             onClick={onTogglePassword}
             className="absolute right-4 top-1/2 -translate-y-1/2 rounded-xl p-1.5 text-slate-400 outline-none transition-colors hover:bg-slate-100 hover:text-slate-600"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>

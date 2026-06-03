@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 type UserAvatarProps = {
   name?: string | null;
@@ -19,6 +20,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   size = "md",
   className = "",
 }) => {
+  const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
   const initial = (name || "U").trim().charAt(0).toUpperCase();
   const showImage = Boolean(avatarUrl) && !imgError;
@@ -30,7 +32,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       {showImage ? (
         <img
           src={avatarUrl!}
-          alt={name ? `${name} avatar` : "User avatar"}
+          alt={name ? `${name} ${t("common.userAvatar")}` : t("common.userAvatar")}
           className="h-full w-full object-cover"
           onError={() => setImgError(true)}
           referrerPolicy="no-referrer"

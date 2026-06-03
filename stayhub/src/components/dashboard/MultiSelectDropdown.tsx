@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Check, ChevronDown } from "lucide-react";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 export interface Option {
   label: string;
@@ -13,7 +14,9 @@ interface MultiSelectProps {
   placeholder?: string;
 }
 
-export const MultiSelectDropdown: React.FC<MultiSelectProps> = ({ options, selectedValues = [], onChange, placeholder = "Select options..." }) => {
+export const MultiSelectDropdown: React.FC<MultiSelectProps> = ({ options, selectedValues = [], onChange, placeholder }) => {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t("common.selectOptions");
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,7 +56,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectProps> = ({ options, selec
               </span>
             ))
           ) : (
-            <span className="text-slate-400">{placeholder}</span>
+            <span className="text-slate-400">{resolvedPlaceholder}</span>
           )}
         </div>
         <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
@@ -80,7 +83,7 @@ export const MultiSelectDropdown: React.FC<MultiSelectProps> = ({ options, selec
             })
           ) : (
             <div className="px-3 py-4 text-center text-sm text-slate-500">
-              No options available
+              {t("common.noData")}
             </div>
           )}
         </div>

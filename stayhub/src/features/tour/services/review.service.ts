@@ -2,20 +2,23 @@ import axios from "axios";
 import { TOURS_API } from "../../../config/api/tours.api"; // Đổi lại đường dẫn import file TOURS_API của bạn
 import type { Review, CreateReviewRequest, UpdateReviewRequest, CreateReviewReplyRequest, ReadReviewReply, UpdateReviewReplyRequest } from "../types/review";
 import { apiClient } from "../../auth/utils/axiosClient";
+import { withLanguageHeaders } from "../../../utils/httpLanguage";
 
 const getAuthConfig = () => {
   const token = localStorage.getItem("accessToken");
   return {
-    headers: {
+    headers: withLanguageHeaders({
       Authorization: `Bearer ${token}`,
-    },
+    }),
   };
 };
+
+const getPublicConfig = () => ({ headers: withLanguageHeaders() });
 
 export const reviewService = {
   // 1. Lấy tất cả review của 1 tour (Không cần đăng nhập)
   getReviewsByTour: async (tourId: number): Promise<Review[]> => {
-    const response = await axios.get(TOURS_API.GET_REVIEWS_BY_TOUR(tourId));
+    const response = await axios.get(TOURS_API.GET_REVIEWS_BY_TOUR(tourId), getPublicConfig());
     return response.data;
   },
 

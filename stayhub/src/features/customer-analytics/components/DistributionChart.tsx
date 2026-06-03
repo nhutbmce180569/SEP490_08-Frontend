@@ -3,6 +3,7 @@ import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from 'lucide-react'
 import { CHART_COLORS } from '../utils/analyticsHelpers';
 import type { AnalyticsLabelCount } from '../types/customerAnalytics.types';
 import { formatNumber, formatPercent } from '../utils/analyticsHelpers';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 interface DistributionChartProps {
   title: string;
@@ -17,10 +18,12 @@ interface DistributionChartProps {
 export const DistributionChart: React.FC<DistributionChartProps> = ({
   title,
   data,
-  emptyMessage = 'No data available',
+  emptyMessage,
   collapseLimit,
   pageSize,
 }) => {
+  const { t } = useTranslation();
+  const resolvedEmpty = emptyMessage ?? t('common.noData');
   const [expanded, setExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -55,13 +58,13 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
         <h3 className="text-base font-bold text-slate-900">{title}</h3>
         {data.length > 0 && (
           <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
-            {data.length} {data.length === 1 ? 'item' : 'items'}
+            {data.length} {data.length === 1 ? t('analytics.customer.item') : t('analytics.customer.items')}
           </span>
         )}
       </div>
 
       {data.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-400">{emptyMessage}</p>
+        <p className="py-8 text-center text-sm text-slate-400">{resolvedEmpty}</p>
       ) : (
         <>
           <div className="space-y-3">
@@ -99,12 +102,12 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
               {expanded ? (
                 <>
                   <ChevronUp className="h-4 w-4" />
-                  Show less
+                  {t('analytics.customer.showLess')}
                 </>
               ) : (
                 <>
                   <ChevronDown className="h-4 w-4" />
-                  Show all {data.length} items
+                  {t('analytics.customer.showAllItems', { count: data.length })}
                 </>
               )}
             </button>

@@ -8,8 +8,10 @@ import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateTour } from "../hooks/useCreateTour";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const CreateTour: React.FC = () => {
+  const { t } = useTranslation();
   const {
     handleSubmit,
     handleCancel,
@@ -18,7 +20,6 @@ export const CreateTour: React.FC = () => {
     categoryOptions,
   } = useCreateTour();
 
-  // --- STATE MAP SEARCH ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [currentSetFormData, setCurrentSetFormData] = useState<React.Dispatch<
     React.SetStateAction<Record<string, any>>
@@ -39,15 +40,15 @@ export const CreateTour: React.FC = () => {
   const tourFields: FormField[] = [
     {
       name: "name",
-      label: "Tour Name",
+      label: t("tour.tourName"),
       type: "text",
-      placeholder: "e.g. Ha Long Bay Cruise 2 Days 1 Night",
+      placeholder: t("tour.tourNamePlaceholder"),
       colSpan: 2,
       required: true,
     },
     {
       name: "categoryId",
-      label: "Category",
+      label: t("tour.category"),
       type: "select",
       icon: <Layers className="h-4 w-4" />,
       options: categoryOptions,
@@ -55,7 +56,7 @@ export const CreateTour: React.FC = () => {
     },
     {
       name: "status",
-      label: "Status",
+      label: t("common.status"),
       type: "custom",
       render: () => (
         <div className="flex flex-col gap-1.5">
@@ -66,19 +67,18 @@ export const CreateTour: React.FC = () => {
               className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-500 outline-none"
               value="Inactive"
             >
-              <option value="Inactive">Inactive</option>
+              <option value="Inactive">{t("common.inactive")}</option>
             </select>
           </div>
           <span className="text-[11.5px] font-medium text-amber-600">
-            Tour is created as "Inactive" by default. Please verify details and
-            activate it later in the details page.
+            {t("tour.tourInactiveDefault")}
           </span>
         </div>
       ),
     },
     {
       name: "address",
-      label: "Full Address",
+      label: t("tour.fullAddress"),
       type: "custom",
       colSpan: 2,
       required: true,
@@ -96,7 +96,7 @@ export const CreateTour: React.FC = () => {
                   setIsMapModalOpen(true);
                 }}
                 className={`w-full cursor-pointer rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
-                placeholder="Click to pick on map..."
+                placeholder={t("tour.clickPickOnMap")}
                 value={value || ""}
               />
             </div>
@@ -110,7 +110,7 @@ export const CreateTour: React.FC = () => {
               }}
               className="gap-2 px-3 py-2 text-sm font-semibold text-indigo-600 border-indigo-100 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700"
             >
-              <MapPin className="h-4 w-4" /> Pick on Map
+              <MapPin className="h-4 w-4" /> {t("tour.pickOnMap")}
             </ActionButton>
           </div>
           {error && (
@@ -121,31 +121,33 @@ export const CreateTour: React.FC = () => {
     },
     {
       name: "city",
-      label: "City",
+      label: t("tour.city"),
       type: "text",
-      placeholder: "Auto-filled from map...",
+      placeholder: t("tour.autoFilledFromMap"),
       icon: <MapPin className="h-4 w-4" />,
-      required: true, readOnly: true
+      required: true,
+      readOnly: true,
     },
     {
       name: "country",
-      label: "Country",
+      label: t("tour.country"),
       type: "text",
-      placeholder: "Auto-filled from map...",
+      placeholder: t("tour.autoFilledFromMap"),
       icon: <MapPin className="h-4 w-4" />,
-      required: true, readOnly: true
+      required: true,
+      readOnly: true,
     },
     {
       name: "description",
-      label: "Description",
+      label: t("common.description"),
       type: "textarea",
-      placeholder: "Write a detailed description about the tour...",
+      placeholder: t("tour.tourDescriptionPlaceholder"),
       icon: <FileText className="h-4 w-4" />,
       colSpan: 2,
     },
     {
       name: "image",
-      label: "Tour Image",
+      label: t("tour.tourImage"),
       type: "file",
       colSpan: 2,
     },
@@ -154,17 +156,17 @@ export const CreateTour: React.FC = () => {
   return (
     <>
       <DynamicForm
-        title="Create New Tour"
-        description="Fill in the details below to publish a new tour."
+        title={t("tour.createNewTour")}
+        description={t("tour.createNewTourDesc")}
         fields={tourFields}
         onSubmit={handleSubmit}
         serverErrors={serverErrors}
         onCancel={handleCancel}
         initialValues={{ status: "Inactive" }}
-        submitText="Save Tour"
-        cancelText="Cancel"
+        submitText={t("tour.saveTour")}
+        cancelText={t("common.cancel")}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Creating tour..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("tour.creatingTour")} />
 
       <MapPickerModal
         isOpen={isMapModalOpen}

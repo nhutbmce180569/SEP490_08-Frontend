@@ -20,6 +20,7 @@ import { useToast } from "../../../contexts/ToastContext";
 import { AuthContext } from "../../../contexts/AuthContext";
 import type { Review } from "../types/review";
 import { getTours } from "../services/tour.service";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 
 const formatReviewDate = (date?: string | null) =>
@@ -41,6 +42,7 @@ const AdminReviewCard: React.FC<{
   onDeleteReply: (reviewId: number, replyId: number) => Promise<void>;
   onToggleHide: (reviewId: number, isHidden: boolean) => Promise<void>;
 }> = ({ review, onReply, onEditReply, onDeleteReply, onToggleHide }) => {
+  const { t } = useTranslation();
   const { success: showSuccess, error: showError } = useToast();
   const { user } = useContext(AuthContext);
   const currentUserId = user?.id;
@@ -64,11 +66,11 @@ const AdminReviewCard: React.FC<{
     try {
       if (isEditing && existingReply) {
         await onEditReply(review.id, existingReply.id, replyText);
-        showSuccess("Reply updated successfully!");
+        showSuccess(t("tour.replyUpdated"));
         setIsEditing(false);
       } else {
         await onReply(review.id, replyText);
-        showSuccess("Replied to customer successfully!");
+        showSuccess(t("tour.replySent"));
         setIsReplying(false);
       }
     } catch (err: any) {
@@ -99,12 +101,12 @@ const AdminReviewCard: React.FC<{
       if (confirmDialog.action === "deleteReply") {
         if (!existingReply) return;
         await onDeleteReply(review.id, existingReply.id);
-        showSuccess("Reply deleted!");
+        showSuccess(t("tour.replyDeleted"));
         setReplyText("");
       } else {
         const newStatus = confirmDialog.nextHideStatus ?? !review.isHidden;
         await onToggleHide(review.id, newStatus);
-        showSuccess(`Review has been ${newStatus ? "hidden" : "made visible"}.`);
+        showSuccess(newStatus ? t("tour.reviewHidden") : t("tour.reviewVisible"));
       }
     } catch (err: any) {
       showError(err.message);
@@ -115,7 +117,7 @@ const AdminReviewCard: React.FC<{
   };
 
   // Tạo chữ cái đầu tiên của tên để làm Avatar dự phòng
-  const reviewerName = review.customerName || "Anonymous Customer";
+  const reviewerName = review.customerName || t("tour.anonymousCustomer");
   const initials = reviewerName.charAt(0).toUpperCase();
 
   return (
@@ -148,7 +150,7 @@ const AdminReviewCard: React.FC<{
                 <h4 className="font-bold text-slate-900">{reviewerName}</h4>
                 {review.isHidden && (
                   <span className="flex items-center gap-1 rounded bg-rose-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-rose-600">
-                    <EyeOff size={12} /> Hidden
+                    <EyeOff size={12} /> {t("tour.hidden")}
                   </span>
                 )}
               </div>
@@ -170,7 +172,7 @@ const AdminReviewCard: React.FC<{
             onClick={handleToggleHide} 
             disabled={isSubmitting}
             className={`h-8 w-8 ${review.isHidden ? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" : "text-rose-500 hover:bg-rose-50 hover:text-rose-600"}`}
-            title={review.isHidden ? "Unhide Review" : "Hide Review"}
+            title={review.isHidden ? t("tour.unhideReview") : t("tour.hideReview")}
           >
             {review.isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
           </ActionButton>
@@ -189,7 +191,7 @@ const AdminReviewCard: React.FC<{
                     {existingReply.userAvatar ? (
                       <img
                         src={existingReply.userAvatar}
-                        alt={existingReply.userName || "Staff"}
+                        alt={existingReply.userName || t("tour.staff")}
                         className="h-full w-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -203,20 +205,20 @@ const AdminReviewCard: React.FC<{
                   <div>
                     <div className="flex items-center gap-2">
                       <h5 className="text-sm font-bold text-slate-900">
-                        {String(existingReply.userId) === String(currentUserId) ? 'Your Reply' : existingReply.userName || 'Staff'}
+                        {String(existingReply.userId) === String(currentUserId) ? t("tour.yourReply") : existingReply.userName || t("tour.staff")}
                       </h5>
                       {existingReply.createdAt && (
                         <span className="text-xs font-medium text-slate-400">• {formatReviewDate(existingReply.createdAt)}</span>
                       )}
                     </div>
-                    <div className="text-xs text-slate-500">Reply to customer</div>
+                    <div className="text-xs text-slate-500">{t("tour.replyToCustomer")}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setIsEditing(true)} className="text-slate-400 hover:text-indigo-600" title="Edit Reply">
+                  <button onClick={() => setIsEditing(true)} className="text-slate-400 hover:text-indigo-600" title={t("tour.editReply")}>
                     <Pencil size={14} />
                   </button>
-                  <button onClick={handleDeleteReply} className="text-slate-400 hover:text-rose-600" title="Delete Reply">
+                  <button onClick={handleDeleteReply} className="text-slate-400 hover:text-rose-600" title={t("tour.deleteReply")}>
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -231,16 +233,16 @@ const AdminReviewCard: React.FC<{
                 rows={3}
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Write your response to the customer..."
+                placeholder={t("tour.writeReplyPlaceholder")}
                 className="w-full rounded-xl border border-indigo-200 bg-indigo-50/30 p-3 text-sm text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
               <div className="mt-2 flex justify-end gap-2">
                 <ActionButton variant="secondary" onClick={() => { setIsReplying(false); setIsEditing(false); setReplyText(existingReply?.content || ""); }} className="px-4 py-1.5 text-xs">
-                  Cancel
+                  {t("common.cancel")}
                 </ActionButton>
                 <ActionButton variant="primary" onClick={handleSubmitReply} disabled={isSubmitting || !replyText.trim()} className="px-4 py-1.5 text-xs gap-1.5">
                   {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <MessageSquare size={14} />}
-                  {isEditing ? "Update" : "Send Reply"}
+                  {isEditing ? t("common.update") : t("tour.sendReply")}
                 </ActionButton>
               </div>
             </div>
@@ -249,7 +251,7 @@ const AdminReviewCard: React.FC<{
               onClick={() => setIsReplying(true)}
               className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors"
             >
-              <MessageSquarePlus size={16} /> Write a reply
+              <MessageSquarePlus size={16} /> {t("tour.writeReply")}
             </button>
           )}
         </div>
@@ -260,24 +262,24 @@ const AdminReviewCard: React.FC<{
         onConfirm={handleConfirmDialog}
         title={
           confirmDialog.action === "deleteReply"
-            ? "Confirm delete reply"
+            ? t("tour.confirmDeleteReply")
             : confirmDialog.nextHideStatus
-            ? "Confirm hide review"
-            : "Confirm unhide review"
+            ? t("tour.confirmHideReview")
+            : t("tour.confirmUnhideReview")
         }
         message={
           confirmDialog.action === "deleteReply"
-            ? "Are you sure you want to delete this reply?"
+            ? t("tour.confirmDeleteReplyMsg")
             : confirmDialog.nextHideStatus
-            ? "Are you sure you want to hide this review?"
-            : "Are you sure you want to unhide this review?"
+            ? t("tour.confirmHideReviewMsg")
+            : t("tour.confirmUnhideReviewMsg")
         }
         confirmText={
           confirmDialog.action === "deleteReply"
-            ? "Delete"
+            ? t("tour.delete")
             : confirmDialog.nextHideStatus
-            ? "Hide"
-            : "Unhide"
+            ? t("tour.hide")
+            : t("tour.unhide")
         }
         variant={confirmDialog.action === "deleteReply" ? "warning" : "warning"}
       />
@@ -290,6 +292,7 @@ const AdminReviewCard: React.FC<{
 // COMPONENT 2: TRANG QUẢN LÝ CHÍNH
 // ==========================================
 export const DashboardReviewManager: React.FC = () => {
+  const { t } = useTranslation();
   const [tours, setTours] = useState<any[]>([]);
   const [isToursLoading, setIsToursLoading] = useState(true);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
@@ -339,8 +342,8 @@ export const DashboardReviewManager: React.FC = () => {
     <div className="h-[calc(100vh-100px)] flex flex-col md:flex-row gap-6 p-6">
       <div className="w-full md:w-1/3 lg:w-1/4 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/50">
-          <h2 className="text-base font-black text-slate-900">Select Tour</h2>
-          <p className="text-xs font-medium text-slate-500 mt-1">Manage reviews by tour</p>
+          <h2 className="text-base font-black text-slate-900">{t("tour.selectTourTitle")}</h2>
+          <p className="text-xs font-medium text-slate-500 mt-1">{t("tour.manageReviewsByTour")}</p>
         </div>
         
         <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
@@ -374,7 +377,7 @@ export const DashboardReviewManager: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center p-5 text-sm text-slate-500">No tours found.</div>
+            <div className="text-center p-5 text-sm text-slate-500">{t("tour.noToursFound")}</div>
           )}
         </div>
       </div>
@@ -382,9 +385,9 @@ export const DashboardReviewManager: React.FC = () => {
       <div className="flex-1 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-black text-slate-900">Tour Reviews</h2>
+            <h2 className="text-base font-black text-slate-900">{t("tour.tourReviews")}</h2>
             <p className="text-xs font-medium text-slate-500 mt-1">
-              {reviews?.length || 0} review(s) found
+              {t("tour.reviewsFound", { count: reviews?.length || 0 })}
             </p>
           </div>
         </div>
@@ -393,7 +396,7 @@ export const DashboardReviewManager: React.FC = () => {
           {!selectedTourId ? (
             <div className="flex h-full flex-col items-center justify-center text-slate-400">
               <Map className="mb-3 h-12 w-12 opacity-50" />
-              <p>Select a tour from the left to view reviews.</p>
+              <p>{t("tour.selectTourForReviews")}</p>
             </div>
           ) : isReviewsLoading ? (
             <div className="flex h-full items-center justify-center">
@@ -415,8 +418,8 @@ export const DashboardReviewManager: React.FC = () => {
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-slate-400 text-center">
               <MessageSquare className="mb-3 h-12 w-12 opacity-50" />
-              <h3 className="text-lg font-bold text-slate-900">No Reviews Yet</h3>
-              <p className="text-sm mt-1">This tour hasn't received any customer reviews.</p>
+              <h3 className="text-lg font-bold text-slate-900">{t("tour.noReviewsForTour")}</h3>
+              <p className="text-sm mt-1">{t("tour.noReviewsForTourHint")}</p>
             </div>
           )}
         </div>

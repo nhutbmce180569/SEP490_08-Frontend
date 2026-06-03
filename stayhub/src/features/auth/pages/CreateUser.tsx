@@ -4,97 +4,98 @@ import { DynamicForm, type FormField } from "../../../components/dashboard/Dynam
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateUser } from "../hooks/useCreateUser";
 import { useRoles } from "../hooks/useRoles";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const CreateUser: React.FC = () => {
+  const { t } = useTranslation();
   const { handleSubmit, handleCancel, isSubmitting, serverErrors } = useCreateUser();
   const { data: roles, isLoading: isRolesLoading } = useRoles();
 
-  // Bắt buộc chờ API tải xong danh sách Role mới hiển thị form
-  if (isRolesLoading) return <div className="flex justify-center p-10 text-slate-500">Loading form details...</div>;
+  if (isRolesLoading) return <div className="flex justify-center p-10 text-slate-500">{t("auth.loadingFormDetails")}</div>;
 
   const roleOptions = Array.isArray(roles) ? roles.map((role: any) => ({
-    label: role.name || role.Name || "Unknown",
+    label: role.name || role.Name || t("auth.unknown"),
     value: role.id !== undefined ? role.id : role.Id,
   })) : [];
 
   const userFields: FormField[] = [
     {
       name: "email",
-      label: "Email Address",
+      label: t("errors.emailAddress"),
       type: "text",
-      placeholder: "e.g. user@example.com",
+      placeholder: t("errors.emailPlaceholder"),
       icon: <Mail className="h-4 w-4" />,
       required: true,
     },
     {
       name: "fullName",
-      label: "Full Name",
+      label: t("auth.fullName"),
       type: "text",
-      placeholder: "e.g. John Doe",
+      placeholder: t("errors.fullNamePlaceholder"),
       icon: <UserIcon className="h-4 w-4" />,
       required: true,
     },
     {
       name: "avatarFile",
-      label: "Avatar",
+      label: t("auth.avatar"),
       type: "file",
       icon: <UserIcon className="h-4 w-4" />,
       colSpan: 2,
     },
     {
       name: "password",
-      label: "Password",
+      label: t("auth.password"),
       type: "password",
-      placeholder: "Minimum 6 characters",
+      placeholder: t("auth.minimumPassword"),
       icon: <Lock className="h-4 w-4" />,
       required: true,
     },
     {
       name: "confirmPassword",
-      label: "Confirm Password",
+      label: t("errors.confirmPasswordLabel"),
       type: "password",
-      placeholder: "Repeat your password",
+      placeholder: t("errors.confirmPasswordPlaceholder"),
       icon: <Lock className="h-4 w-4" />,
       required: true,
     },
     {
       name: "phoneNumber",
-      label: "Phone Number",
+      label: t("auth.phoneNumber"),
       type: "text",
-      placeholder: "e.g. 0912345678",
+      placeholder: t("errors.phonePlaceholder"),
       icon: <Phone className="h-4 w-4" />,
     },
     {
       name: "gender",
-      label: "Gender",
+      label: t("common.gender"),
       type: "select",
       icon: <Users className="h-4 w-4" />,
       options: [
-        { label: "Male", value: "Male" },
-        { label: "Female", value: "Female" },
-        { label: "Other", value: "Other" },
+        { label: t("common.male"), value: "Male" },
+        { label: t("common.female"), value: "Female" },
+        { label: t("common.other"), value: "Other" },
       ],
     },
     {
       name: "dateOfBirth",
-      label: "Date of Birth",
+      label: t("common.dateOfBirth"),
       type: "date",
       icon: <Calendar className="h-4 w-4" />,
     },
     {
       name: "status",
-      label: "Status",
+      label: t("common.status"),
       type: "select",
       icon: <Tag className="h-4 w-4" />,
       options: [
-        { label: "Active", value: "Active" },
-        { label: "Blocked", value: "Blocked" },
+        { label: t("common.active"), value: "Active" },
+        { label: t("auth.blocked"), value: "Blocked" },
       ],
     },
     {
       name: "roleIds",
-      label: "Roles",
-      type: "multiselect", // Đảm bảo DynamicForm của bạn có hỗ trợ type="multiselect"
+      label: t("auth.rolesLabel"),
+      type: "multiselect",
       icon: <Shield className="h-4 w-4" />,
       options: roleOptions,
       colSpan: 2,
@@ -103,8 +104,8 @@ export const CreateUser: React.FC = () => {
 
   return (
     <>
-      <DynamicForm title="Create New User" description="Add a new user to the system." fields={userFields} initialValues={{ status: "Active" }} onSubmit={handleSubmit} serverErrors={serverErrors} onCancel={handleCancel} />
-      <LoadingOverlay isOpen={isSubmitting} message="Creating user..." />
+      <DynamicForm title={t("auth.createNewUser")} description={t("auth.createNewUserDesc")} fields={userFields} initialValues={{ status: "Active" }} onSubmit={handleSubmit} serverErrors={serverErrors} onCancel={handleCancel} />
+      <LoadingOverlay isOpen={isSubmitting} message={t("auth.creatingUser")} />
     </>
   );
 };

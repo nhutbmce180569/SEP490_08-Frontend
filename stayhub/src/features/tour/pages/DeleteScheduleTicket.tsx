@@ -17,8 +17,10 @@ import {
   getScheduleTicketName,
   getScheduleTicketTypeId,
 } from "../utils/tourScheduleTicket";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const DeleteScheduleTicket: React.FC = () => {
+  const { t } = useTranslation();
   const { scheduleId, ticketId } = useParams<{ scheduleId: string; ticketId: string }>();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
@@ -50,12 +52,12 @@ export const DeleteScheduleTicket: React.FC = () => {
         setTicket(ticketData);
         setTicketType(ticketTypeData);
       } catch (err: unknown) {
-        showError(getApiErrorMessage(err, "Failed to load schedule ticket."));
+        showError(getApiErrorMessage(err, t("tour.failedLoadScheduleTicket")));
       } finally {
         setIsFetching(false);
       }
     });
-  }, [ticketId, showError]);
+  }, [ticketId, showError, t]);
 
   const handleCancel = () => {
     if (scheduleId) navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
@@ -68,25 +70,27 @@ export const DeleteScheduleTicket: React.FC = () => {
     setIsDeleting(true);
     try {
       await tourScheduleTicketService.deactivate(ticketId);
-      success("Schedule ticket deactivated successfully.");
+      success(t("tour.scheduleTicketDeactivated"));
       navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (err: unknown) {
-      showError(getApiErrorMessage(err, "Failed to deactivate schedule ticket."));
+      showError(getApiErrorMessage(err, t("tour.failedDeactivateScheduleTicket")));
     } finally {
       setIsDeleting(false);
     }
   };
 
+  const tourNameSuffix = schedule?.tour?.name ? ` (${schedule.tour.name})` : "";
+
   if (!scheduleId || !ticketId) {
-    return <div className="p-10 text-center text-rose-500">Schedule ticket route is invalid.</div>;
+    return <div className="p-10 text-center text-rose-500">{t("tour.scheduleTicketRouteInvalid")}</div>;
   }
 
   if (isScheduleLoading || isFetching) {
-    return <div className="p-10 text-center text-slate-500">Loading schedule ticket...</div>;
+    return <div className="p-10 text-center text-slate-500">{t("tour.loadingScheduleTicket")}</div>;
   }
 
   if (!ticket) {
-    return <div className="p-10 text-center text-rose-500">Schedule ticket not found.</div>;
+    return <div className="p-10 text-center text-rose-500">{t("tour.scheduleTicketNotFound")}</div>;
   }
 
   return (
@@ -96,7 +100,7 @@ export const DeleteScheduleTicket: React.FC = () => {
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Schedule
+        {t("tour.backToSchedule")}
       </button>
 
       <div className="overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-sm">
@@ -105,23 +109,22 @@ export const DeleteScheduleTicket: React.FC = () => {
             <AlertTriangle className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-rose-700">Deactivate Schedule Ticket</h2>
+            <h2 className="text-lg font-bold text-rose-700">{t("tour.deactivateScheduleTicket")}</h2>
             <p className="mt-1 text-sm text-rose-600/90">
-              This action will hide this ticket from customer booking for Schedule #{scheduleId}
-              {schedule?.tour?.name ? ` (${schedule.tour.name})` : ""}.
+              {t("tour.deactivateScheduleTicketDesc", { id: scheduleId, tourName: tourNameSuffix })}
             </p>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="mb-4 text-sm font-bold text-slate-800">Ticket details:</div>
+          <div className="mb-4 text-sm font-bold text-slate-800">{t("tour.ticketDetails")}</div>
 
           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
                   <Ticket className="h-4 w-4" />
-                  Ticket Type
+                  {t("tour.ticketType")}
                 </div>
                 <h3 className="mt-2 text-xl font-semibold text-slate-900">
                   {getScheduleTicketName(ticket, ticketType)}
@@ -139,7 +142,7 @@ export const DeleteScheduleTicket: React.FC = () => {
                       : "bg-rose-100 text-rose-700"
                 }`}
               >
-                {(ticket.isActive ?? true) ? "Active" : "Inactive"}
+                {(ticket.isActive ?? true) ? t("common.active") : t("common.inactive")}
               </span>
             </div>
 
@@ -147,7 +150,7 @@ export const DeleteScheduleTicket: React.FC = () => {
               <div className="rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm">
                 <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
                   <Banknote className="h-4 w-4" />
-                  Price
+                  {t("common.price")}
                 </div>
                 <div className="font-medium text-slate-900">
                   {formatTicketCurrency(ticket.price)}
@@ -156,10 +159,10 @@ export const DeleteScheduleTicket: React.FC = () => {
               <div className="rounded-2xl bg-white p-4 text-sm text-slate-700 shadow-sm">
                 <div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-slate-400">
                   <Users className="h-4 w-4" />
-                  Quantity
+                  {t("tour.quantity")}
                 </div>
                 <div className="font-medium text-slate-900">
-                  {getScheduleTicketCapacity(ticket) ?? "N/A"}
+                  {getScheduleTicketCapacity(ticket) ?? t("common.na")}
                 </div>
               </div>
             </div>
@@ -168,7 +171,7 @@ export const DeleteScheduleTicket: React.FC = () => {
 
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4">
           <ActionButton variant="secondary" onClick={handleCancel} className="px-5 py-2.5 text-sm">
-            Cancel
+            {t("common.cancel")}
           </ActionButton>
           <ActionButton
             variant="warning"
@@ -177,12 +180,12 @@ export const DeleteScheduleTicket: React.FC = () => {
             className="gap-2 px-5 py-2.5 text-sm !border-rose-600 !bg-rose-600 !text-white hover:!border-rose-700 hover:!bg-rose-700"
           >
             <PowerOff className="h-4 w-4" />
-            {isDeleting ? "Deactivating..." : "Yes, Deactivate Ticket"}
+            {isDeleting ? t("tour.deactivating") : t("tour.yesDeactivateTicket")}
           </ActionButton>
         </div>
       </div>
 
-      <LoadingOverlay isOpen={isDeleting} message="Deactivating schedule ticket..." />
+      <LoadingOverlay isOpen={isDeleting} message={t("tour.deactivatingScheduleTicket")} />
     </div>
   );
 };

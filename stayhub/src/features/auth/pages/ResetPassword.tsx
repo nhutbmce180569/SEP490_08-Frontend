@@ -7,8 +7,10 @@ import { useForgotPassword } from "../hooks/useForgotPassword";
 import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function ResetPassword() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const prefilledEmail = location.state?.email || "";
@@ -61,7 +63,7 @@ export default function ResetPassword() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.newPassword !== formData.confirmPassword) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match!" }));
+      setErrors((prev) => ({ ...prev, confirmPassword: t("errors.passwordsNoMatch") }));
       return;
     }
 
@@ -80,10 +82,10 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout
-      title="Reset Password"
-      subtitle="Enter the verification code sent to your email and choose a new password."
-      heroTitle="Almost there."
-      heroSubtitle="Verify your identity and set a new password to regain access to your account."
+      title={t("auth.resetTitle")}
+      subtitle={t("auth.resetSubtitleLong")}
+      heroTitle={t("auth.resetHeroTitle")}
+      heroSubtitle={t("auth.resetHeroDesc")}
       imageSeed="stayhub-reset"
       footer={
         <div className="mt-8 text-center">
@@ -91,32 +93,32 @@ export default function ResetPassword() {
             to={PATH.PUBLIC.LOGIN}
             className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
           >
-            &larr; Back to Login
+            &larr; {t("auth.backToLogin")}
           </Link>
         </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <AuthFormField
-          label="Email Address"
+          label={t("errors.emailAddress")}
           name="email"
           type="email"
           icon={Mail}
           value={formData.email}
           readOnly
-          placeholder="name@example.com"
+          placeholder={t("errors.emailPlaceholder")}
           error={errors.email}
           required
         />
 
         <AuthFormField
-          label="Verification Code"
+          label={t("auth.verificationCode")}
           name="code"
           type="text"
           icon={KeyRound}
           value={formData.code}
           onChange={handleChange}
-          placeholder="Enter reset code"
+          placeholder={t("auth.enterResetCode")}
           error={errors.code}
           labelExtra={
             <button
@@ -126,23 +128,23 @@ export default function ResetPassword() {
               className="text-xs font-bold text-brand outline-none transition-colors hover:text-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isResending
-                ? "Resending..."
+                ? t("auth.resending")
                 : countdown > 0
-                  ? `Resend Code (${countdown}s)`
-                  : "Resend Code"}
+                  ? t("auth.resendCodeCountdown", { count: countdown })
+                  : t("auth.resendCode")}
             </button>
           }
           required
         />
 
         <AuthFormField
-          label="New Password"
+          label={t("auth.newPassword")}
           name="newPassword"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.newPassword}
           onChange={handleChange}
-          placeholder="Create a new password"
+          placeholder={t("auth.newPasswordPlaceholder")}
           error={errors.newPassword}
           showToggle
           showPassword={showPassword}
@@ -151,13 +153,13 @@ export default function ResetPassword() {
         />
 
         <AuthFormField
-          label="Confirm New Password"
+          label={t("auth.confirmNewPassword")}
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.confirmPassword}
           onChange={handleChange}
-          placeholder="Repeat your new password"
+          placeholder={t("auth.confirmNewPasswordPlaceholder")}
           error={errors.confirmPassword}
           required
         />
@@ -168,7 +170,7 @@ export default function ResetPassword() {
           disabled={isSubmitting}
           className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
         >
-          {isSubmitting ? "Resetting..." : "Reset Password"}
+          {isSubmitting ? t("errors.resetting") : t("errors.resetBtn")}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>

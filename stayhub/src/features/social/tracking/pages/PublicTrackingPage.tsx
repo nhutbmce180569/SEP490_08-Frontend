@@ -5,8 +5,10 @@ import * as signalR from "@microsoft/signalr";
 import { MapPin } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetPublicLocation } from "../hooks/useLocationTracking";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 
 export const PublicTrackingPage: React.FC = () => {
+  const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
   const { data, isError, isLoading } = useGetPublicLocation(token || "");
 
@@ -73,8 +75,8 @@ export const PublicTrackingPage: React.FC = () => {
         <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-rose-100">
           <MapPin className="h-12 w-12 text-rose-500" />
         </div>
-        <h2 className="mb-2 text-2xl font-black text-slate-800">Liên kết không hợp lệ</h2>
-        <p className="max-w-md text-slate-500">Liên kết này đã hết hạn hoặc không tồn tại. Vui lòng yêu cầu người thân chia sẻ lại liên kết mới (Thường có hiệu lực 24h).</p>
+        <h2 className="mb-2 text-2xl font-black text-slate-800">{t("social.trackingInvalidLink")}</h2>
+        <p className="max-w-md text-slate-500">{t("social.trackingInvalidDesc")}</p>
       </div>
     );
   }
@@ -85,11 +87,12 @@ export const PublicTrackingPage: React.FC = () => {
       <div className="absolute left-1/2 top-6 z-10 w-max max-w-[90%] -translate-x-1/2 animate-fade-in-down rounded-full border border-white/20 bg-black/60 px-6 py-3 shadow-2xl backdrop-blur-md">
         <div className="flex items-center gap-3">
           <p className="text-sm font-medium text-white">
-            Đang theo dõi hành trình của: <span className="font-bold text-brand">{targetName}</span>
+            {t("social.trackingWatchingPrefix")}{" "}
+            <span className="font-bold text-brand">{targetName}</span>
           </p>
           <div className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/20 px-2 py-0.5">
             <div className="h-2 w-2 animate-pulse rounded-full bg-rose-500"></div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-100">Live</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-rose-100">{t("social.trackingLive")}</span>
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import type { TopBookedTour } from '../types/platformAnalytics.types';
 import { formatNumber } from '../../customer-analytics/utils/analyticsHelpers';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 interface TopToursTableProps {
   tours: TopBookedTour[];
@@ -14,6 +15,7 @@ export const TopToursTable: React.FC<TopToursTableProps> = ({
   isLoading,
   pageSize = 5,
 }) => {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export const TopToursTable: React.FC<TopToursTableProps> = ({
   if (tours.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-slate-400">
-        No booking data available for the selected period.
+        {t('analytics.platform.noBookingData')}
       </p>
     );
   }
@@ -59,8 +61,8 @@ export const TopToursTable: React.FC<TopToursTableProps> = ({
           <thead>
             <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-400">
               <th className="px-6 py-3">#</th>
-              <th className="px-4 py-3">Tour</th>
-              <th className="px-4 py-3 text-right">Bookings</th>
+              <th className="px-4 py-3">{t('analytics.platform.colTour')}</th>
+              <th className="px-4 py-3 text-right">{t('analytics.platform.colBookings')}</th>
             </tr>
           </thead>
           <tbody>
@@ -82,7 +84,7 @@ export const TopToursTable: React.FC<TopToursTableProps> = ({
                   </td>
                   <td className="px-4 py-4">
                     <div className="font-semibold text-slate-900">
-                      {tour.tourName ?? `Tour #${tour.tourId}`}
+                      {tour.tourName ?? t('analytics.platform.tourIdLabel', { id: tour.tourId })}
                     </div>
                     <div className="text-xs text-slate-400">ID: {tour.tourId}</div>
                   </td>

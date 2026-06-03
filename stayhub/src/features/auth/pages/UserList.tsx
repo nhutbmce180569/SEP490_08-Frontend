@@ -7,26 +7,28 @@ import { useUsers } from "../hooks/useUsers";
 import { useChangeUserStatus } from "../hooks/useChangeUserStatus";
 import { type ReadUserDTO } from "../types/user";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const UserList: React.FC = () => {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
   const [roleInput, setRoleInput] = useState("");
   const [filters, setFilters] = useState({ fullName: "", role: "" });
 
   const userHookData = useUsers(filters);
   const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete } = userHookData;
-  const refetch = (userHookData as any).refetch; // Dùng as any để lấy refetch nếu hook có cung cấp (từ react-query)
+  const refetch = (userHookData as any).refetch;
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setFilters((prev) => {
         if (prev.fullName !== searchInput || prev.role !== roleInput) {
-          setPage(1); // Trở về trang 1 khi áp dụng bộ lọc mới
+          setPage(1);
           return { fullName: searchInput, role: roleInput };
         }
         return prev;
       });
-    }, 500); // 500ms debounce
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchInput, roleInput, setPage]);
 
@@ -62,7 +64,7 @@ export const UserList: React.FC = () => {
   const columns: Column<ReadUserDTO>[] = useMemo(
     () => [
       {
-        header: "User",
+        header: t("common.user"),
         render: (user) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 overflow-hidden items-center justify-center rounded-full bg-slate-100 text-slate-400 border border-slate-200">
@@ -80,11 +82,11 @@ export const UserList: React.FC = () => {
         ),
       },
       {
-        header: "Phone",
-        render: (user) => <span className="text-sm text-slate-600">{user.phoneNumber || "N/A"}</span>,
+        header: t("common.phone"),
+        render: (user) => <span className="text-sm text-slate-600">{user.phoneNumber || t("common.na")}</span>,
       },
       {
-        header: "Roles",
+        header: t("auth.rolesLabel"),
         render: (user) => (
           <div className="flex flex-wrap gap-1">
             {user.roles?.length > 0 ? (
@@ -94,13 +96,13 @@ export const UserList: React.FC = () => {
                 </span>
               ))
             ) : (
-              <span className="text-sm text-slate-400">None</span>
+              <span className="text-sm text-slate-400">{t("auth.none")}</span>
             )}
           </div>
         ),
       },
       {
-        header: "Status",
+        header: t("common.status"),
         render: (user) => {
           const isActive = user.status === "Active";
           return (
@@ -109,16 +111,16 @@ export const UserList: React.FC = () => {
                   isActive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                 }`}
               >
-                {user.status || "Unknown"}
+                {user.status || t("auth.unknown")}
               </span>
           );
         },
       },
       {
-        header: "Action",
+        header: t("common.actions"),
         render: (user) => (
           <div className="flex items-center gap-1.5">
-            <ActionButton variant="secondary" onClick={() => openViewDialog(user)} className="h-8 w-8" title="View Details">
+            <ActionButton variant="secondary" onClick={() => openViewDialog(user)} className="h-8 w-8" title={t("auth.viewDetails")}>
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>
             <ActionButton variant="secondary" onClick={() => handleEdit(user.id)} className="h-8 w-8">
@@ -133,7 +135,7 @@ export const UserList: React.FC = () => {
                   ? "!bg-rose-50 !text-rose-500 hover:!bg-rose-100 hover:!border-rose-200 !border-transparent"
                   : "!bg-emerald-50 !text-emerald-600 hover:!bg-emerald-100 hover:!border-emerald-200 !border-transparent"
               }`}
-              title={user.status === "Active" ? "Block User" : "Activate User"}
+              title={user.status === "Active" ? t("auth.blockUser") : t("auth.activateUser")}
             >
               {user.status === "Active" ? (
                 <Lock className="h-3.5 w-3.5" />
@@ -148,15 +150,15 @@ export const UserList: React.FC = () => {
         ),
       },
     ],
-    [handleEdit, handleDelete, updatingId]
+    [handleEdit, handleDelete, updatingId, t]
   );
 
   return (
     <div className="rounded-2xl">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-[15px] font-bold leading-tight text-slate-900">User Management</h2>
+        <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t("auth.userManagement")}</h2>
         <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
-          <Plus className="h-4 w-4" /> Add User
+          <Plus className="h-4 w-4" /> {t("auth.addUser")}
         </ActionButton>
       </div>
 
@@ -165,7 +167,7 @@ export const UserList: React.FC = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by full name..."
+            placeholder={t("auth.searchByFullName")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
@@ -178,7 +180,7 @@ export const UserList: React.FC = () => {
             onChange={(e) => setRoleInput(e.target.value)}
             className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           >
-            <option value="">All Roles</option>
+            <option value="">{t("auth.allRoles")}</option>
             <option value="Admin">Admin</option>
             <option value="Customer">Customer</option>
             <option value="Host">Host</option>
@@ -187,11 +189,11 @@ export const UserList: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">Loading users...</div>
+        <div className="flex justify-center p-10 text-slate-500">{t("auth.loadingUsers")}</div>
       ) : error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
-        <Table data={users} columns={columns} keyExtractor={(item) => item.id} emptyMessage="No users found." />
+        <Table data={users} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("errors.noUsersFound")} />
       )}
 
       <PaginationButton currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
@@ -200,13 +202,13 @@ export const UserList: React.FC = () => {
             open={statusDialogOpen}
             onClose={() => setStatusDialogOpen(false)}
             onConfirm={handleConfirmStatusChange}
-            title={selectedUserForStatus?.status === "Active" ? "Block User" : "Activate User"}
+            title={selectedUserForStatus?.status === "Active" ? t("auth.blockUser") : t("auth.activateUser")}
             message={
               selectedUserForStatus?.status === "Active"
-                ? `Are you sure you want to block the account of ${selectedUserForStatus?.fullName}? They will not be able to log in.`
-                : `Are you sure you want to activate the account of ${selectedUserForStatus?.fullName}? They will regain access to the system.`
+                ? t("auth.blockConfirmMessage", { name: selectedUserForStatus?.fullName ?? "" })
+                : t("auth.activateConfirmMessage", { name: selectedUserForStatus?.fullName ?? "" })
             }
-            confirmText={selectedUserForStatus?.status === "Active" ? "Yes, Block" : "Yes, Activate"}
+            confirmText={selectedUserForStatus?.status === "Active" ? t("auth.yesBlock") : t("auth.yesActivate")}
             variant={selectedUserForStatus?.status === "Active" ? "warning" : "primary"}
           />
 
@@ -214,7 +216,7 @@ export const UserList: React.FC = () => {
             <div className="fixed inset-0 z-[500] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
               <div className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-xl">
                 <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-                  <h3 className="text-lg font-bold text-slate-800">User Details</h3>
+                  <h3 className="text-lg font-bold text-slate-800">{t("auth.userDetails")}</h3>
                   <button onClick={() => setViewDialogOpen(false)} className="text-slate-400 hover:text-slate-600 outline-none">
                     <X className="h-5 w-5" />
                   </button>
@@ -234,20 +236,20 @@ export const UserList: React.FC = () => {
                     </div>
                   </div>
                   <div className="mt-6 space-y-3 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Phone:</span><span className="font-medium">{selectedUserForView.phoneNumber || "N/A"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Gender:</span><span className="font-medium">{selectedUserForView.gender || "N/A"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Date of Birth:</span><span className="font-medium">{selectedUserForView.dateOfBirth ? new Date(selectedUserForView.dateOfBirth).toLocaleDateString() : "N/A"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Provider:</span><span className="font-medium">{selectedUserForView.provider || "Local"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Roles:</span><span className="font-medium">{selectedUserForView.roles?.join(", ") || "None"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Status:</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${selectedUserForView.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{selectedUserForView.status || "Unknown"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Last Online:</span><span className="font-medium">{selectedUserForView.lastOnline ? new Date(selectedUserForView.lastOnline).toLocaleString() : "N/A"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Created At:</span><span className="font-medium">{selectedUserForView.createdAt ? new Date(selectedUserForView.createdAt).toLocaleString() : "N/A"}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">Updated At:</span><span className="font-medium">{selectedUserForView.updatedAt ? new Date(selectedUserForView.updatedAt).toLocaleString() : "N/A"}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.phone")}:</span><span className="font-medium">{selectedUserForView.phoneNumber || t("common.na")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.gender")}:</span><span className="font-medium">{selectedUserForView.gender || t("common.na")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.dateOfBirth")}:</span><span className="font-medium">{selectedUserForView.dateOfBirth ? new Date(selectedUserForView.dateOfBirth).toLocaleDateString() : t("common.na")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.provider")}:</span><span className="font-medium">{selectedUserForView.provider || t("auth.local")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.rolesLabel")}:</span><span className="font-medium">{selectedUserForView.roles?.join(", ") || t("auth.none")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.status")}:</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${selectedUserForView.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{selectedUserForView.status || t("auth.unknown")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.lastOnline")}:</span><span className="font-medium">{selectedUserForView.lastOnline ? new Date(selectedUserForView.lastOnline).toLocaleString() : t("common.na")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.createdAt")}:</span><span className="font-medium">{selectedUserForView.createdAt ? new Date(selectedUserForView.createdAt).toLocaleString() : t("common.na")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.updatedAt")}:</span><span className="font-medium">{selectedUserForView.updatedAt ? new Date(selectedUserForView.updatedAt).toLocaleString() : t("common.na")}</span></div>
                   </div>
                 </div>
                 <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end">
                   <ActionButton variant="secondary" onClick={() => setViewDialogOpen(false)} className="px-5 py-2 text-sm">
-                    Close
+                    {t("common.close")}
                   </ActionButton>
                 </div>
               </div>

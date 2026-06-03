@@ -3,11 +3,13 @@ import { GoogleLogin } from "@react-oauth/google";
 import { useGoogleLogin } from "../hooks/useGoogleLogin";
 import { useToast } from "../../../contexts/ToastContext";
 import { SOCIAL_AUTH_BUTTON_CLASS, SocialAuthButtonShell } from "./SocialAuthButtons";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const GOOGLE_ICON =
   "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg";
 
 export const GoogleLoginButton: React.FC = () => {
+  const { t } = useTranslation();
   const hiddenRef = useRef<HTMLDivElement>(null);
   const { handleGoogleLoginSubmit, isSubmitting, serverError } = useGoogleLogin();
   const { error } = useToast();
@@ -34,7 +36,7 @@ export const GoogleLoginButton: React.FC = () => {
             }
           }}
           onError={() => {
-            error("Google login failed. Please try again.");
+            error(t("errors.googleLoginFailed"));
           }}
         />
       </div>
@@ -46,10 +48,10 @@ export const GoogleLoginButton: React.FC = () => {
         className={SOCIAL_AUTH_BUTTON_CLASS}
       >
         <img src={GOOGLE_ICON} alt="" aria-hidden className="h-5 w-5 shrink-0" />
-        Google
+        {t("common.google")}
       </button>
 
-      {isSubmitting && <p className="text-xs text-slate-500">Processing login...</p>}
+      {isSubmitting && <p className="text-xs text-slate-500">{t("common.processing")}</p>}
       {serverError && <p className="text-xs text-rose-500">{serverError}</p>}
     </SocialAuthButtonShell>
   );

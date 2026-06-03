@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { apiClient } from '../../../../utils/axiosClient';
 import { API_BASE_URL } from '../../../../config/api/api';
+import { withLanguageHeaders } from '../../../../utils/httpLanguage';
 
 export const locationTrackingService = {
   // 1. API Tạo mã chia sẻ (Có Auth)
@@ -19,7 +20,9 @@ export const locationTrackingService = {
 
 
   getPublicLocation: async (token: string): Promise<{ lat: number; lng: number; fullName: string }> => {
-    const response = await axios.get(`${API_BASE_URL}/api/locations/track/${token}`);
+    const response = await axios.get(`${API_BASE_URL}/api/locations/track/${token}`, {
+      headers: withLanguageHeaders(),
+    });
     
     return response.data?.data || response.data;
   }

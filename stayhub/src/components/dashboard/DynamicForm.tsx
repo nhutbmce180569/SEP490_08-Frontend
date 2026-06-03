@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Save, X, UploadCloud, Trash2, ChevronDown, Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "../../contexts/LocaleContext";
 import { ActionButton } from "./ActionButton";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
 
@@ -38,11 +39,14 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   initialData = {},
   onSubmit,
   onCancel,
-  submitText = "Save",
-  cancelText = "Cancel",
+  submitText,
+  cancelText,
   initialValues,
   serverErrors
 }) => {
+  const { t } = useTranslation();
+  const resolvedSubmit = submitText ?? t("common.save");
+  const resolvedCancel = cancelText ?? t("common.cancel");
   // Khởi tạo biến an toàn để tránh lỗi undefined
   const safeInitialData = initialData || {};
   const safeInitialValues = initialValues || {};
@@ -99,7 +103,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       
       // Kiểm tra required
       if (field.required && (value === undefined || value === null || value === "")) {
-        newErrors[field.name] = `${field.label} is required.`;
+        newErrors[field.name] = t("common.fieldRequired", { label: field.label });
         isValid = false;
       } 
       // Kiểm tra hàm validate custom
@@ -282,7 +286,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               options={field.options || []}
               selectedValues={Array.isArray(value) ? value : (value ? [value] : [])}
               onChange={(vals) => handleChange(field.name, vals)}
-              placeholder={field.placeholder || "Select options..."}
+              placeholder={field.placeholder || t("common.selectOptions")}
             />
           ) : field.type === "password" ? (
             <>
@@ -339,11 +343,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         <div className="flex shrink-0 items-center justify-end gap-3 sm:w-4/12">
           <ActionButton variant="secondary" onClick={onCancel} className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm">
             <X className="h-4 w-4" />
-            {cancelText}
+            {resolvedCancel}
           </ActionButton>
           <ActionButton variant="primary" onClick={handleSubmit} className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm">
             <Save className="h-4 w-4" />
-            {submitText}
+            {resolvedSubmit}
           </ActionButton>
         </div>
       </div>

@@ -2,35 +2,40 @@ import { Link, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { Phone, Send } from "lucide-react";
 import { PATH } from "../../config/routes/route";
-
-type FooterLinkGroup = { title: string; links: string[] };
+import { useTranslation } from "../../contexts/LocaleContext";
 
 export default function Footer() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const location = useLocation();
   const legalLinkState = { from: location.pathname };
 
-  const groups = useMemo<FooterLinkGroup[]>(
+  const groups = useMemo(
     () => [
       {
-        title: "Company",
+        title: t("footer.company"),
         links: [
-          "About Us",
-          "StayHub Reviews",
-          "Contact Us",
-          "Travel Guides",
-          "Data Policy",
-          "Cookie Policy",
-          "Legal",
-          "Sitemap",
+          t("footer.aboutUs"),
+          t("footer.reviews"),
+          t("footer.contactUs"),
+          t("footer.travelGuides"),
+          t("footer.dataPolicy"),
+          t("footer.cookiePolicy"),
+          t("footer.legal"),
+          t("footer.sitemap"),
         ],
       },
       {
-        title: "Support",
-        links: ["Get in Touch", "Help center", "Live chat", "How it works"],
+        title: t("footer.supportSection"),
+        links: [
+          t("footer.getInTouch"),
+          t("footer.helpCenter"),
+          t("footer.liveChat"),
+          t("footer.howItWorks"),
+        ],
       },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -42,13 +47,13 @@ export default function Footer() {
               <Phone className="h-5 w-5" aria-hidden />
             </div>
             <p className="text-base font-semibold text-navy md:text-lg">
-              Speak to our travel expert{" "}
-              <span className="text-brand">1-800-453-6744</span>
+              {t("footer.speakExpert")}{" "}
+              <span className="text-brand">{t("footer.phone")}</span>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-navy">Follow Us</span>
+            <span className="text-sm font-semibold text-navy">{t("footer.followUs")}</span>
             {["in", "fb", "tw", "yt"].map((k) => (
               <button
                 key={k}
@@ -64,11 +69,9 @@ export default function Footer() {
 
         <div className="grid gap-8 py-10 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <h4 className="travel-heading mb-3 text-lg">Contact</h4>
-            <p className="text-sm leading-7 text-slate-600">
-              328 Queensberry Street, North Melbourne VIC3051, Australia.
-            </p>
-            <p className="mt-2 text-sm font-medium text-brand">hi@stayhub.com</p>
+            <h4 className="travel-heading mb-3 text-lg">{t("footer.contact")}</h4>
+            <p className="text-sm leading-7 text-slate-600">{t("footer.address")}</p>
+            <p className="mt-2 text-sm font-medium text-brand">{t("footer.email")}</p>
           </div>
 
           {groups.map((g) => (
@@ -90,16 +93,14 @@ export default function Footer() {
           ))}
 
           <div>
-            <h4 className="travel-heading mb-3 text-lg">Newsletter</h4>
-            <p className="mb-4 text-sm text-slate-600">
-              Subscribe for tour deals and fresh travel inspiration
-            </p>
+            <h4 className="travel-heading mb-3 text-lg">{t("footer.newsletter")}</h4>
+            <p className="mb-4 text-sm text-slate-600">{t("footer.newsletterDesc")}</p>
 
             <div className="relative mb-6">
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Your email address"
+                placeholder={t("footer.emailPlaceholder")}
                 className="input-field h-14 pr-24"
               />
               <button
@@ -107,41 +108,43 @@ export default function Footer() {
                 className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg px-3 py-2 text-sm font-bold text-brand transition-colors hover:bg-brand-light"
               >
                 <Send className="h-4 w-4" />
-                Send
+                {t("common.send")}
               </button>
             </div>
 
-            <h4 className="mb-2 text-sm font-bold text-navy">Mobile Apps</h4>
+            <h4 className="mb-2 text-sm font-bold text-navy">{t("footer.mobileApps")}</h4>
             <div className="flex flex-col gap-2 text-sm text-slate-600">
-              <span>iOS App</span>
-              <span>Android App</span>
+              <span>{t("footer.iosApp")}</span>
+              <span>{t("footer.androidApp")}</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy/8 py-5 text-xs text-navy-70">
-          <div>© {new Date().getFullYear()} StayHub. All rights reserved.</div>
+          <div>
+            © {new Date().getFullYear()} {t("footer.copyrightBrand")}. {t("footer.copyright")}
+          </div>
           <div className="flex gap-4">
             <Link
               to={PATH.PUBLIC.PRIVACY}
               state={legalLinkState}
               className="transition-colors hover:text-brand !no-underline"
             >
-              Privacy
+              {t("footer.privacy")}
             </Link>
             <Link
               to={PATH.PUBLIC.TERMS}
               state={legalLinkState}
               className="transition-colors hover:text-brand !no-underline"
             >
-              Terms
+              {t("footer.terms")}
             </Link>
             <button type="button" className="transition-colors hover:text-brand">
-              Support
+              {t("common.support")}
             </button>
           </div>
         </div>
       </div>
     </footer>
   );
-}
+};

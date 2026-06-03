@@ -9,10 +9,12 @@ import {
   Map,
   ArrowRight,
 } from "lucide-react";
-import { useReview } from "../hooks/useReview"; // Chỉnh lại đường dẫn tới hook
-import { PATH } from "../../../config/routes/route"; // Chỉnh lại đường dẫn tới route
+import { useReview } from "../hooks/useReview";
+import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const MyReviewsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { myAllReviews, isLoading, error, fetchAllMyReviews } = useReview();
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export const MyReviewsPage: React.FC = () => {
       <div className="flex h-64 flex-col items-center justify-center gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-brand" />
         <p className="text-sm font-medium text-slate-500">
-          Loading your reviews...
+          {t("tour.loadingYourReviews")}
         </p>
       </div>
     );
@@ -38,7 +40,7 @@ export const MyReviewsPage: React.FC = () => {
           onClick={() => fetchAllMyReviews()}
           className="mt-2 text-sm font-medium text-brand hover:underline"
         >
-          Try Again
+          {t("common.tryAgain")}
         </button>
       </div>
     );
@@ -46,8 +48,6 @@ export const MyReviewsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6">
-
-      {/* Review List */}
       {myAllReviews && myAllReviews.length > 0 ? (
         <div className="flex flex-col gap-5">
           {myAllReviews.map((review) => (
@@ -55,7 +55,6 @@ export const MyReviewsPage: React.FC = () => {
               key={review.id}
               className="overflow-hidden rounded-3xl border border-slate-200/60 bg-white shadow-sm transition-all hover:shadow-md"
             >
-              {/* Thông tin Tour được Review */}
               <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-brand">
@@ -63,7 +62,6 @@ export const MyReviewsPage: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">
-                      {/* 💥 Hiển thị tên Tour, nếu lỗi không có tên thì fallback về ID */}
                       {review.tourName || `Tour #${review.tourId}`}
                     </h3>
                     {review.createdAt && (
@@ -82,16 +80,14 @@ export const MyReviewsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Nút xem lại chi tiết Tour */}
                 <Link
-                  to={`/tours/${review.tourId}`} // Tùy chỉnh route chi tiết tour của bạn (ví dụ PATH.PUBLIC.TOUR_DETAIL(review.tourId))
+                  to={`/tours/${review.tourId}`}
                   className="flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-brand hover:ring-brand/30"
                 >
-                  View Tour <ArrowRight className="h-3.5 w-3.5" />
+                  {t("tour.viewTourBtn")} <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
               </div>
 
-              {/* Nội dung Review của User */}
               <div className="p-6">
                 <div className="mb-3 flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
@@ -112,12 +108,11 @@ export const MyReviewsPage: React.FC = () => {
                 <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
                   {review.comment || (
                     <span className="italic text-slate-400">
-                      No written comment.
+                      {t("tour.noWrittenComment")}
                     </span>
                   )}
                 </p>
 
-                {/* Khu vực Replies (Phản hồi từ Admin) */}
                 {review.replies && review.replies.length > 0 && (
                   <div className="mt-5 space-y-3 border-t border-slate-100 pt-5">
                     {review.replies.map((reply) => (
@@ -125,7 +120,6 @@ export const MyReviewsPage: React.FC = () => {
                         key={reply.id}
                         className="relative ml-4 rounded-2xl bg-slate-50 p-4 sm:ml-8"
                       >
-                        {/* Icon mũi tên chỉ xuống bẻ góc */}
                         <div className="absolute -left-6 top-4 text-slate-300">
                           <CornerDownRight className="h-5 w-5" />
                         </div>
@@ -135,7 +129,7 @@ export const MyReviewsPage: React.FC = () => {
                             <MessageSquare className="h-3 w-3" />
                           </div>
                           <span className="text-sm font-bold text-slate-900">
-                            {reply.repliedBy || "Tour Operator"}
+                            {reply.repliedBy || t("tour.tourOperator")}
                           </span>
                           {reply.createdAt && (
                             <span className="text-xs font-medium text-slate-400">
@@ -155,23 +149,21 @@ export const MyReviewsPage: React.FC = () => {
           ))}
         </div>
       ) : (
-        /* Empty State */
         <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white py-20 text-center">
           <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-light text-brand">
             <Star className="h-8 w-8" />
           </div>
           <h3 className="mb-2 text-lg font-bold text-slate-900">
-            No reviews yet
+            {t("tour.noReviewsYetTitle")}
           </h3>
           <p className="max-w-sm text-sm text-slate-500">
-            You haven't reviewed any tours yet. After completing a trip, you can
-            share your experience here!
+            {t("tour.noReviewsYetHint")}
           </p>
           <Link
             to={PATH.CUSTOMER.MY_BOOKINGS}
             className="mt-6 rounded-xl bg-brand px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand-hover shadow-sm shadow-brand/20"
           >
-            View My Bookings
+            {t("tour.viewMyBookings")}
           </Link>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { tStored } from "../../../i18n/tStored";
 import {
   createFallbackPlace,
   getPlaceCoordinates,
@@ -570,7 +571,7 @@ export const useMapPicker = (
   const handleLocateMe = () => {
     setPredictions([]);
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      alert(tStored("tour.geolocationNotSupported"));
       return;
     }
 
@@ -594,7 +595,7 @@ export const useMapPicker = (
       (error) => {
         console.error("Error getting location", error);
         setIsSearching(false);
-        alert("Unable to retrieve your location. Please check your browser permissions.");
+        alert(tStored("tour.geolocationFailed"));
       },
     );
   };

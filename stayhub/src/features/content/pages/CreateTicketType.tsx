@@ -1,59 +1,64 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { AlignLeft, Tag, Type } from "lucide-react";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCreateTicketType } from "../hooks/useCreateTicketType";
 
-const ticketTypeFields: FormField[] = [
-  {
-    name: "name",
-    label: "Ticket Type Name",
-    type: "text",
-    placeholder: "e.g. Adult",
-    icon: <Type className="h-4 w-4" />,
-    colSpan: 1,
-    required: true,
-    validate: (value) =>
-      String(value || "").trim().length > 100
-        ? "Ticket type name cannot exceed 100 characters."
-        : undefined,
-  },
-  {
-    name: "isActive",
-    label: "Status",
-    type: "select",
-    icon: <Tag className="h-4 w-4" />,
-    options: [
-      { label: "Active", value: "Active" },
-      { label: "Inactive", value: "Inactive" },
-    ],
-    required: true,
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "textarea",
-    placeholder: "Brief description of this ticket type...",
-    icon: <AlignLeft className="h-4 w-4" />,
-    colSpan: 2,
-  },
-];
-
 export const CreateTicketType: React.FC = () => {
+  const { t } = useTranslation();
   const { handleSubmit, handleCancel, isSubmitting, serverErrors } = useCreateTicketType();
+
+  const ticketTypeFields: FormField[] = useMemo(
+    () => [
+      {
+        name: "name",
+        label: t("content.ticketTypeName"),
+        type: "text",
+        placeholder: t("content.ticketTypeNamePlaceholder"),
+        icon: <Type className="h-4 w-4" />,
+        colSpan: 1,
+        required: true,
+        validate: (value) =>
+          String(value || "").trim().length > 100
+            ? t("content.ticketTypeNameMaxLength")
+            : undefined,
+      },
+      {
+        name: "isActive",
+        label: t("common.status"),
+        type: "select",
+        icon: <Tag className="h-4 w-4" />,
+        options: [
+          { label: t("common.active"), value: "Active" },
+          { label: t("common.inactive"), value: "Inactive" },
+        ],
+        required: true,
+      },
+      {
+        name: "description",
+        label: t("common.description"),
+        type: "textarea",
+        placeholder: t("content.ticketTypeDescPlaceholder"),
+        icon: <AlignLeft className="h-4 w-4" />,
+        colSpan: 2,
+      },
+    ],
+    [t],
+  );
 
   return (
     <>
       <DynamicForm
-        title="Create New Ticket Type"
-        description="Add a ticket type that can be used by tours and bookings."
+        title={t("content.createNewTicketType")}
+        description={t("content.createTicketTypeDescLong")}
         fields={ticketTypeFields}
         initialValues={{ isActive: "Active" }}
         onSubmit={handleSubmit}
         serverErrors={serverErrors}
         onCancel={handleCancel}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Creating ticket type..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("content.creatingTicketType")} />
     </>
   );
 };

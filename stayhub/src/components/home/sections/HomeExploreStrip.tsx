@@ -1,28 +1,33 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
 import { getFreeApiImage, HOME_GLASS_MEDIA } from "./shared";
 import { SectionHeader } from "./SectionHeader";
 import { HomeSection } from "./HomeSection";
-
-const TRIP_TYPES = [
-  { label: "Beach & islands", term: "beach", image: getFreeApiImage("category-beach-vn", 300, 200) },
-  { label: "Mountains", term: "mountain", image: getFreeApiImage("category-mountain-vn", 300, 200) },
-  { label: "Culture & heritage", term: "culture", image: getFreeApiImage("category-culture-vn", 300, 200) },
-  { label: "Day trips", term: "day tour", image: getFreeApiImage("category-daytrip-vn", 300, 200) },
-  { label: "Food & local life", term: "food tour", image: getFreeApiImage("category-food-vn", 300, 200) },
-  { label: "Adventure", term: "adventure", image: getFreeApiImage("category-adventure-vn", 300, 200) },
-];
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const HomeExploreStrip: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const TRIP_TYPES = useMemo(
+    () => [
+      { label: t("home.tripBeachIslands"), term: "beach", image: getFreeApiImage("category-beach-vn", 300, 200) },
+      { label: t("home.tripMountains"), term: "mountain", image: getFreeApiImage("category-mountain-vn", 300, 200) },
+      { label: t("home.tripCultureHeritage"), term: "culture", image: getFreeApiImage("category-culture-vn", 300, 200) },
+      { label: t("home.tripDayTrips"), term: "day tour", image: getFreeApiImage("category-daytrip-vn", 300, 200) },
+      { label: t("home.tripFoodLocal"), term: "food tour", image: getFreeApiImage("category-food-vn", 300, 200) },
+      { label: t("home.tripAdventure"), term: "adventure", image: getFreeApiImage("category-adventure-vn", 300, 200) },
+    ],
+    [t],
+  );
 
   return (
     <HomeSection tightTop>
       <SectionHeader
-        eyebrow="Trip types"
-        title="Explore by trip type"
-        subtitle="Pick a style — we'll show tours that match."
+        eyebrow={t("home.tripTypesEyebrow")}
+        title={t("home.exploreByTripType")}
+        subtitle={t("home.exploreByTripTypeSubtitle")}
         compact
       />
 

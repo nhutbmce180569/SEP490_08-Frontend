@@ -1,58 +1,63 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { ArrowRight, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
 import { SectionHeader } from "./SectionHeader";
 import { HomeSection } from "./HomeSection";
 import { getFreeApiImage, HOME_GLASS_MEDIA } from "./shared";
-
-const DESTINATIONS = [
-  {
-    name: "Da Nang",
-    country: "Central Vietnam",
-    tours: "120+ tours",
-    seed: "da-nang-vietnam-beach-bridge",
-    hero: true,
-  },
-  {
-    name: "Hoi An",
-    country: "Quang Nam",
-    tours: "90+ tours",
-    seed: "hoi-an-vietnam-lantern-town",
-    hero: false,
-  },
-  {
-    name: "Da Lat",
-    country: "Lam Dong",
-    tours: "75+ tours",
-    seed: "da-lat-vietnam-pine-hills",
-    hero: false,
-  },
-  {
-    name: "Ha Long",
-    country: "Quang Ninh",
-    tours: "80+ tours",
-    seed: "ha-long-bay-vietnam-limestone",
-    hero: false,
-  },
-  {
-    name: "Phu Quoc",
-    country: "Kien Giang",
-    tours: "65+ tours",
-    seed: "phu-quoc-vietnam-island",
-    hero: false,
-  },
-];
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const HomeDestinations: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const DESTINATIONS = useMemo(
+    () => [
+      {
+        name: "Da Nang",
+        country: t("home.centralVietnam"),
+        tours: t("home.toursPlus", { count: 120 }),
+        seed: "da-nang-vietnam-beach-bridge",
+        hero: true,
+      },
+      {
+        name: "Hoi An",
+        country: t("home.quangNam"),
+        tours: t("home.toursPlus", { count: 90 }),
+        seed: "hoi-an-vietnam-lantern-town",
+        hero: false,
+      },
+      {
+        name: "Da Lat",
+        country: t("home.lamDong"),
+        tours: t("home.toursPlus", { count: 75 }),
+        seed: "da-lat-vietnam-pine-hills",
+        hero: false,
+      },
+      {
+        name: "Ha Long",
+        country: t("home.quangNinh"),
+        tours: t("home.toursPlus", { count: 80 }),
+        seed: "ha-long-bay-vietnam-limestone",
+        hero: false,
+      },
+      {
+        name: "Phu Quoc",
+        country: t("home.kienGiang"),
+        tours: t("home.toursPlus", { count: 65 }),
+        seed: "phu-quoc-vietnam-island",
+        hero: false,
+      },
+    ],
+    [t],
+  );
 
   return (
     <HomeSection>
       <SectionHeader
-        eyebrow="Destinations"
-        title="Where will you go next?"
-        subtitle="Explore Vietnam's most-loved cities and islands."
+        eyebrow={t("home.destinationsEyebrow")}
+        title={t("home.whereGoNext")}
+        subtitle={t("home.destinationsExploreSubtitle")}
         showSeeAll
         onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
       />

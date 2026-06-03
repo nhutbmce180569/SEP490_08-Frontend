@@ -3,6 +3,7 @@ import { Plus, Trash2, UserSearch } from 'lucide-react';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
 import { userService } from '../../auth/services/user.service';
 import type { CreateUserVoucherAssignmentDTO } from '../types/voucher';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 export interface CustomerAssignmentRow extends CreateUserVoucherAssignmentDTO {
   userFullName?: string;
@@ -22,6 +23,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
   error,
   readOnly = false,
 }) => {
+  const { t } = useTranslation();
   const [lookupError, setLookupError] = useState<string | null>(null);
   const [lookingUpIndex, setLookingUpIndex] = useState<number | null>(null);
 
@@ -42,7 +44,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
   const lookupUser = async (index: number) => {
     const row = value[index];
     if (!row.userId || row.userId <= 0) {
-      setLookupError('Please enter a valid customer ID.');
+      setLookupError(t('voucher.validCustomerIdRequired'));
       return;
     }
 
@@ -59,7 +61,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
       };
       onChange(next);
     } catch {
-      setLookupError(`Customer with ID ${row.userId} not found.`);
+      setLookupError(t('voucher.customerNotFoundId', { id: row.userId }));
     } finally {
       setLookingUpIndex(null);
     }
@@ -69,19 +71,19 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-sm font-semibold text-slate-800">Customer Assignments</h4>
-          <p className="text-xs text-slate-500">Optional. Assign this voucher to specific customers.</p>
+          <h4 className="text-sm font-semibold text-slate-800">{t('voucher.customerAssignments')}</h4>
+          <p className="text-xs text-slate-500">{t('voucher.assignmentOptionalDesc')}</p>
         </div>
         {!readOnly && (
           <ActionButton variant="secondary" onClick={handleAddRow} className="gap-1.5 px-3 py-1.5 text-xs">
-            <Plus className="h-3.5 w-3.5" /> Add Customer
+            <Plus className="h-3.5 w-3.5" /> {t('voucher.addCustomer')}
           </ActionButton>
         )}
       </div>
 
       {value.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">
-          No customer assignments. This voucher will be available to all customers.
+          {t('voucher.noAssignmentsAvailable')}
         </div>
       ) : (
         <div className="space-y-2">
@@ -91,7 +93,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
               className="grid gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-3 sm:grid-cols-[1fr_120px_auto_auto]"
             >
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Customer ID</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">{t('voucher.customerIdLabel')}</label>
                 <input
                   type="number"
                   min={1}
@@ -100,17 +102,17 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
                   onChange={(event) => handleFieldChange(index, 'userId', Number(event.target.value))}
                   onBlur={() => lookupUser(index)}
                   className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-4 focus:ring-brand/10"
-                  placeholder="Enter customer ID"
+                  placeholder={t('voucher.enterCustomerId')}
                 />
                 {(row.userFullName || row.userEmail) && (
                   <p className="mt-1 text-xs text-slate-500">
-                    {row.userFullName || 'Unknown'} {row.userEmail ? `(${row.userEmail})` : ''}
+                    {row.userFullName || t('voucher.unknownCustomer')} {row.userEmail ? `(${row.userEmail})` : ''}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Quantity</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">{t('voucher.quantity')}</label>
                 <input
                   type="number"
                   min={1}
@@ -128,7 +130,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
                       variant="secondary"
                       onClick={() => lookupUser(index)}
                       className="h-[38px] w-[38px]"
-                      title="Lookup customer"
+                      title={t('voucher.lookupCustomer')}
                       disabled={lookingUpIndex === index}
                     >
                       <UserSearch className="h-4 w-4" />
@@ -139,7 +141,7 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
                       variant="warning"
                       onClick={() => handleRemoveRow(index)}
                       className="h-[38px] w-[38px]"
-                      title="Remove assignment"
+                      title={t('voucher.removeAssignment')}
                     >
                       <Trash2 className="h-4 w-4" />
                     </ActionButton>

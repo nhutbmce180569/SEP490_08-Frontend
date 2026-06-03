@@ -6,8 +6,10 @@ import { useForgotPassword } from "../hooks/useForgotPassword";
 import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const { handleForgotPasswordSubmit, isSubmitting } = useForgotPassword();
   const navigate = useNavigate();
@@ -22,10 +24,10 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      title="Forgot Password"
-      subtitle="Enter your email address and we'll send you a code to reset your password."
-      heroTitle="We've got you covered."
-      heroSubtitle="Reset your password securely and get back to planning your next unforgettable trip."
+      title={t("auth.forgotTitle")}
+      subtitle={t("auth.forgotSubtitleLong")}
+      heroTitle={t("auth.forgotHeroTitle")}
+      heroSubtitle={t("auth.forgotHeroDesc")}
       imageSeed="stayhub-forgot"
       footer={
         <div className="mt-8 text-center">
@@ -33,19 +35,19 @@ export default function ForgotPassword() {
             to={PATH.PUBLIC.LOGIN}
             className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
           >
-            &larr; Back to Login
+            &larr; {t("auth.backToLogin")}
           </Link>
         </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <AuthFormField
-          label="Email Address"
+          label={t("errors.emailAddress")}
           type="email"
           icon={Mail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="name@example.com"
+          placeholder={t("errors.emailPlaceholder")}
           required
         />
 
@@ -55,7 +57,7 @@ export default function ForgotPassword() {
           disabled={isSubmitting || !email}
           className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
         >
-          {isSubmitting ? "Sending..." : "Send Reset Code"}
+          {isSubmitting ? t("errors.sending") : t("errors.sendResetCode")}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>

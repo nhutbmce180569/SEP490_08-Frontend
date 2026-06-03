@@ -21,8 +21,10 @@ import { useToast } from "../../../contexts/ToastContext";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const CreateScheduleItinerary: React.FC = () => {
+  const { t } = useTranslation();
   const {
     scheduleId,
     schedule,
@@ -200,11 +202,11 @@ export const CreateScheduleItinerary: React.FC = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="w-6/12">
             <h1 className="text-2xl font-extrabold text-slate-900">
-              Add Schedule Itineraries
+              {t("tour.addScheduleItineraries")}
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
-              Create multiple itinerary items for Schedule #{scheduleId}
-              {schedule ? ` (Tour: ${schedule.tour?.name || `ID ${schedule.tourId}`})` : ""}
+              {t("tour.createScheduleItineraryBatchDesc")} #{scheduleId}
+              {schedule ? ` (${t("tour.tour")}: ${schedule.tour?.name || `ID ${schedule.tourId}`})` : ""}
             </p>
           </div>
           <div className="flex w-4/12 shrink-0 justify-end gap-3">
@@ -215,7 +217,7 @@ export const CreateScheduleItinerary: React.FC = () => {
               className="gap-2 px-4 py-2.5 shadow-sm"
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t("common.cancel")}
             </ActionButton>
             <ActionButton
               type="submit"
@@ -225,16 +227,15 @@ export const CreateScheduleItinerary: React.FC = () => {
               className="gap-1 px-6 py-2.5 shadow-sm"
             >
               <Save className="h-4 w-4" />
-              Save Itineraries
+              {t("tour.saveItineraries")}
             </ActionButton>
           </div>
         </div>
         {missingDayNumbers.length > 0 && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mt-4">
-            <p className="font-semibold">Missing itinerary days detected:</p>
+            <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
             <p>
-              Day {missingDayNumbers.join(", Day ")} is not present in this
-              schedule yet.
+              {t("tour.missingItineraryDaysMsg", { days: missingDayNumbers.join(", Day ") })}
             </p>
             <p className="mt-1 text-[13px] text-amber-700">
               New itinerary entries will fill the earliest missing day numbers
@@ -306,7 +307,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                     >
                       <Copy className="h-3.5 w-3.5" />
                       {cloningDayIndex === index
-                        ? "Cloning..."
+                        ? t("tour.cloning")
                         : `Clone Day ${currentDayNumber} from Tour`}
                     </ActionButton>
                   )}
@@ -365,7 +366,7 @@ export const CreateScheduleItinerary: React.FC = () => {
 
                         return (
                           <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
-                            <span>Suggested period:</span>
+                            <span>{t("tour.suggestedPeriod")}</span>
                             <strong className="font-semibold text-slate-600">
                               {depDate.toLocaleDateString("vi-VN")}
                             </strong>{" "}
@@ -423,7 +424,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                       onChange={(e) =>
                         updateItinerary(index, "description", e.target.value)
                       }
-                      placeholder="Describe the activities for this item..."
+                      placeholder={t("tour.describeActivitiesItem")}
                       className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "description") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-brand focus:bg-white"}`}
                     />
                     {getError(index, "description") && (
@@ -491,7 +492,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                             e.target.value,
                           )
                         }
-                        placeholder="Type name or pick on map..."
+                        placeholder={t("tour.typeNameOrPickMap")}
                         className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
                       />
                       {getError(index, "locationName") && (
@@ -522,11 +523,11 @@ export const CreateScheduleItinerary: React.FC = () => {
 
       <LoadingOverlay
         isOpen={isSubmitting}
-        message="Saving all itineraries..."
+        message={t("tour.savingAllItineraries")}
       />
       <LoadingOverlay
         isOpen={isCloning}
-        message="Cloning and fetching coordinates..."
+        message={t("tour.cloningFetchingCoords")}
       />
 
       <MapPickerModal

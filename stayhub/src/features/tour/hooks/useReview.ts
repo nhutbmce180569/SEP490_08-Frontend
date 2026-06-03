@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { tStored } from "../../../i18n/tStored";
 import { reviewService } from "../services/review.service";
 import type { Review, CreateReviewRequest, UpdateReviewRequest } from "../types/review";
 import axios from "axios";
@@ -22,7 +23,7 @@ export const useReview = () => {
       const data = await reviewService.getReviewsByTour(tourId);
       setReviews(data);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Lỗi khi tải danh sách đánh giá.");
+      setError(err?.response?.data?.message || tStored("tour.errorLoadReviews"));
       setReviews([]);
     } finally {
       setIsLoading(false);
@@ -51,7 +52,7 @@ export const useReview = () => {
       const data = await reviewService.getMyReviews();
       setMyAllReviews(data);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Lỗi khi tải lịch sử đánh giá của bạn.");
+      setError(err?.response?.data?.message || tStored("tour.errorLoadMyReviews"));
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +71,7 @@ export const useReview = () => {
       
       return newReview;
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || "Không thể gửi đánh giá.";
+      const errMsg = err?.response?.data?.message || tStored("tour.errorSubmitReview");
       setError(errMsg);
       // Ném lỗi ra để component giao diện dùng Toast hiện thông báo
       throw new Error(errMsg); 
@@ -94,7 +95,7 @@ export const useReview = () => {
       
       return updatedReview;
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || "Không thể cập nhật đánh giá. (Giới hạn 1 ngày sau khi tạo)";
+      const errMsg = err?.response?.data?.message || tStored("tour.errorUpdateReview");
       setError(errMsg);
       throw new Error(errMsg);
     } finally {
@@ -120,7 +121,7 @@ export const useReview = () => {
       );
       return newReply;
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || "Lỗi khi gửi phản hồi.";
+      const errMsg = err?.response?.data?.message || tStored("tour.errorSubmitReply");
       throw new Error(errMsg);
     } finally {
       setIsLoading(false);
@@ -144,7 +145,7 @@ export const useReview = () => {
       );
       return updatedReply;
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || "Lỗi khi sửa phản hồi.";
+      const errMsg = err?.response?.data?.message || tStored("tour.errorEditReply");
       throw new Error(errMsg);
     } finally {
       setIsLoading(false);
@@ -169,7 +170,7 @@ export const useReview = () => {
         })
       );
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || "Lỗi khi xóa phản hồi.";
+      const errMsg = err?.response?.data?.message || tStored("tour.errorDeleteReply");
       throw new Error(errMsg);
     } finally {
       setIsLoading(false);
@@ -186,7 +187,7 @@ export const useReview = () => {
         prev.map((r) => (r.id === reviewId ? { ...r, isHidden } : r))
       );
     } catch (err: any) {
-      const errMsg = err?.response?.data?.message || "Lỗi khi thay đổi trạng thái ẩn/hiện.";
+      const errMsg = err?.response?.data?.message || tStored("tour.errorToggleReviewVisibility");
       throw new Error(errMsg);
     } finally {
       setIsLoading(false);
@@ -211,7 +212,7 @@ export const useReview = () => {
       return response.data;
     } catch (err: any) {
       console.error("Lỗi khi lấy review cho Admin", err);
-      setError(err?.response?.data?.message || "Lỗi khi lấy danh sách đánh giá.");
+      setError(err?.response?.data?.message || tStored("tour.errorLoadAdminReviews"));
       setReviews([]); 
     } finally {
       setIsLoading(false);

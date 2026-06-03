@@ -31,6 +31,7 @@ import type { TourSchedule } from "../types/tourSchedule";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const getNumberValue = (value?: number | string | null) => {
   if (value === undefined || value === null || value === "") return null;
@@ -57,48 +58,8 @@ const getTicketAvailable = (ticket: TourScheduleTicket) =>
 
 const getScheduleTickets = (schedule: TourSchedule) => schedule.tourScheduleTickets ?? [];
 
-const getSchedulePriceText = (schedule: TourSchedule) => {
-  const prices = getScheduleTickets(schedule)
-    .map(getTicketPrice)
-    .filter((price): price is number => price !== null);
-
-  if (prices.length === 0) return "No ticket price";
-
-  const minPrice = Math.min(...prices);
-  const maxPrice = Math.max(...prices);
-
-  return minPrice === maxPrice
-    ? formatCurrency(minPrice)
-    : `From ${formatCurrency(minPrice)}`;
-};
-
-const getScheduleAvailabilityText = (schedule: TourSchedule) => {
-  const tickets = getScheduleTickets(schedule);
-  if (tickets.length === 0) return "No ticket setup";
-
-  const available = tickets.reduce(
-    (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
-    0,
-  );
-  const capacity = tickets.reduce(
-    (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
-    0,
-  );
-
-  return capacity > 0 ? `${available} / ${capacity}` : `${available} available`;
-};
-
-const getReviewCustomerName = (review: any) =>
-  review.customerName || review.CustomerName || review.customerId
-    ? String(review.customerName || review.CustomerName || `Customer #${review.customerId}`)
-    : "Anonymous Customer";
-
-const getReviewReplyName = (reply: any) =>
-  reply.userName || reply.UserName || reply.userId
-    ? String(reply.userName || reply.UserName || `Staff #${reply.userId}`)
-    : "Staff";
-
 export const TourDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { error: showError } = useToast();
@@ -106,6 +67,57 @@ export const TourDetail: React.FC = () => {
   
   const { tour, categoryName, isLoading, error } =
     useTour(id);
+
+  const getStatusLabel = (status?: string) => {
+    const map: Record<string, string> = {
+      Active: t("common.active"),
+      Draft: t("tour.draft"),
+      Full: t("tour.full"),
+      Banned: t("tour.banned"),
+    };
+    return map[status || "Draft"] ?? status ?? t("tour.draft");
+  };
+
+  const getSchedulePriceText = (schedule: TourSchedule) => {
+    const prices = getScheduleTickets(schedule)
+      .map(getTicketPrice)
+      .filter((price): price is number => price !== null);
+
+    if (prices.length === 0) return t("tour.noTicketPrice");
+
+    const minPrice = Math.min(...prices);
+    return minPrice === Math.max(...prices)
+      ? formatCurrency(minPrice)
+      : t("tour.priceFrom", { price: formatCurrency(minPrice) });
+  };
+
+  const getScheduleAvailabilityText = (schedule: TourSchedule) => {
+    const tickets = getScheduleTickets(schedule);
+    if (tickets.length === 0) return t("tour.noTicketSetup");
+
+    const available = tickets.reduce(
+      (sum, ticket) => sum + (getTicketAvailable(ticket) ?? 0),
+      0,
+    );
+    const capacity = tickets.reduce(
+      (sum, ticket) => sum + (getTicketCapacity(ticket) ?? 0),
+      0,
+    );
+
+    return capacity > 0
+      ? t("tour.availabilityCount", { available, capacity })
+      : t("tour.available", { count: available });
+  };
+
+  const getReviewCustomerName = (review: any) =>
+    review.customerName || review.CustomerName || review.customerId
+      ? String(review.customerName || review.CustomerName || t("tour.customerHash", { id: review.customerId }))
+      : t("tour.anonymousCustomer");
+
+  const getReviewReplyName = (reply: any) =>
+    reply.userName || reply.UserName || reply.userId
+      ? String(reply.userName || reply.UserName || t("tour.staffHash", { id: reply.userId }))
+      : t("tour.staff");
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
@@ -165,7 +177,7 @@ export const TourDetail: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center text-slate-500">
-        Loading tour details...
+        {t("tour.loadingTourDetailsMgr")}
       </div>
     );
   }
@@ -173,7 +185,7 @@ export const TourDetail: React.FC = () => {
   if (error || !tour) {
     return (
       <div className="flex h-64 items-center justify-center text-rose-500">
-        {error || "Tour not found."}
+        {error || t("tour.tourNotFound")}
       </div>
     );
   }
@@ -181,8 +193,10 @@ export const TourDetail: React.FC = () => {
   const itineraryCount = tour.tourItineraries?.length || 0;
   const durationText =
     itineraryCount > 0
-      ? `${itineraryCount} ${itineraryCount === 1 ? "day" : "days"}`
-      : "No itinerary";
+      ? itineraryCount === 1
+        ? t("tour.daysCount", { count: itineraryCount })
+        : t("tour.daysCountPlural", { count: itineraryCount })
+      : t("tour.noItinerary");
 
   const itineraryDayNumbers = tour.tourItineraries
     ?.map((i) => Number(i.dayNumber))
@@ -204,10 +218,10 @@ export const TourDetail: React.FC = () => {
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
   const priceText =
     prices.length === 0
-      ? "No ticket price"
+      ? t("tour.noTicketPrice")
       : minPrice === maxPrice
         ? formatCurrency(minPrice)
-        : `From ${formatCurrency(minPrice)}`;
+        : t("tour.priceFrom", { price: formatCurrency(minPrice) });
 
   // 💥 LỌC BỎ CÁC REVIEW BỊ ẨN
   const visibleReviews = fetchedReviews.filter((review) => !review.isHidden);
@@ -220,7 +234,7 @@ export const TourDetail: React.FC = () => {
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Tour List
+        {t("tour.backToTourListMgr")}
       </button>
 
       {/* Main Content Card */}
@@ -236,7 +250,7 @@ export const TourDetail: React.FC = () => {
           ) : (
             <div className="flex flex-col items-center text-slate-400">
               <ImageIcon className="mb-2 h-12 w-12 opacity-50" />
-              <span className="text-sm font-medium">No image available</span>
+              <span className="text-sm font-medium">{t("tour.noImageAvailable")}</span>
             </div>
           )}
 
@@ -252,7 +266,7 @@ export const TourDetail: React.FC = () => {
                       : "bg-slate-800/80 text-white"
               }`}
             >
-              {tour.status || "Draft"}
+              {getStatusLabel(tour.status || "")}
             </span>
           </div>
         </div>
@@ -267,27 +281,27 @@ export const TourDetail: React.FC = () => {
               <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
                 <div className="flex items-center gap-1.5">
                   <Hash className="h-4 w-4 text-slate-400" />
-                  <span>Tour ID: {tour.id}</span>
+                  <span>{t("tour.tourIdLabel")}: {tour.id}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-slate-400" />
                   <span>
                     {[tour.address, tour.city, tour.country]
                       .filter(Boolean)
-                      .join(", ") || "N/A Location"}
+                      .join(", ") || t("tour.naLocation")}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <Tag className="h-4 w-4 text-slate-400" />
                   <span>
-                    Category: {categoryName || `ID ${tour.categoryId}`}
+                    {t("tour.categoryLabel")}: {categoryName || `ID ${tour.categoryId}`}
                   </span>
                 </div>
                 {(tour.createdByName || tour.createdAt) && (
                   <div className="flex items-center gap-1.5">
                     <User className="h-4 w-4 text-slate-400" />
                     <span>
-                      Created{tour.createdByName && ` by ${tour.createdByName}`}
+                      {t("tour.createdBy")}{tour.createdByName && ` by ${tour.createdByName}`}
                       {tour.createdAt && ` on ${new Date(tour.createdAt).toLocaleDateString("vi-VN")}`}
                     </span>
                   </div>
@@ -296,7 +310,7 @@ export const TourDetail: React.FC = () => {
                   <div className="flex items-center gap-1.5">
                     <Pencil className="h-4 w-4 text-slate-400" />
                     <span>
-                      Last updated{tour.updatedByName && ` by ${tour.updatedByName}`}
+                      {t("tour.lastUpdated")}{tour.updatedByName && ` by ${tour.updatedByName}`}
                       {tour.updatedAt && ` on ${new Date(tour.updatedAt).toLocaleDateString("vi-VN")}`}
                     </span>
                   </div>
@@ -311,7 +325,7 @@ export const TourDetail: React.FC = () => {
                   variant="primary"
                   onClick={() => {
                     if (tour.status === "Active") {
-                      showError("Please inactive tour before edit");
+                      showError(t("tour.inactiveBeforeEdit"));
                     } else {
                       navigate(PATH.MANAGER.EDIT_TOUR(tour.id));
                     }
@@ -319,7 +333,7 @@ export const TourDetail: React.FC = () => {
                   className="gap-2 px-4 py-2 text-sm"
                 >
                   <Pencil className="h-4 w-4" />
-                  Edit Tour
+                  {t("tour.editTour")}
                 </ActionButton>
               </div>
             )}
@@ -333,7 +347,7 @@ export const TourDetail: React.FC = () => {
               </div>
               <div>
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                  Duration
+                  {t("tour.durationStat")}
                 </p>
                 <p className="break-words text-base font-bold text-slate-900 sm:text-lg">
                   {durationText}
@@ -347,10 +361,10 @@ export const TourDetail: React.FC = () => {
               </div>
               <div>
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                  Schedules
+                  {t("tour.schedules")}
                 </p>
                 <p className="break-words text-base font-bold text-slate-900 sm:text-lg">
-                  {scheduleCount} {scheduleCount === 1 ? "trip" : "trips"}
+                  {scheduleCount} {scheduleCount === 1 ? t("tour.trips") : t("tour.tripsPlural")}
                 </p>
               </div>
             </div>
@@ -375,10 +389,10 @@ export const TourDetail: React.FC = () => {
               </div>
               <div>
                 <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                  Rating
+                  {t("tour.rating")}
                 </p>
                 <p className="break-words text-base font-bold text-amber-600 sm:text-lg">
-                  {tour.averageStar && tour.averageStar > 0 ? `${tour.averageStar.toFixed(1)}/5` : "No ratings"}
+                  {tour.averageStar && tour.averageStar > 0 ? `${tour.averageStar.toFixed(1)}/5` : t("tour.noRatings")}
                 </p>
               </div>
             </div>
@@ -387,7 +401,7 @@ export const TourDetail: React.FC = () => {
           {/* Description */}
           <div>
             <h2 className="mb-3 text-lg font-bold text-slate-900">
-              Description
+              {t("common.description")}
             </h2>
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 leading-relaxed text-slate-700">
               {tour.description ? (
@@ -396,7 +410,7 @@ export const TourDetail: React.FC = () => {
                 </p>
               ) : (
                 <p className="text-sm italic text-slate-400">
-                  No description provided for this tour.
+                  {t("tour.noDescriptionProvided")}
                 </p>
               )}
             </div>
@@ -406,7 +420,7 @@ export const TourDetail: React.FC = () => {
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-bold text-slate-900">Itineraries</h2>
+                <h2 className="text-lg font-bold text-slate-900">{t("tour.itineraries")}</h2>
                 {tour.status !== "Banned" && (
                   <ActionButton
                     variant="primary"
@@ -416,14 +430,14 @@ export const TourDetail: React.FC = () => {
                     className="gap-2 px-4 py-2 text-sm"
                   >
                     <Plus className="h-4 w-4" />
-                    Add Itinerary
+                    {t("tour.addItinerary")}
                   </ActionButton>
                 )}
               </div>
               {missingItineraryDays.length > 0 && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  <p className="font-semibold">Missing itinerary days detected:</p>
-                  <p>Day {missingItineraryDays.join(", Day ")} is not present in this tour.</p>
+                  <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
+                  <p>{t("tour.missingItineraryDaysTourMsg", { days: missingItineraryDays.join(", Day ") })}</p>
                 </div>
               )}
             </div>
@@ -444,7 +458,7 @@ export const TourDetail: React.FC = () => {
                           const isExpanded = expandedItiIds.includes(iti.id);
                           const timeStr = iti.startDuration && iti.endDuration
                             ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
-                            : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                            : iti.startDuration ? iti.startDuration.substring(0, 5) : t("tour.anyTime");
                           const tourismInfo = iti.tourismInfoId
                             ? tourismInformationById[iti.tourismInfoId]
                             : null;
@@ -488,7 +502,7 @@ export const TourDetail: React.FC = () => {
                                   )}
                                   <div className="flex items-center gap-1.5 text-sm text-slate-500">
                                     <MapPin className="h-4 w-4 text-emerald-500" />
-                                    <span>{iti.locationName || "N/A"}</span>
+                                    <span>{iti.locationName || t("common.na")}</span>
                                   </div>
                                   {iti.tourismInfoId && (
                                     <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
@@ -504,7 +518,7 @@ export const TourDetail: React.FC = () => {
                                             ) : (
                                               <div className="flex flex-col items-center gap-2 text-slate-400">
                                                 <ImageIcon className="h-8 w-8" />
-                                                <span className="text-xs font-medium">No image</span>
+                                                <span className="text-xs font-medium">{t("tour.noImage")}</span>
                                               </div>
                                             )}
                                           </div>
@@ -526,12 +540,15 @@ export const TourDetail: React.FC = () => {
                                               <span>
                                                 {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
                                                   .filter(Boolean)
-                                                  .join(", ") || "N/A"}
+                                                  .join(", ") || t("common.na")}
                                               </span>
                                             </div>
                                             {(tourismInfo.latitude || tourismInfo.longitude) && (
                                               <div className="text-xs font-medium text-slate-400">
-                                                Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                                {t("tour.latLng", {
+                                                  lat: tourismInfo.latitude ?? t("common.na"),
+                                                  lng: tourismInfo.longitude ?? t("common.na"),
+                                                })}
                                               </div>
                                             )}
                                             {tourismInfo.sourceUrl && (
@@ -541,7 +558,7 @@ export const TourDetail: React.FC = () => {
                                                 rel="noreferrer"
                                                 className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                                               >
-                                                {tourismInfo.sourceName || "Source"}
+                                                {tourismInfo.sourceName || t("tour.source")}
                                                 <ExternalLink className="h-3.5 w-3.5" />
                                               </a>
                                             )}
@@ -550,7 +567,7 @@ export const TourDetail: React.FC = () => {
                                       ) : (
                                         <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
                                           <Info className="h-4 w-4 text-indigo-500" />
-                                          Tourism info ID #{iti.tourismInfoId}
+                                          {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
                                         </div>
                                       )}
                                     </div>
@@ -568,10 +585,10 @@ export const TourDetail: React.FC = () => {
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
                 <Map className="mb-3 h-10 w-10 text-slate-400" />
                 <h3 className="mb-1 font-semibold text-slate-900">
-                  No itineraries yet
+                  {t("tour.noItinerariesYet")}
                 </h3>
                 <p className="mb-4 text-sm text-slate-500">
-                  Create an itinerary to let your customers know what to expect.
+                  {t("tour.createItineraryHint")}
                 </p>
               </div>
             )}
@@ -580,7 +597,7 @@ export const TourDetail: React.FC = () => {
           {/* Schedules Section */}
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Schedules</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t("tour.schedules")}</h2>
               {tour.status !== "Banned" && (
                 <ActionButton
                   variant="primary"
@@ -588,7 +605,7 @@ export const TourDetail: React.FC = () => {
                   className="gap-2 px-4 py-2 text-sm"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Schedule
+                  {t("tour.addSchedule")}
                 </ActionButton>
               )}
             </div>
@@ -638,7 +655,7 @@ export const TourDetail: React.FC = () => {
 
                     <div className="space-y-3 text-sm">
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Departure</span>
+                        <span className="text-slate-500">{t("tour.departure")}</span>
                         <span className="font-medium text-slate-900">
                           {new Date(
                             schedule.departureDate,
@@ -646,13 +663,13 @@ export const TourDetail: React.FC = () => {
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Price</span>
+                        <span className="text-slate-500">{t("common.price")}</span>
                         <span className="font-semibold text-emerald-600">
                           {getSchedulePriceText(schedule)}
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-slate-500">Availability</span>
+                        <span className="text-slate-500">{t("tour.availability")}</span>
                         <span className="rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-900">
                           {getScheduleAvailabilityText(schedule)}
                         </span>
@@ -665,10 +682,10 @@ export const TourDetail: React.FC = () => {
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
                 <Calendar className="mb-3 h-10 w-10 text-slate-400" />
                 <h3 className="mb-1 font-semibold text-slate-900">
-                  No schedules yet
+                  {t("tour.noSchedulesYet")}
                 </h3>
                 <p className="mb-4 text-sm text-slate-500">
-                  Create a schedule to start accepting bookings.
+                  {t("tour.createScheduleHint")}
                 </p>
               </div>
             )}
@@ -677,13 +694,13 @@ export const TourDetail: React.FC = () => {
           {/* 💥 Reviews Section (Sử dụng visibleReviews) */}
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Reviews ({visibleReviews.length})</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t("tour.reviews")} ({visibleReviews.length})</h2>
             </div>
 
             {isReviewsLoading ? (
               <div className="flex flex-col items-center justify-center py-12 text-slate-400">
                 <Loader2 className="mb-3 h-8 w-8 animate-spin text-indigo-500" />
-                <p className="text-sm font-medium">Loading reviews...</p>
+                <p className="text-sm font-medium">{t("tour.loadingReviewsMgr")}</p>
               </div>
             ) : visibleReviews.length > 0 ? (
               <div className="flex flex-col gap-4">
@@ -778,7 +795,7 @@ export const TourDetail: React.FC = () => {
                                         : ""}
                                     </span>
                                   </div>
-                                  <div className="text-xs text-slate-500">Reply to customer review</div>
+                                  <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
                                 </div>
                               </div>
                               <p className="text-sm text-slate-700 leading-relaxed">
@@ -796,10 +813,10 @@ export const TourDetail: React.FC = () => {
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
                 <Star className="mb-3 h-10 w-10 text-slate-400" />
                 <h3 className="mb-1 font-semibold text-slate-900">
-                  No reviews yet
+                  {t("tour.noReviews")}
                 </h3>
                 <p className="mb-4 text-sm text-slate-500">
-                  Reviews from customers will appear here.
+                  {t("tour.reviewsFromCustomers")}
                 </p>
               </div>
             )}

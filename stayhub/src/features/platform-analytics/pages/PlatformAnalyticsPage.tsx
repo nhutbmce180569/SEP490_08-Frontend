@@ -46,20 +46,25 @@ import {
 import type { PlatformAnalyticsTab } from '../types/platformAnalytics.types';
 import { getRoleLabel, resolveCategoryLabels } from '../utils/platformHelpers';
 import { getAllCategories } from '../../content/services/category.service';
-
-const TABS: { id: PlatformAnalyticsTab; label: string; icon: React.ReactNode }[] = [
-  { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" /> },
-  { id: 'users', label: 'Users', icon: <Users className="h-4 w-4" /> },
-  { id: 'catalog', label: 'Catalog', icon: <Map className="h-4 w-4" /> },
-  { id: 'vouchers', label: 'Vouchers', icon: <Ticket className="h-4 w-4" /> },
-  { id: 'social', label: 'Social', icon: <Heart className="h-4 w-4" /> },
-  { id: 'health', label: 'Health', icon: <Activity className="h-4 w-4" /> },
-];
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 const DATE_FILTER_TABS: PlatformAnalyticsTab[] = ['overview', 'users', 'health'];
 
 export const PlatformAnalyticsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { preset, setPreset, from, setFrom, to, setTo, dateParams } = useDateRangeState();
+
+  const TABS = useMemo<{ id: PlatformAnalyticsTab; label: string; icon: React.ReactNode }[]>(
+    () => [
+      { id: 'overview', label: t('analytics.tabs.overview'), icon: <BarChart3 className="h-4 w-4" /> },
+      { id: 'users', label: t('analytics.tabs.users'), icon: <Users className="h-4 w-4" /> },
+      { id: 'catalog', label: t('analytics.tabs.catalog'), icon: <Map className="h-4 w-4" /> },
+      { id: 'vouchers', label: t('analytics.tabs.vouchers'), icon: <Ticket className="h-4 w-4" /> },
+      { id: 'social', label: t('analytics.tabs.social'), icon: <Heart className="h-4 w-4" /> },
+      { id: 'health', label: t('analytics.tabs.health'), icon: <Activity className="h-4 w-4" /> },
+    ],
+    [t],
+  );
   const [activeTab, setActiveTab] = useState<PlatformAnalyticsTab>('overview');
   const [catalogTop, setCatalogTop] = useState(10);
 
@@ -107,10 +112,10 @@ export const PlatformAnalyticsPage: React.FC = () => {
     <div className="space-y-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="travel-eyebrow">Admin · Analytics</p>
-          <h1 className="travel-heading text-2xl md:text-3xl">Platform Analytics</h1>
+          <p className="travel-eyebrow">{t('analytics.platform.eyebrow')}</p>
+          <h1 className="travel-heading text-2xl md:text-3xl">{t('analytics.platform.title')}</h1>
           <p className="mt-1.5 max-w-2xl text-sm text-slate-500">
-            Unified view of users, catalog, promotions, social activity, and system health.
+            {t('analytics.platform.subtitle')}
             {periodLabel && <span className="ml-1 text-slate-400">· {periodLabel}</span>}
           </p>
         </div>
@@ -122,7 +127,7 @@ export const PlatformAnalyticsPage: React.FC = () => {
           className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200/80 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('analytics.refresh')}
         </button>
       </div>
 
@@ -130,7 +135,7 @@ export const PlatformAnalyticsPage: React.FC = () => {
         <div className="border-b border-slate-100 px-2">
           <nav
             className="custom-scrollbar flex gap-1 overflow-x-auto"
-            aria-label="Platform analytics sections"
+            aria-label={t('analytics.platform.sectionsAria')}
           >
             {TABS.map((tab) => (
               <button
@@ -225,6 +230,7 @@ const OverviewTab: React.FC<{
   data: ReturnType<typeof usePlatformOverview>['data'];
   onRetry: () => void;
 }> = ({ isLoading, data, onRetry }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-5">
@@ -234,7 +240,7 @@ const OverviewTab: React.FC<{
     );
   }
 
-  if (!data) return <ErrorState message="Unable to load platform overview." onRetry={onRetry} />;
+  if (!data) return <ErrorState message={t("analytics.platform.errorOverview")} onRetry={onRetry} />;
 
   return (
     <div className="space-y-5">
@@ -242,54 +248,59 @@ const OverviewTab: React.FC<{
         columns={4}
         items={[
           {
-            label: 'Total users',
+            label: t("analytics.platform.totalUsers"),
             value: formatNumber(data.totalUsers),
-            hint: `${formatNumber(data.activeUsers)} active`,
+            hint: t("analytics.platform.activeHint", { count: formatNumber(data.activeUsers) }),
           },
           {
-            label: 'Total tours',
+            label: t("analytics.platform.totalTours"),
             value: formatNumber(data.totalTours),
-            hint: `${formatNumber(data.activeTours)} active`,
+            hint: t("analytics.platform.activeHint", { count: formatNumber(data.activeTours) }),
           },
           {
-            label: 'Schedule occupancy',
+            label: t("analytics.platform.scheduleOccupancy"),
             value: formatPercent(data.scheduleOccupancyRate),
-            hint: `Check-in ${formatPercent(data.checkInRate)}`,
+            hint: t("analytics.platform.checkInHint", { rate: formatPercent(data.checkInRate) }),
           },
           {
-            label: 'Active vouchers',
+            label: t("analytics.platform.activeVouchers"),
             value: formatNumber(data.activeVouchers),
-            hint: `${formatNumber(data.pendingCancellationRequests)} pending cancellations`,
+            hint: t("analytics.platform.pendingCancellationsHint", {
+              count: formatNumber(data.pendingCancellationRequests),
+            }),
           },
         ]}
       />
 
       <div className="grid gap-4 lg:grid-cols-3">
         <MetricGroup
-          title="User ecosystem"
+          title={t("analytics.platform.userEcosystem")}
           items={[
-            { label: 'New users', value: formatNumber(data.newUsersInPeriod) },
-            { label: 'Managers', value: formatNumber(data.totalManagers) },
-            { label: 'Staff', value: formatNumber(data.totalStaff) },
-            { label: 'Active users', value: formatNumber(data.activeUsers) },
+            { label: t("analytics.platform.newUsers"), value: formatNumber(data.newUsersInPeriod) },
+            { label: t("analytics.platform.managers"), value: formatNumber(data.totalManagers) },
+            { label: t("analytics.platform.staff"), value: formatNumber(data.totalStaff) },
+            { label: t("analytics.platform.activeUsers"), value: formatNumber(data.activeUsers) },
           ]}
         />
         <MetricGroup
-          title="Tour catalog"
+          title={t("analytics.platform.tourCatalog")}
           items={[
-            { label: 'Schedules', value: formatNumber(data.totalSchedules) },
-            { label: 'Upcoming', value: formatNumber(data.upcomingSchedules) },
-            { label: 'Occupancy', value: formatPercent(data.scheduleOccupancyRate) },
-            { label: 'Check-in rate', value: formatPercent(data.checkInRate) },
+            { label: t("analytics.platform.schedules"), value: formatNumber(data.totalSchedules) },
+            { label: t("analytics.platform.upcoming"), value: formatNumber(data.upcomingSchedules) },
+            { label: t("analytics.platform.occupancy"), value: formatPercent(data.scheduleOccupancyRate) },
+            { label: t("analytics.platform.checkInRate"), value: formatPercent(data.checkInRate) },
           ]}
         />
         <MetricGroup
-          title="Community & ops"
+          title={t("analytics.platform.communityOps")}
           items={[
-            { label: 'Tour moments', value: formatNumber(data.totalTourMoments) },
-            { label: 'Chat rooms', value: formatNumber(data.totalChatRooms) },
-            { label: 'Active vouchers', value: formatNumber(data.activeVouchers) },
-            { label: 'Pending cancellations', value: formatNumber(data.pendingCancellationRequests) },
+            { label: t("analytics.platform.tourMoments"), value: formatNumber(data.totalTourMoments) },
+            { label: t("analytics.platform.chatRooms"), value: formatNumber(data.totalChatRooms) },
+            { label: t("analytics.platform.activeVouchers"), value: formatNumber(data.activeVouchers) },
+            {
+              label: t("analytics.platform.pendingCancellations"),
+              value: formatNumber(data.pendingCancellationRequests),
+            },
           ]}
         />
       </div>
@@ -303,6 +314,7 @@ const UsersTab: React.FC<{
   byRole: { label: string; count: number; percentage: number }[];
   onRetry: () => void;
 }> = ({ isLoading, data, byRole, onRetry }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-5">
@@ -312,21 +324,25 @@ const UsersTab: React.FC<{
     );
   }
 
-  if (!data) return <ErrorState message="Unable to load user analytics." onRetry={onRetry} />;
+  if (!data) return <ErrorState message={t("analytics.platform.errorUsers")} onRetry={onRetry} />;
 
   return (
     <div className="space-y-5">
       <MetricStrip
         columns={5}
         items={[
-          { label: 'Total users', value: formatNumber(data.totalUsers) },
-          { label: 'Active', value: formatNumber(data.activeUsers), hint: 'Enabled accounts' },
-          { label: 'Inactive', value: formatNumber(data.inactiveUsers) },
-          { label: 'New in period', value: formatNumber(data.newUsersInPeriod) },
+          { label: t("analytics.platform.totalUsers"), value: formatNumber(data.totalUsers) },
           {
-            label: 'Online recently',
+            label: t("analytics.platform.active"),
+            value: formatNumber(data.activeUsers),
+            hint: t("analytics.platform.enabledAccounts"),
+          },
+          { label: t("analytics.platform.inactive"), value: formatNumber(data.inactiveUsers) },
+          { label: t("analytics.platform.newInPeriod"), value: formatNumber(data.newUsersInPeriod) },
+          {
+            label: t("analytics.platform.onlineRecently"),
             value: formatNumber(data.onlineRecently),
-            hint: 'Recent sessions',
+            hint: t("analytics.platform.recentSessions"),
           },
         ]}
       />
@@ -334,37 +350,37 @@ const UsersTab: React.FC<{
       <div className="grid gap-5 xl:grid-cols-5">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:col-span-3 xl:grid-cols-2">
           <SegmentCard
-            label="Customers"
+            label={t("analytics.platform.customers")}
             count={data.totalCustomers}
-            description="End-user accounts"
+            description={t("analytics.platform.customersDesc")}
             colorClass="bg-brand-light text-brand"
             icon={<Users className="h-5 w-5" />}
           />
           <SegmentCard
-            label="Managers"
+            label={t("analytics.platform.managers")}
             count={data.totalManagers}
-            description="Tour operators"
+            description={t("analytics.platform.managersDesc")}
             colorClass="bg-slate-100 text-slate-600"
             icon={<Building2 className="h-5 w-5" />}
           />
           <SegmentCard
-            label="Staff"
+            label={t("analytics.platform.staff")}
             count={data.totalStaff}
-            description="Operator team members"
+            description={t("analytics.platform.staffDesc")}
             colorClass="bg-slate-100 text-slate-600"
             icon={<UserCheck className="h-5 w-5" />}
           />
           <SegmentCard
-            label="Admins"
+            label={t("analytics.platform.admins")}
             count={data.totalAdmins}
-            description="Platform administrators"
+            description={t("analytics.platform.adminsDesc")}
             colorClass="bg-slate-100 text-slate-600"
             icon={<Shield className="h-5 w-5" />}
           />
         </div>
 
         <div className="xl:col-span-2">
-          <DistributionChart title="Users by role" data={byRole} />
+          <DistributionChart title={t("analytics.platform.usersByRole")} data={byRole} />
         </div>
       </div>
     </div>
@@ -378,6 +394,7 @@ const CatalogTab: React.FC<{
   onTopChange: (top: number) => void;
   onRetry: () => void;
 }> = ({ isLoading, data, catalogTop, onTopChange, onRetry }) => {
+  const { t } = useTranslation();
   const { data: categoriesPage } = useQuery({
     queryKey: ['categories', 'platform-analytics'],
     queryFn: () => getAllCategories(1, 500),
@@ -403,7 +420,7 @@ const CatalogTab: React.FC<{
     );
   }
 
-  if (!data) return <ErrorState message="Unable to load catalog analytics." onRetry={onRetry} />;
+  if (!data) return <ErrorState message={t("analytics.platform.errorCatalog")} onRetry={onRetry} />;
 
   const soldPercent =
     data.totalTicketCapacity > 0
@@ -415,58 +432,58 @@ const CatalogTab: React.FC<{
       <MetricStrip
         columns={6}
         items={[
-          { label: 'Total tours', value: formatNumber(data.totalTours) },
-          { label: 'Active', value: formatNumber(data.activeTours) },
-          { label: 'Inactive', value: formatNumber(data.inactiveTours) },
-          { label: 'Schedules', value: formatNumber(data.totalSchedules) },
-          { label: 'Upcoming', value: formatNumber(data.upcomingSchedules) },
-          { label: 'Occupancy', value: formatPercent(data.scheduleOccupancyRate) },
+          { label: t("analytics.platform.totalTours"), value: formatNumber(data.totalTours) },
+          { label: t("analytics.platform.active"), value: formatNumber(data.activeTours) },
+          { label: t("analytics.platform.inactiveTours"), value: formatNumber(data.inactiveTours) },
+          { label: t("analytics.platform.schedules"), value: formatNumber(data.totalSchedules) },
+          { label: t("analytics.platform.upcoming"), value: formatNumber(data.upcomingSchedules) },
+          { label: t("analytics.platform.occupancy"), value: formatPercent(data.scheduleOccupancyRate) },
         ]}
       />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <MetricGroup
-          title="Schedule timeline"
+          title={t("analytics.platform.scheduleTimeline")}
           items={[
-            { label: 'Ongoing', value: formatNumber(data.ongoingSchedules) },
-            { label: 'Completed', value: formatNumber(data.completedSchedules) },
-            { label: 'Upcoming', value: formatNumber(data.upcomingSchedules) },
+            { label: t("analytics.platform.ongoing"), value: formatNumber(data.ongoingSchedules) },
+            { label: t("analytics.platform.completed"), value: formatNumber(data.completedSchedules) },
+            { label: t("analytics.platform.upcoming"), value: formatNumber(data.upcomingSchedules) },
           ]}
         />
         <MetricGroup
-          title="Ticket inventory"
+          title={t("analytics.platform.ticketInventory")}
           items={[
-            { label: 'Total capacity', value: formatNumber(data.totalTicketCapacity) },
+            { label: t("analytics.platform.totalCapacity"), value: formatNumber(data.totalTicketCapacity) },
             {
-              label: 'Tickets sold',
+              label: t("analytics.platform.ticketsSold"),
               value: `${formatNumber(data.totalTicketsSold)} (${formatPercent(soldPercent)})`,
             },
-            { label: 'Available', value: formatNumber(data.totalTicketsAvailable) },
+            { label: t("analytics.platform.available"), value: formatNumber(data.totalTicketsAvailable) },
           ]}
         />
         <MetricGroup
-          title="Utilization"
+          title={t("analytics.platform.utilization")}
           items={[
-            { label: 'Occupancy rate', value: formatPercent(data.scheduleOccupancyRate) },
-            { label: 'Sold share', value: formatPercent(soldPercent) },
-            { label: 'Active tours', value: formatNumber(data.activeTours) },
+            { label: t("analytics.platform.occupancyRate"), value: formatPercent(data.scheduleOccupancyRate) },
+            { label: t("analytics.platform.soldShare"), value: formatPercent(soldPercent) },
+            { label: t("analytics.platform.activeTours"), value: formatNumber(data.activeTours) },
           ]}
         />
       </div>
 
       <ChartGrid columns={3}>
         <DistributionChart
-          title="Tours by category"
+          title={t("analytics.platform.toursByCategory")}
           data={toursByCategory}
           collapseLimit={6}
         />
-        <DistributionChart title="Tours by city" data={data.toursByCity} pageSize={8} />
-        <DistributionChart title="Tours by status" data={data.toursByStatus} />
+        <DistributionChart title={t("analytics.platform.toursByCity")} data={data.toursByCity} pageSize={8} />
+        <DistributionChart title={t("analytics.platform.toursByStatus")} data={data.toursByStatus} />
       </ChartGrid>
 
       <AnalyticsPanel
-        title="Top booked tours"
-        subtitle="Most popular tours by booking count"
+        title={t("analytics.platform.topBookedTours")}
+        subtitle={t("analytics.platform.topBookedSubtitle")}
         padded={false}
         action={
           <select
@@ -476,7 +493,7 @@ const CatalogTab: React.FC<{
           >
             {[5, 10, 15, 20].map((n) => (
               <option key={n} value={n}>
-                Top {n}
+                {t("analytics.platform.topN", { n })}
               </option>
             ))}
           </select>
@@ -494,6 +511,7 @@ const VouchersTab: React.FC<{
   data: ReturnType<typeof usePlatformVouchers>['data'];
   onRetry: () => void;
 }> = ({ isLoading, data, onRetry }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-5">
@@ -503,27 +521,31 @@ const VouchersTab: React.FC<{
     );
   }
 
-  if (!data) return <ErrorState message="Unable to load voucher analytics." onRetry={onRetry} />;
+  if (!data) return <ErrorState message={t("analytics.platform.errorVouchers")} onRetry={onRetry} />;
 
   return (
     <div className="space-y-5">
       <MetricStrip
         columns={4}
         items={[
-          { label: 'Total vouchers', value: formatNumber(data.totalVouchers) },
-          { label: 'Active', value: formatNumber(data.activeVouchers), hint: 'Redeemable now' },
-          { label: 'Expired', value: formatNumber(data.expiredVouchers) },
+          { label: t("analytics.platform.totalVouchers"), value: formatNumber(data.totalVouchers) },
           {
-            label: 'Redemption rate',
+            label: t("analytics.platform.active"),
+            value: formatNumber(data.activeVouchers),
+            hint: t("analytics.platform.redeemableNow"),
+          },
+          { label: t("analytics.platform.expired"), value: formatNumber(data.expiredVouchers) },
+          {
+            label: t("analytics.platform.redemptionRate"),
             value: formatPercent(data.redemptionRate),
-            hint: `${formatNumber(data.totalRedemptions)} redemptions`,
+            hint: t("analytics.platform.redemptionsHint", { count: formatNumber(data.totalRedemptions) }),
           },
         ]}
       />
 
       <ChartGrid>
-        <DistributionChart title="By discount type" data={data.byDiscountType} />
-        <DistributionChart title="By user voucher status" data={data.byUserVoucherStatus} />
+        <DistributionChart title={t("analytics.platform.byDiscountType")} data={data.byDiscountType} />
+        <DistributionChart title={t("analytics.platform.byUserVoucherStatus")} data={data.byUserVoucherStatus} />
       </ChartGrid>
     </div>
   );
@@ -534,6 +556,7 @@ const SocialTab: React.FC<{
   data: ReturnType<typeof usePlatformSocial>['data'];
   onRetry: () => void;
 }> = ({ isLoading, data, onRetry }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-5">
@@ -543,45 +566,45 @@ const SocialTab: React.FC<{
     );
   }
 
-  if (!data) return <ErrorState message="Unable to load social analytics." onRetry={onRetry} />;
+  if (!data) return <ErrorState message={t("analytics.platform.errorSocial")} onRetry={onRetry} />;
 
   return (
     <div className="space-y-5">
       <MetricStrip
         columns={6}
         items={[
-          { label: 'Friendships', value: formatNumber(data.totalFriendships) },
-          { label: 'Accepted', value: formatNumber(data.acceptedFriendships) },
-          { label: 'Pending', value: formatNumber(data.pendingFriendRequests) },
-          { label: 'Chat rooms', value: formatNumber(data.totalChatRooms) },
-          { label: 'Messages', value: formatNumber(data.totalChatMessages) },
-          { label: 'Unread', value: formatNumber(data.unreadChatMessages) },
+          { label: t("analytics.platform.friendships"), value: formatNumber(data.totalFriendships) },
+          { label: t("analytics.platform.accepted"), value: formatNumber(data.acceptedFriendships) },
+          { label: t("analytics.platform.pending"), value: formatNumber(data.pendingFriendRequests) },
+          { label: t("analytics.platform.chatRooms"), value: formatNumber(data.totalChatRooms) },
+          { label: t("analytics.platform.messages"), value: formatNumber(data.totalChatMessages) },
+          { label: t("analytics.platform.unread"), value: formatNumber(data.unreadChatMessages) },
         ]}
       />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <MetricGroup
-          title="Friendships"
+          title={t("analytics.platform.friendships")}
           items={[
-            { label: 'Total', value: formatNumber(data.totalFriendships) },
-            { label: 'Accepted', value: formatNumber(data.acceptedFriendships) },
-            { label: 'Pending requests', value: formatNumber(data.pendingFriendRequests) },
+            { label: t("analytics.platform.total"), value: formatNumber(data.totalFriendships) },
+            { label: t("analytics.platform.accepted"), value: formatNumber(data.acceptedFriendships) },
+            { label: t("analytics.platform.pendingRequests"), value: formatNumber(data.pendingFriendRequests) },
           ]}
         />
         <MetricGroup
-          title="Tour moments"
+          title={t("analytics.platform.tourMoments")}
           items={[
-            { label: 'Total moments', value: formatNumber(data.totalTourMoments) },
-            { label: 'Reactions', value: formatNumber(data.totalMomentReactions) },
-            { label: 'Comments', value: formatNumber(data.totalMomentComments) },
+            { label: t("analytics.platform.totalMoments"), value: formatNumber(data.totalTourMoments) },
+            { label: t("analytics.platform.reactions"), value: formatNumber(data.totalMomentReactions) },
+            { label: t("analytics.platform.comments"), value: formatNumber(data.totalMomentComments) },
           ]}
         />
       </div>
 
       <ChartGrid>
-        <DistributionChart title="Moments by privacy" data={data.momentsByPrivacy} />
+        <DistributionChart title={t("analytics.platform.momentsByPrivacy")} data={data.momentsByPrivacy} />
         <DistributionChart
-          title="Friendship status distribution"
+          title={t("analytics.platform.friendshipStatusDist")}
           data={data.friendshipStatusDistribution}
         />
       </ChartGrid>
@@ -594,8 +617,9 @@ const HealthTab: React.FC<{
   data: ReturnType<typeof usePlatformHealth>['data'];
   onRetry: () => void;
 }> = ({ isLoading, data, onRetry }) => {
+  const { t } = useTranslation();
   if (!isLoading && !data) {
-    return <ErrorState message="Unable to load platform health data." onRetry={onRetry} />;
+    return <ErrorState message={t("analytics.platform.errorHealth")} onRetry={onRetry} />;
   }
   return <HealthPanel data={data} isLoading={isLoading} />;
 };

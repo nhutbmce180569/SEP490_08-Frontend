@@ -1,0 +1,22 @@
+{
+  "analytics": "Phân tích",
+  "platformAnalytics": "Phân tích nền tảng",
+  "customerAnalytics": "Phân tích khách hàng",
+  "systemReports": "Báo cáo hệ thống",
+  "users": "Người dùng",
+  "usersList": "Danh sách người dùng",
+  "partnerApprovals": "Duyệt đối tác",
+  "tourContent": "Nội dung tour",
+  "tourModeration": "Kiểm duyệt tour",
+  "banners": "Banner",
+  "tourCategories": "Danh mục tour",
+  "tourismInformation": "Thông tin du lịch",
+  "ticketTypes": "Loại vé",
+  "operations": "Vận hành",
+  "violationReports": "Báo cáo vi phạm",
+  "withdrawalRequests": "Yêu cầu rút tiền",
+  "systemVouchers": "Voucher hệ thống",
+  "globalSettings": "Cài đặt chung",
+  "adminDashboard": "Bảng điều khiển quản trị",
+  "admin": "Quản trị"
+}

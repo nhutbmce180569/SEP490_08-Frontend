@@ -7,6 +7,7 @@ import { TourCard, type TourCardProps } from "../TourCard";
 import { SectionHeader } from "./SectionHeader";
 import { HomeSection } from "./HomeSection";
 import { HOME_GLASS } from "./shared";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -28,27 +29,34 @@ export const HomePopularTours: React.FC<HomePopularToursProps> = ({
   isLoading,
   error,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const toCard = (tour: Tour): TourCardProps => ({
-    id: tour.id,
-    title: tour.name,
-    location: [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam",
-    rating: tour.averageStar || 0,
-    reviews: tour.reviews?.length || 0,
-    duration: tour.tourItineraries?.length
-      ? `${tour.tourItineraries.length} day${tour.tourItineraries.length > 1 ? "s" : ""}`
-      : "Flexible",
-    price: getTourLowestTicketPrice(tour),
-    imageUrl: tour.imageUrl || "",
-  });
+  const toCard = (tour: Tour): TourCardProps => {
+    const dayCount = tour.tourItineraries?.length ?? 0;
+    return {
+      id: tour.id,
+      title: tour.name,
+      location: [tour.city, tour.country].filter(Boolean).join(", ") || t("home.vietnam"),
+      rating: tour.averageStar || 0,
+      reviews: tour.reviews?.length || 0,
+      duration:
+        dayCount > 0
+          ? dayCount > 1
+            ? t("home.durationDaysPlural", { count: dayCount })
+            : t("home.durationDays", { count: dayCount })
+          : t("home.flexibleDuration"),
+      price: getTourLowestTicketPrice(tour),
+      imageUrl: tour.imageUrl || "",
+    };
+  };
 
   return (
     <HomeSection>
       <SectionHeader
-        eyebrow="Popular now"
-        title="Loved by travelers"
-        subtitle="Real reviews from guests who explored with StayHub."
+        eyebrow={t("home.popularNow")}
+        title={t("home.lovedByTravelers")}
+        subtitle={t("home.popularToursSubtitle")}
         showSeeAll
         onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
       />

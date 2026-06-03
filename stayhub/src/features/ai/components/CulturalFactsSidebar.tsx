@@ -1,19 +1,21 @@
 import React from "react";
 import { BookOpen, ExternalLink } from "lucide-react";
 import type { CulturalFact } from "../types/tourAssistant";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   facts: CulturalFact[];
 }
 
 export const CulturalFactsSidebar: React.FC<Props> = ({ facts }) => {
+  const { t } = useTranslation();
   if (facts.length === 0) return null;
 
   return (
     <aside className="glass-card p-5">
       <div className="mb-4 flex items-center gap-2">
         <BookOpen size={17} className="text-brand" />
-        <h3 className="text-sm font-bold text-navy">Local knowledge</h3>
+        <h3 className="text-sm font-bold text-navy">{t("ai.localKnowledge")}</h3>
       </div>
 
       <ul className="space-y-4">
@@ -38,7 +40,7 @@ export const CulturalFactsSidebar: React.FC<Props> = ({ facts }) => {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:underline"
                 >
-                  {fact.sourceName || "Source"} <ExternalLink size={10} />
+                  {fact.sourceName || t("ai.source")} <ExternalLink size={10} />
                 </a>
               ) : (
                 fact.sourceName && (

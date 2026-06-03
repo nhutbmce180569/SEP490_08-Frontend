@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 export const AnalyticsPanel: React.FC<{
   title?: string;
@@ -100,17 +101,20 @@ export const LoadingPanel: React.FC<{ height?: string }> = ({ height = 'h-40' })
 export const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({
   message,
   onRetry,
-}) => (
-  <AnalyticsPanel>
-    <div className="py-10 text-center">
-      <p className="text-sm text-rose-600">{message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
-      >
-        Try again
-      </button>
-    </div>
-  </AnalyticsPanel>
-);
+}) => {
+  const { t } = useTranslation();
+  return (
+    <AnalyticsPanel>
+      <div className="py-10 text-center">
+        <p className="text-sm text-rose-600">{message}</p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-hover"
+        >
+          {t('analytics.tryAgain')}
+        </button>
+      </div>
+    </AnalyticsPanel>
+  );
+};

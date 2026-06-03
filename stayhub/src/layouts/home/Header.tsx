@@ -14,15 +14,17 @@ import {
 } from "lucide-react";
 
 import { ActionButton } from "../../components/home/ActionButton";
-import { StayHubLogo } from "../../components/brand/StayHubLogo";
+import dragonLogoVideo from "../../assets/làm_hiệu_ứng_cho_con_rồng_bay-Picsart-BackgroundRemover.mp4";
 import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
 import NotificationBell from "../../features/system/components/NotificationBell";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
+import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
 import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
+import { useTranslation } from "../../contexts/LocaleContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
@@ -30,6 +32,7 @@ import { useGetPendingRequests } from "../../features/social/friends/hooks/useFr
 export default function Header() {
   const navigate = useNavigate();
   const { success } = useToast();
+  const { t } = useTranslation();
   const { open: openAiPlanner } = useAiPlanner();
   const { user, logout: contextLogout } = useContext(AuthContext);
 
@@ -44,7 +47,7 @@ export default function Header() {
   const upperRoles = userRoles.map((r: string) => r.toUpperCase());
 
 
-  const displayName = user?.fullName || user?.FullName || "User";
+  const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
   const showDashboardButton = upperRoles.includes("ADMIN") || upperRoles.includes("STAFF");
 
@@ -108,7 +111,7 @@ export default function Header() {
       console.error("Failed to logout on server", error);
     } finally {
       contextLogout();
-      success("Signed out successfully.");
+      success(t("header.signedOutSuccess"));
       setIsLoggingOut(false);
     }
   };
@@ -118,7 +121,21 @@ export default function Header() {
       <div className="page-container flex h-16 items-center gap-3 md:h-[68px] md:gap-4">
         {/* Logo + search */}
         <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
-          <StayHubLogo />
+          <Link
+            to={PATH.PUBLIC.HOME}
+            className="relative inline-flex h-16 w-20 shrink-0 items-center !no-underline outline-none"
+            aria-label="StayHub home"
+          >
+            <video
+              src={dragonLogoVideo}
+              className="absolute left-1/2 top-1/2 h-28 w-28 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain md:h-32 md:w-32"
+              autoPlay
+              loop
+              muted
+              playsInline
+              aria-hidden
+            />
+          </Link>
 
           <div className="search-bar-glass hidden max-w-xl flex-1 lg:flex">
             <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
@@ -126,9 +143,9 @@ export default function Header() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search destinations, tours, or experiences..."
+              placeholder={t("header.searchPlaceholder")}
               className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400"
-              aria-label="Search tours"
+              aria-label={t("header.searchLabel")}
             />
           </div>
         </div>
@@ -148,17 +165,17 @@ export default function Header() {
             variant="ghost"
             onClick={openAiPlanner}
             className="hidden gap-1.5 sm:inline-flex"
-            title="AI tour recommendations"
+            title={t("header.aiGuideTitle")}
           >
             <Sparkles className="h-4 w-4 text-brand" />
-            <span className="hidden text-brand md:inline">AI Guide</span>
+            <span className="hidden text-brand md:inline">{t("header.aiGuide")}</span>
           </ActionButton>
 
           <button
             type="button"
             className="icon-btn hidden sm:inline-flex"
             aria-label="Browse tours"
-            title="Browse tours"
+            title={t("header.browseTours")}
             onClick={() => navigate(PATH.PUBLIC.TOURS)}
           >
             <ShoppingBag className="h-5 w-5" />
@@ -171,10 +188,10 @@ export default function Header() {
                   variant="ghost"
                   onClick={handleGoToDashboard}
                   className="hidden gap-1.5 md:inline-flex"
-                  title="Dashboard"
+                  title={t("header.dashboard")}
                 >
                   <LayoutDashboard className="h-4 w-4" />
-                  <span className="hidden lg:inline">Dashboard</span>
+                  <span className="hidden lg:inline">{t("header.dashboard")}</span>
                 </ActionButton>
               )}
 
@@ -182,8 +199,8 @@ export default function Header() {
                 type="button"
                 onClick={() => navigate("/social/moments")}
                 className="icon-btn"
-                title="Moments"
-                aria-label="Moments"
+                title={t("header.moments")}
+                aria-label={t("header.moments")}
               >
                 <Map className="h-5 w-5" />
               </button>
@@ -193,8 +210,8 @@ export default function Header() {
                   type="button"
                   onClick={() => setShowFriendMenu((v) => !v)}
                   className="icon-btn relative"
-                  title="Friends"
-                  aria-label="Friends"
+                  title={t("header.friends")}
+                  aria-label={t("header.friends")}
                 >
                   <Users className="h-5 w-5" />
                   {pendingCount > 0 && (
@@ -207,12 +224,12 @@ export default function Header() {
                 {showFriendMenu && (
                   <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 p-2">
                     <div className="mb-1 border-b border-slate-100/80 px-3 py-2">
-                      <h3 className="text-sm font-bold text-navy">Friend requests</h3>
+                      <h3 className="text-sm font-bold text-navy">{t("header.friendRequests")}</h3>
                     </div>
                     <div className="custom-scrollbar max-h-64 overflow-y-auto">
                       {pendingCount === 0 ? (
                         <p className="p-4 text-center text-sm text-slate-500">
-                          No new requests
+                          {t("header.noNewRequests")}
                         </p>
                       ) : (
                         (pendingRequests as { id: string; senderId: string; senderName?: string; senderAvatarUrl?: string }[])
@@ -234,9 +251,9 @@ export default function Header() {
                               />
                               <div className="min-w-0">
                                 <p className="truncate text-sm font-semibold text-navy">
-                                  {req.senderName || "User"}
+                                  {req.senderName || t("common.user")}
                                 </p>
-                                <p className="text-xs text-slate-500">Sent you a request</p>
+                                <p className="text-xs text-slate-500">{t("header.sentYouRequest")}</p>
                               </div>
                             </button>
                           ))
@@ -250,7 +267,7 @@ export default function Header() {
                       }}
                       className="mt-1 w-full rounded-lg py-2 text-center text-sm font-semibold text-brand hover:bg-brand-light/60"
                     >
-                      See all
+                      {t("common.seeAll")}
                     </button>
                   </div>
                 )}
@@ -260,14 +277,15 @@ export default function Header() {
                 type="button"
                 onClick={() => navigate(PATH.CUSTOMER.WISHLIST)}
                 className="icon-btn"
-                title="Wishlist"
-                aria-label="Wishlist"
+                title={t("header.wishlist")}
+                aria-label={t("header.wishlist")}
               >
                 <Heart className="h-5 w-5" />
               </button>
 
               <NotificationBell />
 
+              <LanguageSwitcher />
               <ThemeToggle />
 
               <div className="relative ml-0.5" ref={userMenuRef}>
@@ -303,7 +321,7 @@ export default function Header() {
                       className="menu-item"
                     >
                       <User className="h-4 w-4" />
-                      My profile
+                      {t("header.myProfile")}
                     </button>
                     <button
                       type="button"
@@ -315,7 +333,7 @@ export default function Header() {
                       className="menu-item"
                     >
                       <Heart className="h-4 w-4" />
-                      Wishlist
+                      {t("header.wishlist")}
                     </button>
                     {!isSocialLogin && (
                       <button
@@ -328,7 +346,7 @@ export default function Header() {
                         className="menu-item"
                       >
                         <Lock className="h-4 w-4" />
-                        Change password
+                        {t("header.changePassword")}
                       </button>
                     )}
                     <button
@@ -341,7 +359,7 @@ export default function Header() {
                       className="menu-item menu-item-danger"
                     >
                       <LogOut className="h-4 w-4" />
-                      Sign out
+                      {t("header.signOut")}
                     </button>
                   </div>
                 )}
@@ -349,6 +367,7 @@ export default function Header() {
             </>
           ) : (
             <>
+              <LanguageSwitcher />
               <ThemeToggle />
 
               <ActionButton
@@ -356,10 +375,10 @@ export default function Header() {
                 onClick={() => navigate(PATH.PUBLIC.REGISTER)}
                 className="hidden sm:inline-flex"
               >
-                Sign up
+                {t("header.signUp")}
               </ActionButton>
               <ActionButton variant="primary" onClick={() => navigate(PATH.PUBLIC.LOGIN)}>
-                Log in
+                {t("header.logIn")}
               </ActionButton>
             </>
           )}
@@ -370,12 +389,12 @@ export default function Header() {
         open={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
-        title="Sign out"
-        message="Are you sure you want to sign out of your account?"
-        confirmText="Sign out"
-        cancelText="Cancel"
+        title={t("header.signOutTitle")}
+        message={t("header.signOutMessage")}
+        confirmText={t("header.signOutConfirm")}
+        cancelText={t("common.cancel")}
       />
-      <LoadingOverlay isOpen={isLoggingOut} message="Signing out..." />
+      <LoadingOverlay isOpen={isLoggingOut} message={t("header.signingOut")} />
     </header>
   );
 }

@@ -16,8 +16,10 @@ import * as signalR from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { PATH } from '../../../../config/routes/route';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 
 export const FriendsManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'add'>('friends');
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -56,14 +58,14 @@ export const FriendsManagement: React.FC = () => {
       .withAutomaticReconnect()
       .build();
 
-    connection.on("ReceiveFriendRequest", (payload: any) => {
-      success('You have a new friend request!');
+    connection.on("ReceiveFriendRequest", () => {
+      success(t('social.newFriendRequest'));
       queryClient.invalidateQueries({ queryKey: friendQueryKeys.pending() });
     });
 
-    connection.on("FriendRequestResponded", (responderId: number, status: string) => {
+    connection.on("FriendRequestResponded", (_responderId: number, status: string) => {
       if (status === 'Accepted') {
-        success('A friend request has been accepted!');
+        success(t('social.requestAccepted'));
         queryClient.invalidateQueries({ queryKey: friendQueryKeys.pending() });
         queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
       } else if (status === 'Declined') {
@@ -71,8 +73,8 @@ export const FriendsManagement: React.FC = () => {
       }
     });
 
-    connection.on("FriendshipDeleted", (deletedFriendId: number) => {
-      warning('A friend has unfriended you.');
+    connection.on("FriendshipDeleted", () => {
+      warning(t('social.unfriendedYou'));
       queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
     });
 
@@ -88,13 +90,13 @@ export const FriendsManagement: React.FC = () => {
       connection.stop();
     };
 
-  }, [queryClient]);
+  }, [queryClient, success, warning, t]);
 
   const handleRespond = (requestId: number, isAccepted: boolean) => {
     respondRequest(
       { requestId, isAccepted },
       {
-        onSuccess: () => success(isAccepted ? "Friend request accepted!" : "Friend request declined!"),
+        onSuccess: () => success(isAccepted ? t("social.friendRequestAccepted") : t("social.friendRequestDeclined")),
         onError: (err: any) => {
           console.error("ERROR ACCEPT/DECLINE:", err.response?.data);
           
@@ -104,18 +106,18 @@ export const FriendsManagement: React.FC = () => {
              errorDetail = Object.values(validationErrors).flat().join(" | ");
           }
           
-          const msg = errorDetail || err.response?.data?.message || err.response?.data || "Error 400: Invalid DTO data format.";
-          error(typeof msg === 'string' ? msg : "Unknown system error");
+          const msg = errorDetail || err.response?.data?.message || err.response?.data || t("social.invalidDtoError");
+          error(typeof msg === 'string' ? msg : t("social.unknownSystemError"));
         }
       }
     );
   };
 
   const handleUnfriend = (friendshipId: number) => {
-    if (window.confirm("Are you sure you want to unfriend this user?")) {
+    if (window.confirm(t("social.confirmUnfriend"))) {
       deleteFriend(friendshipId, {
-        onSuccess: () => success("Removed from friends list."),
-        onError: () => error("Failed to unfriend.")
+        onSuccess: () => success(t("social.removedFromFriends")),
+        onError: () => error(t("social.failedToUnfriend"))
       });
     }
   };
@@ -124,10 +126,10 @@ export const FriendsManagement: React.FC = () => {
     sendRequest(
       { receiverId },
       {
-        onSuccess: () => success("Friend request sent!"),
+        onSuccess: () => success(t("social.friendRequestSent")),
         onError: (err: any) => {
-          const msg = err.response?.data?.message || err.response?.data || "Failed to send request.";
-          error(typeof msg === 'string' ? msg : "An error occurred");
+          const msg = err.response?.data?.message || err.response?.data || t("social.failedToSendRequest");
+          error(typeof msg === 'string' ? msg : t("social.unknownSystemError"));
         }
       }
     );
@@ -136,42 +138,41 @@ export const FriendsManagement: React.FC = () => {
   const handleCreateChat = (friendId: number) => {
     createChat(friendId, {
       onSuccess: (newRoom) => {
-        // Bóc tách ID an toàn từ response
         const roomId = newRoom?.data?.id || newRoom?.data?.Id || newRoom?.id || newRoom?.Id;
 
         if (roomId) {
           navigate(`${PATH.CUSTOMER.SOCIAL_CHAT}?roomId=${roomId}`);
         } else {
-          error('Could not get chat room information!');
+          error(t('social.couldNotGetChatRoom'));
         }
       },
       onError: (err: any) => {
         const msg =
           err.response?.data?.message ||
           err.response?.data ||
-          'Error creating chat room';
-        error(typeof msg === 'string' ? msg : 'Unknown system error');
+          t('social.errorCreatingChatRoom');
+        error(typeof msg === 'string' ? msg : t('social.unknownSystemError'));
       },
     });
   };
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Friends Management</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">{t('social.friendsManagement')}</h1>
 
       <div className="flex border-b border-slate-200 mb-6 overflow-x-auto custom-scrollbar">
         <button
           onClick={() => setActiveTab('friends')}
           className={`pb-3 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'friends' ? 'text-brand' : 'text-slate-500 hover:text-slate-700'}`}
         >
-          My Friends ({Array.isArray(friends) ? friends.length : 0})
+          {t('social.myFriends')} ({Array.isArray(friends) ? friends.length : 0})
           {activeTab === 'friends' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-t-md" />}
         </button>
         <button
           onClick={() => setActiveTab('pending')}
           className={`pb-3 px-4 text-sm font-medium transition-colors relative whitespace-nowrap ${activeTab === 'pending' ? 'text-brand' : 'text-slate-500 hover:text-slate-700'}`}
         >
-          Requests ({Array.isArray(pendingRequests) ? pendingRequests.length : 0})
+          {t('social.requests')} ({Array.isArray(pendingRequests) ? pendingRequests.length : 0})
           {activeTab === 'pending' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-t-md" />}
         </button>
         <button
@@ -179,7 +180,7 @@ export const FriendsManagement: React.FC = () => {
           className={`pb-3 px-4 text-sm font-medium transition-colors relative whitespace-nowrap flex items-center gap-1.5 ${activeTab === 'add' ? 'text-brand' : 'text-slate-500 hover:text-slate-700'}`}
         >
           <Search className="w-4 h-4" />
-          Find Friends
+          {t('social.findFriends')}
           {activeTab === 'add' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-brand rounded-t-md" />}
         </button>
       </div>
@@ -189,7 +190,7 @@ export const FriendsManagement: React.FC = () => {
           {isLoadingFriends && <div className="flex justify-center py-4"><Loader2 className="animate-spin text-slate-400" /></div>}
           {!isLoadingFriends && Array.isArray(friends) && friends.length === 0 && (
             <div className="text-center py-10 text-slate-500 border border-dashed border-slate-200 rounded-lg">
-              You haven't added any friends yet.
+              {t('social.noFriendsYet')}
             </div>
           )}
           {Array.isArray(friends) && friends.map(friend => {
@@ -204,8 +205,8 @@ export const FriendsManagement: React.FC = () => {
                   {fAvatar ? <img src={fAvatar} alt="" className="w-full h-full object-cover" /> : (friend?.friendName || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 group-hover:underline">{friend?.friendName || 'Unknown'}</h3>
-                  <p className="text-xs text-slate-500 capitalize">{friend?.status || 'Friend'}</p>
+                  <h3 className="text-sm font-semibold text-slate-900 group-hover:underline">{friend?.friendName || t('auth.unknown')}</h3>
+                  <p className="text-xs text-slate-500 capitalize">{friend?.status || t('social.friend')}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -215,7 +216,7 @@ export const FriendsManagement: React.FC = () => {
                   className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-white bg-brand rounded-md hover:bg-brand-hover transition-colors disabled:opacity-50"
                 >
                   <MessageCircle className="w-4 h-4" />
-                  Message
+                  {t('social.message')}
                 </button>
                 <button 
                   onClick={() => handleUnfriend(friend?.id)}
@@ -223,7 +224,7 @@ export const FriendsManagement: React.FC = () => {
                   className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:text-red-600 transition-colors disabled:opacity-50"
                 >
                   <UserX className="w-4 h-4" />
-                  Unfriend
+                  {t('social.unfriend')}
                 </button>
               </div>
             </div>
@@ -236,7 +237,7 @@ export const FriendsManagement: React.FC = () => {
           {isLoadingPending && <div className="flex justify-center py-4"><Loader2 className="animate-spin text-slate-400" /></div>}
           {!isLoadingPending && Array.isArray(pendingRequests) && pendingRequests.length === 0 && (
             <div className="text-center py-10 text-slate-500 border border-dashed border-slate-200 rounded-lg">
-              No pending friend requests.
+              {t('social.noPendingRequests')}
             </div>
           )}
           {Array.isArray(pendingRequests) && pendingRequests.map(req => {
@@ -251,10 +252,10 @@ export const FriendsManagement: React.FC = () => {
                   {pAvatar ? <img src={pAvatar} alt="" className="w-full h-full object-cover" /> : (req?.senderName || 'U').charAt(0).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-900 group-hover:underline">{req?.senderName || 'Unknown'}</h3>
+                  <h3 className="text-sm font-semibold text-slate-900 group-hover:underline">{req?.senderName || t('auth.unknown')}</h3>
                   <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
                     <Clock className="w-3 h-3" />
-                    <span>{req?.createdAt ? new Date(req.createdAt).toLocaleDateString() : 'N/A'}</span>
+                    <span>{req?.createdAt ? new Date(req.createdAt).toLocaleDateString() : t('common.na')}</span>
                   </div>
                 </div>
               </div>
@@ -265,7 +266,7 @@ export const FriendsManagement: React.FC = () => {
                   className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-white bg-brand rounded-md hover:bg-brand-hover transition-colors disabled:opacity-50"
                 >
                   <UserCheck className="w-4 h-4" />
-                  Accept
+                  {t('social.accept')}
                 </button>
                 <button 
                   onClick={() => handleRespond(req?.id, false)}
@@ -273,7 +274,7 @@ export const FriendsManagement: React.FC = () => {
                   className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-200 rounded-md hover:bg-slate-100 transition-colors disabled:opacity-50"
                 >
                   <UserX className="w-4 h-4" />
-                  Decline
+                  {t('social.decline')}
                 </button>
               </div>
             </div>
@@ -284,9 +285,9 @@ export const FriendsManagement: React.FC = () => {
       {activeTab === 'add' && (
         <div className="flex flex-col gap-6">
           <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
-            <h2 className="text-base font-semibold text-slate-900 mb-2">Find People</h2>
+            <h2 className="text-base font-semibold text-slate-900 mb-2">{t('social.findPeople')}</h2>
             <p className="text-sm text-slate-500 mb-4">
-              Search by name or email to find and connect with others.
+              {t('social.findPeopleDesc')}
             </p>
             
             <div className="relative">
@@ -298,7 +299,7 @@ export const FriendsManagement: React.FC = () => {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent outline-none text-sm"
-                placeholder="Search names (e.g. Stephen Chow)"
+                placeholder={t('social.searchNamesPlaceholder')}
               />
             </div>
           </div>
@@ -311,19 +312,19 @@ export const FriendsManagement: React.FC = () => {
 
           {isSearchError && (
             <div className="p-4 bg-red-50 text-red-600 rounded-lg text-sm text-center border border-red-100">
-              Connection error. Please check your network or API Gateway.
+              {t('social.connectionError')}
             </div>
           )}
 
           {!isSearching && !isSearchError && debouncedQuery && searchResult && Array.isArray(searchResult.data) && searchResult.data.length === 0 && (
             <div className="text-center py-10 text-slate-500 border border-dashed border-slate-200 rounded-lg">
-              No users found matching "{debouncedQuery}".
+              {t('social.noUsersMatching', { query: debouncedQuery })}
             </div>
           )}
 
           {!isSearching && !isSearchError && searchResult && Array.isArray(searchResult.data) && searchResult.data.length > 0 && (
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold text-slate-900 mb-1">Results ({searchResult.total})</h3>
+              <h3 className="text-sm font-semibold text-slate-900 mb-1">{t('social.results', { count: searchResult.total })}</h3>
               {searchResult.data.map(user => {
                 const sAvatar = user?.avatarUrl || (user as any)?.AvatarUrl || (user as any)?.Picture || null;
                 return (
@@ -336,7 +337,7 @@ export const FriendsManagement: React.FC = () => {
                       {sAvatar ? <img src={sAvatar} alt="" className="w-full h-full object-cover" /> : (user?.fullName || 'U').charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold text-slate-900 group-hover:underline">{user?.fullName || 'Unknown'}</h3>
+                      <h3 className="text-sm font-semibold text-slate-900 group-hover:underline">{user?.fullName || t('auth.unknown')}</h3>
                       <p className="text-xs text-slate-500">{user?.email}</p>
                     </div>
                   </div>
@@ -348,7 +349,7 @@ export const FriendsManagement: React.FC = () => {
                       className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50"
                     >
                       <UserPlus className="w-4 h-4" />
-                      Add Friend
+                      {t('social.addFriend')}
                     </button>
                     <button
                       onClick={() => handleCreateChat(user?.id)}
@@ -356,7 +357,7 @@ export const FriendsManagement: React.FC = () => {
                       className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
                     >
                       <MessageCircle className="w-4 h-4" />
-                      Message
+                      {t('social.message')}
                     </button>
                   </div>
                 </div>

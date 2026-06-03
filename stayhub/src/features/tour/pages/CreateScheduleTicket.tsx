@@ -11,8 +11,10 @@ import { PATH } from "../../../config/routes/route";
 import { useTourSchedule } from "../hooks/useTourSchedule";
 import { tourScheduleTicketService } from "../services/tourScheduleTicket.service";
 import { buildScheduleTicketPayload } from "../utils/tourScheduleTicket";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const CreateScheduleTicket: React.FC = () => {
+  const { t } = useTranslation();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
@@ -43,12 +45,12 @@ export const CreateScheduleTicket: React.FC = () => {
         const data = await ticketTypeService.getActive();
         setTicketTypes(data);
       } catch (err: unknown) {
-        showError(getApiErrorMessage(err, "Failed to load ticket types."));
+        showError(getApiErrorMessage(err, t("tour.failedLoadTicketTypes")));
       } finally {
         setIsLoadingTicketTypes(false);
       }
     });
-  }, [showError]);
+  }, [showError, t]);
 
   React.useEffect(() => {
     if (!ticketTypeId) {
@@ -62,7 +64,7 @@ export const CreateScheduleTicket: React.FC = () => {
         setSelectedTicketType(data);
       } catch (err: unknown) {
         setSelectedTicketType(null);
-        showError(getApiErrorMessage(err, "Failed to load ticket type detail."));
+        showError(getApiErrorMessage(err, t("tour.failedLoadTicketType")));
       }
     });
   }, [ticketTypeId, showError]);
@@ -81,17 +83,17 @@ export const CreateScheduleTicket: React.FC = () => {
     const parsedQuantity = Number(quantity);
 
     if (!Number.isInteger(parsedTicketTypeId) || parsedTicketTypeId <= 0) {
-      setFormError("Please select a ticket type.");
+      setFormError(t("tour.selectTicketType"));
       return;
     }
 
     if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
-      setFormError("Price must be a valid non-negative number.");
+      setFormError(t("tour.priceInvalid"));
       return;
     }
 
     if (!Number.isInteger(parsedQuantity) || parsedQuantity <= 0) {
-      setFormError("Quantity must be a positive whole number.");
+      setFormError(t("tour.quantityInvalid"));
       return;
     }
 
@@ -108,21 +110,21 @@ export const CreateScheduleTicket: React.FC = () => {
           note,
         ),
       );
-      success("Schedule ticket created successfully.");
+      success(t("tour.scheduleTicketCreated"));
       navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (err: unknown) {
-      showError(getApiErrorMessage(err, "Failed to create schedule ticket."));
+      showError(getApiErrorMessage(err, t("tour.failedCreateScheduleTicket")));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (!scheduleId) {
-    return <div className="p-10 text-center text-rose-500">Schedule ID is missing from URL.</div>;
+    return <div className="p-10 text-center text-rose-500">{t("tour.scheduleIdMissing")}</div>;
   }
 
   if (isScheduleLoading) {
-    return <div className="p-10 text-center text-slate-500">Loading schedule details...</div>;
+    return <div className="p-10 text-center text-slate-500">{t("tour.loadingScheduleDetails")}</div>;
   }
 
   return (
@@ -133,7 +135,7 @@ export const CreateScheduleTicket: React.FC = () => {
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Schedule
+        {t("tour.backToSchedule")}
       </button>
 
       <form
@@ -142,7 +144,7 @@ export const CreateScheduleTicket: React.FC = () => {
       >
         <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Add Schedule Ticket</h1>
+            <h1 className="text-xl font-bold text-slate-900">{t("tour.addScheduleTicket")}</h1>
             <p className="mt-1 text-sm text-slate-500">
               Configure ticket type, price, and quantity for Schedule #{scheduleId}
               {schedule?.tour?.name ? ` (${schedule.tour.name})` : ""}.
@@ -156,7 +158,7 @@ export const CreateScheduleTicket: React.FC = () => {
               className="gap-2 px-4 py-2 text-sm"
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t("common.cancel")}
             </ActionButton>
             <ActionButton
               type="submit"
@@ -165,7 +167,7 @@ export const CreateScheduleTicket: React.FC = () => {
               className="gap-2 px-4 py-2 text-sm"
             >
               <Save className="h-4 w-4" />
-              Save Ticket
+              {t("tour.saveTicket")}
             </ActionButton>
           </div>
         </div>
@@ -179,7 +181,7 @@ export const CreateScheduleTicket: React.FC = () => {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Ticket Type <span className="text-rose-500">*</span>
+              {t("tour.ticketType")} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <Ticket className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -193,7 +195,7 @@ export const CreateScheduleTicket: React.FC = () => {
                 className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <option value="">
-                  {isLoadingTicketTypes ? "Loading ticket types..." : "Select ticket type"}
+                  {isLoadingTicketTypes ? t("tour.loadingTicketTypes") : t("tour.selectTicketType")}
                 </option>
                 {ticketTypes.map((ticketType) => (
                   <option key={ticketType.id} value={ticketType.id}>
@@ -215,7 +217,7 @@ export const CreateScheduleTicket: React.FC = () => {
                       : "bg-rose-100 text-rose-700"
                   }`}
                 >
-                  {selectedTicketType.isActive ? "Active" : "Inactive"}
+                  {selectedTicketType.isActive ? t("common.active") : t("common.inactive")}
                 </span>
               </div>
               {selectedTicketType.description && (
@@ -227,7 +229,7 @@ export const CreateScheduleTicket: React.FC = () => {
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Price <span className="text-rose-500">*</span>
+                {t("common.price")} <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Banknote className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -248,7 +250,7 @@ export const CreateScheduleTicket: React.FC = () => {
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Quantity <span className="text-rose-500">*</span>
+                {t("tour.quantity")} <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -277,15 +279,15 @@ export const CreateScheduleTicket: React.FC = () => {
               onChange={(event) => setNote(event.target.value)}
               rows={3}
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
-              placeholder="Optional internal note for this schedule ticket"
+              placeholder={t("tour.internalNotePlaceholder")}
             />
           </div>
 
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
             <div>
-              <div className="text-sm font-semibold text-slate-800">Active</div>
+              <div className="text-sm font-semibold text-slate-800">{t("common.active")}</div>
               <div className="text-xs font-medium text-slate-500">
-                Active tickets are visible to customers and can be booked.
+                {t("tour.activeTicketsHint")}
               </div>
             </div>
             <input
@@ -298,7 +300,7 @@ export const CreateScheduleTicket: React.FC = () => {
         </div>
       </form>
 
-      <LoadingOverlay isOpen={isSubmitting} message="Creating schedule ticket..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("tour.creatingScheduleTicket")} />
     </div>
   );
 };

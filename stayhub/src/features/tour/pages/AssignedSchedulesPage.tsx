@@ -7,10 +7,12 @@ import { Table, type Column } from "../../../components/dashboard/Table";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { tourScheduleService } from "../services/tourSchedule.service";
 import type { AssignedTourSchedule } from "../types/tourSchedule";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const PAGE_SIZE = 10;
 
 export const AssignedSchedulesPage: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [schedules, setSchedules] = useState<AssignedTourSchedule[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,14 +28,14 @@ export const AssignedSchedulesPage: React.FC = () => {
         const data = await tourScheduleService.getAssignedSchedules();
         setSchedules(data);
       } catch (err: any) {
-        setError(err?.message || "Failed to load assigned schedules.");
+        setError(err?.message || t("tour.failedLoadSchedule"));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     setPage(1);
@@ -67,7 +69,7 @@ export const AssignedSchedulesPage: React.FC = () => {
   const columns: Column<AssignedTourSchedule>[] = useMemo(
     () => [
       {
-        header: "Schedule",
+        header: t("tour.scheduleCol"),
         className: "min-w-[220px]",
         render: (item) => (
           <div className="flex items-center gap-3">
@@ -75,7 +77,7 @@ export const AssignedSchedulesPage: React.FC = () => {
               {item.tourImageUrl ? (
                 <img
                   src={item.tourImageUrl}
-                  alt={item.tourName ?? "Tour image"}
+                  alt={item.tourName ?? t("tour.tourImageAlt")}
                   className="h-full w-full object-cover"
                 />
               ) : (
@@ -86,7 +88,7 @@ export const AssignedSchedulesPage: React.FC = () => {
             </div>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-slate-900 line-clamp-2">
-                {item.tourName || "Unnamed tour"}
+                {item.tourName || t("tour.unnamedTour")}
               </div>
               <div className="text-xs text-slate-500">ID: {item.scheduleId}</div>
             </div>
@@ -94,7 +96,7 @@ export const AssignedSchedulesPage: React.FC = () => {
         ),
       },
       {
-        header: "Departure - Return",
+        header: t("tour.departureReturn"),
         render: (item) => (
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Calendar className="h-4 w-4 text-slate-400" />
@@ -102,48 +104,51 @@ export const AssignedSchedulesPage: React.FC = () => {
               <div className="font-medium">
                 {new Date(item.departureDate).toLocaleDateString("vi-VN")}
               </div>
-              <div className="text-slate-400">to {new Date(item.returnDate).toLocaleDateString("vi-VN")}</div>
+              <div className="text-slate-400">
+                {t("tour.to")} {new Date(item.returnDate).toLocaleDateString("vi-VN")}
+              </div>
             </div>
           </div>
         ),
       },
       {
-        header: "Assigned Role",
+        header: t("tour.assignedRole"),
         render: (item) => (
           <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
-            {item.assignedRole || "Staff"}
+            {item.assignedRole || t("tour.staff")}
           </span>
         ),
       },
       {
-        header: "Tour ID",
+        header: t("tour.tourIdCol"),
         render: (item) => <span className="font-semibold text-slate-800">#{item.tourId}</span>,
         className: "w-[100px] text-sm",
       },
       {
-        header: "Action",
+        header: t("common.actions"),
         className: "w-[120px]",
         render: (item) => (
           <ActionButton
             variant="secondary"
             onClick={() => navigate(PATH.STAFF.SCHEDULE_DETAIL(item.scheduleId))}
             className="h-9 w-full"
+            aria-label={t("tour.view")}
           >
             <Eye className="h-4 w-4" />
           </ActionButton>
         ),
       },
     ],
-    [navigate],
+    [t, navigate],
   );
 
   return (
     <div className="rounded-2xl">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-[15px] font-bold leading-tight text-slate-900">Assigned Tour Schedules</h2>
+          <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t("tour.assignedSchedulesTitle")}</h2>
           <p className="mt-1 text-sm text-slate-500">
-            Hiển thị các lịch trình tour bạn đã được phân công.
+            {t("tour.assignedSchedulesDesc")}
           </p>
         </div>
 
@@ -153,7 +158,7 @@ export const AssignedSchedulesPage: React.FC = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tours, roles, IDs..."
+              placeholder={t("tour.searchAssignedPlaceholder")}
               className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
           </div>
@@ -168,7 +173,7 @@ export const AssignedSchedulesPage: React.FC = () => {
           columns={columns}
           keyExtractor={(item) => item.scheduleId}
           isLoading={isLoading}
-          emptyMessage="Bạn chưa có lịch trình nào được phân công hoặc không tìm thấy kết quả."
+          emptyMessage={t("tour.assignedEmpty")}
           skeletonRows={PAGE_SIZE}
         />
       )}

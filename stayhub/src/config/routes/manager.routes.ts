@@ -15,6 +15,7 @@ export const MANAGER_ROUTES = {
   EDIT_OPERATOR_VOUCHER: (id: string | number = ':id') => `/manager/vouchers/${id}/edit`,
   REVIEWS: '/manager/reviews',
   CUSTOMER_ANALYTICS: '/manager/customer-analytics',
+  BOOKING_STATISTICS: '/manager/booking-statistics',
   PAYOUT: '/manager/payout',
 
   // Dynamic Routes & Delete Confirms
@@ -40,6 +41,6 @@ export const MANAGER_ROUTES = {
   SCHEDULE_CHECKIN: (id: string | number = ':id') => `/manager/schedules/${id}/checkin`,
   DELETE_SCHEDULE: (id: string | number = ':id') => `/manager/schedules/${id}/delete`,
   EDIT_SCHEDULE: (id: string | number = ':id') => `/manager/schedules/edit/${id}`,
-  CREATE_SCHEDULE: () => `/manager/schedules/create`,
+  CREATE_SCHEDULE: (tourId?: string | number) => tourId ? `/manager/schedules/create?tourId=${tourId}` : `/manager/schedules/create`,
   
 } as const;

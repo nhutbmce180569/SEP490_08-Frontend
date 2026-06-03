@@ -5,8 +5,10 @@ import { ActionButton } from "../ActionButton";
 import { PATH } from "../../../config/routes/route";
 import { getFreeApiImage } from "./shared";
 import { HomeSection } from "./HomeSection";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const HomeCTA: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   return (
@@ -24,14 +26,13 @@ export const HomeCTA: React.FC = () => {
           <div className="max-w-lg">
             <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white/95 backdrop-blur-sm">
               <Sparkles size={12} />
-              Start today
+              {t("home.ctaStartToday")}
             </span>
             <h2 className="travel-heading mb-3 text-3xl text-white md:text-4xl">
-              Your next adventure is one search away
+              {t("home.ctaTitleLong")}
             </h2>
             <p className="text-sm font-medium leading-relaxed text-white/85 md:text-base">
-              Create a free account, save wishlists, and get personalized AI
-              recommendations for your dream trip.
+              {t("home.ctaSubtitleLong")}
             </p>
           </div>
 
@@ -41,7 +42,7 @@ export const HomeCTA: React.FC = () => {
               onClick={() => navigate(PATH.PUBLIC.REGISTER)}
               className="!h-12 !w-full gap-2 !rounded-xl !border-0 !bg-white !px-6 !text-brand shadow-lg sm:!w-auto"
             >
-              Get started free
+              {t("home.getStartedFree")}
               <ArrowRight size={16} />
             </ActionButton>
             <ActionButton
@@ -49,7 +50,7 @@ export const HomeCTA: React.FC = () => {
               onClick={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
               className="!h-12 !w-full !rounded-xl !border-2 !border-white/35 !px-6 !text-white hover:!bg-white/10 sm:!w-auto"
             >
-              Browse tours
+              {t("home.ctaBrowse")}
             </ActionButton>
           </div>
         </div>

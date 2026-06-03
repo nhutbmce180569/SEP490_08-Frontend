@@ -1,11 +1,13 @@
 import React from "react";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { getImg } from "../../../config/api/api";
 import { TourismInformationForm } from "../components/TourismInformationForm";
 import { useUpdateTourismInformation } from "../hooks/useUpdateTourismInformation";
 import { TOURISM_DEFAULT_COUNTRY } from "../types/tourismInformation";
 
 export const UpdateTourismInformation: React.FC = () => {
+  const { t } = useTranslation();
   const {
     id,
     tourismInfo,
@@ -18,7 +20,11 @@ export const UpdateTourismInformation: React.FC = () => {
   } = useUpdateTourismInformation();
 
   if (isFetching) {
-    return <div className="flex justify-center p-10 text-slate-500">Loading tourism information...</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t("content.loadingTourismInfo")}
+      </div>
+    );
   }
 
   if (fetchError) {
@@ -26,14 +32,18 @@ export const UpdateTourismInformation: React.FC = () => {
   }
 
   if (!tourismInfo) {
-    return <div className="flex justify-center p-10 text-slate-500">Tourism information not found.</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t("content.tourismInfoNotFound")}
+      </div>
+    );
   }
 
   return (
     <div className="min-w-0 pb-2">
       <TourismInformationForm
-        title="Update Tourism Information"
-        description={`Edit details for tourism place #${id}`}
+        title={t("content.updateTourismInfo")}
+        description={t("content.updateTourismInfoDesc", { id: String(id) })}
         initialValues={{
           ...tourismInfo,
           country: tourismInfo.country || TOURISM_DEFAULT_COUNTRY,
@@ -41,10 +51,10 @@ export const UpdateTourismInformation: React.FC = () => {
         }}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        submitText="Save Changes"
+        submitText={t("common.saveChanges")}
         serverErrors={serverErrors}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Updating tourism information..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("content.updatingTourismInfo")} />
     </div>
   );
 };

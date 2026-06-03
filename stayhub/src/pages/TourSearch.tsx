@@ -17,19 +17,12 @@ import { categoryService } from "../features/content/services/category.service";
 import { useSearchTours } from "../hooks/useSearchTours";
 import type { Tour } from "../features/tour/types/tour";
 import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
+import { useTranslation } from "../contexts/LocaleContext";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const MAX_PRICE = 100_000_000;
 const MAX_DAYS = 30;
-
-const SORT_OPTIONS = [
-  { label: "Recommended", value: "" },
-  { label: "Price: Low → High", value: "price_asc" },
-  { label: "Price: High → Low", value: "price_desc" },
-  { label: "Newest first", value: "date_desc" },
-  { label: "Oldest first", value: "date_asc" },
-];
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -99,9 +92,10 @@ function PriceSlider({
   onChangeMax(v: number): void;
   onCommit(): void;
 }) {
+  const { t } = useTranslation();
   const pct = (v: number) => (v / MAX_PRICE) * 100;
   const fmt = (v: number) =>
-    v <= 0 ? "0" : v >= MAX_PRICE ? "Max" : (v / 1_000_000).toFixed(0) + "M đ";
+    v <= 0 ? "0" : v >= MAX_PRICE ? t("common.max") : (v / 1_000_000).toFixed(0) + "M đ";
 
   return (
     <div className="space-y-3">
@@ -146,7 +140,7 @@ function PriceSlider({
       <div className="flex items-center gap-2">
         <input
           type="number"
-          placeholder="Min"
+          placeholder={t("common.min")}
           value={valueMin === 0 ? "" : valueMin}
           onChange={(e) => onChangeMin(+e.target.value)}
           onBlur={onCommit}
@@ -160,7 +154,7 @@ function PriceSlider({
         <span className="text-slate-300 shrink-0 font-bold">—</span>
         <input
           type="number"
-          placeholder="Max"
+          placeholder={t("common.max")}
           value={valueMax >= MAX_PRICE ? "" : valueMax}
           onChange={(e) => onChangeMax(+e.target.value)}
           onBlur={onCommit}
@@ -187,6 +181,7 @@ function DurationSlider({
   onChange(v: number): void;
   onCommit(): void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-3">
       <SliderTrack lo={0} hi={(value / MAX_DAYS) * 100} />
@@ -206,9 +201,9 @@ function DurationSlider({
           className="text-sm font-black"
           style={{ color: "var(--color-brand)", fontFamily: "'Sora', sans-serif" }}
         >
-          {value === 0 ? "Any duration" : `Up to ${value} days`}
+          {value === 0 ? t("tour.anyDuration") : t("tour.upToDays", { count: value })}
         </span>
-        <span className="text-xs text-slate-400">max {MAX_DAYS}d</span>
+        <span className="text-xs text-slate-400">{t("tour.maxDays", { count: MAX_DAYS })}</span>
       </div>
     </div>
   );
@@ -265,6 +260,7 @@ function Sidebar({
   upd,
   onClear,
 }: any) {
+  const { t } = useTranslation();
   return (
     <aside
       className="w-full lg:w-[360px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start"
@@ -287,32 +283,32 @@ function Sidebar({
         >
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={16} style={{ color: "var(--color-brand)" }} />
-            <span className="text-sm font-black text-slate-800">Filters</span>
+            <span className="text-sm font-black text-slate-800">{t("tour.filters")}</span>
           </div>
           <button
             onClick={onClear}
             className="text-[11px] font-bold text-slate-400 hover:text-brand transition-colors flex items-center gap-1"
           >
-            <X size={12} /> Clear all
+            <X size={12} /> {t("common.clearAll")}
           </button>
         </div>
 
         <div className="px-6">
           {/* Keywords */}
-          <FilterSection label="Search">
+          <FilterSection label={t("common.search")}>
             <div className="flex flex-col gap-2.5">
               {[
                 {
                   icon: Search,
                   val: localSearch,
                   set: setLocalSearch,
-                  ph: "Search tours…",
+                  ph: t("tour.searchToursPlaceholder"),
                 },
                 {
                   icon: MapPin,
                   val: localCity,
                   set: setLocalCity,
-                  ph: "City, e.g. Hanoi",
+                  ph: t("tour.cityPlaceholder"),
                 },
               ].map(({ icon: Icon, val, set, ph }) => (
                 <label
@@ -339,11 +335,11 @@ function Sidebar({
           </FilterSection>
 
           {/* Travel dates */}
-          <FilterSection label="Travel Dates">
+          <FilterSection label={t("tour.travelDates")}>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { lbl: "From", val: localStart, set: setLocalStart },
-                { lbl: "To", val: localEnd, set: setLocalEnd },
+                { lbl: t("common.from"), val: localStart, set: setLocalStart },
+                { lbl: t("common.to"), val: localEnd, set: setLocalEnd },
               ].map(({ lbl, val, set }) => (
                 <div key={lbl}>
                   <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
@@ -366,7 +362,7 @@ function Sidebar({
           </FilterSection>
 
           {/* Category */}
-          <FilterSection label="Category">
+          <FilterSection label={t("tour.category")}>
             <div className="flex flex-wrap gap-2">
               {categories.map((c: any) => {
                 const active = (categoryId ?? null) === c.value;
@@ -391,7 +387,7 @@ function Sidebar({
           </FilterSection>
 
           {/* Price */}
-          <FilterSection label="Price Range">
+          <FilterSection label={t("tour.priceRange")}>
             <PriceSlider
               valueMin={localMinPrice}
               valueMax={localMaxPrice}
@@ -402,7 +398,7 @@ function Sidebar({
           </FilterSection>
 
           {/* Duration */}
-          <FilterSection label="Duration">
+          <FilterSection label={t("tour.duration")}>
             <DurationSlider
               value={localDuration}
               onChange={setLocalDuration}
@@ -501,6 +497,7 @@ function Pagination({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function TourSearch() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -539,7 +536,15 @@ export default function TourSearch() {
   const fetchedCategories = Array.isArray(categoryData)
     ? categoryData
     : (categoryData as any)?.data || (categoryData as any)?.items || [];
-  const categoriesList = [{ label: "All", value: null }, ...fetchedCategories.map((c: any) => ({ label: c.name, value: c.id }))];
+  const categoriesList = [{ label: t("common.all"), value: null }, ...fetchedCategories.map((c: any) => ({ label: c.name, value: c.id }))];
+
+  const SORT_OPTIONS = [
+    { label: t("tour.recommended"), value: "" },
+    { label: t("tour.priceLowHigh"), value: "price_asc" },
+    { label: t("tour.priceHighLow"), value: "price_desc" },
+    { label: t("tour.newestFirst"), value: "date_desc" },
+    { label: t("tour.oldestFirst"), value: "date_asc" },
+  ];
 
   useEffect(() => setLocalSearch(searchTerm), [searchTerm]);
   useEffect(() => setLocalCity(city), [city]);
@@ -654,7 +659,7 @@ export default function TourSearch() {
                 className="lg:hidden flex items-center gap-2 text-sm font-bold text-slate-700"
               >
                 <Filter size={15} style={{ color: "var(--color-brand)" }} />
-                Filters
+                {t("tour.filters")}
                 {activeFilterCount > 0 && (
                   <span
                     className="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black text-white"
@@ -669,14 +674,14 @@ export default function TourSearch() {
                 <span className="font-black text-slate-700 m-0">
                   {tours.length}
                 </span>
-                results
+                {t("tour.results")}
               </div>
 
               {/* Sort */}
               <div className="flex items-center gap-2.5">
                 <ArrowUpDown size={14} className="text-slate-400 shrink-0" />
                 <span className="text-sm text-slate-400 font-medium hidden sm:block">
-                  Sort by
+                  {t("tour.sortBy")}
                 </span>
                 <select
                   value={sortBy}
@@ -734,7 +739,7 @@ export default function TourSearch() {
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
-                {categoriesList.find((c) => c.value === categoryId)?.label || "Category"}
+                {categoriesList.find((c) => c.value === categoryId)?.label || t("tour.category")}
                     <button onClick={() => upd({ categoryId: null })}>
                       <X size={11} />
                     </button>
@@ -749,7 +754,7 @@ export default function TourSearch() {
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
-                    💰 Price filter
+                    💰 {t("tour.priceFilter")}
                     <button
                       onClick={() => upd({ minPrice: null, maxPrice: null })}
                     >
@@ -766,7 +771,7 @@ export default function TourSearch() {
                       border: "1px solid rgba(0,104,224,0.2)",
                     }}
                   >
-                    ⏱ Up to {duration}d
+                    ⏱ {t("tour.upToDuration", { count: duration })}
                     <button onClick={() => upd({ duration: null })}>
                       <X size={11} />
                     </button>
@@ -777,7 +782,7 @@ export default function TourSearch() {
                   className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-brand transition-colors"
                   style={{ border: "1px solid rgba(5,7,60,0.1)" }}
                 >
-                  Clear all
+                  {t("common.clearAll")}
                 </button>
               </div>
             )}
@@ -793,7 +798,7 @@ export default function TourSearch() {
                   }}
                 />
                 <p className="text-sm font-bold text-slate-400">
-                  Finding your adventures…
+                  {t("tour.findingAdventures")}
                 </p>
               </div>
             ) : error ? (
@@ -805,7 +810,7 @@ export default function TourSearch() {
                 }}
               >
                 <p className="text-lg font-bold mb-1">
-                  Oops, something went wrong
+                  {t("tour.somethingWentWrong")}
                 </p>
                 <p className="text-sm opacity-70">{error}</p>
               </div>
@@ -827,17 +832,17 @@ export default function TourSearch() {
                   className="text-xl font-black text-slate-800 mb-2"
                   style={{ fontFamily: "'Sora', sans-serif" }}
                 >
-                  No tours found
+                  {t("tour.noToursFound")}
                 </h3>
                 <p className="text-slate-400 text-sm max-w-xs font-medium">
-                  Try broadening your search or clearing some filters.
+                  {t("tour.broadenSearch")}
                 </p>
                 <ActionButton
                   variant="primary"
                   onClick={handleClear}
                   className="mt-6 !px-8"
                 >
-                  Clear filters
+                  {t("tour.clearFilters")}
                 </ActionButton>
               </div>
             ) : (
@@ -847,7 +852,7 @@ export default function TourSearch() {
                   const minP = getTourLowestTicketPrice(tour);
                   const loc =
                     [tour.city, tour.country].filter(Boolean).join(", ") ||
-                    "Various Locations";
+                    t("tour.variousLocations");
                   return (
                     <TourCard
                       key={tour.id}
@@ -859,8 +864,8 @@ export default function TourSearch() {
                         reviews: tour.reviews?.length || 0,
                         duration:
                           days > 0
-                            ? `${days} day${days > 1 ? "s" : ""}`
-                            : "Flexible",
+                            ? `${days} ${days > 1 ? t("tour.daysLabel") : t("tour.day")}`
+                            : t("tour.flexible"),
                         price: minP,
                         imageUrl:
                           tour.imageUrl ||

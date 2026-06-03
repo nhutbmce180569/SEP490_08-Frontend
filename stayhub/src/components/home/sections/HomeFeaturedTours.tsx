@@ -7,6 +7,7 @@ import { PATH } from "../../../config/routes/route";
 import { SectionHeader } from "./SectionHeader";
 import { HomeSection } from "./HomeSection";
 import { getFreeApiImage, HOME_GLASS, HOME_GLASS_MEDIA } from "./shared";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -16,14 +17,6 @@ const getTourLowestTicketPrice = (tour: Tour) => {
       .filter((p): p is number => p !== null) ?? [];
   return prices.length > 0 ? Math.min(...prices) : null;
 };
-
-const getTourMeta = (tour: Tour) => ({
-  minPrice: getTourLowestTicketPrice(tour),
-  duration: tour.tourItineraries?.length
-    ? `${tour.tourItineraries.length} day${tour.tourItineraries.length > 1 ? "s" : ""}`
-    : "Flexible",
-  location: [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam",
-});
 
 type HomeFeaturedToursProps = {
   tours: Tour[];
@@ -36,7 +29,23 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
   isLoading,
   error,
 }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const getTourMeta = (tour: Tour) => {
+    const days = tour.tourItineraries?.length ?? 0;
+    const duration =
+      days > 0
+        ? days > 1
+          ? t("home.durationDaysPlural", { count: days })
+          : t("home.durationDays", { count: days })
+        : t("home.flexible");
+    return {
+      minPrice: getTourLowestTicketPrice(tour),
+      duration,
+      location: [tour.city, tour.country].filter(Boolean).join(", ") || t("home.vietnam"),
+    };
+  };
 
   if (isLoading) {
     return (
@@ -57,9 +66,9 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
   return (
     <HomeSection tightTop>
       <SectionHeader
-        eyebrow="Editor's picks"
-        title="Trips travelers book first"
-        subtitle="Handpicked tours with great reviews and flexible schedules."
+        eyebrow={t("home.editorsPicks")}
+        title={t("home.tripsTravelersBook")}
+        subtitle={t("home.featuredHandpicked")}
         showSeeAll
         onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
       />
@@ -83,10 +92,10 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
           <div className="relative z-10 flex h-full min-h-[420px] flex-col justify-between p-6 sm:p-8 md:min-h-[480px]">
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-white/30 bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-brand backdrop-blur-sm">
-                Top pick
+                {t("home.topPick")}
               </span>
               <span className="rounded-full bg-brand/90 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-white shadow-sm">
-                Featured
+                {t("home.featured")}
               </span>
             </div>
 
@@ -107,12 +116,12 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
               <div className="mt-6 flex items-end justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-white/50">
-                    From
+                    {t("common.from")}
                   </p>
                   <p className="text-2xl font-extrabold text-white">
                     {featuredMeta.minPrice !== null
                       ? `${featuredMeta.minPrice.toLocaleString("vi-VN")}đ`
-                      : "Contact us"}
+                      : t("home.contactUs")}
                   </p>
                 </div>
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-lg transition group-hover:translate-x-1">
@@ -161,7 +170,7 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
                     <span className="text-brand">
                       {meta.minPrice !== null
                         ? `${meta.minPrice.toLocaleString("vi-VN")}đ`
-                        : "Contact"}
+                        : t("home.contact")}
                     </span>
                   </div>
                 </div>

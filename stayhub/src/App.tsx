@@ -100,81 +100,56 @@ import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleT
 import { LocationTrackingPage } from "./features/social/tracking/pages/LocationTrackingPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
+import { BookingStatisticsPage } from "./features/booking/pages/BookingStatisticsPage";
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
+import { useTranslation } from "./contexts/LocaleContext";
+import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 const queryClient = new QueryClient();
 
-const pageCopy: Record<string, string> = {
-  "Sign In": "Mock login screen for the new source setup.",
-  Register: "Mock registration screen for the new source setup.",
-  "Forgot Password": "Mock password recovery flow.",
-  "Reset Password": "Mock password reset flow.",
-  "Change Password": "Mock authenticated password change screen.",
-  "Tour Search": "Mock tour catalog and search results.",
-  "Tour Detail": "Mock public tour detail page.",
-  Checkout: "Mock checkout flow.",
-  Profile: "Mock customer profile page.",
-  "My Bookings": "Mock booking history.",
-  "Booking Detail": "Mock booking detail page.",
-  "Partner Profile": "Mock tour operator profile page.",
-  Vouchers: "Mock customer vouchers page.",
-  Reviews: "Mock reviews page.",
-  Settings: "Mock account settings page.",
-  Notifications: "Mock notification center.",
-  Friends: "Mock social friends page.",
-  Moments: "Mock travel moments feed.",
-  "Social Profile": "Mock social profile page.",
-  "Upgrade Partner": "Mock partner upgrade form.",
-};
-
-const MockPage: React.FC<{ title: string; section?: string }> = ({
-  title,
-  section = "Mock UI",
-}) => (
+const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
+  titleKey,
+  descKey,
+  sectionKey = "app.mockUi",
+}) => {
+  const { t } = useTranslation();
+  const blocks = [
+    { title: t("app.overview"), desc: t("app.mockBlockDesc") },
+    { title: t("app.data"), desc: t("app.mockBlockDesc") },
+    { title: t("app.actions"), desc: t("app.mockBlockDesc") },
+  ];
+  return (
     <div className="page-container py-10">
-    <div className="glass-card p-6 md:p-8">
-      <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="travel-eyebrow">
-            {section}
-          </p>
-          <h1 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">
-            {title}
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">
-            {pageCopy[title] ??
-              "Temporary placeholder screen. Route is kept so navigation can be wired back later."}
-          </p>
-        </div>
-        <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
-          route-ready
-        </span>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-3">
-        {["Overview", "Data", "Actions"].map((label, index) => (
-          <div
-            key={label}
-            className="min-h-32 rounded-xl border border-slate-100 bg-slate-50 p-4"
-          >
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-light text-sm font-black text-brand shadow-sm">
-              {index + 1}
-            </div>
-            <h2 className="text-sm font-bold text-slate-800">{label}</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">
-              Mock content block for layout testing while the real feature is
-              being migrated.
-            </p>
+      <div className="glass-card p-6 md:p-8">
+        <div className="mb-6 flex flex-col gap-2 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="travel-eyebrow">{t(sectionKey)}</p>
+            <h1 className="mt-2 text-2xl font-black text-slate-900 md:text-3xl">{t(titleKey)}</h1>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500">{t(descKey)}</p>
           </div>
-        ))}
+          <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">
+            {t("app.routeReady")}
+          </span>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {blocks.map((block, index) => (
+            <div key={block.title} className="min-h-32 rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-light text-sm font-black text-brand shadow-sm">
+                {index + 1}
+              </div>
+              <h2 className="text-sm font-bold text-slate-800">{block.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">{block.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const mock = (title: string, section?: string) => (
-  <MockPage title={title} section={section} />
+const mock = (titleKey: string, descKey: string, sectionKey?: string) => (
+  <MockPage titleKey={titleKey} descKey={descKey} sectionKey={sectionKey} />
 );
 
 const childPath = (path: string) =>
@@ -221,7 +196,7 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 };
 // Wrapper để hứng ID từ URL và truyền vào MomentsFeed
 const MomentsRouteWrapper = () => {
-  // null = Đang xem tất cả (Global Map)
+  const { t } = useTranslation();
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   
   // Gọi hook lấy danh sách Tour mà bạn đã fix thành công lúc trước
@@ -239,8 +214,8 @@ const MomentsRouteWrapper = () => {
       {/* KHU VỰC ĐIỀU HƯỚNG & LỌC */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
         <div>
-          <h2 className="text-2xl font-black text-slate-800">Cộng đồng StayHub</h2>
-          <p className="text-sm text-slate-500 font-medium">Khám phá khoảnh khắc từ khắp nơi</p>
+          <h2 className="text-2xl font-black text-slate-800">{t("app.momentsCommunityTitle")}</h2>
+          <p className="text-sm text-slate-500 font-medium">{t("app.momentsCommunitySubtitle")}</p>
         </div>
 
   
@@ -250,7 +225,7 @@ const MomentsRouteWrapper = () => {
             onChange={(e) => setSelectedSchedule(e.target.value ? Number(e.target.value) : null)}
             value={selectedSchedule || ""}
           >
-            <option value="">🌍 Tất cả chuyến đi (Global)</option>
+            <option value="">🌍 {t("app.allTripsGlobal")}</option>
             {schedules?.map(s => (
               <option key={s.scheduleId} value={s.scheduleId}>
                 📍 {s.tourName}
@@ -367,11 +342,11 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.SETTINGS}
-                      element={mock("Settings", "Customer")}
+                      element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
                     />
                     <Route
                       path={PATH.CUSTOMER.NOTIFICATIONS}
-                      element={mock("Notifications", "Customer")}
+                      element={mock("app.titles.notifications", "app.mockNotifications", "app.sectionCustomer")}
                     />
                     
                     <Route path="/social/moments"
@@ -448,7 +423,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
-                    element={mock("Delete Schedule", "Partner")}
+                    element={mock("app.titles.deleteSchedule", "app.mockDeleteSchedule", "app.sectionPartner")}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
@@ -476,19 +451,19 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}
-                    element={mock("Schedule Orders", "Partner")}
+                    element={mock("app.titles.scheduleOrders", "app.mockScheduleOrders", "app.sectionPartner")}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.SCHEDULE_CHECKIN())}
-                    element={mock("Schedule Check-in", "Partner")}
+                    element={mock("app.titles.scheduleCheckin", "app.mockScheduleCheckin", "app.sectionPartner")}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.BOOKING_MANAGEMENT)}
-                    element={mock("Booking Management", "Partner")}
+                    element={mock("app.titles.bookingManagement", "app.mockBookingManagement", "app.sectionPartner")}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CHECK_IN)}
-                    element={mock("Check-in", "Partner")}
+                    element={mock("app.titles.checkin", "app.mockCheckin", "app.sectionPartner")}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CANCELLATION_REQUESTS)}
@@ -513,8 +488,12 @@ const App: React.FC = () => {
                     element={<CustomerAnalyticsPage />}
                   />
                   <Route
+                    path={childPath(PATH.MANAGER.BOOKING_STATISTICS)}
+                    element={<BookingStatisticsPage />}
+                  />
+                  <Route
                     path={childPath(PATH.MANAGER.PAYOUT)}
-                    element={mock("Payout", "Partner")}
+                    element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
                   />
                 </Route>
               </Route>
@@ -525,15 +504,15 @@ const App: React.FC = () => {
                   
                   {/* UC-49: Assigned Schedules */}
                   <Route path={childPath(PATH.STAFF.SCHEDULES)} element={<AssignedSchedulesPage />} />
-                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<TourScheduleDetail />} />
+                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<StaffTourScheduleDetail />} />
 
                   {/* UC-50: QR Check-In */}
                   <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={<QRCheckinPage />} />
-                  <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("Process Check-in", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("app.titles.processCheckin", "app.mockProcessCheckin", "app.sectionStaff")} />
 
                   {/* UC-51: Tickets */}
                   <Route path={childPath(PATH.STAFF.TICKETS)} element={<StaffTicketListPage />} />
-                  <Route path={childPath(PATH.STAFF.TICKET_DETAIL())} element={mock("Ticket Details", "Staff")} />
+                  <Route path={childPath(PATH.STAFF.TICKET_DETAIL())} element={mock("app.titles.ticketDetails", "app.mockTicketDetails", "app.sectionStaff")} />
 
                   {/* UC-52: Track Locations */}
                   <Route path={childPath(PATH.STAFF.LOCATIONS)} element={<LocationTrackingPage />} />
@@ -565,40 +544,40 @@ const App: React.FC = () => {
                   </Route>
                   <Route
                     path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
-                    element={mock("Partner Approvals", "Admin")}
+                    element={mock("app.titles.partnerApprovals", "app.mockPartnerApprovals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
-                    <Route index element={mock("Tours", "Admin")} />
+                    <Route index element={mock("app.titles.tours", "app.mockTours", "app.sectionAdmin")} />
                     <Route
                       path=":id"
-                      element={mock("Admin Tour Detail", "Admin")}
+                      element={mock("app.titles.adminTourDetail", "app.mockAdminTourDetail", "app.sectionAdmin")}
                     />
                   </Route>
                   <Route
                     path={childPath(PATH.ADMIN.REPORT_MODERATION)}
-                    element={mock("Violation Reports", "Admin")}
+                    element={mock("app.titles.violationReports", "app.mockViolationReports", "app.sectionAdmin")}
                   />
                   <Route
                     path={childPath(PATH.ADMIN.WITHDRAWALS)}
-                    element={mock("Withdrawals", "Admin")}
+                    element={mock("app.titles.withdrawals", "app.mockWithdrawals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
-                    <Route index element={mock("System Vouchers", "Admin")} />
+                    <Route index element={mock("app.titles.systemVouchers", "app.mockSystemVouchers", "app.sectionAdmin")} />
                     <Route
                       path="create"
-                      element={mock("Create Voucher", "Admin")}
+                      element={mock("app.titles.createVoucher", "app.mockCreateVoucher", "app.sectionAdmin")}
                     />
                     <Route
                       path=":id"
-                      element={mock("Voucher Detail", "Admin")}
+                      element={mock("app.titles.voucherDetail", "app.mockVoucherDetailAdmin", "app.sectionAdmin")}
                     />
                     <Route
                       path=":id/edit"
-                      element={mock("Edit Voucher", "Admin")}
+                      element={mock("app.titles.editVoucher", "app.mockEditVoucher", "app.sectionAdmin")}
                     />
                     <Route
                       path=":id/delete"
-                      element={mock("Delete Voucher", "Admin")}
+                      element={mock("app.titles.deleteVoucher", "app.mockDeleteVoucher", "app.sectionAdmin")}
                     />
                   </Route>
                   <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
@@ -632,14 +611,14 @@ const App: React.FC = () => {
                   </Route>
                   <Route
                     path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
-                    element={mock("System Settings", "Admin")}
+                    element={mock("app.titles.systemSettings", "app.mockSystemSettings", "app.sectionAdmin")}
                   />
                 </Route>
               </Route>
 
               <Route
                 path="*"
-                element={mock("404 - Page Not Found", "System")}
+                element={mock("app.titles.notFound", "app.mock404", "app.sectionSystem")}
               />
             </Routes>
           </Router>

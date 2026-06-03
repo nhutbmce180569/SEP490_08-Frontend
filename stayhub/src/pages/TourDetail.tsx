@@ -44,6 +44,7 @@ import {
   getScheduleTicketTypeId,
 } from "../features/tour/utils/tourScheduleTicket";
 import { TourScheduleStaffManagement } from "../features/tour/components/TourScheduleStaffManagement";
+import { useTranslation } from "../contexts/LocaleContext";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -136,6 +137,7 @@ const enrichTicketWithTypeDetail = (
 };
 
 export default function PublicTourDetail() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id);
@@ -288,7 +290,7 @@ export default function PublicTourDetail() {
       : null;
   
   const displayImageUrl = tour?.imageUrl || "";
-  const displayName = tour?.name || "Loading details...";
+  const displayName = tour?.name || t("tour.loadingTourDetails");
   const availablePrices = availableSchedules
     .map(getScheduleLowestPrice)
     .filter((price): price is number => price !== null);
@@ -319,7 +321,7 @@ export default function PublicTourDetail() {
       <div className="min-h-screen -mt-[88px] flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4 text-slate-500">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-brand" />
-          Loading tour details...
+          {t("tour.loadingTourDetails")}
         </div>
       </div>
     );
@@ -327,7 +329,7 @@ export default function PublicTourDetail() {
 
   /* Error */
   if (error || !tour) {
-    const errorMessage = error || "Tour not found";
+    const errorMessage = error || t("tour.tourNotFound");
     const isLongError = errorMessage.length > 100;
     const displayedError =
       showFullError || !isLongError
@@ -337,7 +339,7 @@ export default function PublicTourDetail() {
       <div className="min-h-screen -mt-[88px] flex items-center justify-center bg-white px-4">
         <div className="max-w-md w-full bg-rose-50 rounded-2xl p-8 text-center border border-rose-100 shadow-sm">
           <h2 className="text-xl font-bold text-rose-600 mb-3">
-            Oops! Something went wrong
+            {t("tour.somethingWentWrong")}
           </h2>
           <p className="text-rose-500 mb-6 whitespace-pre-wrap break-words text-sm leading-relaxed">
             {displayedError}
@@ -347,7 +349,7 @@ export default function PublicTourDetail() {
                 onClick={() => setShowFullError(!showFullError)}
                 className="ml-2 font-semibold underline hover:text-rose-700 outline-none transition-colors"
               >
-                {showFullError ? "Show less" : "Show more"}
+                {showFullError ? t("tour.showLess") : t("tour.showMore")}
               </button>
             )}
           </p>
@@ -357,7 +359,7 @@ export default function PublicTourDetail() {
             className="w-full gap-2 shadow-sm shadow-rose-200"
           >
             <Home size={18} />
-            Back to Home
+            {t("auth.backToHome")}
           </ActionButton>
         </div>
       </div>
@@ -378,7 +380,7 @@ export default function PublicTourDetail() {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-white/20 text-2xl md:text-3xl font-black uppercase tracking-[0.2em] text-center px-4">Visuals Coming Soon</span>
+            <span className="text-white/20 text-2xl md:text-3xl font-black uppercase tracking-[0.2em] text-center px-4">{t("tour.visualsComingSoon")}</span>
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -418,7 +420,7 @@ export default function PublicTourDetail() {
             <div className="flex flex-wrap items-center gap-3 mb-5">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold tracking-wide uppercase">
                 <Tag size={11} />
-                {category?.name ? category.name : tour.categoryId ? `Category ${tour.categoryId}` : "Tour"}
+                {category?.name ? category.name : tour.categoryId ? `${t("tour.category")} ${tour.categoryId}` : t("tour.tour")}
               </span>
               {tour.address && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
@@ -446,7 +448,7 @@ export default function PublicTourDetail() {
                     {rating.toFixed(1)}
                   </span>
                   <span className="text-white/70 text-xs">
-                    ({reviews} reviews)
+                    ({t("tour.reviewsLabel", { count: reviews })})
                   </span>
                 </div>
               )}
@@ -454,7 +456,7 @@ export default function PublicTourDetail() {
                 <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
                   <Clock size={14} className="text-white/80" />
                   <span className="text-white font-semibold text-sm">
-                    {days} Days
+                    {days} {t("tour.daysStat")}
                   </span>
                 </div>
               )}
@@ -462,7 +464,7 @@ export default function PublicTourDetail() {
                 <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
                   <Users size={14} className="text-white/80" />
                   <span className="text-white font-semibold text-sm">
-                {sortedSchedules.length} Schedules
+                {t("tour.schedulesLabel", { count: sortedSchedules.length })}
                   </span>
                 </div>
               )}
@@ -478,9 +480,9 @@ export default function PublicTourDetail() {
           <div className="space-y-16">
             {/* Overview */}
             <section>
-              <SectionLabel>Overview</SectionLabel>
+              <SectionLabel>{t("tour.overview")}</SectionLabel>
               <h2 className="text-2xl font-bold text-slate-800 mb-4">
-                About This Experience
+                {t("tour.aboutExperience")}
               </h2>
               {tour.description ? (
                 <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-[15px]">
@@ -488,23 +490,23 @@ export default function PublicTourDetail() {
                 </p>
               ) : (
                 <p className="italic text-slate-400">
-                  No description available for this tour.
+                  {t("tour.noDescription")}
                 </p>
               )}
             </section>
 
             {/* Highlights */}
             <section>
-              <SectionLabel>Why Choose This Tour</SectionLabel>
+              <SectionLabel>{t("tour.whyChooseTour")}</SectionLabel>
               <h2 className="text-2xl font-bold text-slate-800 mb-6">
-                Highlights
+                {t("tour.highlights")}
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  { icon: "🧭", text: "Expert local guide" },
-                  { icon: "🚌", text: "Comfortable transportation" },
-                  { icon: "🎫", text: "All entrance fees included" },
-                  { icon: "✋", text: "Free cancellation up to 24h" },
+                  { icon: "🧭", text: t("tour.expertGuide") },
+                  { icon: "🚌", text: t("tour.comfortableTransport") },
+                  { icon: "🎫", text: t("tour.entranceFeesIncluded") },
+                  { icon: "✋", text: t("tour.freeCancellation") },
                 ].map((h, i) => (
                   <div
                     key={i}
@@ -521,9 +523,9 @@ export default function PublicTourDetail() {
 
             {/* Itinerary */}
             <section>
-              <SectionLabel>Your Journey</SectionLabel>
+              <SectionLabel>{t("tour.yourJourney")}</SectionLabel>
               <h2 className="text-2xl font-bold text-slate-800 mb-8">
-                Itinerary
+                {t("tour.itinerary")}
               </h2>
               
               {/* <div className="mb-10">
@@ -535,7 +537,7 @@ export default function PublicTourDetail() {
                 ) : itineraries.length > 0 ? (
                   <TourItineraryMap itineraries={itineraries} />
                 ) : (
-                  <p className="text-slate-500 italic">No map data available.</p>
+                  <p className="text-slate-500 italic">{t("tour.noMapDataAvailable")}</p>
                 )}
               </div> */}
 
@@ -562,7 +564,7 @@ export default function PublicTourDetail() {
                                  {dayNumber}
                                </span>
                                <h3 className="text-lg font-bold text-slate-800">
-                                 Day {dayNumber}
+                                 {t("tour.dayLabel", { count: dayNumber })}
                                </h3>
                             </div>
                           </div>
@@ -571,7 +573,7 @@ export default function PublicTourDetail() {
                                const isExpanded = expandedItiIds.includes(iti.id);
                                const timeStr = iti.startDuration && iti.endDuration
                                  ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
-                                 : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                                 : iti.startDuration ? iti.startDuration.substring(0, 5) : t("tour.anyTime");
                                const tourismInfo = iti.tourismInfoId
                                  ? tourismInformationDetails[iti.tourismInfoId]
                                  : null;
@@ -611,13 +613,13 @@ export default function PublicTourDetail() {
                                          {iti.startLocationName && (
                                            <div className="flex items-start gap-2">
                                              <MapPin className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                             <div><span className="font-semibold text-slate-700">Start:</span> {iti.startLocationName}</div>
+                                             <div><span className="font-semibold text-slate-700">{t("tour.start")}:</span> {iti.startLocationName}</div>
                                            </div>
                                          )}
                                           {iti.endLocationName && (
                                             <div className="flex items-start gap-2">
                                               <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
-                                              <div><span className="font-semibold text-slate-700">End:</span> {iti.endLocationName}</div>
+                                              <div><span className="font-semibold text-slate-700">{t("tour.end")}:</span> {iti.endLocationName}</div>
                                             </div>
                                           )}
                                           {iti.tourismInfoId && (
@@ -634,7 +636,7 @@ export default function PublicTourDetail() {
                                                     ) : (
                                                       <div className="flex flex-col items-center gap-2 text-slate-400">
                                                         <ImageIcon className="h-7 w-7" />
-                                                        <span className="text-xs font-medium">No image</span>
+                                                        <span className="text-xs font-medium">{t("tour.noImage")}</span>
                                                       </div>
                                                     )}
                                                   </div>
@@ -655,7 +657,7 @@ export default function PublicTourDetail() {
                                                       <span>
                                                         {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
                                                           .filter(Boolean)
-                                                          .join(", ") || "N/A"}
+                                                          .join(", ") || t("common.na")}
                                                       </span>
                                                     </div>
                                                     {(tourismInfo.latitude || tourismInfo.longitude) && (
@@ -670,7 +672,7 @@ export default function PublicTourDetail() {
                                                         rel="noreferrer"
                                                         className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                                                       >
-                                                        {tourismInfo.sourceName || "Source"}
+                                                        {tourismInfo.sourceName || t("tour.source")}
                                                         <ExternalLink className="h-3.5 w-3.5" />
                                                       </a>
                                                     )}
@@ -680,7 +682,7 @@ export default function PublicTourDetail() {
                                                 <div className="flex items-start gap-2 p-3">
                                                   <Tag className="h-4 w-4 text-brand shrink-0 mt-0.5" />
                                                   <span className="font-semibold text-slate-700">
-                                                    Tourism info ID #{iti.tourismInfoId}
+                                                    {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
                                                   </span>
                                                 </div>
                                               )}
@@ -700,16 +702,16 @@ export default function PublicTourDetail() {
                 </div>
               ) : (
                 <p className="text-slate-500 bg-slate-50 rounded-xl p-6 text-center">
-                  No itinerary details available.
+                  {t("tour.noItineraryDetails")}
                 </p>
               )}
             </section>
 
             {/* Reviews */}
             <section>
-              <SectionLabel>What Travelers Say</SectionLabel>
+              <SectionLabel>{t("tour.whatTravelersSay")}</SectionLabel>
               <h2 className="text-2xl font-bold text-slate-800 mb-6">
-                Reviews
+                {t("tour.reviews")}
               </h2>
 
               {/* Rating summary */}
@@ -733,7 +735,7 @@ export default function PublicTourDetail() {
                     ))}
                   </div>
                   <div className="text-slate-400 text-xs">
-                    {reviews} review{reviews !== 1 ? "s" : ""}
+                    {reviews === 1 ? t("tour.reviewCount", { count: reviews }) : t("tour.reviewsCount", { count: reviews })}
                   </div>
                 </div>
                 <div className="flex-1 space-y-2">
@@ -773,7 +775,7 @@ export default function PublicTourDetail() {
                 {/* 💥 Lặp qua mảng visibleReviews thay vì tour.reviews */}
                 {visibleReviews.length > 0 ? (
                   visibleReviews.map((review) => {
-                    const reviewerName = getReviewCustomerName(review);
+                    const reviewerName = review.customerName || review.CustomerName || (review.customerId ? `Customer #${review.customerId}` : t("tour.anonymousCustomer"));
                     const initials =
                       reviewerName
                         .split(" ")
@@ -830,7 +832,7 @@ export default function PublicTourDetail() {
                           </div>
                         </div>
                         <p className="text-slate-600 leading-relaxed">
-                          {review.comment || "No comment."}
+                          {review.comment || t("tour.noComment")}
                         </p>
 
                         {review.replies && review.replies.length > 0 && (
@@ -875,7 +877,7 @@ export default function PublicTourDetail() {
                                             : ""}
                                         </span>
                                       </div>
-                                      <div className="text-xs text-slate-500">Reply to customer review</div>
+                                      <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
                                     </div>
                                   </div>
                                   <p className="text-sm text-slate-700 leading-relaxed">
@@ -891,7 +893,7 @@ export default function PublicTourDetail() {
                   })
                 ) : (
                   <p className="text-slate-500 bg-slate-50 rounded-xl p-6 text-center">
-                    No reviews available yet.
+                    {t("tour.noReviewsYet")}
                   </p>
                 )}
               </div>
@@ -905,11 +907,11 @@ export default function PublicTourDetail() {
                 {/* Price strip */}
                 <div className="bg-gradient-to-r from-brand to-brand px-6 py-5">
                   <span className="text-blue-100 text-xs font-semibold uppercase tracking-widest">
-                    Starting from
+                    {t("tour.startingFrom")}
                   </span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-3xl font-black text-white">
-                      {minPrice !== null ? fmt(minPrice) : "No price"}
+                      {minPrice !== null ? fmt(minPrice) : t("tour.noPrice")}
                     </span>
                     {minPrice !== null && (
                       <span className="text-blue-200 font-semibold ml-1">
@@ -918,7 +920,7 @@ export default function PublicTourDetail() {
                     )}
                     {minPrice !== null && (
                       <span className="text-blue-200 text-sm ml-1">
-                        / person
+                        / {t("tour.perPerson")}
                       </span>
                     )}
                   </div>
@@ -927,7 +929,7 @@ export default function PublicTourDetail() {
                 <div className="p-6 space-y-5">
                   <div>
                     <h3 className="mb-3 font-bold text-slate-800">
-                      Departure Date
+                      {t("tour.departureDate")}
                     </h3>
 
                     {selectedSchedule ? (
@@ -935,26 +937,26 @@ export default function PublicTourDetail() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="text-sm font-semibold text-slate-500">
-                              Selected Schedule
+                              {t("tour.selectedSchedule")}
                             </div>
                             <div className="font-bold text-slate-900 mt-1 text-sm">
                               {fmtDate(selectedSchedule.departureDate)} -{" "}
                               {fmtDate(selectedSchedule.returnDate)}
                             </div>
                             <div className="text-xs font-medium text-emerald-600 mt-1">
-                              {selectedScheduleAvailableSeats} seats left
+                              {t("tour.seatsLeft", { count: selectedScheduleAvailableSeats })}
                             </div>
                           </div>
                           <button
                             onClick={() => setIsScheduleModalOpen(true)}
                             className="text-sm font-bold text-brand hover:text-brand-hover underline"
                           >
-                            Change
+                            {t("tour.change")}
                           </button>
                         </div>
                         <div className="border-t border-brand/20/50 pt-3 flex justify-between items-center">
                           <span className="text-sm font-medium text-slate-600">
-                            Price range
+                            {t("tour.priceRangeLabel")}
                           </span>
                           <span className="font-bold text-slate-900">
                             {getSchedulePriceText(selectedSchedule)}
@@ -964,7 +966,7 @@ export default function PublicTourDetail() {
                           <div className="mt-3 space-y-2 border-t border-brand/20/50 pt-3">
                             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wide text-slate-400">
                               <Ticket className="h-3.5 w-3.5" />
-                              Ticket options
+                              {t("tour.ticketOptions")}
                             </div>
                             {selectedScheduleTickets.map((ticket) => {
                               const ticketAvailable = getScheduleTicketAvailable(ticket) ?? 0;
@@ -979,13 +981,13 @@ export default function PublicTourDetail() {
                                       {getTicketDisplayName(ticket, ticketTypeDetails)}
                                     </div>
                                     <div className="text-xs font-medium text-slate-400">
-                                      {ticketAvailable} left
+                                      {t("tour.left", { count: ticketAvailable })}
                                     </div>
                                   </div>
                                   <div className="shrink-0 font-bold text-slate-900">
                                     {getNumberValue(ticket.price) !== null
                                       ? `${fmt(getNumberValue(ticket.price) ?? 0)} đ`
-                                      : "No price"}
+                                      : t("tour.noPrice")}
                                   </div>
                                 </div>
                               );
@@ -1000,7 +1002,7 @@ export default function PublicTourDetail() {
                       >
                         <div className="flex items-center gap-3 text-slate-600 group-hover:text-brand">
                           <Calendar className="h-5 w-5" />
-                          <span className="font-medium">Select a date</span>
+                          <span className="font-medium">{t("tour.selectDate")}</span>
                         </div>
                         <ChevronRight
                           size={18}
@@ -1021,11 +1023,11 @@ export default function PublicTourDetail() {
                       });
                     }}
                   >
-                    Proceed to Booking
+                    {t("tour.proceedToBooking")}
                   </ActionButton>
 
                   <div className="text-center text-xs font-medium text-slate-400">
-                    You won't be charged yet.
+                    {t("tour.notChargedYet")}
                   </div>
                 </div>
               </div>
@@ -1037,7 +1039,7 @@ export default function PublicTourDetail() {
                     {days || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                    Days
+                    {t("tour.daysStat")}
                   </div>
                 </div>
                 <div className="border-x border-slate-100">
@@ -1045,7 +1047,7 @@ export default function PublicTourDetail() {
                     {reviews || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                    Reviews
+                    {t("tour.reviewsStat")}
                   </div>
                 </div>
                 <div>
@@ -1053,7 +1055,7 @@ export default function PublicTourDetail() {
                     {rating > 0 ? rating.toFixed(1) : "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
-                    Rating
+                    {t("tour.ratingStat")}
                   </div>
                 </div>
               </div>
@@ -1076,11 +1078,10 @@ export default function PublicTourDetail() {
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-5">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">
-                  Select Schedule
+                  {t("tour.selectSchedule")}
                 </h3>
                 <p className="text-sm text-slate-400 mt-0.5">
-              {sortedSchedules.length} schedule
-              {sortedSchedules.length !== 1 ? "s" : ""}
+              {sortedSchedules.length === 1 ? t("tour.scheduleCount", { count: sortedSchedules.length }) : t("tour.schedulesCount", { count: sortedSchedules.length })}
                 </p>
               </div>
               <button
@@ -1168,15 +1169,15 @@ export default function PublicTourDetail() {
 
                             <div className="min-w-0">
                               <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                Departure - Return
+                                {t("tour.departureReturn")}
                               </div>
                               <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-slate-800">
                                 <span>{fmtDate(schedule.departureDate)}</span>
-                                <span className="text-slate-300">to</span>
+                                <span className="text-slate-300">{t("tour.to")}</span>
                                 <span>{fmtDate(schedule.returnDate)}</span>
                               </div>
                               <div className="mt-1 text-xs font-medium text-slate-400">
-                                {nights} night{nights !== 1 ? "s" : ""}
+                                {nights} {nights !== 1 ? t("tour.nightsLabel") : t("tour.night")}
                               </div>
                             </div>
                           </div>
@@ -1196,14 +1197,14 @@ export default function PublicTourDetail() {
                               }`}
                             >
                               {isExpired
-                                ? "Expired"
+                                ? t("tour.expired")
                                 : hasNoPrice
-                                ? "No price"
+                                ? t("tour.noPrice")
                                 : isSoldOut
-                                ? "Sold Out"
+                                ? t("tour.soldOut")
                                 : scheduleAvailableSeats <= 5
-                                ? `Few seats left: ${scheduleAvailableSeats}`
-                                : `${scheduleAvailableSeats} seats left`}
+                                ? t("tour.fewSeatsLeft", { count: scheduleAvailableSeats })
+                                : t("tour.seatsLeft", { count: scheduleAvailableSeats })}
                             </span>
 
                             <span className={`min-w-[110px] text-right font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
@@ -1220,7 +1221,7 @@ export default function PublicTourDetail() {
                                 }
                                 className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
                               >
-                                {isExpandedTickets ? "Hide" : "Tickets"}
+                                {isExpandedTickets ? t("tour.hide") : t("tour.tickets")}
                                 {isExpandedTickets ? (
                                   <ChevronUp className="h-4 w-4" />
                                 ) : (
@@ -1234,15 +1235,15 @@ export default function PublicTourDetail() {
                               disabled={isUnavailable}
                               onClick={() => {
                                 if (isExpired) {
-                                  showError("This schedule has expired.");
+                                  showError(t("tour.scheduleExpired"));
                                   return;
                                 }
                                 if (isSoldOut) {
-                                  showError("This schedule is sold out.");
+                                  showError(t("tour.scheduleSoldOut"));
                                   return;
                                 }
                                 if (hasNoPrice) {
-                                  showError("This schedule does not have a ticket price.");
+                                  showError(t("tour.scheduleNoPrice"));
                                   return;
                                 }
                                 setSelectedScheduleId(schedule.id);
@@ -1250,7 +1251,7 @@ export default function PublicTourDetail() {
                               }}
                               className="min-w-[132px] rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
                             >
-                              {isSelected ? "Selected" : "Select"}
+                              {isSelected ? t("tour.selected") : t("common.select")}
                             </button>
                           </div>
                         </div>
@@ -1274,11 +1275,11 @@ export default function PublicTourDetail() {
                                     <span className="shrink-0 font-bold text-slate-900">
                                       {ticketPrice !== null
                                         ? `${fmt(ticketPrice)} đ`
-                                        : "No price"}
+                                        : t("tour.noPrice")}
                                     </span>
                                   </div>
                                   <div className="mt-1 text-xs font-medium text-slate-400">
-                                    {ticketAvailable} available
+                                    {t("tour.available", { count: ticketAvailable })}
                                   </div>
                                 </div>
                               );
@@ -1291,7 +1292,7 @@ export default function PublicTourDetail() {
                 </div>
               ) : (
                 <div className="rounded-2xl bg-slate-50 p-8 text-center text-sm font-medium text-slate-500 border border-dashed border-slate-200">
-                  No upcoming schedules available.
+                  {t("tour.noUpcomingSchedules")}
                 </div>
               )}
             </div>

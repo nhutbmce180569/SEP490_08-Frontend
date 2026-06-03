@@ -7,8 +7,10 @@ import { SocialAuthButtons } from "../components/SocialAuthButtons";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField, authInputClass } from "../components/AuthFormField";
 import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function Register() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -45,7 +47,7 @@ export default function Register() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match!" }));
+      setErrors((prev) => ({ ...prev, confirmPassword: t("errors.passwordsNoMatch") }));
       return;
     }
 
@@ -56,63 +58,63 @@ export default function Register() {
   return (
     <AuthLayout
       scrollable
-      title="Create an account"
-      subtitle="Fill in the details below to join StayHub."
-      heroTitle="Start your journey with us."
-      heroSubtitle="Create an account to discover incredible tours, manage your bookings easily, and join our global community of travelers."
+      title={t("errors.createAccountTitle")}
+      subtitle={t("errors.createAccountSubtitle")}
+      heroTitle={t("errors.heroRegisterTitle")}
+      heroSubtitle={t("errors.heroRegisterDesc")}
       imageSeed="stayhub-register"
       footer={
         <p className="mt-10 pb-2 text-center text-sm font-medium text-slate-600">
-          Already have an account?{" "}
+          {t("auth.haveAccount")}{" "}
           <Link
             to="/login"
             className="font-bold text-brand transition-colors hover:text-brand-hover !no-underline"
           >
-            Log in here
+            {t("errors.logInHere")}
           </Link>
         </p>
       }
     >
       <form onSubmit={handleRegister} className="space-y-5">
         <AuthFormField
-          label="Full Name"
+          label={t("auth.fullName")}
           name="fullName"
           type="text"
           icon={User}
           value={formData.fullName}
           onChange={handleChange}
-          placeholder="e.g. John Doe"
+          placeholder={t("errors.fullNamePlaceholder")}
           error={errors.fullName}
           required
         />
 
         <AuthFormField
-          label="Email Address"
+          label={t("errors.emailAddress")}
           name="email"
           type="email"
           icon={Mail}
           value={formData.email}
           onChange={handleChange}
-          placeholder="name@example.com"
+          placeholder={t("errors.emailPlaceholder")}
           error={errors.email}
           required
         />
 
         <AuthFormField
-          label="Phone Number"
+          label={t("auth.phoneNumber")}
           name="phoneNumber"
           type="tel"
           icon={Phone}
           value={formData.phoneNumber}
           onChange={handleChange}
-          placeholder="e.g. 0123456789"
+          placeholder={t("errors.phonePlaceholder")}
           error={errors.phoneNumber}
           required
         />
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">Gender</label>
+            <label className="block text-sm font-semibold text-slate-700">{t("common.gender")}</label>
             <div className="relative">
               <Users className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <select
@@ -123,11 +125,11 @@ export default function Register() {
                 required
               >
                 <option value="" disabled>
-                  Select
+                  {t("common.select")}
                 </option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="Male">{t("common.male")}</option>
+                <option value="Female">{t("common.female")}</option>
+                <option value="Other">{t("common.other")}</option>
               </select>
             </div>
             {errors.gender && (
@@ -136,7 +138,7 @@ export default function Register() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-semibold text-slate-700">Date of Birth</label>
+            <label className="block text-sm font-semibold text-slate-700">{t("common.dateOfBirth")}</label>
             <div className="relative">
               <Calendar className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
               <input
@@ -155,13 +157,13 @@ export default function Register() {
         </div>
 
         <AuthFormField
-          label="Password"
+          label={t("auth.password")}
           name="password"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.password}
           onChange={handleChange}
-          placeholder="Create a strong password"
+          placeholder={t("errors.passwordPlaceholder")}
           error={errors.password}
           showToggle
           showPassword={showPassword}
@@ -170,13 +172,13 @@ export default function Register() {
         />
 
         <AuthFormField
-          label="Confirm Password"
+          label={t("errors.confirmPasswordLabel")}
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.confirmPassword}
           onChange={handleChange}
-          placeholder="Repeat your password"
+          placeholder={t("errors.confirmPasswordPlaceholder")}
           error={errors.confirmPassword}
           required
         />
@@ -189,21 +191,21 @@ export default function Register() {
               required
             />
             <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">
-              I agree to the{" "}
+              {t("errors.agreeTerms")}{" "}
               <Link
                 to={PATH.PUBLIC.TERMS}
                 state={{ from: PATH.PUBLIC.REGISTER }}
                 className="text-brand !no-underline hover:underline"
               >
-                Terms of Service
+                {t("common.termsOfService")}
               </Link>{" "}
-              and{" "}
+              {t("errors.and")}{" "}
               <Link
                 to={PATH.PUBLIC.PRIVACY}
                 state={{ from: PATH.PUBLIC.REGISTER }}
                 className="text-brand !no-underline hover:underline"
               >
-                Privacy Policy
+                {t("common.privacyPolicy")}
               </Link>
               .
             </span>
@@ -216,12 +218,12 @@ export default function Register() {
           disabled={isSubmitting}
           className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
         >
-          {isSubmitting ? "Creating Account..." : "Create Account"}
+          {isSubmitting ? t("errors.creatingAccount") : t("errors.createAccountBtn")}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>
 
-      <SocialAuthButtons dividerLabel="Or register with" />
+      <SocialAuthButtons dividerLabel={t("common.orRegisterWith")} />
     </AuthLayout>
   );
 }

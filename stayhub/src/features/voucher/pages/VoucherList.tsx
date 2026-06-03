@@ -10,6 +10,7 @@ import {
 import { Table, type Column } from '../../../components/dashboard/Table';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
+import { useTranslation } from '../../../contexts/LocaleContext';
 import { useVouchers } from '../hooks/useVouchers';
 import { useChangeVoucherStatus } from '../hooks/useChangeVoucherStatus';
 import { useTourOptions } from '../hooks/useTourOptions';
@@ -22,6 +23,7 @@ import {
 } from '../utils/voucherHelpers';
 
 export const VoucherList: React.FC = () => {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [discountType, setDiscountType] = useState('');
@@ -73,13 +75,13 @@ export const VoucherList: React.FC = () => {
   const columns: Column<ReadVoucherDTO>[] = useMemo(
     () => [
       {
-        header: 'Code',
+        header: t('voucher.code'),
         render: (voucher) => (
           <span className="font-semibold tracking-wide text-slate-800">{voucher.code}</span>
         ),
       },
       {
-        header: 'Discount',
+        header: t('voucher.discount'),
         render: (voucher) => (
           <div className="text-sm">
             <div className="font-medium text-slate-800">
@@ -87,42 +89,42 @@ export const VoucherList: React.FC = () => {
             </div>
             {voucher.discountType === 'Percent' && voucher.maxDiscountAmount && (
               <div className="text-xs text-slate-500">
-                Max {formatVnd(voucher.maxDiscountAmount)}
+                {t('voucher.max')} {formatVnd(voucher.maxDiscountAmount)}
               </div>
             )}
           </div>
         ),
       },
       {
-        header: 'Tour',
+        header: t('voucher.tour'),
         render: (voucher) => (
           <span className="text-sm text-slate-600">
-            {voucher.tourName || 'All tours'}
+            {voucher.tourName || t('voucher.allTours')}
           </span>
         ),
       },
       {
-        header: 'Usage',
+        header: t('voucher.usage'),
         render: (voucher) => (
           <span className="text-sm text-slate-600">
             {voucher.usedCount}/{voucher.availableCount}
             <span className="ml-1 text-xs text-slate-400">
-              ({voucher.remainingCount} left)
+              ({voucher.remainingCount} {t('voucher.left')})
             </span>
           </span>
         ),
       },
       {
-        header: 'Valid Period',
+        header: t('voucher.validPeriod'),
         render: (voucher) => (
           <div className="text-xs text-slate-600">
             <div>{formatDateTime(voucher.startDate)}</div>
-            <div className="text-slate-400">to {formatDateTime(voucher.endDate)}</div>
+            <div className="text-slate-400">{t('voucher.to')} {formatDateTime(voucher.endDate)}</div>
           </div>
         ),
       },
       {
-        header: 'Status',
+        header: t('common.status'),
         render: (voucher) => (
           <span
             className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -134,7 +136,7 @@ export const VoucherList: React.FC = () => {
         ),
       },
       {
-        header: 'Action',
+        header: t('common.actions'),
         render: (voucher) => (
           <div className="flex items-center gap-1.5">
             <ActionButton
@@ -147,7 +149,7 @@ export const VoucherList: React.FC = () => {
                   ? 'text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700'
                   : 'text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700'
               }`}
-              title={voucher.isActive ? 'Deactivate' : 'Activate'}
+              title={voucher.isActive ? t('voucher.deactivate') : t('voucher.activate')}
               disabled={updatingId === voucher.id}
             >
               {voucher.isActive ? (
@@ -160,7 +162,7 @@ export const VoucherList: React.FC = () => {
               variant="secondary"
               onClick={() => handleView(voucher.id)}
               className="h-8 w-8"
-              title="View details"
+              title={t('content.viewDetails')}
             >
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>
@@ -168,7 +170,7 @@ export const VoucherList: React.FC = () => {
               variant="secondary"
               onClick={() => handleEdit(voucher.id)}
               className="h-8 w-8"
-              title="Edit voucher"
+              title={t('voucher.editVoucher')}
               disabled={!voucher.isActive}
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -177,18 +179,18 @@ export const VoucherList: React.FC = () => {
         ),
       },
     ],
-    [executeStatusChange, handleEdit, handleView, updatingId],
+    [t, executeStatusChange, handleEdit, handleView, updatingId],
   );
 
   return (
     <div className="rounded-2xl">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-[15px] font-bold leading-tight text-slate-900">Voucher Management</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Create and manage discount vouchers for your tours.</p>
+          <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t('voucher.management')}</h2>
+          <p className="mt-0.5 text-xs text-slate-500">{t('voucher.managementDesc')}</p>
         </div>
         <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
-          <Plus className="h-4 w-4" /> Create Voucher
+          <Plus className="h-4 w-4" /> {t('voucher.createVoucher')}
         </ActionButton>
       </div>
 
@@ -197,7 +199,7 @@ export const VoucherList: React.FC = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search code or description..."
+            placeholder={t('voucher.searchCodeOrDesc')}
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
@@ -212,7 +214,7 @@ export const VoucherList: React.FC = () => {
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
-          <option value="">All tours</option>
+          <option value="">{t('voucher.allTours')}</option>
           {tourOptions
             .filter((option) => option.value !== '')
             .map((option) => (
@@ -230,9 +232,9 @@ export const VoucherList: React.FC = () => {
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
-          <option value="">All discount types</option>
-          <option value="Percent">Percent</option>
-          <option value="Amount">Amount</option>
+          <option value="">{t('voucher.allDiscountTypes')}</option>
+          <option value="Percent">{t('voucher.percent')}</option>
+          <option value="Amount">{t('voucher.amount')}</option>
         </select>
 
         <select
@@ -243,12 +245,12 @@ export const VoucherList: React.FC = () => {
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
-          <option value="">All statuses</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Scheduled">Scheduled</option>
-          <option value="Expired">Expired</option>
-          <option value="Depleted">Depleted</option>
+          <option value="">{t('voucher.allStatuses')}</option>
+          <option value="Active">{t('common.active')}</option>
+          <option value="Inactive">{t('common.inactive')}</option>
+          <option value="Scheduled">{t('voucher.scheduled')}</option>
+          <option value="Expired">{t('tour.expired')}</option>
+          <option value="Depleted">{t('voucher.depleted')}</option>
         </select>
 
         <select
@@ -259,14 +261,14 @@ export const VoucherList: React.FC = () => {
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
-          <option value="">Active flag</option>
-          <option value="true">Enabled</option>
-          <option value="false">Disabled</option>
+          <option value="">{t('voucher.activeFlag')}</option>
+          <option value="true">{t('voucher.enabled')}</option>
+          <option value="false">{t('voucher.disabled')}</option>
         </select>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">Loading vouchers...</div>
+        <div className="flex justify-center p-10 text-slate-500">{t('voucher.loadingVouchers')}</div>
       ) : error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
@@ -274,7 +276,7 @@ export const VoucherList: React.FC = () => {
           data={vouchers}
           columns={columns}
           keyExtractor={(item) => item.id}
-          emptyMessage="No vouchers found."
+          emptyMessage={t('voucher.noVouchersFound')}
         />
       )}
 

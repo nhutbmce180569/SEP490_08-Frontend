@@ -7,6 +7,7 @@ import { useCreateCancellation } from "../hooks/useCreateCancellation";
 import { useToast } from "../../../contexts/ToastContext";
 import type { CreateCancellationRequestDTO } from "../types/cancellation";
 import { CUSTOMER_ROUTES } from "../../../config/routes/customer.routes";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 type VietQrBank = {
   id: number;
@@ -25,7 +26,8 @@ const FALLBACK_BANK_OPTIONS = [
 ];
 
 export const CreateCancellationRequestPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Lấy Order ID từ URL (/my-bookings/:id/request-refund)
+  const { t } = useTranslation();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { mutateAsync: createRequest, isPending } = useCreateCancellation();
   const { success, error } = useToast();
@@ -43,7 +45,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
 
         const response = await fetch("https://api.vietqr.io/v2/banks");
         if (!response.ok) {
-          throw new Error("Unable to load bank list.");
+          throw new Error(t("tour.unableLoadBankList"));
         }
 
         const payload = await response.json();
@@ -54,7 +56,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         }
       } catch {
         if (isMounted) {
-          setBankLoadError("Unable to load live bank list. Showing common banks instead.");
+          setBankLoadError(t("booking.bankLoadFallback"));
         }
       } finally {
         if (isMounted) {
@@ -68,7 +70,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [t]);
 
   const bankOptions = useMemo(() => {
     if (banks.length === 0) return FALLBACK_BANK_OPTIONS;
@@ -77,59 +79,66 @@ export const CreateCancellationRequestPage: React.FC = () => {
       .slice()
       .sort((a, b) => (a.shortName || a.name).localeCompare(b.shortName || b.name))
       .map((bank) => ({
-        label: `${bank.shortName || bank.code || "Bank"} - ${bank.name}`,
+        label: `${bank.shortName || bank.code || t("tour.bankFallbackLabel")} - ${bank.name}`,
         value: bank.name,
       }));
-  }, [banks]);
+  }, [banks, t]);
 
-  const cancellationFields: FormField[] = [
-    {
-      name: "bankName",
-      label: "Bank Name",
-      type: "select",
-      placeholder: isLoadingBanks ? "Loading banks..." : "Select bank",
-      icon: <Building className="h-4 w-4" />,
-      options: isLoadingBanks ? [{ label: "Loading banks...", value: "" }] : bankOptions,
-      colSpan: 2,
-      required: true,
-    },
-    {
-      name: "accountNumber",
-      label: "Account Number",
-      type: "text",
-      icon: <CreditCard className="h-4 w-4" />,
-      colSpan: 1,
-      required: true,
-    },
-    {
-      name: "accountHolderName",
-      label: "Account Holder Name",
-      type: "text",
-      icon: <User className="h-4 w-4" />,
-      colSpan: 1,
-      required: true,
-    },
-    {
-      name: "reason",
-      label: "Reason for Cancellation",
-      type: "textarea",
-      icon: <AlignLeft className="h-4 w-4" />,
-      colSpan: 2,
-      required: true,
-    },
-  ];
+  const cancellationFields: FormField[] = useMemo(
+    () => [
+      {
+        name: "bankName",
+        label: t("booking.bankName"),
+        type: "select",
+        placeholder: isLoadingBanks ? t("booking.loadingBanks") : t("booking.selectBank"),
+        icon: <Building className="h-4 w-4" />,
+        options: isLoadingBanks ? [{ label: t("booking.loadingBanks"), value: "" }] : bankOptions,
+        colSpan: 2,
+        required: true,
+      },
+      {
+        name: "accountNumber",
+        label: t("booking.accountNumber"),
+        type: "text",
+        icon: <CreditCard className="h-4 w-4" />,
+        colSpan: 1,
+        required: true,
+      },
+      {
+        name: "accountHolderName",
+        label: t("booking.accountHolderName"),
+        type: "text",
+        icon: <User className="h-4 w-4" />,
+        colSpan: 1,
+        required: true,
+      },
+      {
+        name: "reason",
+        label: t("booking.reasonForCancellation"),
+        type: "textarea",
+        icon: <AlignLeft className="h-4 w-4" />,
+        colSpan: 2,
+        required: true,
+      },
+    ],
+    [t, isLoadingBanks, bankOptions],
+  );
 
-  const handleSubmit = async (formData: Record<string, any>) => {
+  const handleSubmit = async (formData: Record<string, unknown>) => {
     try {
       const payload = {
         ...formData,
-        orderId: Number(id), // Tự động lấy Order ID từ URL truyền vào API
+        orderId: Number(id),
       };
       await createRequest(payload as CreateCancellationRequestDTO);
-      success("Cancellation request submitted successfully. Please wait for admin approval.");
-      navigate(CUSTOMER_ROUTES.MY_BOOKINGS); // Về trang quản lý My Bookings sau khi thành công
-    } catch (err: any) {
-      error(err?.response?.data?.message || "Failed to submit cancellation request.");
+      success(t("booking.cancellationSubmitted"));
+      navigate(CUSTOMER_ROUTES.MY_BOOKINGS);
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      error(message || t("booking.cancellationSubmitFailed"));
     }
   };
 
@@ -141,14 +150,14 @@ export const CreateCancellationRequestPage: React.FC = () => {
         </div>
       )}
       <DynamicForm
-        title="Request Tour Cancellation"
-        description={`Please provide your bank details to receive the refund for Order #${id}.`}
+        title={t("booking.requestTourCancellation")}
+        description={t("booking.cancellationBankDesc", { id: id ?? "" })}
         fields={cancellationFields}
         onSubmit={handleSubmit}
-        submitText="Submit Request"
+        submitText={t("booking.submitRequest")}
         onCancel={() => navigate(-1)}
       />
-      <LoadingOverlay isOpen={isPending} message="Submitting your request..." />
+      <LoadingOverlay isOpen={isPending} message={t("booking.submittingRequest")} />
     </div>
   );
 };

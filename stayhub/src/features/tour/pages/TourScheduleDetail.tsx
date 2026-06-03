@@ -42,8 +42,10 @@ import {
   getScheduleTicketName,
   getScheduleTicketTypeId,
 } from "../utils/tourScheduleTicket";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const TourScheduleDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { error: showError } = useToast();
@@ -91,12 +93,12 @@ export const TourScheduleDetail: React.FC = () => {
         setScheduleItineraries(data);
       } catch (err: unknown) {
         setScheduleItineraries([]);
-        showError(getApiErrorMessage(err, "Failed to load schedule itineraries."));
+        showError(getApiErrorMessage(err, t("tour.failedLoadScheduleItineraries")));
       } finally {
         setIsItinerariesLoading(false);
       }
     },
-    [showError],
+    [showError, t],
   );
 
   const fetchTickets = React.useCallback(
@@ -131,12 +133,12 @@ export const TourScheduleDetail: React.FC = () => {
       } catch (err: unknown) {
         setTickets([]);
         setTicketTypeDetails({});
-        showError(getApiErrorMessage(err, "Failed to load schedule tickets."));
+        showError(getApiErrorMessage(err, t("tour.failedLoadScheduleTickets")));
       } finally {
         setIsTicketsLoading(false);
       }
     },
-    [showError],
+    [showError, t],
   );
 
   React.useEffect(() => {
@@ -189,7 +191,7 @@ export const TourScheduleDetail: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center text-slate-500">
-        Loading schedule details...
+        {t("tour.loadingScheduleDetails")}
       </div>
     );
   }
@@ -197,7 +199,7 @@ export const TourScheduleDetail: React.FC = () => {
   if (error || !schedule) {
     return (
       <div className="flex h-64 items-center justify-center font-semibold text-rose-500">
-        {error || "Schedule not found."}
+        {error || t("tour.scheduleNotFound")}
       </div>
     );
   }
@@ -245,8 +247,8 @@ export const TourScheduleDetail: React.FC = () => {
         getApiErrorMessage(
           err,
           shouldDeactivate
-            ? "Failed to deactivate schedule ticket."
-            : "Failed to activate schedule ticket.",
+            ? t("tour.failedDeactivateTicket")
+            : t("tour.failedActivateTicket"),
         ),
       );
     } finally {
@@ -256,24 +258,24 @@ export const TourScheduleDetail: React.FC = () => {
 
   const confirmTitle =
     confirmAction?.type === "deleteSchedule"
-      ? "Delete Schedule"
+      ? t("tour.deleteScheduleTitle")
       : confirmAction?.type === "deactivateTicket"
-        ? "Deactivate Ticket"
-        : "Activate Ticket";
+        ? t("tour.deactivateTicket")
+        : t("tour.activateTicket");
 
   const confirmMessage =
     confirmAction?.type === "deleteSchedule"
-      ? "Are you sure you want to delete this schedule?"
+      ? t("tour.deleteScheduleQuestion")
       : confirmAction?.type === "deactivateTicket"
-        ? "Customers will no longer see or book this ticket type."
-        : "Customers will be able to see and book this ticket type.";
+        ? t("tour.deactivateTicketDesc")
+        : t("tour.activateTicketDesc");
 
   const confirmButtonText =
     confirmAction?.type === "deleteSchedule"
-      ? "Delete"
+      ? t("tour.delete")
       : confirmAction?.type === "deactivateTicket"
-        ? "Deactivate"
-        : "Activate";
+        ? t("tour.deactivate")
+        : t("tour.activate");
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -282,7 +284,7 @@ export const TourScheduleDetail: React.FC = () => {
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Schedules
+        {t("tour.backToSchedules")}
       </button>
 
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -290,60 +292,37 @@ export const TourScheduleDetail: React.FC = () => {
           <Calendar className="h-16 w-16 text-white opacity-20" />
           <div className="absolute right-4 top-4">
             <span className="inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md">
-              Schedule Detail
+              {t("tour.scheduleDetail")}
             </span>
           </div>
         </div>
 
         <div className="p-6 sm:p-10">
+          {/* HEADER SECTION - Đã xóa 3 nút và căn thẳng hàng */}
           <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
-                Schedule #{schedule.id}
+                Schedule {schedule.id}
               </h1>
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm font-medium text-slate-600">
-                <div className="flex items-center gap-1.5">
-                  <Hash className="h-4 w-4 text-slate-400" />
-                  <span className="font-semibold text-slate-700">Tour Name:</span>
-                  <span className="font-bold text-brand">
-                    {schedule.tour?.name || `ID: ${schedule.tourId}`}
-                  </span>
-                </div>
+              <div className="mt-3 flex items-start sm:items-center gap-2 text-sm font-medium text-slate-600">
+                <Hash className="h-4 w-4 shrink-0 text-slate-400 mt-0.5 sm:mt-0" />
+                <span className="shrink-0 font-semibold text-slate-700">
+                  {t("tour.tourNameLabel")}
+                </span>
+                <span className="font-bold text-brand">
+                  {schedule.tour?.name || `ID: ${schedule.tourId}`}
+                </span>
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-wrap items-start gap-3">
-              <ActionButton
-                variant="primary"
-                onClick={() => navigate(PATH.MANAGER.SCHEDULE_ORDERS(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Ticket className="h-4 w-4" />
-                View Orders
-              </ActionButton>
-              <ActionButton
-                variant="secondary"
-                onClick={() => navigate(PATH.STAFF.SCHEDULE_CUSTOMERS(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Users className="h-4 w-4" />
-                View Customers
-              </ActionButton>
-              <ActionButton
-                variant="secondary"
-                onClick={() => navigate(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <MapPin className="h-4 w-4" />
-                Live Tour Map
-              </ActionButton>
+            <div className="flex shrink-0 items-center gap-3">
               <ActionButton
                 variant="secondary"
                 onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE(schedule.id))}
                 className="gap-2 px-4 py-2 text-sm"
               >
                 <Pencil className="h-4 w-4" />
-                Edit
+                {t("tour.edit")}
               </ActionButton>
               <ActionButton
                 type="button"
@@ -352,7 +331,7 @@ export const TourScheduleDetail: React.FC = () => {
                 className="gap-2 px-4 py-2 text-sm"
               >
                 <Trash2 className="h-4 w-4" />
-                Delete
+                {t("tour.delete")}
               </ActionButton>
             </div>
           </div>
@@ -361,36 +340,36 @@ export const TourScheduleDetail: React.FC = () => {
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
                 <Calendar className="h-4 w-4 text-emerald-500" />
-                Departure Date
+                {t("tour.departureDate")}
               </div>
               <div className="text-base font-bold text-slate-900">
                 {schedule.departureDate
                   ? new Date(schedule.departureDate).toLocaleDateString("vi-VN")
-                  : "N/A"}
+                  : t("common.na")}
               </div>
             </div>
 
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
                 <Clock className="h-4 w-4 text-rose-500" />
-                Return Date
+                {t("tour.returnDate")}
               </div>
               <div className="text-base font-bold text-slate-900">
                 {schedule.returnDate
                   ? new Date(schedule.returnDate).toLocaleDateString("vi-VN")
-                  : "N/A"}
+                  : t("common.na")}
               </div>
             </div>
           </div>
 
           <div className="mb-8">
-            <h2 className="mb-3 text-base font-bold text-slate-900">Schedule Note</h2>
+            <h2 className="mb-3 text-base font-bold text-slate-900">{t("tour.scheduleNote")}</h2>
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 leading-relaxed text-slate-700">
               {schedule.note ? (
                 <p className="whitespace-pre-wrap text-sm text-slate-600">{schedule.note}</p>
               ) : (
                 <p className="text-sm italic text-slate-400">
-                  No notes provided for this schedule.
+                  {t("tour.noScheduleNotes")}
                 </p>
               )}
             </div>
@@ -399,11 +378,13 @@ export const TourScheduleDetail: React.FC = () => {
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-base font-bold text-slate-900">Schedule Tickets</h2>
+                <h2 className="text-base font-bold text-slate-900">{t("tour.scheduleTickets")}</h2>
                 <p className="mt-1 text-sm text-slate-500">
                   {tickets.length > 0
-                    ? `${tickets.length} ticket ${tickets.length === 1 ? "type" : "types"} configured`
-                    : "No ticket setup for this schedule."}
+                    ? tickets.length === 1
+                      ? t("tour.ticketTypesConfigured", { count: tickets.length })
+                      : t("tour.ticketTypesConfiguredPlural", { count: tickets.length })
+                    : t("tour.noTicketSetupSchedule")}
                 </p>
               </div>
               <ActionButton
@@ -412,13 +393,13 @@ export const TourScheduleDetail: React.FC = () => {
                 className="gap-2 px-4 py-2 text-sm"
               >
                 <Plus className="h-4 w-4" />
-                Add Ticket
+                {t("tour.addTicket")}
               </ActionButton>
             </div>
 
             {isTicketsLoading ? (
               <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
-                Loading schedule tickets...
+                {t("tour.loadingScheduleTickets")}
               </div>
             ) : tickets.length > 0 ? (
               <div className="overflow-x-auto rounded-2xl border border-slate-200">
@@ -426,19 +407,19 @@ export const TourScheduleDetail: React.FC = () => {
                   <thead>
                     <tr className="border-b border-slate-100 bg-slate-50">
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        Ticket Name
+                        {t("tour.ticketName")}
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        Price
+                        {t("common.price")}
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        Quantity
+                        {t("tour.quantity")}
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        Status
+                        {t("common.status")}
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        Action
+                        {t("common.actions")}
                       </th>
                     </tr>
                   </thead>
@@ -484,7 +465,7 @@ export const TourScheduleDetail: React.FC = () => {
                               {quantity}
                             </div>
                             <div className="mt-0.5 text-xs font-medium text-slate-400">
-                              {soldQuantity} sold / {availableQuantity} left
+                              {t("tour.soldLeft", { sold: soldQuantity, left: availableQuantity })}
                             </div>
                           </td>
                           <td className="px-5 py-3.5">
@@ -495,7 +476,7 @@ export const TourScheduleDetail: React.FC = () => {
                                   : "bg-rose-100 text-rose-700"
                               }`}
                             >
-                              {isActive ? "Active" : "Inactive"}
+                              {isActive ? t("common.active") : t("common.inactive")}
                             </span>
                           </td>
                           <td className="px-5 py-3.5">
@@ -511,7 +492,7 @@ export const TourScheduleDetail: React.FC = () => {
                                   )
                                 }
                                 className="h-8 w-8"
-                                title="Edit ticket"
+                                title={t("tour.editTicket")}
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </ActionButton>
@@ -529,7 +510,7 @@ export const TourScheduleDetail: React.FC = () => {
                                     ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
                                     : ""
                                 }`}
-                                title={isActive ? "Deactivate ticket" : "Activate ticket"}
+                                title={isActive ? t("tour.deactivateTicketAction") : t("tour.activateTicketAction")}
                               >
                                 {isActive ? (
                                   <PowerOff className="h-3.5 w-3.5" />
@@ -549,10 +530,10 @@ export const TourScheduleDetail: React.FC = () => {
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
                 <Ticket className="mb-3 h-10 w-10 text-slate-400" />
                 <h3 className="mb-1 text-sm font-bold text-slate-900">
-                  No tickets configured
+                  {t("tour.noTicketsConfigured")}
                 </h3>
                 <p className="mb-4 text-xs text-slate-500">
-                  Add ticket types, prices, and quantities for this schedule.
+                  {t("tour.addTicketHint")}
                 </p>
                 <ActionButton
                   variant="primary"
@@ -560,7 +541,7 @@ export const TourScheduleDetail: React.FC = () => {
                   className="gap-2 px-4 py-2 text-sm"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Ticket
+                  {t("tour.addTicket")}
                 </ActionButton>
               </div>
             )}
@@ -570,7 +551,7 @@ export const TourScheduleDetail: React.FC = () => {
             <div className="mb-6 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-bold text-slate-900">
-                  Schedule Itinerary
+                  {t("tour.scheduleItinerarySection")}
                 </h2>
                 <ActionButton
                   variant="primary"
@@ -578,20 +559,20 @@ export const TourScheduleDetail: React.FC = () => {
                   className="gap-2 px-4 py-2 text-sm"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Itineraries
+                  {t("tour.addItineraries")}
                 </ActionButton>
               </div>
               {missingItineraryDays.length > 0 && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  <p className="font-semibold">Missing itinerary days detected:</p>
-                  <p>Day {missingItineraryDays.join(", Day ")} is not present in this schedule.</p>
+                  <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
+                  <p>{t("tour.missingItineraryDaysMsg", { days: missingItineraryDays.join(", Day ") })}</p>
                 </div>
               )}
             </div>
 
             {isItinerariesLoading ? (
               <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
-                Loading schedule itinerary...
+                {t("tour.loadingScheduleItinerary")}
               </div>
             ) : renderedItineraries.length > 0 ? (
               <div className="flex flex-col gap-6">
@@ -628,7 +609,7 @@ export const TourScheduleDetail: React.FC = () => {
                                 ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
                                 : iti.startDuration
                                   ? iti.startDuration.substring(0, 5)
-                                  : "Any time";
+                                  : t("tour.anyTime");
                             const tourismInfo = iti.tourismInfoId
                               ? tourismInformationById[iti.tourismInfoId]
                               : null;
@@ -645,7 +626,7 @@ export const TourScheduleDetail: React.FC = () => {
                                       {timeStr}
                                     </div>
                                     <h4 className="text-sm font-semibold text-slate-800">
-                                      {iti.title || "Untitled itinerary"}
+                                      {iti.title || t("tour.untitledItinerary")}
                                     </h4>
                                   </div>
                                   <div className="flex items-center gap-4">
@@ -701,7 +682,7 @@ export const TourScheduleDetail: React.FC = () => {
                                     )}
                                     <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
                                       <MapPin className="h-4 w-4 text-brand" />
-                                      <span>{iti.locationName || "No location specification"}</span>
+                                      <span>{iti.locationName || t("tour.noLocationSpec")}</span>
                                     </div>
                                     {iti.tourismInfoId && (
                                       <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
@@ -717,7 +698,7 @@ export const TourScheduleDetail: React.FC = () => {
                                               ) : (
                                                 <div className="flex flex-col items-center gap-2 text-slate-400">
                                                   <ImageIcon className="h-8 w-8" />
-                                                  <span className="text-xs font-medium">No image</span>
+                                                  <span className="text-xs font-medium">{t("tour.noImage")}</span>
                                                 </div>
                                               )}
                                             </div>
@@ -739,12 +720,15 @@ export const TourScheduleDetail: React.FC = () => {
                                                 <span>
                                                   {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
                                                     .filter(Boolean)
-                                                    .join(", ") || "N/A"}
+                                                    .join(", ") || t("common.na")}
                                                 </span>
                                               </div>
                                               {(tourismInfo.latitude || tourismInfo.longitude) && (
                                                 <div className="text-xs font-medium text-slate-400">
-                                                  Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                                  {t("tour.latLng", {
+                                                    lat: tourismInfo.latitude ?? t("common.na"),
+                                                    lng: tourismInfo.longitude ?? t("common.na"),
+                                                  })}
                                                 </div>
                                               )}
                                               {tourismInfo.sourceUrl && (
@@ -754,7 +738,7 @@ export const TourScheduleDetail: React.FC = () => {
                                                   rel="noreferrer"
                                                   className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                                                 >
-                                                  {tourismInfo.sourceName || "Source"}
+                                                  {tourismInfo.sourceName || t("tour.source")}
                                                   <ExternalLink className="h-3.5 w-3.5" />
                                                 </a>
                                               )}
@@ -763,7 +747,7 @@ export const TourScheduleDetail: React.FC = () => {
                                         ) : (
                                           <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
                                             <MapPin className="h-4 w-4 text-brand" />
-                                            Tourism info ID #{iti.tourismInfoId}
+                                            {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
                                           </div>
                                         )}
                                       </div>
@@ -782,10 +766,10 @@ export const TourScheduleDetail: React.FC = () => {
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
                 <MapPin className="mb-3 h-10 w-10 text-slate-400" />
                 <h3 className="mb-1 text-sm font-bold text-slate-900">
-                  No itinerary items yet
+                  {t("tour.noItineraryItemsYet")}
                 </h3>
                 <p className="mb-4 text-xs text-slate-500">
-                  Create an itinerary item for this schedule.
+                  {t("tour.createScheduleItineraryHint")}
                 </p>
               </div>
             )}
@@ -818,4 +802,4 @@ export const TourScheduleDetail: React.FC = () => {
       />
     </div>
   );
-};
+};  

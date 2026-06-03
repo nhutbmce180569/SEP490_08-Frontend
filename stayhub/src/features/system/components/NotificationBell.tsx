@@ -2,8 +2,10 @@ import { useState, useRef, useEffect } from "react";
 import { Bell, Check, Loader2, X } from "lucide-react";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationHub } from "../hooks/useNotificationHub";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function NotificationBell() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,7 +48,7 @@ export default function NotificationBell() {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`icon-btn relative ${isOpen ? "!bg-brand-light !text-brand" : ""}`}
-        aria-label="Notifications"
+        aria-label={t("dashboard.notifications")}
         aria-expanded={isOpen}
       >
         <Bell className="h-5 w-5" />
@@ -61,14 +63,14 @@ export default function NotificationBell() {
       {isOpen && (
         <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden sm:w-96">
           <div className="flex items-center justify-between border-b border-slate-100/80 bg-slate-50/60 px-4 py-3">
-            <h3 className="text-sm font-bold text-navy">Notifications</h3>
+            <h3 className="text-sm font-bold text-navy">{t("dashboard.notifications")}</h3>
             {unreadCount > 0 && (
               <button
                 type="button"
                 className="flex items-center gap-1 text-xs font-semibold text-brand transition-colors hover:text-brand-hover"
               >
                 <Check className="h-3.5 w-3.5" />
-                Mark all read
+                {t("dashboard.markAllRead")}
               </button>
             )}
           </div>
@@ -115,7 +117,7 @@ export default function NotificationBell() {
                         deleteNoti(noti.id);
                       }}
                       className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition-colors hover:bg-rose-100 hover:text-rose-500"
-                      title="Delete notification"
+                      title={t("dashboard.deleteNotification")}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -127,8 +129,8 @@ export default function NotificationBell() {
                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-300">
                   <Bell className="h-6 w-6" />
                 </div>
-                <p className="text-sm font-semibold text-navy">No notifications</p>
-                <p className="mt-1 text-xs text-slate-500">You&apos;re all caught up</p>
+                <p className="text-sm font-semibold text-navy">{t("dashboard.noNotifications")}</p>
+                <p className="mt-1 text-xs text-slate-500">{t("dashboard.allCaughtUp")}</p>
               </div>
             )}
           </div>
@@ -138,7 +140,7 @@ export default function NotificationBell() {
               type="button"
               className="text-xs font-semibold text-slate-500 transition-colors hover:text-brand"
             >
-              View all notifications
+              {t("dashboard.viewAllNotifications")}
             </button>
           </div>
         </div>

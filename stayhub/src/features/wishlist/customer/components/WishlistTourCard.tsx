@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Loader2, MapPin, Ticket } from 'lucide-react';
 import { PATH } from '../../../../config/routes/route';
 import { getImg } from '../../../../config/api/api';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 import type { ReadWishlistItemDTO } from '../types/customerWishlist';
 import { isTourActive } from '../utils/wishlistHelpers';
 
@@ -24,8 +25,9 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
   onRemove,
   isRemoving = false,
 }) => {
+  const { t } = useTranslation();
   const isActive = isTourActive(item.tourStatus);
-  const statusLabel = item.tourStatus ?? 'Unknown';
+  const statusLabel = item.tourStatus ?? t('tour.unknownStatus');
 
   return (
     <div
@@ -44,7 +46,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
           />
         ) : (
           <div className="flex h-full items-center justify-center bg-slate-200 text-xs font-bold uppercase tracking-widest text-slate-400">
-            No image
+            {t('tour.noImage')}
           </div>
         )}
 
@@ -60,7 +62,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
 
         <button
           type="button"
-          aria-label="Remove from wishlist"
+          aria-label={t('tour.removeFromWishlistAria')}
           disabled={isRemoving}
           onClick={() => onRemove(item.tourId)}
           className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-rose-500 shadow-sm transition-colors hover:bg-rose-50 disabled:opacity-60"
@@ -82,7 +84,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
 
         <div className="mb-4 flex items-center gap-1.5 text-xs text-slate-500">
           <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <span>Saved to your wishlist</span>
+          <span>{t('tour.savedToWishlist')}</span>
         </div>
 
         <div className="mt-auto flex flex-wrap gap-2 border-t border-slate-100 pt-3">
@@ -90,7 +92,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
             to={PATH.PUBLIC.TOUR_DETAIL(item.tourId)}
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 !no-underline"
           >
-            View tour
+            {t('tour.viewTour')}
           </Link>
 
           {isActive ? (
@@ -99,11 +101,11 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
               className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-xs font-bold text-white hover:bg-brand-hover !no-underline"
             >
               <Ticket className="h-3.5 w-3.5" />
-              Book now
+              {t('booking.createBooking')}
             </Link>
           ) : (
             <span className="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-400">
-              Unavailable
+              {t('tour.unavailableLabel')}
             </span>
           )}
         </div>

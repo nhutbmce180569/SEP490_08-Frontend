@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Lightbulb } from "lucide-react";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   generalTips: string[];
@@ -10,19 +11,21 @@ interface Props {
 
 type TabKey = "general" | "foreign" | "elderly" | "children";
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "general", label: "General" },
-  { key: "foreign", label: "International" },
-  { key: "elderly", label: "Elderly" },
-  { key: "children", label: "Families" },
-];
-
 export const TipsTabsPanel: React.FC<Props> = ({
   generalTips,
   foreignVisitorTips,
   elderlyCompanionTips,
   childrenCompanionTips,
 }) => {
+  const { t } = useTranslation();
+
+  const TABS: { key: TabKey; labelKey: string }[] = [
+    { key: "general", labelKey: "ai.tipsTabGeneral" },
+    { key: "foreign", labelKey: "ai.tipsTabInternational" },
+    { key: "elderly", labelKey: "ai.tipsTabElderly" },
+    { key: "children", labelKey: "ai.tipsTabFamilies" },
+  ];
+
   const tipsMap: Record<TabKey, string[]> = {
     general: generalTips,
     foreign: foreignVisitorTips,
@@ -30,7 +33,7 @@ export const TipsTabsPanel: React.FC<Props> = ({
     children: childrenCompanionTips,
   };
 
-  const availableTabs = TABS.filter((t) => tipsMap[t.key].length > 0);
+  const availableTabs = TABS.filter((tab) => tipsMap[tab.key].length > 0);
   const [active, setActive] = useState<TabKey>(availableTabs[0]?.key ?? "general");
 
   if (availableTabs.length === 0) return null;
@@ -41,7 +44,7 @@ export const TipsTabsPanel: React.FC<Props> = ({
     <div className="glass-card flex h-full flex-col p-5">
       <div className="mb-4 flex items-center gap-2">
         <Lightbulb size={17} className="text-brand" />
-        <h3 className="text-sm font-bold text-navy">Travel tips</h3>
+        <h3 className="text-sm font-bold text-navy">{t("ai.tips")}</h3>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -56,7 +59,7 @@ export const TipsTabsPanel: React.FC<Props> = ({
                 : "border border-slate-200 bg-white text-slate-500 hover:border-brand/30 hover:text-brand"
             }`}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </button>
         ))}
       </div>

@@ -1,12 +1,14 @@
 import React from "react";
 import type { TourScoreBreakdown } from "../types/tourAssistant";
 import { formatDimensionKey, formatMatchPercent, formatPersonaKey } from "../utils/formatters";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   breakdown: TourScoreBreakdown;
 }
 
 export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
+  const { t } = useTranslation();
   const dimensions = Object.entries(breakdown.dimensionScores ?? {});
   const personas = Object.entries(breakdown.personaScores ?? {});
 
@@ -16,16 +18,16 @@ export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
       style={{ background: "rgba(5,7,60,0.02)", border: "1px solid rgba(5,7,60,0.06)" }}
     >
       <div className="grid grid-cols-2 gap-3">
-        <Metric label="Fairness" value={formatMatchPercent(breakdown.fairnessScore)} highlight />
-        <Metric label="Envy gap" value={breakdown.envyGap.toFixed(2)} />
-        <Metric label="Min persona" value={formatMatchPercent(breakdown.minPersonaScore)} />
-        <Metric label="Mean persona" value={formatMatchPercent(breakdown.meanPersonaScore)} />
+        <Metric label={t("ai.fairness")} value={formatMatchPercent(breakdown.fairnessScore)} highlight />
+        <Metric label={t("ai.envyGap")} value={breakdown.envyGap.toFixed(2)} />
+        <Metric label={t("ai.minPersona")} value={formatMatchPercent(breakdown.minPersonaScore)} />
+        <Metric label={t("ai.meanPersona")} value={formatMatchPercent(breakdown.meanPersonaScore)} />
       </div>
 
       {dimensions.length > 0 && (
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-            Score by dimension
+            {t("ai.scoreByDimension")}
           </p>
           <div className="space-y-2">
             {dimensions.map(([key, score]) => (
@@ -38,7 +40,7 @@ export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
       {personas.length > 0 && (
         <div>
           <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-            Persona scores
+            {t("ai.personaScores")}
           </p>
           <div className="space-y-2">
             {personas.map(([key, score]) => (

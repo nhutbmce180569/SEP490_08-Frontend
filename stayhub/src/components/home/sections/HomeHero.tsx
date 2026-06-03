@@ -4,12 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { ActionButton } from "../ActionButton";
 import { PATH } from "../../../config/routes/route";
 import { HOME_CONTAINER, getFreeApiImage } from "./shared";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const HERO_IMAGE = getFreeApiImage("vietnam-ha-long-bay-cruise", 1920, 1080);
 
 const QUICK_DEST = ["Da Nang", "Hoi An", "Da Lat", "Ha Long", "Phu Quoc"];
 
 export const HomeHero: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchLocation, setSearchLocation] = useState("");
   const [searchDate, setSearchDate] = useState("");
@@ -26,12 +28,11 @@ export const HomeHero: React.FC = () => {
       <div className="relative min-h-[460px] md:min-h-[500px]">
         <img
           src={HERO_IMAGE}
-          alt="Vietnam travel landscape"
+          alt={t("home.heroImageAlt")}
           className="absolute inset-0 h-full w-full object-cover object-center"
           fetchPriority="high"
         />
 
-        {/* Slate overlay + clean fade to page bg (no navy→white purple band) */}
         <div
           className="absolute inset-0"
           style={{
@@ -48,19 +49,18 @@ export const HomeHero: React.FC = () => {
           <div className="grid w-full items-center gap-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:gap-12 xl:grid-cols-[minmax(0,1.05fr)_360px]">
             <div className="max-w-[540px]">
               <h1 className="travel-heading mb-4 text-[1.85rem] leading-[1.1] text-white sm:text-[2.35rem] md:text-[2.75rem]">
-                Discover Vietnam,
-                <span className="block text-brand-light">your way</span>
+                {t("home.titleLine1")}
+                <span className="block text-brand-light">{t("home.titleLine2")}</span>
               </h1>
               <p className="mb-6 max-w-[420px] text-[15px] leading-relaxed text-white/78 md:text-base">
-                Compare tours, read real reviews, and book with local experts
-                across Vietnam.
+                {t("home.subtitle")}
               </p>
 
               <p className="mb-6 text-sm text-white/70">
-                <span className="font-semibold text-white">50K+</span> happy
-                travelers ·{" "}
-                <span className="font-semibold text-white">4.9</span> average
-                rating
+                <span className="font-semibold text-white">{t("home.happyTravelersCount")}</span>{" "}
+                {t("home.happyTravelersStat")} ·{" "}
+                <span className="font-semibold text-white">{t("home.ratingValue")}</span>{" "}
+                {t("home.averageRating")}
               </p>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -69,7 +69,7 @@ export const HomeHero: React.FC = () => {
                   onClick={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
                   className="!h-11 !rounded-xl !px-5 !text-sm !font-bold"
                 >
-                  Explore tours
+                  {t("home.exploreTours")}
                 </ActionButton>
                 <ActionButton
                   variant="outline"
@@ -77,7 +77,7 @@ export const HomeHero: React.FC = () => {
                   className="home-glass-chip !h-11 gap-1.5 !rounded-xl !border-white/30 !bg-white/10 !px-4 !text-white hover:!bg-white/18"
                 >
                   <Sparkles size={16} />
-                  AI planner
+                  {t("home.aiPlanner")}
                 </ActionButton>
               </div>
             </div>
@@ -85,7 +85,7 @@ export const HomeHero: React.FC = () => {
             <div className="w-full lg:justify-self-end">
               <div className="home-glass-tahoe rounded-[1.35rem] p-3.5 md:p-4">
                 <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-white/55">
-                  Plan your trip
+                  {t("home.planYourTrip")}
                 </p>
 
                 <div className="flex flex-col gap-2">
@@ -93,13 +93,13 @@ export const HomeHero: React.FC = () => {
                     <MapPin size={17} className="shrink-0 text-white/90" />
                     <div className="min-w-0 flex-1">
                       <span className="block text-[10px] font-bold uppercase tracking-wider text-white/50">
-                        Where to?
+                        {t("home.whereTo")}
                       </span>
                       <input
                         value={searchLocation}
                         onChange={(e) => setSearchLocation(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                        placeholder="City or tour name"
+                        placeholder={t("home.cityOrTour")}
                         className="w-full bg-transparent text-sm font-semibold outline-none"
                       />
                     </div>
@@ -109,7 +109,7 @@ export const HomeHero: React.FC = () => {
                     <Calendar size={17} className="shrink-0 text-white/90" />
                     <div className="min-w-0 flex-1">
                       <span className="block text-[10px] font-bold uppercase tracking-wider text-white/50">
-                        When?
+                        {t("home.when")}
                       </span>
                       <input
                         type="date"
@@ -126,13 +126,13 @@ export const HomeHero: React.FC = () => {
                     className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white shadow-lg shadow-brand/25 transition hover:bg-brand-hover"
                   >
                     <Search size={17} strokeWidth={2.5} />
-                    Search tours
+                    {t("home.searchTours")}
                   </button>
                 </div>
 
                 <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/15 pt-3">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-white/40">
-                    Popular
+                    {t("home.popular")}
                   </span>
                   {QUICK_DEST.map((d) => (
                     <button

@@ -3,6 +3,7 @@ import FacebookLoginModule from "@greatsumini/react-facebook-login";
 import { useToast } from "../../../contexts/ToastContext";
 import { useFacebookLogin } from "../hooks/useFacebookLogin";
 import { SOCIAL_AUTH_BUTTON_CLASS, SocialAuthButtonShell } from "./SocialAuthButtons";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const FacebookLogin = (FacebookLoginModule as any).default || FacebookLoginModule;
 
@@ -11,6 +12,7 @@ const FACEBOOK_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID || "268197980643214
 const FACEBOOK_ICON = "https://www.svgrepo.com/show/475647/facebook-color.svg";
 
 export const FacebookLoginButton: React.FC = () => {
+  const { t } = useTranslation();
   const { error } = useToast();
   const { handleFacebookLoginSubmit, isSubmitting, serverError } = useFacebookLogin();
 
@@ -22,7 +24,7 @@ export const FacebookLoginButton: React.FC = () => {
           handleFacebookLoginSubmit({ accessToken: response.accessToken });
         }}
         onFail={() => {
-          error("Facebook login failed. Please try again.");
+          error(t("errors.facebookLoginFailed"));
         }}
         onProfileSuccess={() => {}}
         render={({ onClick }) => (
@@ -33,12 +35,12 @@ export const FacebookLoginButton: React.FC = () => {
             className={SOCIAL_AUTH_BUTTON_CLASS}
           >
             <img src={FACEBOOK_ICON} alt="" aria-hidden className="h-5 w-5 shrink-0" />
-            Facebook
+            {t("common.facebook")}
           </button>
         )}
       />
 
-      {isSubmitting && <p className="text-xs text-slate-500">Processing login...</p>}
+      {isSubmitting && <p className="text-xs text-slate-500">{t("common.processing")}</p>}
       {serverError && <p className="text-xs text-rose-500">{serverError}</p>}
     </SocialAuthButtonShell>
   );

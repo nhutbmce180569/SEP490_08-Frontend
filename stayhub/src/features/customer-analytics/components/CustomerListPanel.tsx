@@ -18,25 +18,29 @@ import {
   SEGMENT_STYLES,
   STATUS_STYLES,
 } from '../utils/analyticsHelpers';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 interface CustomerListPanelProps {
   dateParams: DateRangeParams;
   onViewCustomer: (id: number) => void;
 }
 
-const SORT_OPTIONS: { value: SortBy; label: string }[] = [
-  { value: 'totalSpend', label: 'Spend' },
-  { value: 'orderCount', label: 'Orders' },
-  { value: 'reviewCount', label: 'Reviews' },
-  { value: 'wishlistCount', label: 'Wishlist' },
-  { value: 'createdAt', label: 'Joined Date' },
-  { value: 'lastOrderAt', label: 'Last Order' },
-];
-
 export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
   dateParams,
   onViewCustomer,
 }) => {
+  const { t } = useTranslation();
+  const SORT_OPTIONS: { value: SortBy; label: string }[] = useMemo(
+    () => [
+      { value: 'totalSpend', label: t('analytics.customer.sortSpend') },
+      { value: 'orderCount', label: t('analytics.customer.orders') },
+      { value: 'reviewCount', label: t('analytics.customer.reviews') },
+      { value: 'wishlistCount', label: t('analytics.customer.wishlist') },
+      { value: 'createdAt', label: t('analytics.customer.joinedDate') },
+      { value: 'lastOrderAt', label: t('analytics.customer.lastOrder') },
+    ],
+    [t],
+  );
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -163,8 +167,8 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
     <div className="rounded-2xl bg-white shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">Customer List</h3>
-          <p className="text-sm text-slate-500">Search, sort, and view individual customer details</p>
+          <h3 className="text-lg font-bold text-slate-900">{t('analytics.customer.customerList')}</h3>
+          <p className="text-sm text-slate-500">{t('analytics.customer.customerListDesc')}</p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -173,7 +177,7 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
             <input
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by name, email..."
+              placeholder={t('analytics.customer.searchPlaceholder')}
               className="w-48 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
           </div>
@@ -201,8 +205,8 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
             }}
             className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600"
           >
-            <option value="desc">Descending</option>
-            <option value="asc">Ascending</option>
+            <option value="desc">{t('analytics.customer.descending')}</option>
+            <option value="asc">{t('analytics.customer.ascending')}</option>
           </select>
         </div>
       </div>
@@ -218,7 +222,7 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
         columns={columns}
         isLoading={isLoading}
         keyExtractor={(c) => c.customerId}
-        emptyMessage="No customers found."
+        emptyMessage={t('analytics.customer.noCustomersFound')}
       />
 
       <PaginationButton

@@ -11,31 +11,35 @@ import {
   Unlock,
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { getImg } from "../../../config/api/api";
 import { useChangeTourismInformationStatus } from "../hooks/useChangeTourismInformationStatus";
 import { useTourismInformationDetail } from "../hooks/useTourismInformationDetail";
 import { TOURISM_TYPE_LABELS } from "../types/tourismInformation";
 
-const formatDate = (date?: string | null) => {
-  if (!date) return "N/A";
-
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "N/A";
-
-  return parsed.toLocaleString();
-};
-
 const getTypeLabel = (type: string) =>
   TOURISM_TYPE_LABELS[type as keyof typeof TOURISM_TYPE_LABELS] ?? type;
 
 export const TourismInformationDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { tourismInfo, isLoading, error, handleEdit, handleBack, refetch } =
     useTourismInformationDetail();
   const { executeStatusChange, updatingId, isActiveStatus } =
     useChangeTourismInformationStatus(refetch);
 
+  const formatDate = (date?: string | null) => {
+    if (!date) return t("common.na");
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return t("common.na");
+    return parsed.toLocaleString();
+  };
+
   if (isLoading) {
-    return <div className="flex justify-center p-10 text-slate-500">Loading tourism information...</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t("content.loadingTourismInfo")}
+      </div>
+    );
   }
 
   if (error) {
@@ -43,7 +47,11 @@ export const TourismInformationDetail: React.FC = () => {
   }
 
   if (!tourismInfo) {
-    return <div className="flex justify-center p-10 text-slate-500">Tourism information not found.</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t("content.tourismInfoNotFound")}
+      </div>
+    );
   }
 
   const active = isActiveStatus(tourismInfo.status);
@@ -63,7 +71,7 @@ export const TourismInformationDetail: React.FC = () => {
         onClick={handleBack}
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Tourism Information
+        <ArrowLeft className="h-4 w-4" /> {t("content.backToTourismInfo")}
       </button>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -81,7 +89,7 @@ export const TourismInformationDetail: React.FC = () => {
               />
             ) : (
               <div className="flex h-24 w-36 shrink-0 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-xs text-slate-400">
-                No image
+                {t("content.noImage")}
               </div>
             )}
 
@@ -93,7 +101,7 @@ export const TourismInformationDetail: React.FC = () => {
                     active ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
                   }`}
                 >
-                  {active ? "Active" : "Inactive"}
+                  {active ? t("common.active") : t("common.inactive")}
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-600">
                   <Tag className="h-3 w-3" />
@@ -101,7 +109,7 @@ export const TourismInformationDetail: React.FC = () => {
                 </span>
               </div>
               <p className="mt-2 text-sm text-slate-500">
-                {tourismInfo.description || "No description provided."}
+                {tourismInfo.description || t("content.noDescriptionProvided")}
               </p>
             </div>
           </div>
@@ -121,20 +129,16 @@ export const TourismInformationDetail: React.FC = () => {
             >
               {active ? (
                 <>
-                  <Lock className="h-4 w-4" /> Deactivate
+                  <Lock className="h-4 w-4" /> {t("content.deactivate")}
                 </>
               ) : (
                 <>
-                  <Unlock className="h-4 w-4" /> Activate
+                  <Unlock className="h-4 w-4" /> {t("content.activate")}
                 </>
               )}
             </ActionButton>
-            <ActionButton
-              variant="primary"
-              onClick={handleEdit}
-              className="gap-2 px-4 py-2 text-sm"
-            >
-              <Pencil className="h-4 w-4" /> Edit
+            <ActionButton variant="primary" onClick={handleEdit} className="gap-2 px-4 py-2 text-sm">
+              <Pencil className="h-4 w-4" /> {t("content.edit")}
             </ActionButton>
           </div>
         </div>
@@ -142,37 +146,37 @@ export const TourismInformationDetail: React.FC = () => {
         <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
           <DetailCard
             icon={<MapPin className="h-4 w-4" />}
-            label="Address"
-            value={tourismInfo.address || "N/A"}
+            label={t("content.address")}
+            value={tourismInfo.address || t("common.na")}
           />
           <DetailCard
             icon={<Globe className="h-4 w-4" />}
-            label="City / Country"
-            value={[tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ") || "N/A"}
+            label={t("content.cityCountry")}
+            value={[tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ") || t("common.na")}
           />
           <DetailCard
             icon={<MapPin className="h-4 w-4" />}
-            label="Coordinates"
+            label={t("content.coordinates")}
             value={
               hasCoordinates
                 ? `${tourismInfo.latitude}, ${tourismInfo.longitude}`
-                : "Not set"
+                : t("content.notSet")
             }
           />
           <DetailCard
             icon={<Calendar className="h-4 w-4" />}
-            label="Created At"
+            label={t("content.createdAt")}
             value={formatDate(tourismInfo.createdAt)}
           />
           <DetailCard
             icon={<Calendar className="h-4 w-4" />}
-            label="Updated At"
+            label={t("content.updatedAt")}
             value={formatDate(tourismInfo.updatedAt)}
           />
           <DetailCard
             icon={<ExternalLink className="h-4 w-4" />}
-            label="Source"
-            value={tourismInfo.sourceName || "N/A"}
+            label={t("content.source")}
+            value={tourismInfo.sourceName || t("common.na")}
             hint={
               tourismInfo.sourceUrl ? (
                 <a
@@ -181,7 +185,7 @@ export const TourismInformationDetail: React.FC = () => {
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 text-brand hover:underline"
                 >
-                  Open source link <ExternalLink className="h-3 w-3" />
+                  {t("content.openSourceLink")} <ExternalLink className="h-3 w-3" />
                 </a>
               ) : undefined
             }
@@ -191,19 +195,19 @@ export const TourismInformationDetail: React.FC = () => {
         {hasCoordinates && (
           <div className="border-t border-slate-100 px-6 py-5">
             <div className="mb-3 flex items-center justify-between gap-3">
-              <h3 className="text-sm font-bold text-slate-800">Map Preview</h3>
+              <h3 className="text-sm font-bold text-slate-800">{t("content.mapPreview")}</h3>
               <a
                 href={`https://www.google.com/maps?q=${tourismInfo.latitude},${tourismInfo.longitude}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs font-semibold text-brand hover:underline"
               >
-                Open in Google Maps
+                {t("content.openInGoogleMaps")}
               </a>
             </div>
             <div className="overflow-hidden rounded-xl border border-slate-200">
               <iframe
-                title={`Map of ${tourismInfo.name}`}
+                title={t("content.mapOf", { name: tourismInfo.name })}
                 width="100%"
                 height="280"
                 loading="lazy"
@@ -217,9 +221,7 @@ export const TourismInformationDetail: React.FC = () => {
                 },${tourismInfo.longitude}`}
               />
             </div>
-            {locationText && (
-              <p className="mt-2 text-xs text-slate-500">{locationText}</p>
-            )}
+            {locationText && <p className="mt-2 text-xs text-slate-500">{locationText}</p>}
           </div>
         )}
       </div>

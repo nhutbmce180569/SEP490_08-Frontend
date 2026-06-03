@@ -10,9 +10,11 @@ import type { TourPreferenceQuestionnaire } from "../types/tourAssistant";
 import { PATH } from "../../../config/routes/route";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useAiPlanner } from "../../../contexts/AiPlannerContext";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 /** Inner dialog — rendered via portal, fully outside the layout tree */
 const AiQuestionnaireDialog: React.FC = () => {
+  const { t } = useTranslation();
   const { close } = useAiPlanner();
   const navigate = useNavigate();
   const { data: questionnaire, isLoading, error, refetch } = useQuestionnaire();
@@ -51,7 +53,7 @@ const AiQuestionnaireDialog: React.FC = () => {
       onClick={(e) => { if (e.target === e.currentTarget) close(); }}
       role="dialog"
       aria-modal="true"
-      aria-label="AI Travel Planner"
+      aria-label={t("ai.travelPlanner")}
     >
       {/* Dialog */}
       <div
@@ -65,9 +67,9 @@ const AiQuestionnaireDialog: React.FC = () => {
               <Sparkles size={20} strokeWidth={2.25} />
             </span>
             <div>
-              <p className="travel-eyebrow leading-none">AI Travel Planner</p>
+              <p className="travel-eyebrow leading-none">{t("ai.travelPlanner")}</p>
               <h2 className="mt-0.5 text-base font-bold text-[var(--color-navy)]">
-                Find your perfect tour
+                {t("ai.findPerfectTour")}
               </h2>
             </div>
           </div>
@@ -75,7 +77,7 @@ const AiQuestionnaireDialog: React.FC = () => {
             type="button"
             onClick={close}
             className="icon-btn !h-9 !w-9 rounded-xl"
-            aria-label="Close"
+            aria-label={t("ai.close")}
           >
             <X size={18} />
           </button>
@@ -86,13 +88,13 @@ const AiQuestionnaireDialog: React.FC = () => {
           {isLoading ? (
             <div className="flex flex-col items-center gap-4 py-20">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-              <p className="text-sm font-semibold text-[var(--text-muted)]">Loading survey…</p>
+              <p className="text-sm font-semibold text-[var(--text-muted)]">{t("ai.loadingSurvey")}</p>
             </div>
           ) : error ? (
             <div className="m-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 p-8 text-center dark:bg-rose-950/30">
-              <p className="mb-4 font-bold text-rose-500 dark:text-rose-400">Failed to load survey</p>
+              <p className="mb-4 font-bold text-rose-500 dark:text-rose-400">{t("ai.failedLoadSurvey")}</p>
               <ActionButton variant="primary" onClick={() => refetch()}>
-                Try again
+                {t("common.tryAgain")}
               </ActionButton>
             </div>
           ) : modelsNotReady ? (
@@ -112,7 +114,7 @@ const AiQuestionnaireDialog: React.FC = () => {
           ) : questions.length === 0 ? (
             <div className="m-6 rounded-2xl border border-[var(--border-default)] bg-[var(--surface-dashboard)] p-10 text-center">
               <Sparkles size={32} className="mx-auto mb-3 text-[var(--text-placeholder)]" />
-              <p className="font-medium text-[var(--text-muted)]">No questions available from server.</p>
+              <p className="font-medium text-[var(--text-muted)]">{t("ai.noQuestions")}</p>
             </div>
           ) : (
             <QuestionnaireWizard

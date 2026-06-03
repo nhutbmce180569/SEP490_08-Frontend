@@ -9,6 +9,7 @@ import {
 } from "../utils/questionnaireValidation";
 import { getOrCreateAiSessionId } from "../utils/sessionId";
 import { ExtraCountFields, QuestionnaireFieldInput } from "./QuestionnaireFieldInput";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const STEPS_PER_PAGE = 3;
 
@@ -23,6 +24,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
   onSubmit,
   isSubmitting,
 }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [values, setValues] = useState<QuestionnaireFormValues>(() => {
     const init: QuestionnaireFormValues = { hasElderly: false, hasChildren: false, top: 8 };
@@ -93,11 +95,11 @@ export const QuestionnaireWizard: React.FC<Props> = ({
           <div className="flex items-center gap-2">
             <Sparkles size={15} className="text-brand" />
             <span className="text-xs font-bold text-[var(--color-navy)]">
-              Step {step + 1} of {totalSteps}
+              {t("ai.stepOf", { current: step + 1, total: totalSteps })}
             </span>
           </div>
           <span className="text-xs font-medium text-[var(--text-muted)]">
-            {Math.round(progress)}% complete
+            {t("ai.percentComplete", { percent: Math.round(progress) })}
           </span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
@@ -113,9 +115,9 @@ export const QuestionnaireWizard: React.FC<Props> = ({
         {isLastStep ? (
           <>
             <div className="mb-1">
-              <p className="travel-eyebrow mb-1">Extra details</p>
+              <p className="travel-eyebrow mb-1">{t("ai.extraDetails")}</p>
               <p className="text-sm font-medium text-[var(--text-muted)]">
-                Help AI personalise results for every member of your group.
+                {t("ai.extraDetailsDesc")}
               </p>
             </div>
             <ExtraCountFields values={values} errors={errors} onChange={handleChange} />
@@ -152,7 +154,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
           className="!px-4 flex items-center gap-1"
         >
           <ChevronLeft size={16} />
-          Back
+          {t("common.back")}
         </ActionButton>
 
         <ActionButton
@@ -164,16 +166,16 @@ export const QuestionnaireWizard: React.FC<Props> = ({
           {isSubmitting ? (
             <>
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-              Analysing…
+              {t("ai.analysing")}
             </>
           ) : isLastStep ? (
             <>
-              Get AI recommendations
+              {t("ai.getRecommendations")}
               <Sparkles size={15} />
             </>
           ) : (
             <>
-              Next
+              {t("common.next")}
               <ChevronRight size={16} />
             </>
           )}

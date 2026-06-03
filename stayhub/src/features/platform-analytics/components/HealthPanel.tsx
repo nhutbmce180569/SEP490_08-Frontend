@@ -10,6 +10,14 @@ import {
 } from '../utils/platformHelpers';
 import { formatNumber, formatPercent } from '../../customer-analytics/utils/analyticsHelpers';
 import { AnalyticsPanel, LoadingPanel, MetricStrip } from './AnalyticsLayout';
+import { useTranslation } from '../../../contexts/LocaleContext';
+
+const OVERALL_STATUS_KEYS = {
+  Healthy: 'analytics.platform.statusHealthy',
+  Fair: 'analytics.platform.statusFair',
+  NeedsAttention: 'analytics.platform.statusNeedsAttention',
+  Critical: 'analytics.platform.statusCritical',
+} as const;
 
 interface HealthPanelProps {
   data: PlatformHealthAnalytics | undefined;
@@ -26,6 +34,7 @@ const OverallIcon: React.FC<{ status: PlatformHealthAnalytics['overallStatus'] }
 };
 
 export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <div className="space-y-5">
@@ -51,13 +60,13 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
             <OverallIcon status={data.overallStatus} />
             <div>
               <div className="text-xs font-bold uppercase tracking-wider opacity-70">
-                Platform health
+                {t('analytics.platform.platformHealth')}
               </div>
-              <div className="text-2xl font-bold">{OVERALL_STATUS_LABELS[data.overallStatus]}</div>
+              <div className="text-2xl font-bold">{t(OVERALL_STATUS_KEYS[data.overallStatus])}</div>
               <p className="mt-1 text-sm opacity-80">
                 {data.pendingCancellationRequests > 0
-                  ? `${formatNumber(data.pendingCancellationRequests)} pending cancellation request(s)`
-                  : 'Operational indicators within acceptable range'}
+                  ? t('analytics.platform.pendingCancellationsCount', { count: formatNumber(data.pendingCancellationRequests) })
+                  : t('analytics.platform.operationalOk')}
               </p>
             </div>
           </div>

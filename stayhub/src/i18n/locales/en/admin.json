@@ -1,0 +1,22 @@
+{
+  "analytics": "Analytics",
+  "platformAnalytics": "Platform analytics",
+  "customerAnalytics": "Customer analytics",
+  "systemReports": "System reports",
+  "users": "Users",
+  "usersList": "Users list",
+  "partnerApprovals": "Partner approvals",
+  "tourContent": "Tour content",
+  "tourModeration": "Tour moderation",
+  "banners": "Banners",
+  "tourCategories": "Tour categories",
+  "tourismInformation": "Tourism information",
+  "ticketTypes": "Ticket types",
+  "operations": "Operations",
+  "violationReports": "Violation reports",
+  "withdrawalRequests": "Withdrawal requests",
+  "systemVouchers": "System vouchers",
+  "globalSettings": "Global settings",
+  "adminDashboard": "Admin dashboard",
+  "admin": "Admin"
+}

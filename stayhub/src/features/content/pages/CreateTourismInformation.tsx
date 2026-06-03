@@ -1,23 +1,24 @@
 import React from "react";
-import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
-import { useCreateTourismInformation } from "../hooks/useCreateTourismInformation";
 import { TourismInformationForm } from "../components/TourismInformationForm";
+import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
+import { useTranslation } from "../../../contexts/LocaleContext";
+import { useCreateTourismInformation } from "../hooks/useCreateTourismInformation";
 
 export const CreateTourismInformation: React.FC = () => {
+  const { t } = useTranslation();
   const { handleSubmit, handleCancel, isSubmitting, serverErrors } = useCreateTourismInformation();
 
   return (
-    <div className="min-w-0 pb-2">
+    <>
       <TourismInformationForm
-        title="Create Tourism Information"
-        description="Add a new tourism place for tour itineraries and customer discovery."
+        title={t("content.createTourismInfo")}
+        description={t("content.createTourismInfoDesc")}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        submitText="Create"
+        submitText={t("common.create")}
         serverErrors={serverErrors}
-        requireImage
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Creating tourism information..." />
-    </div>
+      <LoadingOverlay isOpen={isSubmitting} message={t("content.creatingTourismInfo")} />
+    </>
   );
 };

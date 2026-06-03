@@ -1,12 +1,13 @@
 import axios from "axios";
 import { FULL_API } from "../../../../config/api/api";
+import { withLanguageHeaders } from "../../../../utils/httpLanguage";
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("accessToken");
   return {
-    headers: {
+    headers: withLanguageHeaders({
       Authorization: `Bearer ${token}`,
-    },
+    }),
   };
 };
 

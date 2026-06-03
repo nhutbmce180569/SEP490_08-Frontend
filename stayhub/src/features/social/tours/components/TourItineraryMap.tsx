@@ -6,6 +6,7 @@ import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
 import { useGenerateTrackingToken } from "../../tracking/hooks/useTracking";
 import { useToast } from "../../../../contexts/ToastContext";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 
 // 1. Định nghĩa Types/Interfaces
 export interface ItineraryLocation {
@@ -32,6 +33,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
   departureDate = new Date().toISOString(), // Fallback tránh lỗi nếu quên truyền
   scheduleId
 }) => {
+  const { t } = useTranslation();
   // Khởi tạo Google Maps
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -253,7 +255,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
       onSuccess: (token) => {
         const link = window.location.origin + '/track/' + token;
         navigator.clipboard.writeText(link);
-        success("Đã tạo link theo dõi 24h và sao chép vào khay nhớ tạm!");
+        success(t("social.itineraryTrackingLinkCopied"));
       }
     });
   };
@@ -283,7 +285,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
                     <div className={`block w-10 h-6 rounded-full transition-colors ${showLiveFriends ? 'bg-brand' : 'bg-slate-300'}`}></div>
                     <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${showLiveFriends ? 'translate-x-4' : ''}`}></div>
                   </div>
-                  <span className="text-sm font-bold text-slate-700 select-none">Vị trí bạn bè</span>
+                  <span className="text-sm font-bold text-slate-700 select-none">{t("social.itineraryFriendLocations")}</span>
                 </label>
                 {showLiveFriends && lastPingTime && (
                   <div className="flex items-center gap-1.5 pl-12">
@@ -373,7 +375,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
         <button
           onClick={handleShareLocation}
           disabled={isGeneratingToken}
-          title="Chia sẻ hành trình"
+          title={t("social.itineraryShareJourney")}
           className="absolute bottom-6 right-6 z-20 flex h-14 w-14 items-center justify-center rounded-full bg-white text-brand shadow-[0_8px_20px_rgba(0,0,0,0.15)] border-2 border-brand transition-all hover:scale-110 active:scale-95 disabled:opacity-70"
         >
           {isGeneratingToken ? (
@@ -441,7 +443,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
 
           <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
             {currentDayItineraries.length === 0 ? (
-              <div className="text-center text-sm text-slate-500 mt-10">Không có điểm đến nào trong lịch trình.</div>
+              <div className="text-center text-sm text-slate-500 mt-10">{t("social.itineraryNoDestinations")}</div>
             ) : (
               <div className="relative border-l-2 border-slate-100 ml-3 pl-5 space-y-6">
                 {currentDayItineraries.map((loc, idx) => (

@@ -4,6 +4,7 @@ import { AuthContext } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useAddComment, useUpdateComment, useDeleteComment } from '../hooks/useMoments';
 import type { Moment } from '../types/moment.type';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 
 interface MomentModalProps {
   moment: Moment;
@@ -21,7 +22,8 @@ export const MomentModal: React.FC<MomentModalProps> = ({
   const { mutate: addComment, isPending: isAdding } = useAddComment();
   const { mutate: updateComment, isPending: isUpdating } = useUpdateComment();
   const { mutate: deleteComment, isPending: isDeleting } = useDeleteComment();
-  const { warning, success, error } = useToast();
+  const { warning, error } = useToast();
+  const { t } = useTranslation();
   
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
@@ -52,7 +54,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || isAdding) return;
-    if (!user) { warning("Please log in to continue"); return; }
+    if (!user) { warning(t("social.pleaseLogInToContinue")); return; }
 
     addComment(
       { momentId: moment.id, userId: Number(currentUserId), content: newComment.trim() },
@@ -71,18 +73,18 @@ export const MomentModal: React.FC<MomentModalProps> = ({
         onSuccess: () => {
           setEditingCommentId(null);
         },
-        onError: () => error("Failed to update comment.")
+        onError: () => error(t("social.momentUpdateCommentFailed"))
       }
     );
   };
 
   const handleDeleteComment = (commentId: number) => {
     if (isDeleting) return;
-    if (window.confirm("Are you sure you want to delete this comment?")) {
+    if (window.confirm(t("social.momentConfirmDeleteComment"))) {
       deleteComment(
         { commentId, userId: Number(currentUserId) },
         {
-          onError: () => error("Failed to delete comment.")
+          onError: () => error(t("social.momentDeleteCommentFailed"))
         }
       );
     }
@@ -99,7 +101,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     }
   };
 
-  const userFullName = moment.user?.fullName || "Anonymous";
+  const userFullName = moment.user?.fullName || t("tour.anonymousCustomer");
   const visibleComments = allComments.slice(0, visibleCount);
 
   return (
@@ -112,7 +114,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
         <div className="flex-1 bg-black flex items-center justify-center h-64 md:h-full border-r border-slate-200">
           <img 
             src={moment.imageUrl} 
-            alt="Moment" 
+            alt={t("social.momentImageAlt")} 
             loading="lazy" 
             decoding="async"
             className="w-full h-full object-contain" 
@@ -159,7 +161,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                       {cAvatar ? <img src={cAvatar} alt="Avatar" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200">{(c.user?.fullName || "A").charAt(0)}</div>}
                     </div>
                     <div className="flex-1 leading-relaxed">
-                      <span className="font-bold mr-2">{c.user?.fullName || "Anonymous"}</span>
+                      <span className="font-bold mr-2">{c.user?.fullName || t("tour.anonymousCustomer")}</span>
                       
                       {editingCommentId === c.id ? (
                         <div className="mt-1 flex flex-col gap-2">
@@ -171,8 +173,8 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                             autoFocus
                           />
                           <div className="flex items-center gap-3">
-                            <button disabled={isUpdating} onClick={() => handleSaveEdit(c.id)} className="text-xs font-semibold text-brand hover:text-brand-hover">Save</button>
-                            <button disabled={isUpdating} onClick={() => setEditingCommentId(null)} className="text-xs text-slate-500 hover:text-slate-700">Cancel</button>
+                            <button disabled={isUpdating} onClick={() => handleSaveEdit(c.id)} className="text-xs font-semibold text-brand hover:text-brand-hover">{t("social.momentSave")}</button>
+                            <button disabled={isUpdating} onClick={() => setEditingCommentId(null)} className="text-xs text-slate-500 hover:text-slate-700">{t("common.cancel")}</button>
                           </div>
                         </div>
                       ) : (
@@ -187,13 +189,13 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                                 }}
                                 className="text-[11px] font-semibold text-slate-400 hover:text-brand"
                               >
-                                Edit
+                                {t("social.momentEdit")}
                               </button>
                               <button 
                                 onClick={() => handleDeleteComment(c.id)}
                                 className="text-[11px] font-semibold text-slate-400 hover:text-red-500"
                               >
-                                Delete
+                                {t("social.momentDelete")}
                               </button>
                             </div>
                           )}
@@ -206,7 +208,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
               
               {visibleCount < allComments.length && (
                 <div className="text-center text-xs text-slate-400 py-2 font-medium cursor-pointer" onClick={() => setVisibleCount(prev => prev + 10)}>
-                  Load more comments...
+                  {t("social.momentLoadMoreComments")}
                 </div>
               )}
             </div>
@@ -220,14 +222,14 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                 </button>
                 <MessageCircle className="h-7 w-7 text-slate-900" />
               </div>
-              <div className="text-sm font-bold text-slate-900">{likeCount} likes</div>
+              <div className="text-sm font-bold text-slate-900">{t("social.momentLikesCount", { count: likeCount })}</div>
             </div>
             <form onSubmit={handleSubmit} className="flex items-center gap-3 px-4 py-3 border-t border-slate-100">
               <input
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Add a comment..."
+                placeholder={t("social.momentWriteComment")}
                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
               />
               <button 
@@ -238,10 +240,10 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                 {isAdding ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Posting...
+                    {t("social.momentPosting")}
                   </>
                 ) : (
-                  'Post'
+                  t("social.momentPostBtn")
                 )}
               </button>
             </form>

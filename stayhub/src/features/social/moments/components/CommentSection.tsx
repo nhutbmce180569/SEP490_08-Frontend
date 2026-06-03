@@ -3,8 +3,10 @@ import { Loader2 } from 'lucide-react';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useAddComment } from '../hooks/useMoments';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 
 export const CommentSection = ({ momentId, comments }: any) => {
+  const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const { mutate: addComment, isPending } = useAddComment();
   const [newComment, setNewComment] = useState('');
@@ -13,7 +15,7 @@ export const CommentSection = ({ momentId, comments }: any) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || isPending) return;
-    if (!user) { warning("Please log in to continue"); return; }
+    if (!user) { warning(t("social.pleaseLogIn")); return; }
 
     const currentUserId = user.id || (user as any).Id;
     addComment(
@@ -27,7 +29,7 @@ export const CommentSection = ({ momentId, comments }: any) => {
       <div className="flex flex-col gap-1.5 mb-2">
         {comments.map((c: any) => (
           <div key={c.id} className="text-sm">
-            <span className="font-bold mr-2">{c.user?.fullName || "Anonymous"}</span>
+            <span className="font-bold mr-2">{c.user?.fullName || t("common.anonymous")}</span>
             <span className="text-slate-700">{c.text || c.comment}</span>
           </div>
         ))}
@@ -38,7 +40,7 @@ export const CommentSection = ({ momentId, comments }: any) => {
           type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Add a comment..."
+          placeholder={t("social.momentWriteComment")}
           className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
         />
         <button 
@@ -49,10 +51,10 @@ export const CommentSection = ({ momentId, comments }: any) => {
           {isPending ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              Posting...
+              {t("social.momentPosting")}
             </>
           ) : (
-            'Post'
+            t("social.momentSubmitComment")
           )}
         </button>
       </form>

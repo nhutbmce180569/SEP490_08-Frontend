@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   Calendar,
   Hash,
@@ -9,117 +9,122 @@ import {
 } from 'lucide-react';
 import { DynamicForm, type FormField } from '../../../components/dashboard/DynamicForm';
 import { LoadingOverlay } from '../../../components/dashboard/LoadingOverlay';
+import { useTranslation } from '../../../contexts/LocaleContext';
 import { CustomerAssignmentEditor, type CustomerAssignmentRow } from '../components/CustomerAssignmentEditor';
 import { useCreateVoucher } from '../hooks/useCreateVoucher';
 import { useTourOptions } from '../hooks/useTourOptions';
 import { validateVoucherCode } from '../utils/voucherHelpers';
 
 export const CreateVoucher: React.FC = () => {
+  const { t } = useTranslation();
   const { handleSubmit, handleCancel, isSubmitting, serverErrors } = useCreateVoucher();
   const { options: tourOptions } = useTourOptions();
 
-  const voucherFields: FormField[] = [
-    {
-      name: 'code',
-      label: 'Voucher Code',
-      type: 'text',
-      placeholder: 'e.g. SUMMER2026',
-      icon: <Type className="h-4 w-4" />,
-      colSpan: 2,
-      required: true,
-      validate: (value) => validateVoucherCode(String(value || '')),
-    },
-    {
-      name: 'tourId',
-      label: 'Applicable Tour',
-      type: 'select',
-      icon: <Ticket className="h-4 w-4" />,
-      colSpan: 2,
-      options: tourOptions,
-    },
-    {
-      name: 'discountType',
-      label: 'Discount Type',
-      type: 'select',
-      icon: <Percent className="h-4 w-4" />,
-      required: true,
-      options: [
-        { label: 'Percent (%)', value: 'Percent' },
-        { label: 'Fixed Amount (VND)', value: 'Amount' },
-      ],
-    },
-    {
-      name: 'discountValue',
-      label: 'Discount Value',
-      type: 'number',
-      placeholder: 'e.g. 10 for 10% or 50000 for amount',
-      icon: <Hash className="h-4 w-4" />,
-      required: true,
-    },
-    {
-      name: 'maxDiscountAmount',
-      label: 'Max Discount Amount (VND)',
-      type: 'number',
-      placeholder: 'Required for percent vouchers',
-      icon: <Hash className="h-4 w-4" />,
-      visible: (formData) => formData.discountType === 'Percent',
-      required: true,
-    },
-    {
-      name: 'availableCount',
-      label: 'Available Count',
-      type: 'number',
-      placeholder: 'Total number of uses',
-      icon: <Hash className="h-4 w-4" />,
-      required: true,
-      validate: (value) => {
-        if (!value || Number(value) < 1) return 'Available count must be at least 1.';
-        return undefined;
+  const voucherFields: FormField[] = useMemo(
+    () => [
+      {
+        name: 'code',
+        label: t('voucher.voucherCode'),
+        type: 'text',
+        placeholder: t('voucher.voucherCodePlaceholder'),
+        icon: <Type className="h-4 w-4" />,
+        colSpan: 2,
+        required: true,
+        validate: (value) => validateVoucherCode(String(value || '')),
       },
-    },
-    {
-      name: 'startDate',
-      label: 'Start Date',
-      type: 'datetime-local',
-      icon: <Calendar className="h-4 w-4" />,
-      required: true,
-    },
-    {
-      name: 'endDate',
-      label: 'End Date',
-      type: 'datetime-local',
-      icon: <Calendar className="h-4 w-4" />,
-      required: true,
-      validate: (value, formData) => {
-        if (!value || !formData.startDate) return undefined;
-        if (new Date(value) <= new Date(formData.startDate)) {
-          return 'End date must be later than start date.';
-        }
-        return undefined;
+      {
+        name: 'tourId',
+        label: t('voucher.applicableTour'),
+        type: 'select',
+        icon: <Ticket className="h-4 w-4" />,
+        colSpan: 2,
+        options: tourOptions,
       },
-    },
-    {
-      name: 'description',
-      label: 'Description',
-      type: 'textarea',
-      placeholder: 'Optional description for this voucher',
-      icon: <Tag className="h-4 w-4" />,
-      colSpan: 2,
-    },
-    {
-      name: 'customerAssignments',
-      label: 'Customer Assignments',
-      type: 'custom',
-      colSpan: 2,
-      render: (value, onChange, error) => (
-        <CustomerAssignmentEditor
-          value={(value as CustomerAssignmentRow[]) || []}
-          onChange={onChange}
-          error={error}
-        />
-      ),
-    },
-  ];
+      {
+        name: 'discountType',
+        label: t('voucher.discountType'),
+        type: 'select',
+        icon: <Percent className="h-4 w-4" />,
+        required: true,
+        options: [
+          { label: t('voucher.percentType'), value: 'Percent' },
+          { label: t('voucher.amountType'), value: 'Amount' },
+        ],
+      },
+      {
+        name: 'discountValue',
+        label: t('voucher.discountValue'),
+        type: 'number',
+        placeholder: t('voucher.discountValuePlaceholder'),
+        icon: <Hash className="h-4 w-4" />,
+        required: true,
+      },
+      {
+        name: 'maxDiscountAmount',
+        label: t('voucher.maxDiscountAmount'),
+        type: 'number',
+        placeholder: t('voucher.maxDiscountPlaceholder'),
+        icon: <Hash className="h-4 w-4" />,
+        visible: (formData) => formData.discountType === 'Percent',
+        required: true,
+      },
+      {
+        name: 'availableCount',
+        label: t('voucher.availableCount'),
+        type: 'number',
+        placeholder: t('voucher.availableCountPlaceholder'),
+        icon: <Hash className="h-4 w-4" />,
+        required: true,
+        validate: (value) => {
+          if (!value || Number(value) < 1) return t('voucher.availableCountMin');
+          return undefined;
+        },
+      },
+      {
+        name: 'startDate',
+        label: t('voucher.startDate'),
+        type: 'datetime-local',
+        icon: <Calendar className="h-4 w-4" />,
+        required: true,
+      },
+      {
+        name: 'endDate',
+        label: t('voucher.endDate'),
+        type: 'datetime-local',
+        icon: <Calendar className="h-4 w-4" />,
+        required: true,
+        validate: (value, formData) => {
+          if (!value || !formData.startDate) return undefined;
+          if (new Date(value) <= new Date(formData.startDate)) {
+            return t('voucher.endDateAfterStart');
+          }
+          return undefined;
+        },
+      },
+      {
+        name: 'description',
+        label: t('common.description'),
+        type: 'textarea',
+        placeholder: t('voucher.descriptionPlaceholder'),
+        icon: <Tag className="h-4 w-4" />,
+        colSpan: 2,
+      },
+      {
+        name: 'customerAssignments',
+        label: t('voucher.customerAssignments'),
+        type: 'custom',
+        colSpan: 2,
+        render: (value, onChange, error) => (
+          <CustomerAssignmentEditor
+            value={(value as CustomerAssignmentRow[]) || []}
+            onChange={onChange}
+            error={error}
+          />
+        ),
+      },
+    ],
+    [t, tourOptions],
+  );
 
   return (
     <>
@@ -129,8 +134,8 @@ export const CreateVoucher: React.FC = () => {
         </div>
       )}
       <DynamicForm
-        title="Create New Voucher"
-        description="Set up a discount voucher for your tours. Code will be saved in uppercase."
+        title={t('voucher.createNewVoucher')}
+        description={t('voucher.createVoucherDesc')}
         fields={voucherFields}
         initialValues={{
           discountType: 'Percent',
@@ -140,9 +145,9 @@ export const CreateVoucher: React.FC = () => {
         onSubmit={handleSubmit}
         serverErrors={serverErrors}
         onCancel={handleCancel}
-        submitText="Create Voucher"
+        submitText={t('voucher.createVoucher')}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Creating voucher..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t('voucher.creatingVoucher')} />
     </>
   );
 };

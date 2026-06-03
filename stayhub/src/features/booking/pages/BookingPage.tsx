@@ -19,6 +19,7 @@ import { useBookingCheckout } from "../hooks/useBookingCheckout";
 import { VoucherCheckoutPanel } from "../../voucher/customer/components/VoucherCheckoutPanel";
 import { PATH } from "../../../config/routes/route";
 import { useToast } from "../../../contexts/ToastContext";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import type { Tour } from "../../tour/types/tour";
 import type { TourSchedule } from "../../tour/types/tourSchedule";
 import type { TourScheduleTicket } from "../../tour/types/tourScheduleTicket";
@@ -87,6 +88,7 @@ const getCheckoutScheduleAvailableSeats = (schedule: CheckoutSchedule) => {
 };
 
 export const BookingPage: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { tour, schedule } = (location.state || {}) as BookingLocationState;
@@ -171,21 +173,21 @@ export const BookingPage: React.FC = () => {
     const departure = new Date(schedule.departureDate);
     if (departure.getTime() < currentTime) {
       errorHandledRef.current = true;
-      showError("This departure has expired and can no longer be booked.");
+      showError(t("booking.departureExpired"));
       navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id));
       return;
     }
 
     if (scheduleAvailableSeats <= 0) {
       errorHandledRef.current = true;
-      showError("This departure is sold out.");
+      showError(t("booking.departureSoldOut"));
       navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id));
       return;
     }
 
     if (!hasBookableTickets) {
       errorHandledRef.current = true;
-      showError("This departure does not have any bookable ticket type.");
+      showError(t("booking.noBookableTicketType"));
       navigate(PATH.PUBLIC.TOUR_DETAIL(tour.id));
     }
   }, [
@@ -196,6 +198,7 @@ export const BookingPage: React.FC = () => {
     currentTime,
     navigate,
     showError,
+    t,
   ]);
 
   if (!tour || !schedule) return null;
@@ -231,12 +234,17 @@ export const BookingPage: React.FC = () => {
     const quantity = ticketQuantities[ticketOption.id] ?? 0;
 
     if (price === null) {
-      showError("This ticket type does not have a price.");
+      showError(t("booking.ticketNoPrice"));
       return;
     }
 
     if (available <= 0 || quantity >= available) {
-      showError(`Only ${available} ${getScheduleTicketName(ticketOption)} ticket(s) available.`);
+      showError(
+        t("booking.ticketsAvailable", {
+          count: available,
+          name: getScheduleTicketName(ticketOption),
+        }),
+      );
       return;
     }
 
@@ -270,23 +278,23 @@ export const BookingPage: React.FC = () => {
     if (hasAttemptedSubmit) {
       const errors = { ...ticketErrors };
       if (field === "attendeeName") {
-        if (!value.trim()) errors.attendeeName = "Name is required.";
+        if (!value.trim()) errors.attendeeName = t("booking.nameRequired");
         else delete errors.attendeeName;
       }
       if (field === "idCard") {
-        if (!value.trim()) errors.idCard = "ID Card / Passport is required.";
+        if (!value.trim()) errors.idCard = t("booking.idCardRequired");
         else delete errors.idCard;
       }
       if (field === "dateOfBirth") {
-        if (!value.trim()) errors.dateOfBirth = "Date of Birth is required.";
+        if (!value.trim()) errors.dateOfBirth = t("booking.dobRequired");
         else if (new Date(value).getTime() > currentTime) {
-          errors.dateOfBirth = "Date of Birth cannot be in the future.";
+          errors.dateOfBirth = t("booking.dobFuture");
         } else {
           delete errors.dateOfBirth;
         }
       }
       if (field === "nationality") {
-        if (!value.trim()) errors.nationality = "Nationality is required.";
+        if (!value.trim()) errors.nationality = t("booking.nationalityRequired");
         else delete errors.nationality;
       }
       setTicketErrors(errors);
@@ -297,13 +305,13 @@ export const BookingPage: React.FC = () => {
     if (hasAttemptedSubmit) {
       const ticket = tickets[index];
       const errors: Record<string, string> = {};
-      if (!ticket.attendeeName.trim()) errors.attendeeName = "Name is required.";
-      if (!ticket.idCard.trim()) errors.idCard = "ID Card / Passport is required.";
-      if (!ticket.dateOfBirth.trim()) errors.dateOfBirth = "Date of Birth is required.";
+      if (!ticket.attendeeName.trim()) errors.attendeeName = t("booking.nameRequired");
+      if (!ticket.idCard.trim()) errors.idCard = t("booking.idCardRequired");
+      if (!ticket.dateOfBirth.trim()) errors.dateOfBirth = t("booking.dobRequired");
       else if (new Date(ticket.dateOfBirth).getTime() > currentTime) {
-        errors.dateOfBirth = "Date of Birth cannot be in the future.";
+        errors.dateOfBirth = t("booking.dobFuture");
       }
-      if (!ticket.nationality.trim()) errors.nationality = "Nationality is required.";
+      if (!ticket.nationality.trim()) errors.nationality = t("booking.nationalityRequired");
       setTicketErrors(errors);
     } else {
       setTicketErrors({});
@@ -315,17 +323,17 @@ export const BookingPage: React.FC = () => {
     setHasAttemptedSubmit(true);
 
     if (new Date(schedule.departureDate).getTime() < currentTime) {
-      showError("This departure has expired and can no longer be booked.");
+      showError(t("booking.departureExpired"));
       return;
     }
 
     if (ticketCount <= 0) {
-      showError("Please select at least one ticket.");
+      showError(t("booking.selectAtLeastOne"));
       return;
     }
 
     if (ticketCount > scheduleAvailableSeats) {
-      showError(`Only ${scheduleAvailableSeats} seat(s) available for this departure.`);
+      showError(t("booking.seatsAvailableForDeparture", { count: scheduleAvailableSeats }));
       return;
     }
 
@@ -334,7 +342,12 @@ export const BookingPage: React.FC = () => {
       const available = getTicketAvailable(ticketOption);
 
       if (quantity > available) {
-        showError(`Only ${available} ${getScheduleTicketName(ticketOption)} ticket(s) available.`);
+        showError(
+        t("booking.ticketsAvailable", {
+          count: available,
+          name: getScheduleTicketName(ticketOption),
+        }),
+      );
         return;
       }
     }
@@ -347,11 +360,11 @@ export const BookingPage: React.FC = () => {
         !ticket.dateOfBirth?.trim() ||
         !ticket.nationality?.trim()
       ) {
-        showError(`Please fill in all required fields for Passenger ${index + 1}`);
+        showError(t("booking.fillPassengerFields", { count: index + 1 }));
         return;
       }
       if (new Date(ticket.dateOfBirth).getTime() > currentTime) {
-        showError(`Date of Birth for Passenger ${index + 1} cannot be in the future.`);
+        showError(t("booking.dobFuturePassenger", { count: index + 1 }));
         return;
       }
     }
@@ -415,18 +428,18 @@ export const BookingPage: React.FC = () => {
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to Tour
+          <ArrowLeft className="h-4 w-4" /> {t("booking.backToTour")}
         </button>
 
         <h1 className="mb-8 text-3xl font-extrabold text-slate-900">
-          Complete Your Booking
+          {t("booking.completeBooking")}
         </h1>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
           <div className="space-y-6">
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8">
               <h2 className="mb-6 flex items-center gap-2 border-b border-slate-100 pb-4 text-xl font-bold text-slate-800">
-                <Ticket className="text-brand" /> Choose Tickets
+                <Ticket className="text-brand" /> {t("booking.chooseTickets")}
               </h2>
 
               <div className="space-y-3">
@@ -452,11 +465,11 @@ export const BookingPage: React.FC = () => {
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
                             <span>
-                              {price === null ? "No price" : formatCurrency(price)}
+                              {price === null ? t("booking.noPrice") : formatCurrency(price)}
                             </span>
                             <span className="h-1 w-1 rounded-full bg-slate-300" />
                             <span>
-                              {available > 0 ? `${available} left` : "Sold out"}
+                              {available > 0 ? t("booking.leftCount", { count: available }) : t("booking.soldOut")}
                             </span>
                           </div>
                         </div>
@@ -489,20 +502,22 @@ export const BookingPage: React.FC = () => {
               </div>
 
               <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm font-medium text-slate-500">
-                Total selected:{" "}
+                {t("booking.totalSelected")}{" "}
                 <span className="font-black text-slate-900">{ticketCount}</span>{" "}
-                ticket{ticketCount !== 1 ? "s" : ""} / {scheduleAvailableSeats} seat
-                {scheduleAvailableSeats !== 1 ? "s" : ""} available
+                {ticketCount === 1 ? t("booking.ticket") : t("booking.tickets")} /{" "}
+                {scheduleAvailableSeats === 1
+                  ? t("booking.seatsAvailable", { count: scheduleAvailableSeats })
+                  : t("booking.seatsAvailablePlural", { count: scheduleAvailableSeats })}
               </div>
 
               <div className="mt-6">
                 <label className="mb-2 block text-sm font-bold text-slate-700">
-                  Special Requests (Note)
+                  {t("booking.specialRequests")}
                 </label>
                 <textarea
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
-                  placeholder="E.g., Dietary requirements, special assistance..."
+                  placeholder={t("booking.specialRequestsPlaceholder")}
                   className="h-24 w-full resize-none rounded-2xl border border-slate-200 p-4 text-sm outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                 />
               </div>
@@ -510,10 +525,10 @@ export const BookingPage: React.FC = () => {
 
             <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm md:p-8">
               <h2 className="mb-2 flex items-center gap-2 text-xl font-bold text-slate-800">
-                <Users className="text-brand" /> Passengers Information
+                <Users className="text-brand" /> {t("booking.passengersInfo")}
               </h2>
               <p className="mb-6 border-b border-slate-100 pb-4 text-sm text-slate-500">
-                Please fill in details for every selected ticket.
+                {t("booking.passengersInfoDesc")}
               </p>
 
               {tickets.length > 0 ? (
@@ -544,11 +559,11 @@ export const BookingPage: React.FC = () => {
                           </div>
                           <div>
                             <div className="font-bold text-slate-800">
-                              {ticket.attendeeName || `Passenger ${index + 1}`}
+                              {ticket.attendeeName || t("booking.passenger", { count: index + 1 })}
                             </div>
                             <div className="mt-0.5 text-xs text-slate-500">
                               {ticket.ticketTypeName} -{" "}
-                              {ticket.idCard ? `ID: ${ticket.idCard}` : "Details required"}
+                              {ticket.idCard ? `ID: ${ticket.idCard}` : t("booking.detailsRequired")}
                             </div>
                           </div>
                         </div>
@@ -557,7 +572,7 @@ export const BookingPage: React.FC = () => {
                             <ShieldCheck className="h-6 w-6 text-emerald-500" />
                           ) : (
                             <span className="rounded-full bg-rose-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-rose-600">
-                              Required
+                              {t("booking.required")}
                             </span>
                           )}
                         </div>
@@ -567,7 +582,7 @@ export const BookingPage: React.FC = () => {
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-6 text-center text-sm font-medium text-slate-500">
-                  Select ticket quantities above to add passenger records.
+                  {t("booking.selectTicketsHint")}
                 </div>
               )}
             </div>
@@ -589,7 +604,7 @@ export const BookingPage: React.FC = () => {
                   <div className="mb-6 space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <div className="flex items-start justify-between text-sm">
                       <div className="flex gap-2 font-medium text-slate-600">
-                        <Calendar size={18} className="text-indigo-500" /> Start Date
+                        <Calendar size={18} className="text-indigo-500" /> {t("booking.startDate")}
                       </div>
                       <div className="text-right font-bold text-slate-900">
                         {new Date(schedule.departureDate).toLocaleDateString()}
@@ -597,7 +612,7 @@ export const BookingPage: React.FC = () => {
                     </div>
                     <div className="flex items-start justify-between border-t border-slate-100 pt-3 text-sm">
                       <div className="flex gap-2 font-medium text-slate-600">
-                        <Calendar size={18} className="text-sky-600" /> End Date
+                        <Calendar size={18} className="text-sky-600" /> {t("booking.endDate")}
                       </div>
                       <div className="text-right font-bold text-slate-900">
                         {new Date(schedule.returnDate).toLocaleDateString()}
@@ -627,11 +642,11 @@ export const BookingPage: React.FC = () => {
                       ))
                     ) : (
                       <div className="rounded-xl bg-slate-50 p-3 text-center text-xs font-medium text-slate-400">
-                        No tickets selected.
+                        {t("booking.noTicketsSelected")}
                       </div>
                     )}
                     <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span>Quantity</span>
+                      <span>{t("common.quantity")}</span>
                       <span className="font-medium">x {ticketCount}</span>
                     </div>
                   </div>
@@ -651,7 +666,7 @@ export const BookingPage: React.FC = () => {
                   </div>
 
                   <div className="mb-6 flex items-center justify-between border-t border-slate-200 pt-4">
-                    <span className="font-bold text-slate-800">Total Price</span>
+                    <span className="font-bold text-slate-800">{t("booking.totalPrice")}</span>
                     <span className="text-2xl font-black text-brand">
                       {formatCurrency(finalPayable)}
                     </span>
@@ -659,9 +674,9 @@ export const BookingPage: React.FC = () => {
 
                   <div className="mb-5">
                     <div className="mb-3 text-sm font-bold text-slate-800">
-                      Payment Method
+                      {t("booking.paymentMethod")}
                     </div>
-                    <div className="space-y-3" role="radiogroup" aria-label="Payment method">
+                    <div className="space-y-3" role="radiogroup" aria-label={t("booking.paymentMethod")}>
                       <button
                         type="button"
                         onClick={() => setPaymentProvider("vnpay")}
@@ -681,7 +696,7 @@ export const BookingPage: React.FC = () => {
                             VNPay
                           </span>
                           <span className="block text-xs font-medium text-slate-500">
-                            ATM card, bank account, or QR payment
+                            {t("booking.vnpayDesc")}
                           </span>
                         </span>
                         <span
@@ -712,7 +727,7 @@ export const BookingPage: React.FC = () => {
                             MoMo
                           </span>
                           <span className="block text-xs font-medium text-slate-500">
-                            Pay through MoMo wallet checkout
+                            {t("booking.momoDesc")}
                           </span>
                         </span>
                         <span
@@ -737,7 +752,7 @@ export const BookingPage: React.FC = () => {
                     ) : (
                       <CreditCard size={20} />
                     )}
-                    Pay with {paymentProviderLabel}
+                    {t("booking.payWith", { provider: paymentProviderLabel })}
                   </ActionButton>
                 </div>
               </div>
@@ -745,8 +760,7 @@ export const BookingPage: React.FC = () => {
               <div className="flex gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                 <ShieldCheck className="shrink-0 text-emerald-600" />
                 <p className="text-xs font-medium leading-relaxed text-emerald-800">
-                  Your personal information is encrypted and securely processed by our
-                  payment gateway. Free cancellation up to 24h before departure.
+                  {t("booking.securityNote")}
                 </p>
               </div>
             </div>
@@ -755,7 +769,7 @@ export const BookingPage: React.FC = () => {
       </div>
       <LoadingOverlay
         isOpen={isSubmitting}
-        message={`Creating order and redirecting to ${paymentProviderLabel}...`}
+        message={t("booking.creatingOrderRedirect", { provider: paymentProviderLabel })}
       />
 
       {editingTicketIndex !== null &&
@@ -772,7 +786,7 @@ export const BookingPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-800">
-                  Passenger {editingTicketIndex + 1} Details
+                  {t("booking.passengerDetails", { count: editingTicketIndex + 1 })}
                 </h3>
                 <p className="text-xs font-medium text-slate-500">
                   {tickets[editingTicketIndex].ticketTypeName}
@@ -788,11 +802,11 @@ export const BookingPage: React.FC = () => {
             <div className="space-y-4 p-6">
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                  Full Name *
+                  {t("booking.fullName")} *
                 </label>
                 <input
                   type="text"
-                  placeholder="John Doe"
+                  placeholder={t("booking.fullNamePlaceholder")}
                   value={tickets[editingTicketIndex].attendeeName}
                   onChange={(event) =>
                     handleTicketFieldChange(
@@ -816,11 +830,11 @@ export const BookingPage: React.FC = () => {
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                  ID Card / Passport *
+                  {t("booking.idCardPassport")} *
                 </label>
                 <input
                   type="text"
-                  placeholder="AB1234567"
+                  placeholder={t("booking.idCardPlaceholder")}
                   value={tickets[editingTicketIndex].idCard}
                   onChange={(event) =>
                     handleTicketFieldChange(editingTicketIndex, "idCard", event.target.value)
@@ -838,7 +852,7 @@ export const BookingPage: React.FC = () => {
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                  Date of Birth *
+                  {t("common.dateOfBirth")} *
                 </label>
                 <input
                   type="date"
@@ -867,7 +881,7 @@ export const BookingPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                    Gender *
+                    {t("common.gender")} *
                   </label>
                   <select
                     value={tickets[editingTicketIndex].gender}
@@ -876,18 +890,18 @@ export const BookingPage: React.FC = () => {
                     }
                     className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand"
                   >
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
+                    <option value="Male">{t("common.male")}</option>
+                    <option value="Female">{t("common.female")}</option>
+                    <option value="Other">{t("common.other")}</option>
                   </select>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                    Nationality *
+                    {t("booking.nationalityCol")} *
                   </label>
                   <input
                     type="text"
-                    placeholder="Vietnam"
+                    placeholder={t("booking.nationalityPlaceholder")}
                     value={tickets[editingTicketIndex].nationality}
                     onChange={(event) =>
                       handleTicketFieldChange(
@@ -917,7 +931,7 @@ export const BookingPage: React.FC = () => {
                 onClick={() => setEditingTicketIndex(null)}
                 className="px-6 py-2.5 text-sm"
               >
-                Done
+                {t("booking.done")}
               </ActionButton>
             </div>
           </div>

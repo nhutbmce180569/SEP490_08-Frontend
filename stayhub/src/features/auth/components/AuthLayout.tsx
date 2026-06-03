@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StayHubLogo } from "../../../components/brand/StayHubLogo";
 import { ThemeToggle } from "../../../components/ui/ThemeToggle";
+import { LanguageSwitcher } from "../../../components/ui/LanguageSwitcher";
 import { PATH } from "../../../config/routes/route";
 
 export type AuthLayoutProps = {
@@ -55,7 +56,8 @@ export function AuthLayout({
             : "items-center justify-center px-4 py-8 sm:px-8 lg:p-16"
         }`}
       >
-        <div className="absolute right-4 top-4 z-10 sm:right-6 sm:top-6">
+        <div className="absolute right-4 top-4 z-10 flex items-center gap-2 sm:right-6 sm:top-6">
+          <LanguageSwitcher variant="icon" />
           <ThemeToggle />
         </div>
 

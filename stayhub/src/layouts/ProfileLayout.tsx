@@ -16,26 +16,28 @@ import {
 
 import { PATH } from "../config/routes/route";
 import { AuthContext } from "../contexts/AuthContext";
+import { useTranslation } from "../contexts/LocaleContext";
 import { UserAvatar } from "../components/ui/UserAvatar";
 
 const navItems = [
-  { name: "Profile", path: PATH.CUSTOMER.PROFILE, icon: User },
-  { name: "Friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
-  { name: "Messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
-  { name: "My bookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
-  { name: "Wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
-  { name: "Reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
-  { name: "Vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
-  { name: "AI recommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
-  { name: "Notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
-  { name: "Settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
+  { labelKey: "nav.profile", path: PATH.CUSTOMER.PROFILE, icon: User },
+  { labelKey: "nav.friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
+  { labelKey: "nav.messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
+  { labelKey: "nav.myBookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
+  { labelKey: "nav.wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
+  { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
+  { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
+  { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
+  { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
+  { labelKey: "nav.settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
 ];
 
 export const ProfileLayout = () => {
   const { user } = useContext(AuthContext);
+  const { t } = useTranslation();
   const location = useLocation();
 
-  const displayName = user?.fullName || user?.FullName || "Traveler";
+  const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
   const activeItem = navItems.find(
     (i) =>
@@ -50,19 +52,19 @@ export const ProfileLayout = () => {
           <div className="flex items-center gap-4">
             <UserAvatar name={displayName} avatarUrl={avatarUrl} size="lg" />
             <div className="min-w-0">
-              <p className="travel-eyebrow">Your space</p>
+              <p className="travel-eyebrow">{t("nav.yourSpace")}</p>
               <h1 className="travel-heading truncate text-xl md:text-2xl">
-                Welcome back, {displayName.split(" ")[0]}!
+                {t("nav.welcomeBack", { name: displayName.split(" ")[0] })}
               </h1>
               <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                 <Compass className="h-4 w-4 shrink-0 text-brand" aria-hidden />
-                Manage trips, vouchers, and travel experiences
+                {t("nav.manageTrips")}
               </p>
             </div>
           </div>
           {activeItem && (
             <div className="rounded-2xl bg-brand-light/60 px-4 py-2.5 text-sm font-semibold text-brand">
-              {activeItem.name}
+              {activeItem ? t(activeItem.labelKey) : null}
             </div>
           )}
         </div>
@@ -84,7 +86,7 @@ export const ProfileLayout = () => {
               }
             >
               <item.icon size={16} />
-              {item.name}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -118,7 +120,7 @@ export const ProfileLayout = () => {
                               : "text-slate-400 group-hover:text-brand"
                           }
                         />
-                        <span>{item.name}</span>
+                        <span>{t(item.labelKey)}</span>
                       </>
                     )}
                   </NavLink>

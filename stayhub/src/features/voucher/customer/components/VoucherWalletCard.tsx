@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Copy, MapPin, TicketPercent } from 'lucide-react';
 import { PATH } from '../../../../config/routes/route';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 import type { ReadSavedVoucherDTO } from '../types/customerVoucher';
 import { formatDateTime, formatVnd } from '../../utils/voucherHelpers';
 
@@ -11,13 +12,10 @@ const WALLET_STATUS_STYLES: Record<string, string> = {
   Expired: 'bg-amber-100 text-amber-700',
 };
 
-const getDaysUntilExpiry = (endDate: string) => {
-  const days = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  if (days < 0) return 'Expired';
-  if (days === 0) return 'Expires today';
-  if (days === 1) return 'Expires tomorrow';
-  if (days <= 7) return `Expires in ${days} days`;
-  return null;
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  Available: 'voucher.tabAvailable',
+  Used: 'voucher.tabUsed',
+  Expired: 'voucher.tabExpired',
 };
 
 interface VoucherWalletCardProps {
@@ -26,14 +24,25 @@ interface VoucherWalletCardProps {
 }
 
 export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, onCopy }) => {
+  const { t } = useTranslation();
   const isUsable =
     voucher.status === 'Available' &&
     voucher.isActive &&
     voucher.voucherStatus === 'Active' &&
     voucher.quantity > 0;
 
+  const getDaysUntilExpiry = (endDate: string) => {
+    const days = Math.ceil((new Date(endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (days < 0) return t('voucher.walletExpired');
+    if (days === 0) return t('voucher.walletExpiresToday');
+    if (days === 1) return t('voucher.walletExpiresTomorrow');
+    if (days <= 7) return t('voucher.walletExpiresInDays', { days });
+    return null;
+  };
+
   const expiryHint = getDaysUntilExpiry(voucher.endDate);
   const isPercent = voucher.discountType.toLowerCase() === 'percent';
+  const statusLabelKey = STATUS_LABEL_KEYS[voucher.status];
 
   return (
     <div className={`group relative flex overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
@@ -45,11 +54,11 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
             {isPercent ? `${voucher.discountValue}%` : formatVnd(voucher.discountValue).replace(/\s?₫/, '')}
           </div>
           <div className="mt-1 text-[10px] font-bold uppercase tracking-wider opacity-90">
-            {isPercent ? 'OFF' : 'VND'}
+            {isPercent ? t('voucher.walletOff') : 'VND'}
           </div>
           {isPercent && voucher.maxDiscountAmount && (
             <div className="mt-2 text-[9px] font-medium leading-tight opacity-80">
-              Max {formatVnd(voucher.maxDiscountAmount)}
+              {t('voucher.walletMax', { amount: formatVnd(voucher.maxDiscountAmount) })}
             </div>
           )}
         </div>
@@ -65,7 +74,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
             <span className="font-mono text-sm font-black tracking-wider text-slate-900">{voucher.code}</span>
             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
               WALLET_STATUS_STYLES[voucher.status] ?? 'bg-slate-100 text-slate-600'
-            }`}>{voucher.status}</span>
+            }`}>{statusLabelKey ? t(statusLabelKey) : voucher.status}</span>
             {voucher.quantity > 1 && (
               <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand">x{voucher.quantity}</span>
             )}
@@ -78,11 +87,13 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
           <div className="space-y-1 text-xs text-slate-500">
             <div className="flex items-center gap-1.5">
               <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <span className="truncate">{voucher.tourName ? `For: ${voucher.tourName}` : 'All tours'}</span>
+              <span className="truncate">
+                {voucher.tourName ? t('voucher.forTour', { name: voucher.tourName }) : t('voucher.walletAllTours')}
+              </span>
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              <span>Valid until {formatDateTime(voucher.endDate)}</span>
+              <span>{t('voucher.walletValidUntil', { date: formatDateTime(voucher.endDate) })}</span>
             </div>
           </div>
 
@@ -97,7 +108,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
             onClick={() => onCopy?.(voucher.code)}
             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50"
           >
-            <Copy className="h-3.5 w-3.5" /> Copy
+            <Copy className="h-3.5 w-3.5" /> {t('voucher.copy')}
           </button>
 
           {isUsable && (
@@ -106,7 +117,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
               className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-hover !no-underline"
             >
               <TicketPercent className="h-3.5 w-3.5" />
-              {voucher.tourId ? 'Use Now' : 'Browse Tours'}
+              {voucher.tourId ? t('voucher.useNow') : t('voucher.browseTours')}
             </Link>
           )}
         </div>

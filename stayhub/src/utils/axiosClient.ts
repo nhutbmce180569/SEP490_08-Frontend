@@ -3,6 +3,7 @@ import { FULL_API } from "../config/api/api";
 import { AUTH_API } from "../config/api/auth.api"; // BỔ SUNG: Nhớ import để gọi API refresh
 import { PATH } from "../config/routes/route";
 import { decodeJWT } from "./jwt";
+import { getStoredLocale } from "../i18n";
 
 const axiosClient = axios.create({
   baseURL: FULL_API,
@@ -43,6 +44,7 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers["X-Language"] = getStoredLocale();
     return config;
   },
   (error: any) => Promise.reject(error)

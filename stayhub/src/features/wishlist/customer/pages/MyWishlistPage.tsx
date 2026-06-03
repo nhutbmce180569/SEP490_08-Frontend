@@ -3,6 +3,7 @@ import { AlertCircle, Heart, RefreshCw, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { PATH } from '../../../../config/routes/route';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 import { WishlistSearchInput } from '../components/WishlistSearchInput';
 import { WishlistTourCard } from '../components/WishlistTourCard';
 import { useMyWishlist } from '../hooks/useMyWishlist';
@@ -13,17 +14,21 @@ import {
   getWishlistTabCounts,
 } from '../utils/wishlistHelpers';
 
-const TABS: { key: WishlistTab; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Available' },
-  { key: 'unavailable', label: 'Unavailable' },
-];
-
 export const MyWishlistPage: React.FC = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<WishlistTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [pendingRemove, setPendingRemove] = useState<{ tourId: number; tourName: string } | null>(
     null,
+  );
+
+  const TABS: { key: WishlistTab; label: string }[] = useMemo(
+    () => [
+      { key: 'all', label: t('common.all') },
+      { key: 'active', label: t('tour.tabAvailable') },
+      { key: 'unavailable', label: t('tour.tabUnavailable') },
+    ],
+    [t],
   );
 
   const { allItems, items, isLoading, error, refetch, isFetching } = useMyWishlist(activeTab);
@@ -48,15 +53,15 @@ export const MyWishlistPage: React.FC = () => {
         <div>
           <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
             <Heart className="text-brand" size={24} />
-            My Wishlist
+            {t('tour.myWishlist')}
           </h1>
-          <p className="mt-1.5 text-sm text-slate-500">
-            Tours you saved for later. Book them anytime when you are ready.
-          </p>
+          <p className="mt-1.5 text-sm text-slate-500">{t('tour.myWishlistDesc')}</p>
         </div>
         {!isLoading && !error && (
           <span className="rounded-2xl bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-600">
-            {allItems.length} saved tour{allItems.length !== 1 ? 's' : ''}
+            {allItems.length === 1
+              ? t('tour.savedTour', { count: allItems.length })
+              : t('tour.savedTours', { count: allItems.length })}
           </span>
         )}
       </div>
@@ -95,7 +100,7 @@ export const MyWishlistPage: React.FC = () => {
       ) : error ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-rose-200 bg-rose-50 py-12 text-center text-rose-700">
           <AlertCircle size={28} className="text-rose-400" />
-          <p className="font-semibold">Unable to load wishlist</p>
+          <p className="font-semibold">{t('tour.unableToLoadWishlist')}</p>
           <p className="text-sm text-rose-500">{error}</p>
           <button
             type="button"
@@ -104,38 +109,38 @@ export const MyWishlistPage: React.FC = () => {
             className="mt-2 inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-60"
           >
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Try again
+            {t('common.tryAgain')}
           </button>
         </div>
       ) : items.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
           <Heart size={40} className="text-slate-300" />
           <p className="font-semibold text-slate-700">
-            {activeTab === 'all' ? 'Your wishlist is empty' : `No ${activeTab} tours saved`}
+            {activeTab === 'all'
+              ? t('tour.emptyWishlist')
+              : t('tour.noTabTours', { tab: activeTab })}
           </p>
           <p className="max-w-sm text-sm text-slate-400">
-            {activeTab === 'all'
-              ? 'Tap the heart icon on any tour to save it here, just like Shopee or Amazon.'
-              : 'Try another tab or browse tours to save more favorites.'}
+            {activeTab === 'all' ? t('tour.emptyWishlistHint') : t('tour.noTabHint')}
           </p>
           <Link
             to={PATH.PUBLIC.TOUR_SEARCH}
             className="mt-2 inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-hover !no-underline"
           >
             <Search className="h-4 w-4" />
-            Browse tours
+            {t('tour.browseTours')}
           </Link>
         </div>
       ) : displayedItems.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
           <Search size={32} className="text-slate-300" />
-          <p className="font-semibold text-slate-700">No tours match your search</p>
+          <p className="font-semibold text-slate-700">{t('tour.noSearchMatch')}</p>
           <button
             type="button"
             onClick={() => setSearchQuery('')}
             className="text-sm font-bold text-brand hover:underline"
           >
-            Clear search
+            {t('tour.clearSearch')}
           </button>
         </div>
       ) : (
@@ -157,18 +162,18 @@ export const MyWishlistPage: React.FC = () => {
         open={!!pendingRemove}
         onClose={() => !isRemoving && setPendingRemove(null)}
         onConfirm={handleConfirmRemove}
-        title="Remove from wishlist?"
+        title={t('tour.removeFromWishlistTitle')}
         message={
           pendingRemove ? (
             <>
-              Remove <strong>{pendingRemove.tourName}</strong> from your saved tours?
+              {t('tour.removeFromWishlistMessage', { tourName: pendingRemove.tourName })}
             </>
           ) : (
             ''
           )
         }
-        confirmText="Remove"
-        cancelText="Keep"
+        confirmText={t('tour.remove')}
+        cancelText={t('tour.keep')}
         variant="warning"
         icon={<Heart className="h-6 w-6 text-rose-500" />}
       />

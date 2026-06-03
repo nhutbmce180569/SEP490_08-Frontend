@@ -1,8 +1,8 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileText, Mail, Shield } from "lucide-react";
 import { PageHeader } from "../../components/ui/PageHeader";
-import { PATH } from "../../config/routes/route";
-import { LEGAL_NAV } from "./legalNav";
+import { useTranslation } from "../../contexts/LocaleContext";
+import { LEGAL_NAV, LEGAL_FROM_LABEL_KEYS } from "./legalNav";
 
 export type LegalSection = {
   id: string;
@@ -21,24 +21,21 @@ type LegalDocumentLayoutProps = {
   relatedLink?: { label: string; href: string };
 };
 
-const BACK_LABELS: Record<string, string> = {
-  [PATH.PUBLIC.REGISTER]: "Back to registration",
-  [PATH.PUBLIC.LOGIN]: "Back to sign in",
-};
-
 function LegalBackLink() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const from = (location.state as { from?: string } | null)?.from;
+  const backKey = from ? LEGAL_FROM_LABEL_KEYS[from] : undefined;
 
-  if (from && BACK_LABELS[from]) {
+  if (from && backKey) {
     return (
       <Link
         to={from}
         className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
       >
         <ArrowLeft className="h-4 w-4" />
-        {BACK_LABELS[from]}
+        {t(backKey)}
       </Link>
     );
   }
@@ -51,7 +48,7 @@ function LegalBackLink() {
         className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand outline-none"
       >
         <ArrowLeft className="h-4 w-4" />
-        Go back
+        {t("common.goBack")}
       </button>
     );
   }
@@ -67,6 +64,7 @@ export function LegalDocumentLayout({
   sections,
   relatedLink,
 }: LegalDocumentLayoutProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from;
 
@@ -75,12 +73,12 @@ export function LegalDocumentLayout({
       <LegalBackLink />
 
       <PageHeader
-        eyebrow="Legal"
+        eyebrow={t("legal.eyebrow")}
         title={title}
         subtitle={subtitle}
         actions={
           <span className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Updated {lastUpdated}
+            {t("legal.updated", { date: lastUpdated })}
           </span>
         }
       />
@@ -91,7 +89,7 @@ export function LegalDocumentLayout({
             <div className="glass-card p-4">
               <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-navy">
                 <Shield className="h-4 w-4 text-brand" />
-                Documents
+                {t("legal.documents")}
               </h2>
               <ul className="space-y-1">
                 {LEGAL_NAV.map((item) => {
@@ -107,9 +105,9 @@ export function LegalDocumentLayout({
                             : "text-slate-600 hover:bg-slate-50 hover:text-navy"
                         }`}
                       >
-                        <span className="block text-sm">{item.label}</span>
+                        <span className="block text-sm">{t(item.labelKey)}</span>
                         <span className="mt-0.5 block text-xs leading-snug text-slate-500">
-                          {item.description}
+                          {t(item.descriptionKey)}
                         </span>
                       </Link>
                     </li>
@@ -121,7 +119,7 @@ export function LegalDocumentLayout({
             <div className="glass-card hidden p-4 lg:block">
               <h2 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-navy">
                 <FileText className="h-4 w-4 text-brand" />
-                On this page
+                {t("legal.onThisPage")}
               </h2>
               <ol className="max-h-[50vh] space-y-0.5 overflow-y-auto pr-1 text-sm">
                 {sections.map((section, index) => (
@@ -141,7 +139,7 @@ export function LegalDocumentLayout({
 
         <div className="min-w-0">
           <details className="glass-card mb-4 p-4 lg:hidden">
-            <summary className="cursor-pointer text-sm font-bold text-navy">On this page</summary>
+            <summary className="cursor-pointer text-sm font-bold text-navy">{t("legal.onThisPage")}</summary>
             <ol className="mt-3 space-y-1.5 text-sm">
               {sections.map((section, index) => (
                 <li key={section.id}>
@@ -201,13 +199,13 @@ export function LegalDocumentLayout({
                 <Mail className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-semibold text-navy">Questions about this policy?</p>
+                <p className="font-semibold text-navy">{t("legal.questionsTitle")}</p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Contact{" "}
+                  {t("legal.questionsContactPrefix")}{" "}
                   <a href="mailto:legal@stayhub.com" className="font-semibold text-brand">
                     legal@stayhub.com
                   </a>{" "}
-                  or{" "}
+                  {t("legal.questionsContactOr")}{" "}
                   <a href="mailto:privacy@stayhub.com" className="font-semibold text-brand">
                     privacy@stayhub.com
                   </a>
@@ -221,7 +219,7 @@ export function LegalDocumentLayout({
                 state={from ? { from } : undefined}
                 className="inline-flex shrink-0 items-center justify-center rounded-xl border border-brand/20 bg-white px-4 py-2.5 text-sm font-semibold text-brand transition-colors hover:border-brand hover:bg-brand-light !no-underline"
               >
-                Read {relatedLink.label}
+                {t("legal.readRelated", { label: relatedLink.label })}
               </Link>
             )}
           </div>

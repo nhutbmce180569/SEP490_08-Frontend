@@ -7,6 +7,7 @@ import { DashboardTopBar, type DashboardRole } from "./DashboardTopBar";
 import { AuthContext } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 type DashboardShellProps = {
   role: DashboardRole;
@@ -39,6 +40,7 @@ export function DashboardShell({
   defaultTitle,
   badge,
 }: DashboardShellProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const { logout: contextLogout } = useContext(AuthContext);
   const { success } = useToast();
@@ -53,7 +55,7 @@ export function DashboardShell({
         location.pathname,
         items,
         groups,
-        defaultTitle ?? (role === "admin" ? "Admin dashboard" : "Partner dashboard"),
+        defaultTitle ?? (role === "admin" ? t("dashboard.adminDashboard") : t("dashboard.partnerDashboard")),
       ),
     [location.pathname, items, groups, defaultTitle, role],
   );
@@ -67,7 +69,7 @@ export function DashboardShell({
     } finally {
       setShowLogoutConfirm(false);
       contextLogout();
-      success("Signed out successfully.");
+      success(t("dashboard.signedOutSuccess"));
     }
   };
 
@@ -78,7 +80,7 @@ export function DashboardShell({
       {sidebarOpen && (
         <button
           type="button"
-          aria-label="Close menu"
+          aria-label={t("dashboard.closeSidebar")}
           className="glass-overlay fixed inset-0 z-30 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -120,10 +122,10 @@ export function DashboardShell({
         open={showLogoutConfirm}
         onClose={() => setShowLogoutConfirm(false)}
         onConfirm={handleLogout}
-        title="Sign out"
-        message="Are you sure you want to sign out of your account?"
-        confirmText="Sign out"
-        cancelText="Cancel"
+        title={t("dashboard.signOut")}
+        message={t("dashboard.signOutConfirm")}
+        confirmText={t("dashboard.signOut")}
+        cancelText={t("common.cancel")}
       />
     </div>
   );

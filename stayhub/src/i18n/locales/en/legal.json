@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Legal",
+  "documents": "Documents",
+  "onThisPage": "On this page",
+  "updated": "Updated {{date}}",
+  "backToRegistration": "Back to registration",
+  "backToSignIn": "Back to sign in",
+  "questionsTitle": "Questions about this policy?",
+  "questionsContactPrefix": "Contact",
+  "questionsContactOr": "or",
+  "readRelated": "Read {{label}}",
+  "termsTitle": "Terms of Service",
+  "termsSubtitle": "Booking rules, account responsibilities, and how you may use the StayHub platform.",
+  "privacyTitle": "Privacy Policy",
+  "privacySubtitle": "How StayHub collects, uses, stores, and protects your personal data when you use our tour booking platform.",
+  "termsNavLabel": "Terms of Service",
+  "termsNavDesc": "Booking rules, cancellations, and platform use",
+  "privacyNavLabel": "Privacy Policy",
+  "privacyNavDesc": "How we collect and protect your data",
+  "relatedTerms": "Terms of Service",
+  "relatedPrivacy": "Privacy Policy"
+}

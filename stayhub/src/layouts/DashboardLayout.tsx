@@ -12,81 +12,84 @@ import {
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
+import { useTranslation } from "../contexts/LocaleContext";
 import { DashboardShell } from "./shared/DashboardShell";
 import type { AdminSidebarGroup } from "./Sidebar";
 
 const iconClass = "h-[18px] w-[18px]";
 
 export const DashboardLayout = () => {
+  const { t } = useTranslation();
+
   const groups = useMemo<AdminSidebarGroup[]>(
     () => [
       {
-        title: "Overview",
+        title: t("manager.overview"),
         items: [
           {
-            label: "Dashboard",
+            label: t("manager.dashboard"),
             to: PATH.MANAGER.DASHBOARD,
             icon: <LayoutDashboard className={iconClass} />,
           },
         ],
       },
       {
-        title: "Tours & schedules",
+        title: t("manager.toursSchedules"),
         items: [
           {
-            label: "My tours",
+            label: t("manager.myTours"),
             to: PATH.MANAGER.MY_TOURS,
             icon: <BookOpen className={iconClass} />,
           },
           {
-            label: "Schedules",
+            label: t("manager.schedules"),
             to: PATH.MANAGER.SCHEDULE_MANAGEMENT,
             icon: <CalendarDays className={iconClass} />,
           },
         ],
       },
       {
-        title: "Sales",
+        title: t("manager.sales"),
         items: [
           {
-            label: "Bookings",
+            label: t("manager.bookings"),
             to: PATH.MANAGER.BOOKING_MANAGEMENT,
             icon: <TicketPercent className={iconClass} />,
           },
           {
-            label: "Cancellations",
+            label: t("manager.cancellations"),
             to: PATH.MANAGER.CANCELLATION_REQUESTS,
             icon: <FileText className={iconClass} />,
           },
           {
-            label: "Vouchers",
+            label: t("manager.vouchers"),
             to: PATH.MANAGER.VOUCHERS,
             icon: <Ticket className={iconClass} />,
           },
         ],
       },
       {
-        title: "Insights",
+        title: t("manager.insights"),
         items: [
           {
-            label: "Reviews",
+            label: t("manager.reviews"),
             to: PATH.MANAGER.REVIEWS,
             icon: <Star className={iconClass} />,
           },
           {
-            label: "Customer analytics",
+            label: t("manager.customerAnalytics"),
             to: PATH.MANAGER.CUSTOMER_ANALYTICS,
             icon: <BarChart3 className={iconClass} />,
           },
           {
-            label: "Finance",
+            label: t("manager.finance"),
             to: PATH.MANAGER.PAYOUT,
             icon: <CircleDollarSign className={iconClass} />,
           },
         ],
       },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -94,10 +97,10 @@ export const DashboardLayout = () => {
       role="partner"
       logoLink={PATH.MANAGER.DASHBOARD}
       groups={groups}
-      defaultTitle="Partner dashboard"
+      defaultTitle={t("manager.partnerDashboard")}
       badge={
         <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
-          Partner
+          {t("manager.partner")}
         </span>
       }
     />

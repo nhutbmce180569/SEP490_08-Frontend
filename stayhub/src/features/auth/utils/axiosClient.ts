@@ -2,6 +2,7 @@ import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig, type A
 import { decodeJWT } from "./jwt";
 import { AUTH_API, FULL_API } from "../../../config/api";
 import { PATH } from "../../../config/routes/route";
+import { applyLanguageToAxiosConfig } from "../../../utils/httpLanguage";
 
 const axiosClient = axios.create({
   baseURL: FULL_API,
@@ -42,7 +43,7 @@ axiosClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    return config;
+    return applyLanguageToAxiosConfig(config);
   },
   (error: any) => Promise.reject(error)
 );

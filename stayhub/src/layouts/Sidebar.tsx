@@ -5,6 +5,7 @@ import { ChevronRight, X } from "lucide-react";
 import { PATH } from "../config/routes/route";
 import { StayHubLogo } from "../components/brand/StayHubLogo";
 import type { DashboardRole } from "./shared/DashboardTopBar";
+import { useTranslation } from "../contexts/LocaleContext";
 
 export type AdminSidebarItem = {
   label: string;
@@ -101,6 +102,7 @@ export function Sidebar({
   badge?: React.ReactNode;
   variant?: DashboardRole;
 }) {
+  const { t } = useTranslation();
   return (
     <aside
       className={[
@@ -125,7 +127,7 @@ export function Sidebar({
         </div>
 
         {!collapsed && (
-          <button type="button" className="icon-btn md:hidden" onClick={onClose} aria-label="Close menu">
+          <button type="button" className="icon-btn md:hidden" onClick={onClose} aria-label={t("dashboard.closeSidebar")}>
             <X className="h-5 w-5" />
           </button>
         )}
@@ -169,11 +171,9 @@ export function Sidebar({
           <div
             className="rounded-2xl bg-brand-light/80 p-3.5 text-xs leading-relaxed text-brand"
           >
-            <p className="font-bold">StayHub {variant === "admin" ? "Admin" : "Partner"}</p>
+            <p className="font-bold">{variant === "admin" ? t("dashboard.stayhubAdmin") : t("dashboard.stayhubPartner")}</p>
             <p className="mt-1 opacity-80">
-              {variant === "admin"
-                ? "Centralized travel platform management."
-                : "Optimize tours, schedules, and revenue."}
+              {variant === "admin" ? t("dashboard.adminSidebarDesc") : t("dashboard.partnerSidebarDesc")}
             </p>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { Search, X, Navigation, MapPin } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { extractLocationFromPlace } from "../services/mapGeocoding.service";
 import { useMapPicker, type MapPickerMode } from "../hooks/useMapPicker";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface MapPickerModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
   onClose,
   onConfirm,
 }) => {
+  const { t } = useTranslation();
   const {
     mapRef,
     queries,
@@ -59,10 +61,8 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
       <div className="flex h-[80vh] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-5 py-4">
           <div>
-            <h3 className="text-[15px] font-bold text-slate-800">Pick Location on Map</h3>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Search a place, click the map, or drag the pin. Address details are filled automatically.
-            </p>
+            <h3 className="text-[15px] font-bold text-slate-800">{t("tour.mapPickerTitle")}</h3>
+            <p className="mt-0.5 text-xs text-slate-500">{t("tour.mapPickerSubtitle")}</p>
           </div>
           <button
             onClick={onClose}
@@ -81,7 +81,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
                 onFocus={() => handleFocusPin("single")}
                 onChange={(e) => handleInputChange(e.target.value, "single")}
                 onKeyDown={(e) => e.key === "Enter" && handleSearchLocation("single")}
-                placeholder="Search for a place or click on the map..."
+                placeholder={t("tour.mapSearchPlaceholder")}
                 className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-brand focus:bg-white"
               />
               <ActionButton
@@ -89,7 +89,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
                 onClick={handleLocateMe}
                 disabled={isSearching}
                 className="shrink-0 px-4 py-2.5"
-                title="Use Current Location"
+                title={t("tour.mapUseCurrentLocation")}
               >
                 <Navigation className="h-4 w-4 text-indigo-600" />
               </ActionButton>
@@ -117,7 +117,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
                   onFocus={() => handleFocusPin("start")}
                   onChange={(e) => handleInputChange(e.target.value, "start")}
                   onKeyDown={(e) => e.key === "Enter" && handleSearchLocation("start")}
-                  placeholder="Start location..."
+                  placeholder={t("tour.mapStartPlaceholder")}
                   className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white"
                 />
                 <ActionButton
@@ -125,7 +125,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
                   onClick={handleLocateMe}
                   disabled={isSearching}
                   className="shrink-0 px-3"
-                  title="Use Current Location"
+                  title={t("tour.mapUseCurrentLocation")}
                 >
                   <Navigation className="h-4 w-4 text-indigo-600" />
                 </ActionButton>
@@ -151,7 +151,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
                   onFocus={() => handleFocusPin("end")}
                   onChange={(e) => handleInputChange(e.target.value, "end")}
                   onKeyDown={(e) => e.key === "Enter" && handleSearchLocation("end")}
-                  placeholder="End location..."
+                  placeholder={t("tour.mapEndPlaceholder")}
                   className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-rose-400 focus:bg-white"
                 />
                 <ActionButton
@@ -213,7 +213,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
             {mode === "single"
               ? locations.single
                 ? locations.single.formatted_address
-                : "Click on the map to drop a pin"
+                : t("tour.mapClickToDropPin")
               : (
                 <div className="flex gap-4">
                   <span className="text-emerald-600">
@@ -233,7 +233,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
             disabled={mode === "single" ? !locations.single : !locations.start && !locations.end}
             className="px-6 py-2.5 shadow-sm"
           >
-            {mode === "single" ? "Confirm Location" : "Confirm Route"}
+            {mode === "single" ? t("tour.mapConfirmLocation") : t("tour.mapConfirmRoute")}
           </ActionButton>
         </div>
       </div>

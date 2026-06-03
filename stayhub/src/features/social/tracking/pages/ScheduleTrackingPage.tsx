@@ -5,6 +5,7 @@ import * as signalR from "@microsoft/signalr";
 import { MapPin } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 
 interface LiveLocation {
   userId: number;
@@ -18,6 +19,7 @@ interface LiveLocation {
 const defaultCenter = { lat: 16.047079, lng: 108.206230 };
 
 export const ScheduleTrackingPage: React.FC = () => {
+  const { t } = useTranslation();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
   const { data, isLoading, isError } = useGetScheduleLiveLocations(scheduleIdNumber);
@@ -49,7 +51,7 @@ export const ScheduleTrackingPage: React.FC = () => {
   useEffect(() => {
     if (scheduleIdNumber <= 0) {
       if (isMountedRef.current) {
-        setErrorMessage("Schedule ID is invalid.");
+        setErrorMessage(t("social.trackingScheduleInvalid"));
       }
       return;
     }
@@ -57,7 +59,7 @@ export const ScheduleTrackingPage: React.FC = () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       if (isMountedRef.current) {
-        setErrorMessage("Bạn cần đăng nhập để theo dõi tour.");
+        setErrorMessage(t("social.trackingLoginRequired"));
       }
       return;
     }
@@ -79,7 +81,7 @@ export const ScheduleTrackingPage: React.FC = () => {
     // Set up error handler before starting
     connection.onclose(async () => {
       if (isMountedRef.current) {
-        setErrorMessage("Kết nối bị ngắt. Đang kết nối lại...");
+        setErrorMessage(t("social.trackingReconnecting"));
       }
     });
 
@@ -109,14 +111,14 @@ export const ScheduleTrackingPage: React.FC = () => {
         } catch (err) {
           console.error("Failed to join tour tracking group:", err);
           if (isMountedRef.current) {
-            setErrorMessage("Không thể tham gia nhóm theo dõi. Vui lòng thử lại sau.");
+            setErrorMessage(t("social.trackingJoinFailed"));
           }
         }
       })
       .catch((err) => {
         console.error("SignalR connection failed:", err);
         if (isMountedRef.current) {
-          setErrorMessage("Không thể kết nối Real-time. Vui lòng thử lại sau.");
+          setErrorMessage(t("social.trackingRealtimeFailed"));
         }
       });
 
@@ -154,8 +156,8 @@ export const ScheduleTrackingPage: React.FC = () => {
         <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-rose-100">
           <MapPin className="h-12 w-12 text-rose-500" />
         </div>
-        <h2 className="mb-2 text-2xl font-black text-slate-800">Không thể mở bản đồ</h2>
-        <p className="max-w-md text-slate-500">{errorMessage || "Không thể tải danh sách vị trí hiện tại. Vui lòng thử lại sau."}</p>
+        <h2 className="mb-2 text-2xl font-black text-slate-800">{t("social.trackingMapErrorTitle")}</h2>
+        <p className="max-w-md text-slate-500">{errorMessage || t("social.trackingMapErrorDefault")}</p>
       </div>
     );
   }
@@ -165,11 +167,11 @@ export const ScheduleTrackingPage: React.FC = () => {
       <div className="absolute left-1/2 top-6 z-10 w-max max-w-[90%] -translate-x-1/2 rounded-full border border-white/20 bg-black/60 px-6 py-3 shadow-2xl backdrop-blur-md">
         <div className="flex flex-col gap-2 text-center text-white sm:flex-row sm:items-center sm:gap-4">
           <div>
-            <p className="text-sm font-medium">Bản đồ theo dõi Tour #{scheduleIdNumber}</p>
-            <p className="text-xs text-slate-300">Hiển thị vị trí khách hàng đang tham gia tour.</p>
+            <p className="text-sm font-medium">{t("social.trackingScheduleMapTitle", { id: scheduleIdNumber })}</p>
+            <p className="text-xs text-slate-300">{t("social.trackingScheduleMapDesc")}</p>
           </div>
           <div className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
-            Real-time
+            {t("social.trackingRealtimeBadge")}
           </div>
         </div>
       </div>
@@ -187,13 +189,13 @@ export const ScheduleTrackingPage: React.FC = () => {
           <Marker
             key={location.userId}
             position={{ lat: location.lat, lng: location.lng }}
-            label={{ text: location.fullName || "Khách", color: "#ffffff", fontSize: "10px", fontWeight: "700" }}
+            label={{ text: location.fullName || t("social.trackingGuestLabel"), color: "#ffffff", fontSize: "10px", fontWeight: "700" }}
           />
         ))}
       </GoogleMap>
 
       <div className="absolute right-4 top-28 z-10 rounded-3xl border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur-md">
-        <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-600">Khách hàng đang theo dõi</h3>
+        <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-600">{t("social.trackingCustomersWatching")}</h3>
         <div className="mt-3 space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
           {locations.length > 0 ? (
             locations.map((location) => (
@@ -203,7 +205,7 @@ export const ScheduleTrackingPage: React.FC = () => {
               </div>
             ))
           ) : (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">Chưa có vị trí nào được gửi.</div>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">{t("social.trackingNoLocationsYet")}</div>
           )}
         </div>
       </div>

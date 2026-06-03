@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import type { QuestionnaireField, QuestionnaireFormValues } from "../types/tourAssistant";
 
 const inputBase =
@@ -22,6 +23,8 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
   error,
   onChange,
 }) => {
+  const { t } = useTranslation();
+
   switch (field.inputType) {
     case "single_select":
       return (
@@ -105,7 +108,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
             }
             className={`${inputBase} ${error ? inputError : ""}`}
           />
-          <p className="mt-1 text-[11px] font-medium text-[var(--text-muted)]">Per person · VND</p>
+          <p className="mt-1 text-[11px] font-medium text-[var(--text-muted)]">{t("ai.perPersonVnd")}</p>
           {error && <p className="mt-1 text-xs font-bold text-rose-500">{error}</p>}
         </div>
       );
@@ -114,8 +117,8 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
       return (
         <div className="flex gap-2">
           {[
-            { v: true, label: "Yes" },
-            { v: false, label: "No" },
+            { v: true, label: t("common.yes") },
+            { v: false, label: t("common.no") },
           ].map(({ v, label }) => (
             <button
               key={label}
@@ -141,7 +144,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
           <input
             type="text"
             maxLength={100}
-            placeholder="Type here…"
+            placeholder={t("ai.typeHere")}
             value={(value as string) ?? ""}
             onChange={(e) => onChange(field.fieldKey, e.target.value)}
             className={`${inputBase} ${error ? inputError : ""}`}

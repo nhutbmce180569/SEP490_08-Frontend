@@ -25,7 +25,8 @@ import { PATH } from "../../../config/routes/route";
 import { useOrderDetail } from "../hooks/useOrderDetail";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useGroupedItineraries } from "../../tour/hooks/useGroupedItineraries";
-import { ReviewForm } from "../../tour/pages/ReviewForm"; 
+import { ReviewForm } from "../../tour/pages/ReviewForm";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useQuery } from "@tanstack/react-query";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
@@ -79,6 +80,7 @@ const getCancellationFeePercent = (daysUntilDeparture: number) => {
 };
 
 export const OrderDetailPage: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { order, isLoading, error, refetch } = useOrderDetail(id);
@@ -131,7 +133,7 @@ export const OrderDetailPage: React.FC = () => {
   }, [order]);
 
   const { data: ticketTypeNames = {} } = useQuery({
-    queryKey: ["order-ticket-types", ticketTypeIds],
+    queryKey: ["order-ticket-types", ticketTypeIds, t],
     queryFn: async () => {
       const entries = await Promise.all(
         ticketTypeIds.map(async (ticketTypeId) => {
@@ -139,7 +141,7 @@ export const OrderDetailPage: React.FC = () => {
             const ticketType = await ticketTypeService.getById(ticketTypeId);
             return [ticketTypeId, ticketType.name] as const;
           } catch {
-            return [ticketTypeId, `Ticket type #${ticketTypeId}`] as const;
+            return [ticketTypeId, t("booking.ticketTypeFallback", { id: ticketTypeId })] as const;
           }
         }),
       );
@@ -152,7 +154,7 @@ export const OrderDetailPage: React.FC = () => {
   if (isLoading) {  
     return (
       <div className="flex h-64 items-center justify-center text-slate-500">
-        Loading order details...
+        {t("booking.loadingOrderDetails")}
       </div>
     );
   }
@@ -162,17 +164,16 @@ export const OrderDetailPage: React.FC = () => {
       <div className="mx-auto max-w-3xl py-12 text-center">
         <ClipboardList size={48} className="mx-auto mb-4 text-slate-300" />
         <h4 className="text-xl font-bold text-slate-900 mb-2">
-          Order not found
+          {t("booking.orderNotFound")}
         </h4>
         <p className="text-slate-500">
-          {error ||
-            "The order you requested does not exist or has already been removed."}
+          {error || t("booking.orderNotFoundDesc")}
         </p>
         <Link
           to={PATH.CUSTOMER.MY_BOOKINGS}
           className="mt-6 inline-flex rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 !no-underline"
         >
-          Go back to My Bookings
+          {t("booking.backToMyBookings")}
         </Link>
       </div>
     );
@@ -240,8 +241,8 @@ export const OrderDetailPage: React.FC = () => {
       : Math.max(0, order.finalAmount - cancellationFeeAmount);
 
   const getTicketTypeName = (ticketTypeId?: number | null) => {
-    if (!ticketTypeId) return "Ticket";
-    return ticketTypeNames[ticketTypeId] ?? `Ticket type #${ticketTypeId}`;
+    if (!ticketTypeId) return t("booking.ticketFallback");
+    return ticketTypeNames[ticketTypeId] ?? t("booking.ticketTypeFallback", { id: ticketTypeId });
   };
 
   const getTicketDetail = (ticket: (typeof tickets)[number]) =>
@@ -267,7 +268,7 @@ export const OrderDetailPage: React.FC = () => {
           className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-brand/30 hover:bg-brand-light/40 hover:text-brand"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back to My Bookings
+          {t("booking.backToMyBookings")}
         </button>
 
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -289,7 +290,7 @@ export const OrderDetailPage: React.FC = () => {
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm ${statusClasses}`}
                 >
                   {isSettled ? <CheckCircle2 size={14} /> : <Clock size={14} />}
-                  {order.status || "Pending"}
+                  {order.status || t("common.pending")}
                 </span>
               </div>
             </div>
@@ -298,18 +299,18 @@ export const OrderDetailPage: React.FC = () => {
               <div className="space-y-3">
                 {bookedDate && (
                   <p className="text-xs font-semibold uppercase text-slate-400">
-                    Booked {dateFormatter.format(bookedDate)}
+                    {t("booking.booked", { date: dateFormatter.format(bookedDate) })}
                   </p>
                 )}
                 <h1 className="text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
-                  {order.tour?.name || "Tour Booking"}
+                  {order.tour?.name || t("booking.tourBooking")}
                 </h1>
                 <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
                   <MapPin className="h-4 w-4 shrink-0 text-brand" />
                   <span className="truncate">
                     {[order.tour?.city, order.tour?.country]
                       .filter(Boolean)
-                      .join(", ") || "Various Locations"}
+                      .join(", ") || t("booking.variousLocations")}
                   </span>
                 </p>
               </div>
@@ -317,7 +318,7 @@ export const OrderDetailPage: React.FC = () => {
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                   <p className="text-[11px] font-bold uppercase text-slate-400">
-                    Tickets
+                    {t("booking.tickets")}
                   </p>
                   <p className="mt-1 text-lg font-bold text-slate-950">
                     {ticketCount}
@@ -325,18 +326,18 @@ export const OrderDetailPage: React.FC = () => {
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                   <p className="text-[11px] font-bold uppercase text-slate-400">
-                    Days
+                    {t("booking.days")}
                   </p>
                   <p className="mt-1 text-lg font-bold text-slate-950">
-                    {(tripDurationDays ?? itineraryDayCount) || "N/A"}
+                    {(tripDurationDays ?? itineraryDayCount) || t("common.na")}
                   </p>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                   <p className="text-[11px] font-bold uppercase text-slate-400">
-                    Plan
+                    {t("booking.plan")}
                   </p>
                   <p className="mt-1 text-lg font-bold text-slate-950">
-                    {itineraryDayCount || "N/A"}
+                    {itineraryDayCount || t("common.na")}
                   </p>
                 </div>
               </div>
@@ -346,12 +347,12 @@ export const OrderDetailPage: React.FC = () => {
                   <div className="rounded-xl bg-emerald-50 p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-emerald-700">
                       <Calendar className="h-4 w-4" />
-                      Departure
+                      {t("booking.departure")}
                     </div>
                     <p className="text-base font-bold leading-snug text-slate-950">
                       {departureDate
                         ? tripDateFormatter.format(departureDate)
-                        : "N/A"}
+                        : t("common.na")}
                     </p>
                     {departureDate && (
                       <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
@@ -366,10 +367,10 @@ export const OrderDetailPage: React.FC = () => {
                   <div className="rounded-xl bg-sky-50 p-4">
                     <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase text-sky-700">
                       <Calendar className="h-4 w-4" />
-                      Return
+                      {t("booking.return")}
                     </div>
                     <p className="text-base font-bold leading-snug text-slate-950">
-                      {returnDate ? tripDateFormatter.format(returnDate) : "N/A"}
+                      {returnDate ? tripDateFormatter.format(returnDate) : t("common.na")}
                     </p>
                     {returnDate && (
                       <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
@@ -389,10 +390,10 @@ export const OrderDetailPage: React.FC = () => {
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-4">
                 <h2 className="text-base font-bold text-slate-950">
-                  Trip Documents
+                  {t("booking.tripDocuments")}
                 </h2>
                 <p className="mt-1 text-sm text-slate-500">
-                  Itinerary details and passenger QR tickets.
+                  {t("booking.tripDocumentsDesc")}
                 </p>
               </div>
 
@@ -410,10 +411,10 @@ export const OrderDetailPage: React.FC = () => {
                         </span>
                         <span className="min-w-0">
                           <span className="block text-sm font-bold text-slate-950">
-                            Itinerary
+                            {t("booking.itinerary")}
                           </span>
                           <span className="mt-1 block text-sm text-slate-500">
-                            {itineraryDayCount} day plan
+                            {t("booking.dayPlan", { count: itineraryDayCount })}
                           </span>
                         </span>
                       </span>
@@ -432,10 +433,12 @@ export const OrderDetailPage: React.FC = () => {
                     </span>
                     <span className="min-w-0">
                       <span className="block text-sm font-bold text-slate-950">
-                        Passenger Tickets
+                        {t("booking.passengerTickets")}
                       </span>
                       <span className="mt-1 block text-sm text-slate-500">
-                        {ticketCount} QR ticket{ticketCount === 1 ? "" : "s"}
+                        {ticketCount === 1
+                          ? t("booking.qrTicket", { count: ticketCount })
+                          : t("booking.qrTickets", { count: ticketCount })}
                       </span>
                     </span>
                   </span>
@@ -450,12 +453,12 @@ export const OrderDetailPage: React.FC = () => {
                   <div className="min-w-0 space-y-2">
                     <h2 className="flex items-center gap-2 text-base font-bold text-slate-950">
                       <Star className="h-5 w-5 shrink-0 text-brand" />
-                      {order.review ? "Your Review" : "Rate Your Experience"}
+                      {order.review ? t("booking.yourReview") : t("booking.rateExperience")}
                     </h2>
                     <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
                       {order.review
-                        ? `You rated this tour ${order.review.rating}/5 stars. You can update your feedback anytime.`
-                        : "Share your feedback after the trip so the host can improve future tours."}
+                        ? t("booking.reviewedStars", { rating: order.review.rating })
+                        : t("booking.shareFeedback")}
                     </p>
                   </div>
                   <ActionButton
@@ -463,7 +466,7 @@ export const OrderDetailPage: React.FC = () => {
                     className="w-full shrink-0 !border-brand !bg-brand px-6 text-sm font-bold hover:!bg-[var(--color-brand-hover)] xl:w-auto"
                     onClick={() => setIsReviewModalOpen(true)}
                   >
-                    {order.review ? "Edit Review" : "Write a Review"}
+                    {order.review ? t("booking.editReview") : t("booking.writeReview")}
                   </ActionButton>
                 </div>
               </section>
@@ -474,7 +477,7 @@ export const OrderDetailPage: React.FC = () => {
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <h2 className="mb-5 flex items-center gap-2 text-base font-bold text-slate-950">
                 <Banknote className="h-5 w-5 text-emerald-600" />
-                Payment Summary
+                {t("booking.paymentSummary")}
               </h2>
 
               <div className="space-y-4 text-sm">
@@ -490,7 +493,7 @@ export const OrderDetailPage: React.FC = () => {
                             {getTicketTypeName(detail.ticketTypeId)}
                           </p>
                           <p className="mt-0.5 text-xs font-medium text-slate-400">
-                            Quantity {detail.quantity}
+                            {t("booking.quantityLabel", { count: detail.quantity })}
                           </p>
                         </div>
                         <p className="shrink-0 whitespace-nowrap font-bold text-slate-950">
@@ -501,7 +504,7 @@ export const OrderDetailPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex items-center justify-between gap-4 text-slate-600">
-                    <span>Tickets</span>
+                    <span>{t("booking.tickets")}</span>
                     <span className="whitespace-nowrap text-right">
                       {ticketCount} x{" "}
                       {currencyFormatter.format(
@@ -514,21 +517,21 @@ export const OrderDetailPage: React.FC = () => {
 
                 <div className="space-y-3 border-t border-slate-100 pt-4">
                   <div className="flex justify-between gap-4 text-slate-600">
-                    <span>Subtotal</span>
+                    <span>{t("booking.subtotal")}</span>
                     <span className="font-semibold text-slate-950">
                       {currencyFormatter.format(subtotalAmount)}
                     </span>
                   </div>
                   {order.discountValue && order.discountValue > 0 ? (
                     <div className="flex justify-between gap-4 text-rose-600">
-                      <span>Discount</span>
+                      <span>{t("booking.discount")}</span>
                       <span>-{currencyFormatter.format(order.discountValue)}</span>
                     </div>
                   ) : null}
                 </div>
 
                 <div className="flex items-center justify-between gap-4 rounded-xl bg-brand-light px-4 py-3">
-                  <span className="font-bold text-slate-950">Total Paid</span>
+                  <span className="font-bold text-slate-950">{t("booking.totalPaid")}</span>
                   <span className="whitespace-nowrap text-lg font-bold text-brand">
                     {currencyFormatter.format(order.finalAmount)}
                   </span>
@@ -539,14 +542,14 @@ export const OrderDetailPage: React.FC = () => {
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <h2 className="mb-3 flex items-center gap-2 text-base font-bold text-slate-950">
                 <Info className="h-5 w-5 text-sky-500" />
-                Booking Notes
+                {t("booking.bookingNotes")}
               </h2>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
                 {order.note ? (
                   order.note
                 ) : (
                   <span className="italic text-slate-400">
-                    No special requests provided.
+                    {t("booking.noSpecialRequests")}
                   </span>
                 )}
               </p>
@@ -556,19 +559,17 @@ export const OrderDetailPage: React.FC = () => {
               <section className="rounded-2xl border border-rose-200 bg-rose-50 p-5 shadow-sm sm:p-6">
                 <h2 className="mb-2 flex items-center gap-2 text-base font-bold text-rose-900">
                   <AlertTriangle className="h-5 w-5 text-rose-500" />
-                  Cancellation Request
+                  {t("booking.cancellationRequest")}
                 </h2>
                 <p className="mb-4 text-sm leading-relaxed text-rose-700">
-                  You can request cancellation for paid bookings before the
-                  last day. A cancellation fee may be deducted based on the
-                  departure date.
+                  {t("booking.cancellationRequestDesc")}
                 </p>
                 <ActionButton
                   variant="outline"
                   className="w-full !border-rose-200 !text-rose-600 hover:!border-rose-300 hover:!bg-rose-100"
                   onClick={handleRequestCancellation}
                 >
-                  Request Cancellation
+                  {t("booking.requestCancellation")}
                 </ActionButton>
               </section>
             )}
@@ -598,11 +599,10 @@ export const OrderDetailPage: React.FC = () => {
                 </span>
                 <div>
                   <h3 className="text-base font-bold text-slate-950">
-                    Cancellation policy
+                    {t("booking.cancellationPolicy")}
                   </h3>
                   <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                    Please review the estimated fee before creating a
-                    cancellation request.
+                    {t("booking.reviewFeeBeforeCancel")}
                   </p>
                 </div>
               </div>
@@ -611,17 +611,17 @@ export const OrderDetailPage: React.FC = () => {
             <div className="space-y-4 px-6 py-5 text-sm">
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <div className="flex justify-between gap-4">
-                  <span className="text-slate-500">Departure</span>
+                  <span className="text-slate-500">{t("booking.departure")}</span>
                   <span className="text-right font-semibold text-slate-900">
-                    {departureDate ? dateFormatter.format(departureDate) : "N/A"}
+                    {departureDate ? dateFormatter.format(departureDate) : t("common.na")}
                   </span>
                 </div>
                 <div className="mt-3 flex justify-between gap-4">
-                  <span className="text-slate-500">Time remaining</span>
+                  <span className="text-slate-500">{t("booking.timeRemaining")}</span>
                   <span className="font-semibold text-slate-900">
                     {daysUntilDeparture === null
-                      ? "N/A"
-                      : `${Math.max(daysUntilDeparture, 0)} day(s)`}
+                      ? t("common.na")
+                      : t("booking.daysRemaining", { count: Math.max(daysUntilDeparture, 0) })}
                   </span>
                 </div>
               </div>
@@ -629,31 +629,29 @@ export const OrderDetailPage: React.FC = () => {
               {canCancelByDepartureDate ? (
                 <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
                   <div className="flex justify-between gap-4">
-                    <span className="text-amber-800">Cancellation fee</span>
+                    <span className="text-amber-800">{t("booking.cancellationFee")}</span>
                     <span className="font-bold text-amber-900">
                       {cancellationFeePercent}% (
                       {currencyFormatter.format(cancellationFeeAmount ?? 0)})
                     </span>
                   </div>
                   <div className="flex justify-between gap-4">
-                    <span className="text-amber-800">Estimated refund</span>
+                    <span className="text-amber-800">{t("booking.estimatedRefund")}</span>
                     <span className="font-bold text-emerald-700">
                       {currencyFormatter.format(estimatedRefundAmount ?? 0)}
                     </span>
                   </div>
                   <p className="text-xs leading-relaxed text-amber-700">
-                    Fee rule: within 15 days is 5%, within 10 days is 10%,
-                    within 5 days is 15%, and within 2 days is 20%.
+                    {t("booking.feeRule")}
                   </p>
                 </div>
               ) : (
                 <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
                   <p className="font-semibold text-rose-800">
-                    This booking cannot be cancelled.
+                    {t("booking.cannotCancel")}
                   </p>
                   <p className="mt-1 text-sm leading-relaxed text-rose-700">
-                    Cancellation is not allowed when the tour starts within 1
-                    day, or when the departure date cannot be verified.
+                    {t("booking.cannotCancelDesc")}
                   </p>
                 </div>
               )}
@@ -665,7 +663,7 @@ export const OrderDetailPage: React.FC = () => {
                 onClick={() => setIsCancellationPolicyOpen(false)}
                 className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
               >
-                Close
+                {t("common.close")}
               </button>
               <button
                 type="button"
@@ -673,7 +671,7 @@ export const OrderDetailPage: React.FC = () => {
                 onClick={handleConfirmCancellationPolicy}
                 className="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:bg-slate-300"
               >
-                Continue
+                {t("booking.continue")}
               </button>
             </div>
           </div>
@@ -690,8 +688,10 @@ export const OrderDetailPage: React.FC = () => {
                   <Calendar size={20} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Schedule Itinerary</h3>
-                  <p className="text-xs font-medium text-slate-500">{Object.keys(groupedItineraries).length} days of activities</p>
+                  <h3 className="text-lg font-bold text-slate-900">{t("booking.scheduleItinerary")}</h3>
+                  <p className="text-xs font-medium text-slate-500">
+                    {t("booking.daysOfActivities", { count: Object.keys(groupedItineraries).length })}
+                  </p>
                 </div>
               </div>
               <button onClick={() => setIsItineraryModalOpen(false)} className="rounded-full p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
@@ -721,11 +721,11 @@ export const OrderDetailPage: React.FC = () => {
                           <div>
                             <div className="flex items-center gap-2">
                               <h3 className={`text-base font-bold ${isToday ? "text-brand" : "text-slate-800"}`}>
-                                Day {dayNumber}
+                                {t("booking.dayNumber", { count: dayNumber })}
                               </h3>
                               {isToday && (
                                 <span className="rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-rose-600 animate-pulse">
-                                  Today
+                                  {t("booking.today")}
                                 </span>
                               )}
                             </div>
@@ -748,7 +748,7 @@ export const OrderDetailPage: React.FC = () => {
                           const isExpanded = expandedItiIds.includes(iti.id);
                           const timeStr = iti.startDuration && iti.endDuration
                             ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
-                            : iti.startDuration ? iti.startDuration.substring(0, 5) : "Any time";
+                            : iti.startDuration ? iti.startDuration.substring(0, 5) : t("booking.anyTime");
                           const tourismInfo = iti.tourismInfoId
                             ? tourismInformationDetails[iti.tourismInfoId]
                             : null;
@@ -790,13 +790,13 @@ export const OrderDetailPage: React.FC = () => {
                                       {iti.startLocationName && (
                                         <div className="flex items-start gap-2">
                                           <MapPin className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                          <div><span className="font-semibold text-slate-700">Start:</span> {iti.startLocationName}</div>
+                                          <div><span className="font-semibold text-slate-700">{t("booking.startLocation")}</span> {iti.startLocationName}</div>
                                         </div>
                                       )}
                                       {iti.endLocationName && (
                                         <div className="flex items-start gap-2">
                                           <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
-                                          <div><span className="font-semibold text-slate-700">End:</span> {iti.endLocationName}</div>
+                                          <div><span className="font-semibold text-slate-700">{t("booking.endLocation")}</span> {iti.endLocationName}</div>
                                         </div>
                                       )}
                                     </div>
@@ -815,7 +815,7 @@ export const OrderDetailPage: React.FC = () => {
                                             ) : (
                                               <div className="flex flex-col items-center gap-2 text-slate-400">
                                                 <ImageIcon className="h-7 w-7" />
-                                                <span className="text-xs font-medium">No image</span>
+                                                <span className="text-xs font-medium">{t("content.noImage")}</span>
                                               </div>
                                             )}
                                           </div>
@@ -836,12 +836,15 @@ export const OrderDetailPage: React.FC = () => {
                                               <span>
                                                 {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
                                                   .filter(Boolean)
-                                                  .join(", ") || "N/A"}
+                                                  .join(", ") || t("common.na")}
                                               </span>
                                             </div>
                                             {(tourismInfo.latitude || tourismInfo.longitude) && (
                                               <div className="text-xs font-medium text-slate-400">
-                                                Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
+                                                {t("booking.latLng", {
+                                                  lat: String(tourismInfo.latitude ?? t("common.na")),
+                                                  lng: String(tourismInfo.longitude ?? t("common.na")),
+                                                })}
                                               </div>
                                             )}
                                             {tourismInfo.sourceUrl && (
@@ -851,7 +854,7 @@ export const OrderDetailPage: React.FC = () => {
                                                 rel="noreferrer"
                                                 className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700"
                                               >
-                                                {tourismInfo.sourceName || "Source"}
+                                                {tourismInfo.sourceName || t("content.source")}
                                                 <ExternalLink className="h-3.5 w-3.5" />
                                               </a>
                                             )}
@@ -861,7 +864,7 @@ export const OrderDetailPage: React.FC = () => {
                                         <div className="flex items-start gap-2 p-3">
                                           <MapPin className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
                                           <span className="font-semibold text-slate-700">
-                                            Tourism info ID #{iti.tourismInfoId}
+                                            {t("booking.tourismInfoId", { id: iti.tourismInfoId })}
                                           </span>
                                         </div>
                                       )}
@@ -891,8 +894,10 @@ export const OrderDetailPage: React.FC = () => {
                   <Users size={20} />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Passenger Tickets</h3>
-                  <p className="text-xs font-medium text-slate-500">{order.ticketCount} passenger(s) booked</p>
+                  <h3 className="text-lg font-bold text-slate-900">{t("booking.passengerTickets")}</h3>
+                  <p className="text-xs font-medium text-slate-500">
+                    {t("booking.passengerBooked", { count: order.ticketCount })}
+                  </p>
                 </div>
               </div>
               <button onClick={() => setIsTicketsModalOpen(false)} className="rounded-full p-2 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors">
@@ -912,7 +917,7 @@ export const OrderDetailPage: React.FC = () => {
                       <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                         <div className="min-w-0">
                           <span className="block text-sm font-semibold text-slate-800">
-                            Passenger {idx + 1}
+                            {t("booking.passenger", { count: idx + 1 })}
                           </span>
                           <span className="mt-0.5 block truncate text-xs font-medium text-brand">
                             {ticketTypeName}
@@ -928,31 +933,31 @@ export const OrderDetailPage: React.FC = () => {
                           }`}
                         >
                           {ticket.checkInStatus === "CheckedIn" || ticket.checkInStatus === "Checked"
-                            ? "Checked In"
+                            ? t("booking.checkedIn")
                             : ticket.checkInStatus === "Cancelled"
-                              ? "Cancelled"
-                              : "Pending"}
+                              ? t("common.cancelled")
+                              : t("common.pending")}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm">
                         <div>
-                          <p className="text-xs text-slate-500">Name</p>
+                          <p className="text-xs text-slate-500">{t("common.nameLabel")}</p>
                           <p className="font-medium text-slate-900">{ticket.attendeeName}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Ticket Type</p>
+                          <p className="text-xs text-slate-500">{t("booking.ticketType")}</p>
                           <p className="font-medium text-slate-900">{ticketTypeName}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">ID / Passport</p>
+                          <p className="text-xs text-slate-500">{t("booking.idPassport")}</p>
                           <p className="font-medium text-slate-900">{ticket.idCard}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Nationality</p>
+                          <p className="text-xs text-slate-500">{t("booking.nationalityCol")}</p>
                           <p className="font-medium text-slate-900">{ticket.nationality || "—"}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">DOB</p>
+                          <p className="text-xs text-slate-500">{t("booking.dob")}</p>
                           <p className="font-medium text-slate-900">
                             {ticket.dateOfBirth ? new Date(ticket.dateOfBirth).toLocaleDateString() : "—"}
                           </p>

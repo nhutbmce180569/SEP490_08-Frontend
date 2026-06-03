@@ -7,6 +7,7 @@ import {
   formatDateTime,
   formatNumber,
 } from '../utils/analyticsHelpers';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 interface TopCustomersTableProps {
   customers: TopCustomerAnalytics[];
@@ -25,6 +26,7 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
   isLoading,
   onViewCustomer,
 }) => {
+  const { t } = useTranslation();
   const rows = useMemo(() => customers.slice(0, 10), [customers]);
 
   if (isLoading) {
@@ -40,7 +42,7 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
   if (rows.length === 0) {
     return (
       <p className="py-12 text-center text-sm text-slate-400">
-        No customer data available for this time period
+        {t('analytics.customer.noCustomerData')}
       </p>
     );
   }

@@ -6,6 +6,7 @@ import {
   getDateRangeFromPreset,
   toDateInputValue,
 } from '../utils/analyticsHelpers';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 interface DateRangeFilterProps {
   preset: DatePreset;
@@ -16,13 +17,6 @@ interface DateRangeFilterProps {
   onToChange: (iso: string) => void;
 }
 
-const PRESETS: { value: DatePreset; label: string }[] = [
-  { value: '7d', label: '7 days' },
-  { value: '30d', label: '30 days' },
-  { value: '90d', label: '90 days' },
-  { value: 'custom', label: 'Custom' },
-];
-
 export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   preset,
   from,
@@ -31,6 +25,15 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
   onFromChange,
   onToChange,
 }) => {
+  const { t } = useTranslation();
+
+  const PRESETS: { value: DatePreset; labelKey: string }[] = [
+    { value: '7d', labelKey: 'analytics.customer.preset7d' },
+    { value: '30d', labelKey: 'analytics.customer.preset30d' },
+    { value: '90d', labelKey: 'analytics.customer.preset90d' },
+    { value: 'custom', labelKey: 'analytics.customer.presetCustom' },
+  ];
+
   const handlePreset = (value: DatePreset) => {
     onPresetChange(value);
     if (value !== 'custom') {
@@ -44,7 +47,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
     <div className="flex flex-wrap items-center gap-3">
       <div className="flex items-center gap-2 text-sm font-semibold text-slate-600">
         <CalendarDays className="h-4 w-4 text-brand" />
-        <span>Date range</span>
+        <span>{t('analytics.customer.dateRange')}</span>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
@@ -59,7 +62,7 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
                 : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
             }`}
           >
-            {p.label}
+            {t(p.labelKey)}
           </button>
         ))}
       </div>

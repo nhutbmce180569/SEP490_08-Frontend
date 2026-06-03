@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { ticketService } from '../services/ticket.service'; // Chỉnh lại đường dẫn tới file service vừa tạo
+import { ticketService } from '../services/ticket.service';
+import { tStored } from '../../../i18n/tStored';
 
 // Định nghĩa kiểu dữ liệu cho kết quả quét vé
 export interface CheckInResult {
@@ -24,7 +25,7 @@ export const useTicketCheckin = () => {
       
       const successResult: CheckInResult = {
         status: 'success',
-        message: res?.message || 'Check-in thành công!',
+        message: res?.message || tStored('booking.checkInSuccess'),
         ticketData: res?.data
       };
       
@@ -32,7 +33,7 @@ export const useTicketCheckin = () => {
       return successResult;
 
     } catch (err: any) {
-      const errorMsg = err.response?.data?.message || err.message || 'Lỗi khi quét vé. Vui lòng thử lại.';
+      const errorMsg = err.response?.data?.message || err.message || tStored('booking.scanTicketFailed');
       
       const errorResult: CheckInResult = {
         status: 'error',

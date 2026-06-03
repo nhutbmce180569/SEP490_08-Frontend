@@ -1,5 +1,6 @@
 import axios from "axios";
 import { FULL_API } from "../../../../config/api/api";
+import { withLanguageHeaders } from "../../../../utils/httpLanguage";
 
 export interface TrackingInfo {
   userId: number;
@@ -13,9 +14,9 @@ export interface TrackingInfo {
 const getAuthConfig = () => {
   const token = localStorage.getItem("accessToken");
   return {
-    headers: {
+    headers: withLanguageHeaders({
       Authorization: `Bearer ${token}`,
-    },
+    }),
   };
 };
 
@@ -27,7 +28,9 @@ export const trackingService = {
   },
 
   getPublicTrackingInfo: async (token: string): Promise<TrackingInfo> => {
-    const response = await axios.get(`${FULL_API}/locations/track/${token}`);
+    const response = await axios.get(`${FULL_API}/locations/track/${token}`, {
+      headers: withLanguageHeaders(),
+    });
     return response.data;
   },
 };

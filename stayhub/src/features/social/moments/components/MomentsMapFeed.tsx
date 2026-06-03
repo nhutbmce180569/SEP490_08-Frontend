@@ -9,6 +9,8 @@ import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
 import { ShareLocationButton } from "../../tracking/components/ShareLocationButton";
+import { useTranslation } from "../../../../contexts/LocaleContext";
+import { getStoredLocale } from "../../../../i18n";
 
 interface MomentsMapFeedProps {
   scheduleId: number;
@@ -21,6 +23,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   scheduleId,
   onMarkerClick,
 }) => {
+  const { t } = useTranslation();
+  const locale = getStoredLocale();
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string
@@ -393,7 +397,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               setIsLayerMenuOpen(!isLayerMenuOpen);
             }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-slate-700 shadow-lg transition-all hover:scale-110 hover:text-brand focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
-            aria-label="Toggle Layers"
+            aria-label={t("social.mapLayerToggleAria")}
           >
             <Layers className="h-6 w-6" />
           </button>
@@ -405,18 +409,22 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             >
               <div className="py-1">
                 <div onClick={() => setShowMoments(!showMoments)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
-                  <span className="text-sm font-medium text-slate-800">Khoảnh khắc</span>
+                  <span className="text-sm font-medium text-slate-800">{t("social.mapLayerMoments")}</span>
                   <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showMoments ? 'bg-brand' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showMoments ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
                 </div>
                 <div onClick={() => setShowLiveLocations(!showLiveLocations)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-800">Vị trí bạn bè</span>
+                    <span className="text-sm font-medium text-slate-800">{t("social.mapLayerFriendLocations")}</span>
                     {showLiveLocations && lastPingTime && (
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                        <span className="text-[10px] text-slate-500 font-medium leading-none">Cập nhật: {lastPingTime.toLocaleTimeString('vi-VN', { hour12: false })}</span>
+                        <span className="text-[10px] text-slate-500 font-medium leading-none">
+                          {t("social.mapUpdatedAt", {
+                            time: lastPingTime.toLocaleTimeString(locale === "vi" ? "vi-VN" : "en-US", { hour12: false }),
+                          })}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -425,7 +433,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   </div>
                 </div>
                 <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-100/70 cursor-pointer">
-                  <span className="text-sm font-medium text-slate-800">Dấu chân</span>
+                  <span className="text-sm font-medium text-slate-800">{t("social.mapLayerFootprints")}</span>
                   <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${showFootprints ? 'bg-brand' : 'bg-slate-300'}`}>
                     <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${showFootprints ? 'translate-x-5' : 'translate-x-0'}`} />
                   </div>
@@ -440,7 +448,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20">
         <button onClick={handleJumpToNewest} className="flex items-center gap-2.5 rounded-full bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-lg ring-1 ring-slate-900/5 transition-all hover:scale-105 hover:bg-slate-50 active:scale-95">
           <Navigation className="h-4 w-4 text-brand" />
-          Ảnh mới nhất
+          {t("social.mapNewestPhoto")}
         </button>
       </div>
 

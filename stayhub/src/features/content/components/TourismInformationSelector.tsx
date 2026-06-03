@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Image as ImageIcon, MapPin, Search, Tag, X } from "lucide-react";
 import type { TourismInformation } from "../types/tourismInformation";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface TourismInformationSelectorProps {
   items: TourismInformation[];
@@ -18,6 +19,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
   error,
   onChange,
 }) => {
+  const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [keyword, setKeyword] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -60,7 +62,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
             setKeyword(e.target.value);
             setIsOpen(true);
           }}
-          placeholder="Search tourism info by name, type, city..."
+          placeholder={t("content.searchTourismSelectorPlaceholder")}
           className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${
             error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"
           }`}
@@ -74,7 +76,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
               setIsOpen(false);
             }}
             className="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-            aria-label="Clear tourism info"
+            aria-label={t("content.clearTourismSelectorAria")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -118,7 +120,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
             })
           ) : (
             <div className="px-3 py-4 text-center text-sm font-medium text-slate-400">
-              No tourism info found.
+              {t("content.noTourismSelectorResults")}
             </div>
           )}
         </div>
@@ -137,7 +139,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
               ) : (
                 <div className="flex flex-col items-center gap-2 text-slate-400">
                   <ImageIcon className="h-8 w-8" />
-                  <span className="text-xs font-medium">No image</span>
+                  <span className="text-xs font-medium">{t("content.noImage")}</span>
                 </div>
               )}
             </div>
@@ -166,7 +168,10 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
 
               {(selectedItem.latitude || selectedItem.longitude) && (
                 <div className="text-xs font-medium text-slate-400">
-                  Lat/Lng: {selectedItem.latitude ?? "N/A"}, {selectedItem.longitude ?? "N/A"}
+                  {t("content.latLngLabel", {
+                    lat: selectedItem.latitude ?? "N/A",
+                    lng: selectedItem.longitude ?? "N/A",
+                  })}
                 </div>
               )}
 
@@ -177,7 +182,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
                   rel="noreferrer"
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
                 >
-                  {selectedItem.sourceName || "Source"}
+                  {selectedItem.sourceName || t("content.source")}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               )}

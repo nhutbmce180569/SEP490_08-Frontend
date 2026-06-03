@@ -1,25 +1,25 @@
 import { PATH } from "../../config/routes/route";
 
 export type LegalNavItem = {
-  label: string;
+  labelKey: string;
   href: string;
-  description: string;
+  descriptionKey: string;
 };
 
 export const LEGAL_NAV: LegalNavItem[] = [
   {
-    label: "Terms of Service",
+    labelKey: "legal.termsNavLabel",
     href: PATH.PUBLIC.TERMS,
-    description: "Booking rules, cancellations, and platform use",
+    descriptionKey: "legal.termsNavDesc",
   },
   {
-    label: "Privacy Policy",
+    labelKey: "legal.privacyNavLabel",
     href: PATH.PUBLIC.PRIVACY,
-    description: "How we collect and protect your data",
+    descriptionKey: "legal.privacyNavDesc",
   },
 ];
 
-export const LEGAL_FROM_LABELS: Record<string, string> = {
-  [PATH.PUBLIC.REGISTER]: "Sign up",
-  [PATH.PUBLIC.LOGIN]: "Sign in",
+export const LEGAL_FROM_LABEL_KEYS: Record<string, string> = {
+  [PATH.PUBLIC.REGISTER]: "legal.backToRegistration",
+  [PATH.PUBLIC.LOGIN]: "legal.backToSignIn",
 };

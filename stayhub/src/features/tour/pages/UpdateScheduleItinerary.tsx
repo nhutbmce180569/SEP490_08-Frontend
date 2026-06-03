@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Calendar, Type, FileText, MapPin, Map, AlertTriangle } from "lucide-react";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
@@ -8,8 +8,10 @@ import { MapPickerModal } from "../components/MapPickerModal";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const UpdateScheduleItinerary: React.FC = () => {
+  const { t } = useTranslation();
   const {
     scheduleId,
     itinerary,
@@ -55,10 +57,10 @@ export const UpdateScheduleItinerary: React.FC = () => {
     setIsMapModalOpen(true);
   };
 
-  const itineraryFields: FormField[] = [
+  const itineraryFields: FormField[] = useMemo(() => [
     { 
       name: "dayNumber", 
-      label: "Day Number", 
+      label: t("tour.dayNumber"), 
       type: "custom", 
       required: true,
       render: (value, onChange, error, setFormData) => (
@@ -87,7 +89,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
     },
     {
       name: "itineraryDate",
-      label: "Itinerary Date",
+      label: t("tour.itineraryDate"),
       type: "custom",
       required: true,
       render: (value, onChange, error, _setFormData, formData) => {
@@ -121,7 +123,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
             </div>
             {isSynced && (
               <p className="mt-1 text-xs font-medium text-slate-500">
-                Date is auto-synced with existing items on Day {currentDayNumber}.
+                {t("tour.dateAutoSynced", { day: currentDayNumber })}
               </p>
             )}
             {error && !isSynced && <span className="mt-1 block text-xs font-medium text-rose-500">{error}</span>}
@@ -135,18 +137,18 @@ export const UpdateScheduleItinerary: React.FC = () => {
 
                 return (
                   <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
-                    <span>Suggested period:</span>
+                    <span>{t("tour.suggestedPeriod")}</span>
                     <strong className="font-semibold text-slate-600">
                       {depDate.toLocaleDateString("vi-VN")}
                     </strong>{" "}
-                    to <strong className="font-semibold text-slate-600">{retDate.toLocaleDateString("vi-VN")}</strong>.
+                    {t("tour.to")} <strong className="font-semibold text-slate-600">{retDate.toLocaleDateString("vi-VN")}</strong>.
                   </div>
                 );
               })()}
             {isOutsideRange && (
               <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
-                <span>Warning: This date is outside the original schedule period.</span>
+                <span>{t("tour.dateOutsideScheduleWarning")}</span>
               </div>
             )}
           </div>
@@ -155,22 +157,22 @@ export const UpdateScheduleItinerary: React.FC = () => {
     },
     {
       name: "title",
-      label: "Title",
+      label: t("tour.title"),
       type: "text",
-      placeholder: "e.g., Morning city tour",
+      placeholder: t("tour.itineraryTitlePlaceholder"),
       icon: <Type className="h-4 w-4" />,
     },
     {
       name: "description",
-      label: "Description",
+      label: t("common.description"),
       type: "textarea",
-      placeholder: "Update the itinerary description...",
+      placeholder: t("tour.updateItineraryDesc"),
       icon: <FileText className="h-4 w-4" />,
       colSpan: 2,
     },
     {
       name: "startDuration", 
-      label: "Start Time", 
+      label: t("tour.startTime"), 
       type: "custom", 
       required: true,
       render: (value, onChange, error) => (
@@ -188,7 +190,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
     },
     {
       name: "endDuration", 
-      label: "End Time", 
+      label: t("tour.endTime"), 
       type: "custom", 
       required: true,
       render: (value, onChange, error) => (
@@ -206,7 +208,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
     },
     {
       name: "route_picker_heading", 
-      label: "Location", 
+      label: t("tour.location"), 
       type: "custom", 
       colSpan: 2,
       render: (_value, _onChange, _error, setFormData, formData) => (
@@ -215,14 +217,14 @@ export const UpdateScheduleItinerary: React.FC = () => {
             type="button" variant="secondary" onClick={() => setFormData && formData && openMapModal(setFormData, formData)} 
             className="gap-2 px-3 py-1.5 text-xs text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100"
           >
-            <Map className="h-3.5 w-3.5" /> Pick Location on Map
+            <Map className="h-3.5 w-3.5" /> {t("tour.pickLocationOnMap")}
           </ActionButton>
         </div>
       )
     },
     {
       name: "tourismInfoId",
-      label: "Tourism Info",
+      label: t("tour.tourismInfo"),
       type: "custom",
       colSpan: 2,
       render: (value, onChange, error, setFormData) => (
@@ -249,11 +251,11 @@ export const UpdateScheduleItinerary: React.FC = () => {
     },
     { 
       name: "locationName", 
-      label: "Location Name", 
+      label: t("tour.locationName"), 
       type: "custom", 
       colSpan: 2,
       validate: (_value, formData) => {
-        if (!formData.locationLat || !formData.locationLng) return "Please pick a location from map.";
+        if (!formData.locationLat || !formData.locationLng) return t("tour.pickLocationFromMap");
         return undefined;
       },
       render: (value, onChange, error, _setFormData, _formData) => (
@@ -265,7 +267,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
                 type="text"
                 onChange={(e) => onChange(e.target.value)}
                 className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
-                placeholder="Type name or pick on map..."
+                placeholder={t("tour.typeNameOrPickMap")}
                 value={value || ""}
               />
             </div>
@@ -274,33 +276,33 @@ export const UpdateScheduleItinerary: React.FC = () => {
         </div>
       )
     },
-  ];
+  ], [t, schedule, itinerary, tourismInformationList]);
 
   if (!scheduleId) {
-    return <div className="p-10 text-center text-rose-500">Schedule ID is missing from URL.</div>;
+    return <div className="p-10 text-center text-rose-500">{t("tour.scheduleIdMissing")}</div>;
   }
 
   if (isScheduleLoading || isLoading) {
-    return <div className="p-10 text-center text-slate-500">Loading itinerary details...</div>;
+    return <div className="p-10 text-center text-slate-500">{t("tour.loadingItineraryDetailsMgr")}</div>;
   }
 
   if (fetchError || !itinerary) {
-    return <div className="p-10 text-center text-rose-500">{fetchError || "Schedule itinerary not found."}</div>;
+    return <div className="p-10 text-center text-rose-500">{fetchError || t("tour.scheduleItineraryNotFound")}</div>;
   }
 
   return (
     <>
       <DynamicForm
-        title={`Edit Schedule Itinerary (Day ${itinerary.dayNumber})`}
-        description={`Modify itinerary for schedule #${scheduleId}.`}
+        title={t("tour.editScheduleItinerary", { day: itinerary.dayNumber })}
+        description={t("tour.modifyScheduleItinerary", { id: scheduleId })}
         fields={itineraryFields}
         initialData={itinerary}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         serverErrors={serverErrors}
-        submitText="Update Itinerary"
+        submitText={t("tour.updateItinerary")}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Updating itinerary..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("tour.updatingItinerary")} />
 
       <MapPickerModal
         isOpen={isMapModalOpen}

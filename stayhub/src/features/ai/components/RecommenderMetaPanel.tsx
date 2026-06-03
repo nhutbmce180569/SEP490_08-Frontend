@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Info, ChevronDown, ChevronUp } from "lucide-react";
 import type { RecommenderTransparency } from "../types/tourAssistant";
 import { formatDimensionKey } from "../utils/formatters";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   meta: RecommenderTransparency;
 }
 
 export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   if (!meta.modelVersion && !meta.modelFamily) return null;
@@ -24,7 +26,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
         <div className="flex items-center gap-2">
           <Info size={17} className="text-brand" />
           <span className="text-sm font-bold text-navy">
-            Why were these tours recommended?
+            {t("ai.whyRecommended")}
           </span>
         </div>
         {open ? <ChevronUp size={17} /> : <ChevronDown size={17} />}
@@ -33,19 +35,19 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
       {open && (
         <div className="space-y-4 border-t border-slate-100 px-5 pb-5 pt-4">
           <div className="grid gap-3 sm:grid-cols-2 text-sm">
-            {meta.modelFamily && <MetaItem label="Model" value={meta.modelFamily} />}
-            {meta.modelVersion && <MetaItem label="Version" value={meta.modelVersion} />}
+            {meta.modelFamily && <MetaItem label={t("ai.model")} value={meta.modelFamily} />}
+            {meta.modelVersion && <MetaItem label={t("ai.version")} value={meta.modelVersion} />}
             {meta.fairnessAlpha != null && (
-              <MetaItem label="Fairness α" value={String(meta.fairnessAlpha)} />
+              <MetaItem label={t("ai.fairnessAlpha")} value={String(meta.fairnessAlpha)} />
             )}
             {meta.aggregationFormula && (
-              <MetaItem label="Formula" value={meta.aggregationFormula} />
+              <MetaItem label={t("ai.formula")} value={meta.aggregationFormula} />
             )}
           </div>
 
           {meta.personaTypesUsed?.length > 0 && (
             <div>
-              <p className="travel-eyebrow mb-2">Personas used</p>
+              <p className="travel-eyebrow mb-2">{t("ai.personasUsed")}</p>
               <div className="flex flex-wrap gap-2">
                 {meta.personaTypesUsed.map((p) => (
                   <span
@@ -61,7 +63,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
 
           {weights.length > 0 && (
             <div>
-              <p className="travel-eyebrow mb-2">Dimension weights</p>
+              <p className="travel-eyebrow mb-2">{t("ai.dimensionWeights")}</p>
               <div className="grid gap-2 sm:grid-cols-2">
                 {weights.map(([k, v]) => (
                   <div
@@ -78,7 +80,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
 
           {meta.knowledgeSources?.length > 0 && (
             <div>
-              <p className="travel-eyebrow mb-2">Knowledge sources</p>
+              <p className="travel-eyebrow mb-2">{t("ai.knowledgeSources")}</p>
               <ul className="space-y-1">
                 {meta.knowledgeSources.map((src) => (
                   <li key={src.name}>

@@ -3,6 +3,7 @@ import { Sparkles } from "lucide-react";
 import { AiTourRecommendationCard } from "./AiTourRecommendationCard";
 import { useSimilarTours } from "../hooks/useSimilarTours";
 import { useLogAiInteraction } from "../hooks/useLogAiInteraction";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   tourId: string | number;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export const SimilarToursSection: React.FC<Props> = ({ tourId, top = 5 }) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useSimilarTours(tourId, top);
   const logInteraction = useLogAiInteraction();
 
@@ -25,7 +27,7 @@ export const SimilarToursSection: React.FC<Props> = ({ tourId, top = 5 }) => {
           className="text-2xl font-black text-slate-900"
           style={{ fontFamily: "'Sora', sans-serif" }}
         >
-          Similar tours (AI)
+          {t("ai.similarTours")}
         </h2>
       </div>
 

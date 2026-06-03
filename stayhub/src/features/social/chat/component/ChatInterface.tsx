@@ -5,8 +5,10 @@ import { MessageSquare, Send, Users, ShieldAlert, Loader2 } from "lucide-react";
 import { useGetChatRooms, useGetRoomMessages, useSendMessage } from "../hooks/useChatSignalR";
 import { useQueryClient } from "@tanstack/react-query";
 import * as signalR from "@microsoft/signalr";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 
 export const ChatInterface: React.FC = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
   const [typedMessage, setTypedMessage] = useState("");
@@ -96,7 +98,7 @@ const currentUserId = user?.id || 0;
         <div className="p-4 border-b border-slate-100 bg-white">
           <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-brand" />
-            Conversations
+            {t("social.chatConversations")}
           </h2>
         </div>
         
@@ -105,7 +107,7 @@ const currentUserId = user?.id || 0;
             <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
           )}
           {!isLoadingRooms && rooms.length === 0 && (
-            <div className="text-center py-8 text-xs text-slate-400 font-medium">No active chat rooms.</div>
+            <div className="text-center py-8 text-xs text-slate-400 font-medium">{t("social.chatNoRooms")}</div>
           )}
           {rooms.map((room) => {
             const isSelected = room.id === activeRoomId;
@@ -125,7 +127,7 @@ const currentUserId = user?.id || 0;
                 <div className="overflow-hidden flex-1">
                   <p className="text-sm truncate font-semibold">{room.roomName}</p>
                   <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                    {room.isGroupChat ? "Group Chat" : "Direct Message"}
+                    {room.isGroupChat ? t("social.chatGroupLabel") : t("social.chatDirectLabel")}
                   </p>
                 </div>
               </button>
@@ -142,7 +144,7 @@ const currentUserId = user?.id || 0;
             <div className="p-4 border-b border-slate-100 flex items-center justify-between shadow-sm z-10 bg-white">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">{activeRoom.roomName}</h3>
-                <p className="text-[11px] text-slate-400 mt-0.5">Active Session</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">{t("social.chatActiveSession")}</p>
               </div>
             </div>
 
@@ -179,7 +181,7 @@ const currentUserId = user?.id || 0;
                 type="text"
                 value={typedMessage}
                 onChange={(e) => setTypedMessage(e.target.value)}
-                placeholder="Type a message..."
+                placeholder={t("social.chatTypePlaceholder")}
                 className="flex-1 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand/50 transition-colors text-slate-800"
               />
               <button
@@ -197,8 +199,8 @@ const currentUserId = user?.id || 0;
             <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 mb-3 text-slate-300">
               <MessageSquare className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-slate-700">No Chat Selected</p>
-            <p className="text-xs text-slate-400 mt-1 max-w-[200px] text-center">Choose a room from the sidebar menu to begin talking.</p>
+            <p className="text-sm font-bold text-slate-700">{t("social.chatNoSelected")}</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-[200px] text-center">{t("social.chatChooseRoom")}</p>
           </div>
         )}
       </div>

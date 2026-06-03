@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { RefreshCw, AlertTriangle } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   onRetry: () => void;
 }
 
 export const AiModelsNotReadyBanner: React.FC<Props> = ({ onRetry }) => {
+  const { t } = useTranslation();
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
@@ -15,8 +17,8 @@ export const AiModelsNotReadyBanner: React.FC<Props> = ({ onRetry }) => {
       setCountdown(5);
       return;
     }
-    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
   }, [countdown, onRetry]);
 
   return (
@@ -26,10 +28,9 @@ export const AiModelsNotReadyBanner: React.FC<Props> = ({ onRetry }) => {
           <AlertTriangle size={26} />
         </span>
       </div>
-      <h3 className="travel-heading mb-2 text-lg text-navy">AI is warming up…</h3>
+      <h3 className="travel-heading mb-2 text-lg text-navy">{t("ai.warmingUpTitle")}</h3>
       <p className="mx-auto mb-6 max-w-sm text-sm font-medium text-slate-500">
-        The recommendation model is starting. Will retry automatically in{" "}
-        <span className="font-bold text-navy">{countdown}s</span>.
+        {t("ai.warmingUpDesc", { count: countdown })}
       </p>
 
       <div className="mb-6 grid grid-cols-3 gap-3 sm:grid-cols-3">
@@ -53,7 +54,7 @@ export const AiModelsNotReadyBanner: React.FC<Props> = ({ onRetry }) => {
         className="!px-6 inline-flex gap-2"
       >
         <RefreshCw size={15} />
-        Retry now
+        {t("ai.retryNow")}
       </ActionButton>
     </div>
   );

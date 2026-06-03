@@ -1,16 +1,22 @@
 import { LegalDocumentLayout } from "./LegalDocumentLayout";
 import { privacySections, PRIVACY_LAST_UPDATED } from "./privacyContent";
+import { privacySectionsVi, PRIVACY_LAST_UPDATED_VI } from "./privacyContentVi";
 import { PATH } from "../../config/routes/route";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 export default function PrivacyPolicyPage() {
+  const { t, locale } = useTranslation();
+  const sections = locale === "vi" ? privacySectionsVi : privacySections;
+  const lastUpdated = locale === "vi" ? PRIVACY_LAST_UPDATED_VI : PRIVACY_LAST_UPDATED;
+
   return (
     <LegalDocumentLayout
       activePath={PATH.PUBLIC.PRIVACY}
-      title="Privacy Policy"
-      subtitle="This policy describes how StayHub collects, uses, stores, and protects your personal data when you use our tour booking platform."
-      lastUpdated={PRIVACY_LAST_UPDATED}
-      sections={privacySections}
-      relatedLink={{ label: "Terms of Service", href: PATH.PUBLIC.TERMS }}
+      title={t("legal.privacyTitle")}
+      subtitle={t("legal.privacySubtitle")}
+      lastUpdated={lastUpdated}
+      sections={sections}
+      relatedLink={{ label: t("legal.relatedTerms"), href: PATH.PUBLIC.TERMS }}
     />
   );
 }

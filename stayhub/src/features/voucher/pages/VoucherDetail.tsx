@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ArrowLeft,
   Calendar,
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
 import { Table, type Column } from '../../../components/dashboard/Table';
+import { useTranslation } from '../../../contexts/LocaleContext';
 import { useVoucherDetail } from '../hooks/useVoucherDetail';
 import { useChangeVoucherStatus } from '../hooks/useChangeVoucherStatus';
 import type { ReadUserVoucherDTO } from '../types/voucher';
@@ -22,11 +23,47 @@ import {
 } from '../utils/voucherHelpers';
 
 export const VoucherDetail: React.FC = () => {
+  const { t } = useTranslation();
   const { voucher, isLoading, error, handleEdit, handleBack, refetch } = useVoucherDetail();
   const { executeStatusChange, updatingId } = useChangeVoucherStatus(refetch);
 
+  const assignmentColumns: Column<ReadUserVoucherDTO>[] = useMemo(
+    () => [
+      {
+        header: t('voucher.customer'),
+        render: (item) => (
+          <div>
+            <div className="font-medium text-slate-800">
+              {item.userFullName || t('voucher.userId', { id: item.userId })}
+            </div>
+            <div className="text-xs text-slate-500">
+              {item.userEmail || `ID: ${item.userId}`}
+            </div>
+          </div>
+        ),
+      },
+      {
+        header: t('voucher.quantity'),
+        render: (item) => <span className="text-sm text-slate-600">{item.quantity}</span>,
+      },
+      {
+        header: t('common.status'),
+        render: (item) => (
+          <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
+            {item.status}
+          </span>
+        ),
+      },
+    ],
+    [t],
+  );
+
   if (isLoading) {
-    return <div className="flex justify-center p-10 text-slate-500">Loading voucher details...</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t('voucher.loadingVoucherDetails')}
+      </div>
+    );
   }
 
   if (error) {
@@ -34,32 +71,10 @@ export const VoucherDetail: React.FC = () => {
   }
 
   if (!voucher) {
-    return <div className="flex justify-center p-10 text-slate-500">Voucher not found.</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">{t('voucher.voucherNotFound')}</div>
+    );
   }
-
-  const assignmentColumns: Column<ReadUserVoucherDTO>[] = [
-    {
-      header: 'Customer',
-      render: (item) => (
-        <div>
-          <div className="font-medium text-slate-800">{item.userFullName || `User #${item.userId}`}</div>
-          <div className="text-xs text-slate-500">{item.userEmail || `ID: ${item.userId}`}</div>
-        </div>
-      ),
-    },
-    {
-      header: 'Quantity',
-      render: (item) => <span className="text-sm text-slate-600">{item.quantity}</span>,
-    },
-    {
-      header: 'Status',
-      render: (item) => (
-        <span className="inline-block rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
-          {item.status}
-        </span>
-      ),
-    },
-  ];
 
   return (
     <div className="mx-auto max-w-5xl py-2">
@@ -68,7 +83,7 @@ export const VoucherDetail: React.FC = () => {
         onClick={handleBack}
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to Vouchers
+        <ArrowLeft className="h-4 w-4" /> {t('voucher.backToVouchers')}
       </button>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -85,7 +100,7 @@ export const VoucherDetail: React.FC = () => {
               </span>
             </div>
             <p className="mt-1 text-sm text-slate-500">
-              {voucher.description || 'No description provided.'}
+              {voucher.description || t('content.noDescriptionProvided')}
             </p>
           </div>
 
@@ -100,11 +115,11 @@ export const VoucherDetail: React.FC = () => {
             >
               {voucher.isActive ? (
                 <>
-                  <Lock className="h-4 w-4" /> Deactivate
+                  <Lock className="h-4 w-4" /> {t('voucher.deactivate')}
                 </>
               ) : (
                 <>
-                  <Unlock className="h-4 w-4" /> Activate
+                  <Unlock className="h-4 w-4" /> {t('voucher.activate')}
                 </>
               )}
             </ActionButton>
@@ -114,7 +129,7 @@ export const VoucherDetail: React.FC = () => {
               className="gap-2 px-4 py-2 text-sm"
               disabled={!voucher.isActive}
             >
-              <Pencil className="h-4 w-4" /> Edit
+              <Pencil className="h-4 w-4" /> {t('common.edit')}
             </ActionButton>
           </div>
         </div>
@@ -122,49 +137,56 @@ export const VoucherDetail: React.FC = () => {
         <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
           <DetailCard
             icon={<Hash className="h-4 w-4" />}
-            label="Discount"
+            label={t('voucher.discount')}
             value={formatDiscount(voucher.discountType, voucher.discountValue)}
             hint={
               voucher.discountType === 'Percent' && voucher.maxDiscountAmount
-                ? `Max ${formatVnd(voucher.maxDiscountAmount)}`
+                ? t('voucher.maxDiscountHint', {
+                    amount: formatVnd(voucher.maxDiscountAmount),
+                  })
                 : undefined
             }
           />
           <DetailCard
             icon={<Ticket className="h-4 w-4" />}
-            label="Tour"
-            value={voucher.tourName || 'All tours'}
+            label={t('voucher.tour')}
+            value={voucher.tourName || t('voucher.allTours')}
           />
           <DetailCard
             icon={<Hash className="h-4 w-4" />}
-            label="Usage"
-            value={`${voucher.usedCount} / ${voucher.availableCount} used`}
-            hint={`${voucher.remainingCount} remaining`}
+            label={t('voucher.usage')}
+            value={t('voucher.usedSlashAvailable', {
+              used: voucher.usedCount,
+              available: voucher.availableCount,
+            })}
+            hint={t('voucher.remainingHint', { count: voucher.remainingCount })}
           />
           <DetailCard
             icon={<Calendar className="h-4 w-4" />}
-            label="Start Date"
+            label={t('voucher.startDate')}
             value={formatDateTime(voucher.startDate)}
           />
           <DetailCard
             icon={<Calendar className="h-4 w-4" />}
-            label="End Date"
+            label={t('voucher.endDate')}
             value={formatDateTime(voucher.endDate)}
           />
           <DetailCard
             icon={<User className="h-4 w-4" />}
-            label="Created By"
-            value={voucher.creatorName || `User #${voucher.creatorId}`}
+            label={t('voucher.createdBy')}
+            value={voucher.creatorName || t('voucher.userId', { id: voucher.creatorId })}
           />
         </div>
 
         <div className="border-t border-slate-100 px-6 py-5">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-sm font-bold text-slate-800">
-              Assigned Customers ({voucher.assignedCustomerCount})
+              {t('voucher.assignedCustomersCount', { count: voucher.assignedCustomerCount })}
             </h3>
             <span className="text-xs text-slate-500">
-              {voucher.isCustomerSpecific ? 'Customer-specific voucher' : 'Public voucher'}
+              {voucher.isCustomerSpecific
+                ? t('voucher.customerSpecificVoucher')
+                : t('voucher.publicVoucher')}
             </span>
           </div>
 
@@ -173,11 +195,11 @@ export const VoucherDetail: React.FC = () => {
               data={voucher.assignedCustomers}
               columns={assignmentColumns}
               keyExtractor={(item) => item.id}
-              emptyMessage="No assigned customers."
+              emptyMessage={t('voucher.noAssignedCustomers')}
             />
           ) : (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">
-              This voucher is available to all customers.
+              {t('voucher.publicVoucherAvailable')}
             </div>
           )}
         </div>

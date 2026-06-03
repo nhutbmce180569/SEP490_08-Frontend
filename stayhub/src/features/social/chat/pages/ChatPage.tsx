@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 
 // ============ COMPONENT: Add Member Modal ============
 interface AddMemberModalProps {
@@ -38,6 +39,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   isLoading = false,
   isSingleSelect = false,
 }) => {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
@@ -69,7 +71,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
 
   const handleConfirm = () => {
     if (selectedUserIds.length === 0) {
-      alert('Please select at least one user');
+      alert(t('social.selectAtLeastOneUser'));
       return;
     }
     onConfirm(selectedUserIds);
@@ -93,7 +95,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-lg font-bold text-slate-900">
-            {isSingleSelect ? 'Start a Chat' : 'Add Members'}
+            {isSingleSelect ? t('social.startAChat') : t('social.addMembers')}
           </h2>
           <button
             onClick={handleClose}
@@ -111,7 +113,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by name or email..."
+              placeholder={t('social.searchByNameOrEmail')}
               className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />
           </div>
@@ -125,7 +127,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             </div>
           ) : !debouncedQuery ? (
             <div className="text-center text-slate-400 py-8 text-sm">
-              Enter name or email to search
+              {t('social.enterNameOrEmailToSearch')}
             </div>
           ) : searchResult && Array.isArray(searchResult.data) && searchResult.data.length > 0 ? (
             searchResult.data.map((user: any) => {
@@ -152,7 +154,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm text-slate-900 truncate">
-                      {user.fullName || 'User'}
+                      {user.fullName || t('common.user')}
                     </h4>
                     <p className="text-xs text-slate-500 truncate">{user.email}</p>
                   </div>
@@ -161,7 +163,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             })
           ) : (
             <div className="text-center text-slate-400 py-8 text-sm">
-              No matching users found
+              {t('social.noMatchingUsers')}
             </div>
           )}
         </div>
@@ -172,14 +174,14 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
             onClick={handleClose}
             className="flex-1 px-4 py-2 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 transition-colors"
           >
-            Close
+            {t('common.close')}
           </button>
           <button
             onClick={handleConfirm}
             disabled={selectedUserIds.length === 0 || isLoading}
             className="flex-1 px-4 py-2 bg-brand text-white font-semibold rounded-lg hover:bg-brand-hover disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
           >
-            Confirm ({selectedUserIds.length})
+            {t('common.confirm')} ({selectedUserIds.length})
           </button>
         </div>
       </div>
@@ -189,6 +191,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
 
 // ============ MAIN COMPONENT: ChatPage ============
 export const ChatPage: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [textValue, setTextValue] = useState<string>('');
   const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null);
@@ -255,10 +258,10 @@ export const ChatPage: React.FC = () => {
     mutationFn: (roomId: number) => chatService.pinRoom(roomId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
-      alert('Chat pinned!');
+      alert(t('social.chatPinned'));
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || 'Failed to pin chat';
+      const msg = err.response?.data?.message || t('social.failedToPinChat');
       alert(msg);
     },
   });
@@ -267,10 +270,10 @@ export const ChatPage: React.FC = () => {
     mutationFn: (roomId: number) => chatService.muteRoom(roomId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
-      alert('Chat muted!');
+      alert(t('social.chatMuted'));
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || 'Failed to mute chat';
+      const msg = err.response?.data?.message || t('social.failedToMuteChat');
       alert(msg);
     },
   });
@@ -284,14 +287,14 @@ export const ChatPage: React.FC = () => {
       if (newRoomId) {
         setSelectedRoomId(newRoomId);
         queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
-        alert('Members added successfully!');
+        alert(t('social.membersAdded'));
       } else {
-        alert('Members added successfully!');
+        alert(t('social.membersAdded'));
         queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
       }
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || 'Failed to add members';
+      const msg = err.response?.data?.message || t('social.failedToAddMembers');
       alert(msg);
     },
   });
@@ -301,10 +304,10 @@ export const ChatPage: React.FC = () => {
     onSuccess: () => {
       setSelectedRoomId(null);
       queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
-      alert('You have left the group!');
+      alert(t('social.leftGroup'));
     },
     onError: (err: any) => {
-      const msg = err.response?.data?.message || 'Failed to leave group';
+      const msg = err.response?.data?.message || t('social.failedToLeaveGroup');
       alert(msg);
     },
   });
@@ -322,7 +325,7 @@ export const ChatPage: React.FC = () => {
       setTextValue('');
     } catch (error) {
       console.error("Error sending message", error);
-      alert("Failed to send message. Please try again!");
+      alert(t("social.failedToSendMessage"));
     }
   };
 
@@ -353,7 +356,7 @@ export const ChatPage: React.FC = () => {
         }
       },
       onError: (err: any) => {
-        const msg = err.response?.data?.message || 'Failed to start chat';
+        const msg = err.response?.data?.message || t('social.failedToStartChat');
         alert(msg);
       },
     });
@@ -361,7 +364,7 @@ export const ChatPage: React.FC = () => {
 
   const handleLeaveGroup = () => {
     if (!selectedRoomId) return;
-    if (window.confirm('Are you sure you want to leave this group?')) {
+    if (window.confirm(t('social.confirmLeaveGroup'))) {
       mutateLeaveGroup(selectedRoomId);
     }
   };
@@ -373,20 +376,20 @@ export const ChatPage: React.FC = () => {
   const formatTime = (dateString: string) => {
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) return 'Just now';
+      if (isNaN(date.getTime())) return t('social.justNow');
       
       const now = new Date();
       const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
       
-      if (diffInMinutes < 1) return 'Just now';
-      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+      if (diffInMinutes < 1) return t('social.justNow');
+      if (diffInMinutes < 60) return t('social.minutesAgo', { count: diffInMinutes });
       
       const diffInHours = Math.floor(diffInMinutes / 60);
-      if (diffInHours < 24) return `${diffInHours}h ago`;
+      if (diffInHours < 24) return t('social.hoursAgo', { count: diffInHours });
       
       return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     } catch {
-      return 'Just now';
+      return t('social.justNow');
     }
   };
 
@@ -401,7 +404,7 @@ export const ChatPage: React.FC = () => {
   };
 
   const getRoomDisplayName = (room: any) => {
-    return room?.roomName || room?.name || 'Chat';
+    return room?.roomName || room?.name || t('social.chat');
   };
 
   return (
@@ -411,10 +414,10 @@ export const ChatPage: React.FC = () => {
           <div>
             <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
               <MessageSquare className="text-brand" size={24} />
-              Messages
+              {t('social.messages')}
             </h1>
             <p className="mt-1.5 text-sm text-slate-500">
-              Chat with friends and manage your conversations.
+              {t('social.messagesSubtitle')}
             </p>
           </div>
           <button
@@ -423,7 +426,7 @@ export const ChatPage: React.FC = () => {
             className="inline-flex items-center gap-2 rounded-2xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand/20 transition-colors hover:bg-brand-hover"
           >
             <SquarePen className="h-4 w-4" />
-            New chat
+            {t('social.newChat')}
           </button>
         </div>
 
@@ -434,7 +437,7 @@ export const ChatPage: React.FC = () => {
           <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-brand" />
-              <h2 className="text-base font-bold text-slate-800">Conversations</h2>
+              <h2 className="text-base font-bold text-slate-800">{t('social.conversations')}</h2>
             </div>
           </div>
           
@@ -444,7 +447,7 @@ export const ChatPage: React.FC = () => {
                 <Loader2 className="w-6 h-6 animate-spin text-brand" />
               </div>
             ) : rooms.length === 0 ? (
-              <div className="text-center text-slate-500 mt-6 text-sm">No chats available.</div>
+              <div className="text-center text-slate-500 mt-6 text-sm">{t('social.noChatsAvailable')}</div>
             ) : (
               rooms.map((room) => (
                 <button
@@ -467,7 +470,7 @@ export const ChatPage: React.FC = () => {
                   <div className="flex-1 text-left overflow-hidden">
                     <div className="font-semibold truncate text-sm">{getRoomDisplayName(room)}</div>
                     <div className="text-xs text-slate-500 truncate mt-0.5 line-clamp-1">
-                      {room.lastMessage || "Start a conversation..."}
+                      {room.lastMessage || t('social.startConversation')}
                     </div>
                   </div>
 
@@ -495,7 +498,7 @@ export const ChatPage: React.FC = () => {
           {!selectedRoomId ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
               <MessageSquare className="w-16 h-16 mb-4 text-slate-200" />
-              <h3 className="text-lg font-medium text-slate-600">Select a chat to start messaging</h3>
+              <h3 className="text-lg font-medium text-slate-600">{t('social.selectChatToMessage')}</h3>
             </div>
           ) : (
             <>
@@ -514,7 +517,7 @@ export const ChatPage: React.FC = () => {
                     <h3 className="text-base font-bold text-slate-800">{getRoomDisplayName(selectedRoom)}</h3>
                     <div className="flex items-center gap-1.5">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-xs text-slate-500">Active now</span>
+                      <span className="text-xs text-slate-500">{t('social.activeNow')}</span>
                     </div>
                   </div>
                 </div>
@@ -525,7 +528,7 @@ export const ChatPage: React.FC = () => {
                     onClick={() => setShowAddMemberModal(true)}
                     disabled={isAddingMembers}
                     className="p-2 hover:bg-slate-100 disabled:opacity-50 rounded-lg transition-colors text-slate-600 hover:text-slate-800"
-                    title="Add members"
+                    title={t('social.addMembers')}
                   >
                     <UserPlus className="w-5 h-5" />
                   </button>
@@ -537,7 +540,7 @@ export const ChatPage: React.FC = () => {
                         ? 'text-amber-500'
                         : 'text-slate-600 hover:text-slate-800'
                     }`}
-                    title="Pin"
+                    title={t('social.pin')}
                   >
                     <Pin className="w-5 h-5" />
                   </button>
@@ -549,7 +552,7 @@ export const ChatPage: React.FC = () => {
                         ? 'text-slate-400'
                         : 'text-slate-600 hover:text-slate-800'
                     }`}
-                    title="Mute"
+                    title={t('social.mute')}
                   >
                     <BellOff className="w-5 h-5" />
                   </button>
@@ -559,7 +562,7 @@ export const ChatPage: React.FC = () => {
                       onClick={handleLeaveGroup}
                       disabled={isLeavingGroup}
                       className="p-2 hover:bg-red-50 disabled:opacity-50 rounded-lg transition-colors text-red-600 hover:text-red-700"
-                      title="Leave group"
+                      title={t('social.leaveGroup')}
                     >
                       <LogOut className="w-5 h-5" />
                     </button>
@@ -568,7 +571,7 @@ export const ChatPage: React.FC = () => {
                   <button
                     onClick={() => setShowNewChatModal(true)}
                     className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-600 hover:text-slate-800"
-                    title="More options"
+                    title={t('social.moreOptions')}
                   >
                     <MoreVertical className="w-5 h-5" />
                   </button>
@@ -586,7 +589,7 @@ export const ChatPage: React.FC = () => {
                   </div>
                 ) : allMessages.length === 0 ? (
                   <div className="flex justify-center items-center h-full text-slate-400">
-                    <p className="text-center">Start a conversation</p>
+                    <p className="text-center">{t('social.startConversation')}</p>
                   </div>
                 ) : (
                   allMessages.map((msg, idx) => {
@@ -662,7 +665,7 @@ export const ChatPage: React.FC = () => {
                     type="text"
                     value={textValue}
                     onChange={(e) => setTextValue(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder={t('social.typeMessage')}
                     className="flex-1 bg-slate-100 border border-transparent rounded-full px-5 py-3 text-sm focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-800 placeholder-slate-500"
                   />
                   <button

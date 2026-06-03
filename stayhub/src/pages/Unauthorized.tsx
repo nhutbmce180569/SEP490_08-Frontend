@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import { PATH } from '../config/routes/route';
+import { useTranslation } from '../contexts/LocaleContext';
 
 const Unauthorized = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleGoBack = () => {
@@ -36,9 +38,9 @@ const Unauthorized = () => {
         <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-rose-100">
           <ShieldAlert className="h-12 w-12 text-rose-600" />
         </div>
-        <h1 className="travel-heading mb-2 text-3xl">Access denied</h1>
+        <h1 className="travel-heading mb-2 text-3xl">{t("errors.accessDenied")}</h1>
         <p className="mb-8 text-slate-600">
-          You do not have permission to view this page. Contact an administrator if you believe this is a mistake.
+          {t("errors.accessDeniedDesc")}
         </p>
         <button
           type="button"
@@ -46,7 +48,7 @@ const Unauthorized = () => {
           className="flex items-center gap-2 rounded-xl bg-navy px-6 py-3 font-semibold text-white transition-colors hover:bg-navy/90"
         >
           <ArrowLeft className="h-5 w-5" />
-          Go back
+          {t("common.goBack")}
         </button>
       </div>
     </div>

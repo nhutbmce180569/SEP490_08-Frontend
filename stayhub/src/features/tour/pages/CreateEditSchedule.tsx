@@ -6,12 +6,12 @@ import { tourScheduleService } from "../services/tourSchedule.service";
 import { tourService } from "../services/tour.service";
 import type { TourBasic } from "../types/tour";
 import type { CreateTourScheduleRequest, UpdateTourScheduleRequest, TourSchedule } from "../types/tourSchedule";
-
-// Tái sử dụng các component chuẩn của dashboard
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const CreateEditSchedule: React.FC = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
@@ -33,11 +33,11 @@ export const CreateEditSchedule: React.FC = () => {
         const data = await tourService.getAllTours();
         setTours(data || []);
       } catch (err: any) {
-        showError(err?.response?.data?.message || "Failed to load tours.");
+        showError(err?.response?.data?.message || t("tour.failedLoadTours"));
       }
     };
     loadTours();
-  }, [showError]);
+  }, [showError, t]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -52,17 +52,17 @@ export const CreateEditSchedule: React.FC = () => {
           note: data.note ?? "",
         });
       } catch (err: any) {
-        showError(err?.response?.data?.message || "Failed to load schedule.");
+        showError(err?.response?.data?.message || t("tour.failedLoadSchedule"));
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [id, isEdit, showError]);
+  }, [id, isEdit, showError, t]);
 
   const handleChange = (field: string, value: any) => {
     setForm((f) => ({ ...f, [field]: value }));
-    setFormError(null); // Reset lỗi khi user bắt đầu gõ
+    setFormError(null);
   };
 
   const validateDates = (dep: string, ret: string) => {
@@ -73,11 +73,11 @@ export const CreateEditSchedule: React.FC = () => {
     d.setHours(0, 0, 0, 0);
     r.setHours(0, 0, 0, 0);
     if (d < today) {
-      setFormError("Departure date cannot be in the past.");
+      setFormError(t("tour.departurePastError"));
       return false;
     }
     if (r <= d) {
-      setFormError("Return date must be later than departure date.");
+      setFormError(t("tour.returnAfterDepartureError"));
       return false;
     }
     return true;
@@ -88,9 +88,9 @@ export const CreateEditSchedule: React.FC = () => {
     const tourId = Number(form.tourId);
     const dep = form.departureDate || "";
     const ret = form.returnDate || "";
-    
-    if (!tourId) return setFormError("Please choose a tour.");
-    if (!dep || !ret) return setFormError("Please fill both dates.");
+
+    if (!tourId) return setFormError(t("tour.chooseTourError"));
+    if (!dep || !ret) return setFormError(t("tour.fillBothDatesError"));
     if (!validateDates(dep, ret)) return;
 
     setLoading(true);
@@ -104,7 +104,7 @@ export const CreateEditSchedule: React.FC = () => {
           note: form.note ?? null,
         };
         await tourScheduleService.updateSchedule(id as string, payload);
-        showSuccess("Schedule updated successfully.");
+        showSuccess(t("tour.scheduleUpdated"));
       } else {
         const payload: CreateTourScheduleRequest = {
           tourId,
@@ -113,11 +113,11 @@ export const CreateEditSchedule: React.FC = () => {
           note: form.note ?? null,
         };
         await tourScheduleService.createSchedule(payload);
-        showSuccess("Schedule created successfully.");
+        showSuccess(t("tour.scheduleCreated"));
       }
       navigate(-1);
     } catch (err: any) {
-      setFormError(err?.response?.data?.message || "Failed to save schedule.");
+      setFormError(err?.response?.data?.message || t("tour.failedSaveSchedule"));
     } finally {
       setLoading(false);
     }
@@ -135,23 +135,20 @@ export const CreateEditSchedule: React.FC = () => {
         className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
       >
         <ArrowLeft className="h-4 w-4" />
-        Back to Schedules
+        {t("tour.backToSchedules")}
       </button>
 
       <form
         onSubmit={handleSubmit}
         className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
-        {/* HEADER */}
         <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-xl font-bold text-slate-900">
-              {isEdit ? "Edit Schedule" : "Create Schedule"}
+              {isEdit ? t("tour.editScheduleTitle") : t("tour.createSchedule")}
             </h1>
             <p className="mt-1 text-sm text-slate-500">
-              {isEdit 
-                ? "Update the details and dates of the selected schedule." 
-                : "Configure a new departure and return date for a tour."}
+              {isEdit ? t("tour.updateScheduleFormDesc") : t("tour.createScheduleFormDesc")}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-3">
@@ -162,7 +159,7 @@ export const CreateEditSchedule: React.FC = () => {
               className="gap-2 px-4 py-2 text-sm"
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t("common.cancel")}
             </ActionButton>
             <ActionButton
               type="submit"
@@ -171,12 +168,11 @@ export const CreateEditSchedule: React.FC = () => {
               className="gap-2 px-4 py-2 text-sm"
             >
               <Save className="h-4 w-4" />
-              {isEdit ? "Update Schedule" : "Save Schedule"}
+              {isEdit ? t("tour.updateSchedule") : t("tour.saveSchedule")}
             </ActionButton>
           </div>
         </div>
 
-        {/* BODY */}
         <div className="space-y-6 p-6">
           {formError && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
@@ -184,10 +180,9 @@ export const CreateEditSchedule: React.FC = () => {
             </div>
           )}
 
-          {/* Chọn Tour */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Tour <span className="text-rose-500">*</span>
+              {t("tour.tour")} <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
               <Map className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -197,21 +192,20 @@ export const CreateEditSchedule: React.FC = () => {
                 disabled={loading}
                 className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
               >
-                <option value="">-- Select tour --</option>
-                {tours.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                <option value="">{t("tour.selectTour")}</option>
+                {tours.map((tourItem) => (
+                  <option key={tourItem.id} value={tourItem.id}>
+                    {tourItem.name}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Grid 2 cột cho Ngày đi & Ngày về */}
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Departure Date <span className="text-rose-500">*</span>
+                {t("tour.departureDate")} <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -227,7 +221,7 @@ export const CreateEditSchedule: React.FC = () => {
 
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
-                Return Date <span className="text-rose-500">*</span>
+                {t("tour.returnDate")} <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -242,10 +236,9 @@ export const CreateEditSchedule: React.FC = () => {
             </div>
           </div>
 
-          {/* Note */}
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Note
+              {t("tour.note")}
             </label>
             <textarea
               value={form.note ?? ""}
@@ -253,14 +246,16 @@ export const CreateEditSchedule: React.FC = () => {
               rows={3}
               disabled={loading}
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
-              placeholder="Optional internal note for this schedule..."
+              placeholder={t("tour.scheduleNotePlaceholder")}
             />
           </div>
         </div>
       </form>
 
-      {/* Loading component Overlay */}
-      <LoadingOverlay isOpen={loading} message={isEdit ? "Updating schedule..." : "Creating schedule..."} />
+      <LoadingOverlay
+        isOpen={loading}
+        message={isEdit ? t("tour.updatingSchedule") : t("tour.creatingSchedule")}
+      />
     </div>
   );
 };

@@ -1,0 +1,11 @@
+{
+  "assignedSchedules": "Assigned Schedules",
+  "qrCheckIn": "QR Check-In",
+  "ticketList": "Ticket List",
+  "trackLocations": "Track Locations",
+  "tourCustomer": "Tour Customer",
+  "staffDashboard": "Staff Dashboard",
+  "staffMember": "Staff Member",
+  "newScheduleAssigned": "New tour schedule assigned to you.",
+  "loggedOutSuccess": "Logged out successfully."
+}

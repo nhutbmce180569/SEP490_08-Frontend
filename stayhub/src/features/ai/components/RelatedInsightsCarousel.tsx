@@ -1,12 +1,14 @@
 import React, { useRef } from "react";
 import { ChevronLeft, ChevronRight, Compass, ExternalLink } from "lucide-react";
 import type { TourismInsight } from "../types/tourAssistant";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   insights: TourismInsight[];
 }
 
 export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   if (!insights || insights.length === 0) return null;
@@ -20,7 +22,7 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Compass size={17} className="text-brand" />
-          <h3 className="travel-heading text-lg text-navy">Related travel insights</h3>
+          <h3 className="travel-heading text-lg text-navy">{t("ai.relatedInsights")}</h3>
         </div>
         <div className="flex gap-2">
           {([-1, 1] as const).map((dir) => (
@@ -84,7 +86,7 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
                 rel="noopener noreferrer"
                 className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 hover:underline"
               >
-                {insight.sourceName || "Source"} <ExternalLink size={10} />
+                {insight.sourceName || t("ai.source")} <ExternalLink size={10} />
               </a>
             ) : insight.sourceName ? (
               <p className="mt-2 text-[11px] font-medium text-slate-400">

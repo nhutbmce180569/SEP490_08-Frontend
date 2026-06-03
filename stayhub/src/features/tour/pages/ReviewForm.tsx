@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Star, Loader2, MessageSquare } from "lucide-react";
-import { ActionButton } from "../../../components/dashboard/ActionButton"; // Chỉnh lại đường dẫn import cho đúng
-import { useReview } from "../hooks/useReview"; // Chỉnh lại đường dẫn import
-import { useToast } from "../../../contexts/ToastContext"; // Chỉnh lại đường dẫn import
+import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { useReview } from "../hooks/useReview";
+import { useToast } from "../../../contexts/ToastContext";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import type { Review } from "../types/review";
 
 interface ReviewFormProps {
   tourId: number;
-  customerId: number; // ID của người dùng đang đăng nhập
-  existingReview?: Review | null; // Có = Update, Không có = Create
+  customerId: number;
+  existingReview?: Review | null;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -20,10 +21,10 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   const { submitReview, editReview } = useReview();
   const { error: showError, success: showSuccess } = useToast();
 
-  // Khởi tạo state dựa trên dữ liệu cũ (nếu có)
   const [rating, setRating] = useState<number>(existingReview?.rating || 5);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [comment, setComment] = useState<string>(existingReview?.comment || "");
@@ -31,44 +32,49 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
   const isUpdateMode = !!existingReview;
 
+  const ratingLabels: Record<number, string> = {
+    1: t("tour.ratingTerrible"),
+    2: t("tour.ratingPoor"),
+    3: t("tour.ratingAverage"),
+    4: t("tour.ratingVeryGood"),
+    5: t("tour.ratingExcellent"),
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (rating < 1 || rating > 5) {
-      showError("Please select a rating between 1 and 5 stars.");
+      showError(t("tour.ratingRequired"));
       return;
     }
 
     if (isUpdateMode && !comment.trim()) {
-      showError("Comment is required when updating a review.");
+      showError(t("tour.commentRequiredUpdate"));
       return;
     }
 
     setIsSubmitting(true);
     try {
       if (isUpdateMode) {
-        // Gọi hàm Sửa
         await editReview(existingReview.id, {
           customerId,
           rating,
           comment: comment.trim(),
         });
-        if (showSuccess) showSuccess("Review updated successfully!");
+        if (showSuccess) showSuccess(t("tour.reviewUpdated"));
       } else {
-        // Gọi hàm Tạo mới
         await submitReview({
           customerId,
           tourId,
           rating,
-          comment: comment.trim() || null, // BE cho phép null khi tạo mới
+          comment: comment.trim() || null,
         });
-        if (showSuccess) showSuccess("Thank you for your review!");
+        if (showSuccess) showSuccess(t("tour.reviewThankYou"));
       }
-      
-      // Đóng form hoặc chạy callback thành công
+
       if (onSuccess) onSuccess();
-    } catch (err: any) {
-      showError(err.message || "Something went wrong.");
+    } catch (err: unknown) {
+      showError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setIsSubmitting(false);
     }
@@ -82,19 +88,16 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-900">
-            {isUpdateMode ? "Edit your review" : "Write a review"}
+            {isUpdateMode ? t("tour.editYourReview") : t("tour.writeReview")}
           </h3>
-          <p className="text-sm text-slate-500">
-            Share your experience to help others.
-          </p>
+          <p className="text-sm text-slate-500">{t("tour.shareExperience")}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Star Rating Interactive */}
         <div>
           <label className="mb-2 block text-sm font-semibold text-slate-700">
-            How would you rate this tour? <span className="text-rose-500">*</span>
+            {t("tour.rateTourQuestion")} <span className="text-rose-500">*</span>
           </label>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
@@ -116,19 +119,14 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               </button>
             ))}
             <span className="ml-3 text-sm font-medium text-slate-500">
-              {rating === 1 && "Terrible"}
-              {rating === 2 && "Poor"}
-              {rating === 3 && "Average"}
-              {rating === 4 && "Very Good"}
-              {rating === 5 && "Excellent"}
+              {ratingLabels[rating]}
             </span>
           </div>
         </div>
 
-        {/* Comment Textarea */}
         <div>
           <label htmlFor="comment" className="mb-2 block text-sm font-semibold text-slate-700">
-            Share details of your own experience
+            {t("tour.shareExperienceDetails")}
             {isUpdateMode && <span className="text-rose-500 ml-1">*</span>}
           </label>
           <textarea
@@ -136,12 +134,11 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             rows={4}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="What did you like or dislike? How was the tour guide?"
+            placeholder={t("tour.reviewPlaceholder")}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-900 transition-colors focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
           ></textarea>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center justify-end gap-3 pt-2">
           {onCancel && (
             <ActionButton
@@ -151,7 +148,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
               disabled={isSubmitting}
               className="px-5 py-2.5 text-sm"
             >
-              Cancel
+              {t("common.cancel")}
             </ActionButton>
           )}
           <ActionButton
@@ -163,12 +160,12 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Processing...
+                {t("tour.processing")}
               </>
             ) : isUpdateMode ? (
-              "Save Changes"
+              t("common.saveChanges")
             ) : (
-              "Submit Review"
+              t("tour.submitReview")
             )}
           </ActionButton>
         </div>

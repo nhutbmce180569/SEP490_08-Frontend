@@ -6,8 +6,10 @@ import { useLogin } from "../hooks/useLogin";
 import { SocialAuthButtons } from "../components/SocialAuthButtons";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function Login() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,19 +23,19 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="Please enter your details to sign in."
-      heroTitle="Discover your next great adventure."
-      heroSubtitle="Log in to unlock exclusive deals, manage your bookings, and explore millions of experiences worldwide."
+      title={t("auth.welcomeBack")}
+      subtitle={t("auth.signInSubtitle")}
+      heroTitle={t("auth.heroDiscover")}
+      heroSubtitle={t("auth.heroLoginDesc")}
       imageSeed="stayhub-travel"
       footer={
         <p className="mt-10 text-center text-sm font-medium text-slate-600">
-          Don&apos;t have an account?{" "}
+          {t("auth.noAccount")}{" "}
           <Link
             to="/register"
             className="font-bold text-brand transition-colors hover:text-brand-hover !no-underline"
           >
-            Sign up for free
+            {t("auth.signUpFree")}
           </Link>
         </p>
       }
@@ -46,17 +48,17 @@ export default function Login() {
         )}
 
         <AuthFormField
-          label="Email"
+          label={t("auth.email")}
           type="email"
           icon={Mail}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Enter your email"
+          placeholder={t("auth.email")}
           required
         />
 
         <AuthFormField
-          label="Password"
+          label={t("auth.password")}
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={password}
@@ -68,21 +70,12 @@ export default function Login() {
           required
         />
 
-        <div className="flex items-center justify-between pt-1">
-          <label className="group flex cursor-pointer items-center gap-2">
-            <input
-              type="checkbox"
-              className="h-4 w-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand"
-            />
-            <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">
-              Remember me
-            </span>
-          </label>
+        <div className="flex items-center justify-end pt-1">
           <Link
             to="/forgot-password"
             className="text-sm font-semibold text-brand transition-colors hover:text-brand-hover !no-underline"
           >
-            Forgot password?
+            {t("auth.forgotPassword")}
           </Link>
         </div>
 
@@ -92,7 +85,7 @@ export default function Login() {
           disabled={isSubmitting}
           className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
         >
-          {isSubmitting ? "Signing in..." : "Sign In"}
+          {isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 export interface Column<T> {
   header: React.ReactNode;
@@ -19,11 +20,13 @@ interface TableProps<T> {
 export function Table<T>({
   data,
   columns,
-  emptyMessage = "No data available.",
+  emptyMessage,
   keyExtractor,
   isLoading = false,
   skeletonRows = 5,
 }: TableProps<T>) {
+  const { t } = useTranslation();
+  const resolvedEmpty = emptyMessage ?? t("common.noData");
   return (
     <div className="table-glass overflow-x-auto">
       <table className="w-full min-w-[680px] border-collapse">
@@ -62,7 +65,7 @@ export function Table<T>({
                 colSpan={columns.length}
                 className="py-16 text-center text-sm font-medium text-slate-400"
               >
-                {emptyMessage}
+                {resolvedEmpty}
               </td>
             </tr>
           ) : (

@@ -5,23 +5,23 @@ import { PaginationButton } from "../../../components/dashboard/PaginationButton
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { useChangeTicketTypeStatus } from "../hooks/useChangeTicketTypeStatus";
 import { useTicketTypes } from "../hooks/useTicketTypes";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import type { ReadTicketTypeDTO } from "../types/ticketType";
 
-const formatDate = (date?: string | null) => {
-  if (!date) return "N/A";
-
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return "N/A";
-
-  return parsed.toLocaleString();
-};
-
 export const TicketTypeList: React.FC = () => {
+  const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const { data, isLoading, error, pageSize, setPage, handleCreate, handleEdit } =
     useTicketTypes(searchTerm);
   const { executeStatusChange, updatingId } = useChangeTicketTypeStatus();
+
+  const formatDate = (date?: string | null) => {
+    if (!date) return t("common.na");
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return t("common.na");
+    return parsed.toLocaleString();
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -30,7 +30,6 @@ export const TicketTypeList: React.FC = () => {
         setSearchTerm(searchInput);
       }
     }, 500);
-
     return () => clearTimeout(timer);
   }, [searchInput, searchTerm, setPage]);
 
@@ -42,7 +41,7 @@ export const TicketTypeList: React.FC = () => {
   const columns: Column<ReadTicketTypeDTO>[] = useMemo(
     () => [
       {
-        header: "Ticket Type",
+        header: t("content.ticketType"),
         render: (ticketType) => (
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-100 bg-slate-50 text-brand">
@@ -53,49 +52,47 @@ export const TicketTypeList: React.FC = () => {
         ),
       },
       {
-        header: "Description",
+        header: t("common.description"),
         render: (ticketType) => (
           <span
             className="block max-w-[320px] truncate text-sm text-slate-500"
             title={ticketType.description || undefined}
           >
-            {ticketType.description || "N/A"}
+            {ticketType.description || t("common.na")}
           </span>
         ),
       },
       {
-        header: "Status",
+        header: t("common.status"),
         render: (ticketType) => {
           const isActive = ticketType.isActive === true;
-
           return (
             <span
               className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                 isActive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
               }`}
             >
-              {isActive ? "Active" : "Inactive"}
+              {isActive ? t("common.active") : t("common.inactive")}
             </span>
           );
         },
       },
       {
-        header: "Created",
+        header: t("content.created"),
         render: (ticketType) => (
           <span className="text-sm text-slate-500">{formatDate(ticketType.createdAt)}</span>
         ),
       },
       {
-        header: "Updated",
+        header: t("content.updated"),
         render: (ticketType) => (
           <span className="text-sm text-slate-500">{formatDate(ticketType.updatedAt)}</span>
         ),
       },
       {
-        header: "Action",
+        header: t("common.actions"),
         render: (ticketType) => {
           const isActive = ticketType.isActive === true;
-
           return (
             <div className="flex items-center gap-1.5">
               <ActionButton
@@ -106,7 +103,7 @@ export const TicketTypeList: React.FC = () => {
                     ? "text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
                     : "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
                 }`}
-                title={isActive ? "Deactivate" : "Activate"}
+                title={isActive ? t("content.deactivate") : t("content.activate")}
                 disabled={updatingId === ticketType.id}
               >
                 {isActive ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
@@ -115,7 +112,7 @@ export const TicketTypeList: React.FC = () => {
                 variant="secondary"
                 onClick={() => handleEdit(ticketType.id)}
                 className="h-8 w-8"
-                title="Edit"
+                title={t("content.edit")}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </ActionButton>
@@ -124,17 +121,17 @@ export const TicketTypeList: React.FC = () => {
         },
       },
     ],
-    [executeStatusChange, handleEdit, updatingId],
+    [t, executeStatusChange, handleEdit, updatingId],
   );
 
   return (
     <div className="rounded-2xl">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-          Ticket Type Management
+          {t("content.ticketTypeManagement")}
         </h2>
         <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
-          <Plus className="h-4 w-4" /> Add Ticket Type
+          <Plus className="h-4 w-4" /> {t("content.addTicketType")}
         </ActionButton>
       </div>
 
@@ -143,7 +140,7 @@ export const TicketTypeList: React.FC = () => {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by ticket type name..."
+            placeholder={t("content.searchByTicketTypeName")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
@@ -152,7 +149,7 @@ export const TicketTypeList: React.FC = () => {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">Loading ticket types...</div>
+        <div className="flex justify-center p-10 text-slate-500">{t("content.loadingTicketTypes")}</div>
       ) : error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
@@ -160,7 +157,7 @@ export const TicketTypeList: React.FC = () => {
           data={ticketTypes}
           columns={columns}
           keyExtractor={(item) => item.id}
-          emptyMessage="No ticket types found."
+          emptyMessage={t("content.noTicketTypesFound")}
         />
       )}
 

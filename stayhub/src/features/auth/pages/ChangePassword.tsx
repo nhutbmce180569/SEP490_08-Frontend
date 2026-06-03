@@ -6,8 +6,10 @@ import { useChangePassword } from "../hooks/useChangePassword";
 import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function ChangePassword() {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     oldPassword: "",
     newPassword: "",
@@ -30,7 +32,7 @@ export default function ChangePassword() {
     e.preventDefault();
 
     if (formData.newPassword !== formData.confirmPassword) {
-      setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match!" }));
+      setErrors((prev) => ({ ...prev, confirmPassword: t("errors.passwordsNoMatch") }));
       return;
     }
 
@@ -44,10 +46,10 @@ export default function ChangePassword() {
 
   return (
     <AuthLayout
-      title="Change Password"
-      subtitle="Ensure your account is using a strong password to stay secure."
-      heroTitle="Keep your account safe."
-      heroSubtitle="Update your password regularly to protect your bookings and personal information."
+      title={t("auth.changePasswordTitle")}
+      subtitle={t("auth.changePasswordSubtitleLong")}
+      heroTitle={t("auth.changePasswordHeroTitle")}
+      heroSubtitle={t("auth.changePasswordHeroDesc")}
       imageSeed="stayhub-security"
       footer={
         <div className="mt-8 text-center">
@@ -55,31 +57,31 @@ export default function ChangePassword() {
             to={PATH.PUBLIC.HOME}
             className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
           >
-            &larr; Back to Home
+            &larr; {t("auth.backToHome")}
           </Link>
         </div>
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <AuthFormField
-          label="Old Password"
+          label={t("auth.oldPassword")}
           name="oldPassword"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.oldPassword}
           onChange={handleChange}
-          placeholder="Enter current password"
+          placeholder={t("auth.oldPasswordPlaceholder")}
           required
         />
 
         <AuthFormField
-          label="New Password"
+          label={t("auth.newPassword")}
           name="newPassword"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.newPassword}
           onChange={handleChange}
-          placeholder="Create a new password"
+          placeholder={t("auth.newPasswordPlaceholder")}
           showToggle
           showPassword={showPassword}
           onTogglePassword={() => setShowPassword(!showPassword)}
@@ -87,13 +89,13 @@ export default function ChangePassword() {
         />
 
         <AuthFormField
-          label="Confirm New Password"
+          label={t("auth.confirmNewPassword")}
           name="confirmPassword"
           type={showPassword ? "text" : "password"}
           icon={Lock}
           value={formData.confirmPassword}
           onChange={handleChange}
-          placeholder="Repeat your new password"
+          placeholder={t("auth.confirmNewPasswordPlaceholder")}
           error={errors.confirmPassword}
           required
         />
@@ -104,7 +106,7 @@ export default function ChangePassword() {
           disabled={isSubmitting}
           className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
         >
-          {isSubmitting ? "Changing..." : "Change Password"}
+          {isSubmitting ? t("errors.changingPassword") : t("errors.changePasswordBtn")}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>

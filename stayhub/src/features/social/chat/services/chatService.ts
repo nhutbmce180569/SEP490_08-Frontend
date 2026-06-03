@@ -1,8 +1,10 @@
 import axios from 'axios';
 import type { ChatRoom, ChatMessage } from '../types/chat.type';
+import { FULL_API } from '../../../../config/api/api';
+import { applyLanguageToAxiosConfig } from '../../../../utils/httpLanguage';
 
 const apiClient = axios.create({
-  baseURL: 'https://localhost:7010',
+  baseURL: FULL_API,
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -10,7 +12,7 @@ apiClient.interceptors.request.use((config) => {
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  return config;
+  return applyLanguageToAxiosConfig(config);
 });
 
 export const chatService = {

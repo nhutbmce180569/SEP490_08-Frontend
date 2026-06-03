@@ -14,6 +14,7 @@ import { getImg } from "../../../config/api/api";
 import type { TourRecommendationItem } from "../types/tourAssistant";
 import { formatMatchPercent, formatVnd } from "../utils/formatters";
 import { ScoreBreakdownPanel } from "./ScoreBreakdownPanel";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   tour: TourRecommendationItem;
@@ -26,8 +27,9 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   onTourClick,
   compact,
 }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
-  const location = [tour.city, tour.country].filter(Boolean).join(", ") || "Vietnam";
+  const location = [tour.city, tour.country].filter(Boolean).join(", ") || t("home.vietnam");
   const imageUrl = tour.imageUrl ? getImg(tour.imageUrl) : "";
 
   return (
@@ -49,7 +51,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-slate-200">
-              <span className="text-slate-400 text-xs font-black uppercase">No image</span>
+              <span className="text-slate-400 text-xs font-black uppercase">{t("ai.noImage")}</span>
             </div>
           )}
 
@@ -58,7 +60,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             style={{ background: "rgba(255,255,255,0.96)", borderRadius: 999, color: "var(--color-brand)" }}
           >
             <Sparkles size={12} />
-            {formatMatchPercent(tour.score)} match
+            {t("ai.matchLabel", { percent: formatMatchPercent(tour.score) })}
           </div>
 
           {tour.averageStar != null && tour.averageStar > 0 && (
@@ -121,13 +123,15 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             {tour.durationDays != null && (
               <span className="flex items-center gap-1">
                 <Clock size={14} style={{ color: "var(--color-brand)" }} />
-                {tour.durationDays} day{tour.durationDays !== 1 ? "s" : ""}
+                {tour.durationDays !== 1
+                  ? t("home.durationDaysPlural", { count: tour.durationDays })
+                  : t("home.durationDays", { count: tour.durationDays })}
               </span>
             )}
           </div>
           <div className="text-right">
             <div className="text-[9px] font-black uppercase tracking-widest text-slate-400">
-              From
+              {t("home.priceFrom")}
             </div>
             <div className="text-base font-black" style={{ color: "var(--color-brand)" }}>
               {formatVnd(tour.minPrice)}
@@ -145,7 +149,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             >
               <span className="flex items-center gap-1.5">
                 <Sparkles size={14} style={{ color: "var(--color-brand)" }} />
-                AI explanation
+                {t("ai.aiExplanation")}
               </span>
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
@@ -163,7 +167,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           className="mt-4 flex items-center justify-center gap-2 py-3 rounded-xl text-xs font-black uppercase tracking-wider text-white !no-underline transition-opacity hover:opacity-90"
           style={{ background: "var(--color-brand)" }}
         >
-          View details <ArrowRight size={14} />
+          {t("ai.viewDetails")} <ArrowRight size={14} />
         </Link>
       </div>
     </div>

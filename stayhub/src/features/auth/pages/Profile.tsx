@@ -1,26 +1,18 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Camera, Save, Mail, Phone, Calendar, User, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { ActionButton } from '../../../components/home/ActionButton';
 import { AuthContext } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { useProfile } from '../hooks/useProfile';
 import { getImg } from '../../../config/api/api';
 import { LoadingOverlay } from '../../../components/home/LoadingOverlay';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 export const Profile: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const { success, error: showError } = useToast();
   const { handleUpdateProfile, isUpdating } = useProfile();
-  const navigate = useNavigate();
-
-  // Lấy role của user để kiểm tra quyền
-  const userRoles = Array.isArray(user?.roles)
-    ? user?.roles
-    : typeof user?.roles === 'string'
-    ? [user?.roles]
-    : [];
-  const upperRoles = userRoles.map((r: string) => r.toUpperCase());
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -34,14 +26,12 @@ export const Profile: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Đồng bộ thông tin user từ AuthContext vào state của Form
   useEffect(() => {
     if (user) {
       setFormData({
         fullName: user.fullName || '',
         email: user.email || '',
         phone: user.phoneNumber || '',
-        // Cắt lấy chuỗi 'YYYY-MM-DD' để bind chính xác vào input type="date"
         dateOfBirth: user.dateOfBirth ? user.dateOfBirth.split('T')[0] : '',
         gender: user.gender || 'Male',
       });
@@ -73,9 +63,9 @@ export const Profile: React.FC = () => {
       };
       
       await handleUpdateProfile(payload);
-      success('Profile updated successfully!');
+      success(t('auth.profileUpdated'));
     } catch (err: any) {
-      showError(err.response?.data?.message || err.message || 'Failed to update profile.');
+      showError(err.response?.data?.message || err.message || t('auth.profileUpdateFailed'));
     }
   };
 
@@ -84,26 +74,25 @@ export const Profile: React.FC = () => {
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">
-            <User className="text-brand" /> My Profile
+            <User className="text-brand" /> {t('auth.myProfile')}
           </h1>
-          <p className="mt-1.5 text-sm text-slate-500">Manage your personal details and how we can reach you</p>
+          <p className="mt-1.5 text-sm text-slate-500">{t('auth.profileSubtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
             <ShieldCheck size={18} />
-            Account Verified
+            {t('auth.accountVerified')}
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-10 md:flex-row">
-        {/* Avatar Section */}
         <div className="flex flex-col items-center gap-5 md:w-1/3">
           <div className="group relative cursor-pointer">
             <div className="h-44 w-44 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-xl transition-transform duration-300 group-hover:scale-105">
               <img
                 src={previewUrl || getImg(user?.avatarUrl) || `https://api.dicebear.com/7.x/avataaars/svg?seed=${formData.fullName.replace(/\s/g, '') || "StayHub"}`}
-                alt="Profile Avatar"
+                alt={t('auth.avatar')}
                 className="h-full w-full object-cover"
               />
             </div>
@@ -134,11 +123,10 @@ export const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Form Fields Section */}
         <div className="flex-1 space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:col-span-2">
-              <label className="mb-2 block text-sm font-bold text-slate-700">Full Name</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">{t('auth.fullName')}</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
@@ -153,7 +141,7 @@ export const Profile: React.FC = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">Email Address</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">{t('errors.emailAddress')}</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
@@ -167,7 +155,7 @@ export const Profile: React.FC = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">Phone Number</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">{t('auth.phoneNumber')}</label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
@@ -181,7 +169,7 @@ export const Profile: React.FC = () => {
             </div>
 
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">Date of Birth</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">{t('common.dateOfBirth')}</label>
               <div className="relative">
                 <Calendar className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
@@ -195,16 +183,16 @@ export const Profile: React.FC = () => {
             </div>
             
             <div>
-              <label className="mb-2 block text-sm font-bold text-slate-700">Gender</label>
+              <label className="mb-2 block text-sm font-bold text-slate-700">{t('common.gender')}</label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm font-medium text-slate-900 outline-none transition-all focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
               >
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
+                <option value="Male">{t('common.male')}</option>
+                <option value="Female">{t('common.female')}</option>
+                <option value="Other">{t('common.other')}</option>
               </select>
             </div>
           </div>
@@ -217,13 +205,13 @@ export const Profile: React.FC = () => {
               className="gap-2 px-8 py-3.5 text-[15px] shadow-lg shadow-brand/20 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               <Save size={18} />
-              {isUpdating ? 'Saving...' : 'Save Changes'}
+              {isUpdating ? t('auth.savingChanges') : t('common.saveChanges')}
             </ActionButton>
           </div>
         </div>
       </form>
       
-      <LoadingOverlay isOpen={isUpdating} message="Saving changes..." />
+      <LoadingOverlay isOpen={isUpdating} message={t('auth.savingChanges')} />
     </div>
   );
 };

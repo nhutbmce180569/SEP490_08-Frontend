@@ -4,6 +4,7 @@ import { Eye, FileText, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCancellationRequests } from "../hooks/useCancellationRequests";
 import type { CancellationRequestListDTO } from "../types/cancellation";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
@@ -11,7 +12,7 @@ import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
 const PAGE_SIZE = 5;
 
 const formatDate = (date?: string) => {
-  if (!date) return "N/A";
+  if (!date) return "";
   return new Date(date).toLocaleString();
 };
 
@@ -20,6 +21,7 @@ const formatCurrency = (amount?: number) => {
 };
 
 export const CancellationListPage: React.FC = () => {
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<string>("");
   const [page, setPage] = useState(1);
   const { data, isLoading, error } = useCancellationRequests(statusFilter, page, PAGE_SIZE);
@@ -33,7 +35,7 @@ export const CancellationListPage: React.FC = () => {
   const columns: Column<CancellationRequestListDTO>[] = useMemo(
     () => [
       {
-        header: "Request ID",
+        header: t("booking.requestId"),
         render: (item) => (
           <div className="flex items-center gap-2 font-semibold text-slate-800">
             <FileText className="h-4 w-4 text-slate-400" /> #{item.id}
@@ -41,19 +43,19 @@ export const CancellationListPage: React.FC = () => {
         ),
       },
       {
-        header: "Order ID",
+        header: t("booking.orderId"),
         render: (item) => <span className="text-sm font-medium">#{item.orderId}</span>,
       },
       {
-        header: "Requested At",
-        render: (item) => <span className="text-sm text-slate-500">{formatDate(item.requestedAt)}</span>,
+        header: t("booking.requestedAt"),
+        render: (item) => <span className="text-sm text-slate-500">{formatDate(item.requestedAt) || t("common.na")}</span>,
       },
       {
-        header: "Refund Amount",
+        header: t("booking.refundAmount"),
         render: (item) => <span className="font-semibold text-emerald-600">{formatCurrency(item.refundAmount)}</span>,
       },
       {
-        header: "Status",
+        header: t("common.status"),
         render: (item) => {
           const normalizedStatus = item.status?.toLowerCase();
           const isPending = normalizedStatus === "pending";
@@ -73,12 +75,12 @@ export const CancellationListPage: React.FC = () => {
         },
       },
       {
-        header: "Action",
+        header: t("common.actions"),
         render: (item) => (
           <ActionButton 
             variant="secondary" 
             className="h-8 w-8"
-            title="Process Request"
+            title={t("booking.processRequest")}
             onClick={() => navigate(MANAGER_ROUTES.PROCESS_CANCELLATION(item.id))}
           >
             <Eye className="h-4 w-4" />
@@ -86,13 +88,13 @@ export const CancellationListPage: React.FC = () => {
         ),
       },
     ],
-    [navigate]
+    [t, navigate]
   );
 
   return (
     <div className="rounded-2xl">
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-[15px] font-bold leading-tight text-slate-900">Tour Cancellation Requests</h2>
+        <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t("booking.tourCancellationRequests")}</h2>
       </div>
 
       <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center">
@@ -104,19 +106,19 @@ export const CancellationListPage: React.FC = () => {
           }}
           className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
         >
-          <option value="">All Statuses</option>
-          <option value="Pending">Pending</option>
-          <option value="Approved">Approved</option>
-          <option value="Rejected">Rejected</option>
+          <option value="">{t("booking.allStatuses")}</option>
+          <option value="Pending">{t("common.pending")}</option>
+          <option value="Approved">{t("common.approved")}</option>
+          <option value="Rejected">{t("common.rejected")}</option>
         </select>
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">Loading requests...</div>
+        <div className="flex justify-center p-10 text-slate-500">{t("booking.loadingRequests")}</div>
       ) : error ? (
-        <div className="flex justify-center p-10 text-rose-500">Failed to load requests.</div>
+        <div className="flex justify-center p-10 text-rose-500">{t("booking.failedLoadRequests")}</div>
       ) : (
-        <Table data={requests} columns={columns} keyExtractor={(item) => item.id} emptyMessage="No cancellation requests found." />
+        <Table data={requests} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("booking.noCancellationRequests")} />
       )}
 
       <PaginationButton

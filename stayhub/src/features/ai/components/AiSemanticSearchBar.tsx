@@ -3,6 +3,7 @@ import { Search, Sparkles, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
 import { useAiSemanticSearch } from "../hooks/useAiSemanticSearch";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   className?: string;
@@ -11,8 +12,10 @@ interface Props {
 
 export const AiSemanticSearchBar: React.FC<Props> = ({
   className = "",
-  placeholder = "Search tours with AI — e.g. 4-day cultural tour in Central Vietnam",
+  placeholder,
 }) => {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t("ai.semanticSearchPlaceholder");
   const [query, setQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
   const { results, isSearching, search, clearResults } = useAiSemanticSearch();
@@ -48,7 +51,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none font-medium min-w-0"
         />
         {query && (
@@ -68,7 +71,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
           ) : (
             <Search size={14} />
           )}
-          AI Search
+          {t("ai.aiSearch")}
         </button>
       </div>
 
@@ -83,13 +86,13 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
         >
           {results.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm font-bold text-slate-600 mb-2">No matching tours found</p>
+              <p className="text-sm font-bold text-slate-600 mb-2">{t("ai.noMatchingToursShort")}</p>
               <button
                 type="button"
                 onClick={goToAiAssistant}
                 className="text-xs font-bold text-brand hover:underline"
               >
-                Try a detailed AI survey →
+                {t("ai.tryDetailedSurvey")}
               </button>
             </div>
           ) : (
@@ -120,7 +123,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
                 onClick={goToAiAssistant}
                 className="w-full py-3 text-xs font-black text-brand hover:bg-brand-light transition-colors"
               >
-                Get personalised AI recommendations →
+                {t("ai.getPersonalisedRecsLink")}
               </button>
             </>
           )}

@@ -1,14 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, X, Send, Sparkles, Minimize2 } from "lucide-react";
 import { useTourAssistantChat } from "../hooks/useTourAssistantChat";
 import { AiTourRecommendationCard } from "./AiTourRecommendationCard";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const TourAssistantChatWidget = () => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const { messages, isSending, sendMessage, logInteraction } = useTourAssistantChat();
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const defaultSuggestions = useMemo(
+    () => [t("ai.suggestionBeach"), t("ai.suggestionCulture"), t("ai.suggestionDaLat")],
+    [t],
+  );
 
   useEffect(() => {
     if (open) {
@@ -25,11 +32,7 @@ export const TourAssistantChatWidget = () => {
   };
 
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
-  const suggestions = lastAssistant?.response?.suggestedQuestions ?? [
-    "Beach tours under 5M VND",
-    "4-day Central Vietnam culture tour",
-    "Da Lat 3 days for 2 travelers",
-  ];
+  const suggestions = lastAssistant?.response?.suggestedQuestions ?? defaultSuggestions;
 
   return (
     <>
@@ -38,10 +41,10 @@ export const TourAssistantChatWidget = () => {
           type="button"
           onClick={() => setOpen(true)}
           className="ai-fab fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white transition-transform hover:scale-105"
-          aria-label="Open AI assistant"
+          aria-label={t("ai.openAssistant")}
         >
           <MessageCircle size={20} />
-          <span className="hidden sm:inline">AI Assistant</span>
+          <span className="hidden sm:inline">{t("ai.assistantLabel")}</span>
           <Sparkles size={16} className="opacity-90" />
         </button>
       )}
@@ -52,8 +55,8 @@ export const TourAssistantChatWidget = () => {
             <div className="flex items-center gap-2">
               <Sparkles size={18} />
               <div>
-                <p className="text-sm font-bold">StayHub AI</p>
-                <p className="text-[10px] font-medium opacity-90">Smart tour advisor</p>
+                <p className="text-sm font-bold">{t("ai.stayhubAi")}</p>
+                <p className="text-[10px] font-medium opacity-90">{t("ai.smartAdvisor")}</p>
               </div>
             </div>
             <div className="flex gap-1">
@@ -61,7 +64,7 @@ export const TourAssistantChatWidget = () => {
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-full p-2 transition-colors hover:bg-white/20"
-                aria-label="Minimize"
+                aria-label={t("ai.minimize")}
               >
                 <Minimize2 size={16} />
               </button>
@@ -69,7 +72,7 @@ export const TourAssistantChatWidget = () => {
                 type="button"
                 onClick={() => setOpen(false)}
                 className="rounded-full p-2 transition-colors hover:bg-white/20"
-                aria-label="Close"
+                aria-label={t("ai.close")}
               >
                 <X size={16} />
               </button>
@@ -80,10 +83,10 @@ export const TourAssistantChatWidget = () => {
             {messages.length === 0 && (
               <div className="px-4 py-8 text-center">
                 <p className="mb-2 text-sm font-bold text-[var(--color-navy)]">
-                  Hi! How can I help you plan your trip?
+                  {t("ai.greeting")}
                 </p>
                 <p className="mb-4 text-xs font-medium text-[var(--text-muted)]">
-                  Ask in natural language — budget, destination, group size, and more.
+                  {t("ai.greetingHint")}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {suggestions.slice(0, 3).map((q) => (
@@ -170,7 +173,7 @@ export const TourAssistantChatWidget = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder="Type your question..."
+              placeholder={t("ai.inputPlaceholder")}
               maxLength={2000}
               disabled={isSending}
               className="input-field flex-1 py-2.5"
@@ -180,7 +183,7 @@ export const TourAssistantChatWidget = () => {
               onClick={() => handleSend()}
               disabled={isSending || input.trim().length < 2}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-white transition-opacity hover:bg-brand-hover disabled:opacity-40"
-              aria-label="Send"
+              aria-label={t("ai.send")}
             >
               <Send size={18} />
             </button>

@@ -13,8 +13,10 @@ import { WeatherAdviceCard } from "../components/WeatherAdviceCard";
 import { useRecommendFromProfile } from "../hooks/useRecommendFromProfile";
 import { useLogAiInteraction } from "../hooks/useLogAiInteraction";
 import type { PersonalizedRecommendationResponse } from "../types/tourAssistant";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const AiRecommendationsPage: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const stateData = location.state as PersonalizedRecommendationResponse | undefined;
@@ -68,7 +70,7 @@ export const AiRecommendationsPage: React.FC = () => {
           to={PATH.PUBLIC.AI_ASSISTANT}
           className="mb-8 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 !no-underline transition-colors hover:text-brand"
         >
-          <ArrowLeft size={16} /> Redo survey
+          <ArrowLeft size={16} /> {t("ai.redoSurvey")}
         </Link>
 
         {/* Summary hero */}
@@ -85,7 +87,7 @@ export const AiRecommendationsPage: React.FC = () => {
             </span>
             <div>
               <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-brand-light">
-                Personalised recommendations
+                {t("ai.personalisedRecs")}
               </p>
               <p className="text-base font-medium leading-relaxed text-white md:text-lg">
                 {data.summary}
@@ -110,8 +112,9 @@ export const AiRecommendationsPage: React.FC = () => {
           <div className="min-w-0 w-full flex-1">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="travel-heading text-xl text-navy">
-                {data.recommendedTours.length} tour
-                {data.recommendedTours.length !== 1 ? "s" : ""} found
+                {data.recommendedTours.length === 1
+                  ? t("ai.toursFound", { count: data.recommendedTours.length })
+                  : t("ai.toursFoundPlural", { count: data.recommendedTours.length })}
               </h2>
               <ActionButton
                 variant="outline"
@@ -119,14 +122,14 @@ export const AiRecommendationsPage: React.FC = () => {
                 disabled={isLoading}
                 className="!px-4 flex items-center gap-1.5 text-xs"
               >
-                <RefreshCw size={14} /> New search
+                <RefreshCw size={14} /> {t("ai.newSearch")}
               </ActionButton>
             </div>
 
             {data.recommendedTours.length === 0 ? (
               <div className="glass-card rounded-2xl p-12 text-center">
                 <p className="font-medium text-slate-500">
-                  No matching tours found. Try adjusting your budget or preferences.
+                  {t("ai.noMatchingTours")}
                 </p>
               </div>
             ) : (

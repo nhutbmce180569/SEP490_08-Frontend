@@ -8,22 +8,22 @@ import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useUpdateTour } from "../hooks/useUpdateTour";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const UpdateTour: React.FC = () => {
-  // Mọi logic đã nằm gọn trong hook này
-  const { 
-    id, 
-    tour, 
-    isFetching, 
-    fetchError, 
-    isSubmitting, 
-    serverErrors, 
-    handleSubmit, 
-    handleCancel, 
-    categoryOptions 
+  const { t } = useTranslation();
+  const {
+    id,
+    tour,
+    isFetching,
+    fetchError,
+    isSubmitting,
+    serverErrors,
+    handleSubmit,
+    handleCancel,
+    categoryOptions,
   } = useUpdateTour();
 
-  // --- STATE MAP SEARCH ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [currentSetFormData, setCurrentSetFormData] = useState<React.Dispatch<React.SetStateAction<Record<string, any>>> | null>(null);
   const [mapInitialData, setMapInitialData] = useState<any>(null);
@@ -39,11 +39,10 @@ export const UpdateTour: React.FC = () => {
     }
   };
 
-  // Hiển thị Loading/Error khi đang tải dữ liệu ban đầu
   if (isFetching)
     return (
       <div className="flex justify-center p-10 text-slate-500">
-        Loading tour details...
+        {t("tour.loadingTourDetailsMgr")}
       </div>
     );
   if (fetchError)
@@ -53,22 +52,21 @@ export const UpdateTour: React.FC = () => {
   if (!tour)
     return (
       <div className="flex justify-center p-10 text-slate-500">
-        Tour not found.
+        {t("tour.tourNotFound")}
       </div>
     );
 
-  // Cấu hình Form (Kèm defaultValue từ API)
   const tourFields: FormField[] = [
     {
       name: "name",
-      label: "Tour Name",
+      label: t("tour.tourName"),
       type: "text",
       colSpan: 2,
       required: true,
     },
     {
       name: "categoryId",
-      label: "Category",
+      label: t("tour.category"),
       type: "select",
       icon: <Layers className="h-4 w-4" />,
       options: categoryOptions,
@@ -76,18 +74,18 @@ export const UpdateTour: React.FC = () => {
     },
     {
       name: "status",
-      label: "Status",
+      label: t("common.status"),
       type: "select",
       icon: <Tag className="h-4 w-4" />,
       options: [
-        { label: "Active", value: "Active" },
-        { label: "Inactive", value: "Inactive" },
+        { label: t("common.active"), value: "Active" },
+        { label: t("common.inactive"), value: "Inactive" },
       ],
     },
-    { 
-      name: "address", 
-      label: "Full Address", 
-      type: "custom", 
+    {
+      name: "address",
+      label: t("tour.fullAddress"),
+      type: "custom",
       colSpan: 2,
       required: true,
       render: (value, onChange, error, setFormData) => (
@@ -104,45 +102,55 @@ export const UpdateTour: React.FC = () => {
                   setIsMapModalOpen(true);
                 }}
                 className={`w-full cursor-pointer rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
-                placeholder="Click to pick on map..."
+                placeholder={t("tour.clickPickOnMap")}
                 value={value || ""}
               />
             </div>
-            <ActionButton 
-              type="button" 
-              variant="secondary" 
+            <ActionButton
+              type="button"
+              variant="secondary"
               onClick={() => {
                 setCurrentSetFormData(() => setFormData);
                 setMapInitialData({ single: { address: value || "" } });
                 setIsMapModalOpen(true);
-              }} 
+              }}
               className="gap-2 px-3 py-2 text-sm font-semibold text-indigo-600 border-indigo-100 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700"
             >
-              <MapPin className="h-4 w-4" /> Pick on Map
+              <MapPin className="h-4 w-4" /> {t("tour.pickOnMap")}
             </ActionButton>
           </div>
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
-      )
+      ),
     },
-    { 
-      name: "city", label: "City", type: "text", 
-      placeholder: "Auto-filled from map...", icon: <MapPin className="h-4 w-4" />, required: true, readOnly: true
+    {
+      name: "city",
+      label: t("tour.city"),
+      type: "text",
+      placeholder: t("tour.autoFilledFromMap"),
+      icon: <MapPin className="h-4 w-4" />,
+      required: true,
+      readOnly: true,
     },
-    { 
-      name: "country", label: "Country", type: "text", 
-      placeholder: "Auto-filled from map...", icon: <MapPin className="h-4 w-4" />, required: true, readOnly: true
+    {
+      name: "country",
+      label: t("tour.country"),
+      type: "text",
+      placeholder: t("tour.autoFilledFromMap"),
+      icon: <MapPin className="h-4 w-4" />,
+      required: true,
+      readOnly: true,
     },
     {
       name: "description",
-      label: "Description",
+      label: t("common.description"),
       type: "textarea",
       icon: <FileText className="h-4 w-4" />,
       colSpan: 2,
     },
     {
       name: "image",
-      label: "Tour Image",
+      label: t("tour.tourImage"),
       type: "file",
       colSpan: 2,
     },
@@ -150,23 +158,23 @@ export const UpdateTour: React.FC = () => {
 
   const initialFormValues = {
     ...tour,
-    image: tour.imageUrl, // Map dữ liệu imageUrl từ BE sang field "image" của Form
+    image: tour.imageUrl,
   };
 
   return (
     <>
       <DynamicForm
-        title="Update Tour"
-        description={`Edit details for tour #${id}`}
+        title={t("tour.updateTourTitle")}
+        description={t("tour.editTourDetails", { id })}
         fields={tourFields}
         initialValues={initialFormValues}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         serverErrors={serverErrors}
-        submitText="Update Tour"
-        cancelText="Cancel"
+        submitText={t("tour.updateTourTitle")}
+        cancelText={t("common.cancel")}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Updating tour..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("tour.updatingTour")} />
 
       <MapPickerModal
         isOpen={isMapModalOpen}

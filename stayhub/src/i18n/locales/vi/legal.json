@@ -1,0 +1,22 @@
+{
+  "eyebrow": "Pháp lý",
+  "documents": "Tài liệu",
+  "onThisPage": "Trên trang này",
+  "updated": "Cập nhật {{date}}",
+  "backToRegistration": "Quay lại đăng ký",
+  "backToSignIn": "Quay lại đăng nhập",
+  "questionsTitle": "Câu hỏi về chính sách này?",
+  "questionsContactPrefix": "Liên hệ",
+  "questionsContactOr": "hoặc",
+  "readRelated": "Đọc {{label}}",
+  "termsTitle": "Điều khoản dịch vụ",
+  "termsSubtitle": "Quy tắc đặt tour, trách nhiệm tài khoản và cách sử dụng nền tảng StayHub.",
+  "privacyTitle": "Chính sách quyền riêng tư",
+  "privacySubtitle": "Cách StayHub thu thập, sử dụng, lưu trữ và bảo vệ dữ liệu cá nhân khi bạn dùng nền tảng đặt tour.",
+  "termsNavLabel": "Điều khoản dịch vụ",
+  "termsNavDesc": "Quy tắc đặt chỗ, hủy và sử dụng nền tảng",
+  "privacyNavLabel": "Chính sách quyền riêng tư",
+  "privacyNavDesc": "Cách chúng tôi thu thập và bảo vệ dữ liệu",
+  "relatedTerms": "Điều khoản dịch vụ",
+  "relatedPrivacy": "Chính sách quyền riêng tư"
+}

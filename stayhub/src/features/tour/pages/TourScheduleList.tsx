@@ -2,26 +2,26 @@ import React, { useMemo, useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, Calendar, Eye, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
-
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
-
 import { useTourSchedule } from "../hooks/useTourSchedule";
 import { type TourSchedule } from "../types/tourSchedule";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 const PAGE_SIZE = 10;
 
 export const TourScheduleList: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  
-  const { 
-    schedules, 
-    isLoading, 
-    error, 
-    fetchAllSchedules, 
-    deleteSchedule 
+
+  const {
+    schedules,
+    isLoading,
+    error,
+    fetchAllSchedules,
+    deleteSchedule,
   } = useTourSchedule();
 
   const [page, setPage] = useState(1);
@@ -76,12 +76,12 @@ export const TourScheduleList: React.FC = () => {
   const columns: Column<TourSchedule>[] = useMemo(
     () => [
       {
-        header: "Tour ID",
+        header: t("tour.tourIdCol"),
         render: (item) => <span className="font-semibold text-slate-800">#{item.tourId}</span>,
         className: "w-[120px]",
       },
       {
-        header: "Tour Name",
+        header: t("tour.tourNameCol"),
         render: (item) => (
           <span className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
             {item.tour?.name ?? "-"}
@@ -90,7 +90,7 @@ export const TourScheduleList: React.FC = () => {
         className: "min-w-[180px]",
       },
       {
-        header: "Departure - Return",
+        header: t("tour.departureReturn"),
         render: (item) => (
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Calendar className="h-4 w-4 text-slate-400" />
@@ -101,36 +101,36 @@ export const TourScheduleList: React.FC = () => {
         ),
       },
       {
-        header: "Action",
+        header: t("common.actions"),
         className: "w-[160px]",
         render: (item) => (
           <div className="flex items-center gap-1.5">
-            <ActionButton 
-              variant="secondary" 
-              aria-label="View"
-              onClick={() => handleView(item.id)} 
+            <ActionButton
+              variant="secondary"
+              aria-label={t("tour.view")}
+              onClick={() => handleView(item.id)}
               className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
-              title="View Detail"
+              title={t("tour.viewDetail")}
             >
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>
-            
-            <ActionButton 
-              variant="secondary" 
-              aria-label="Edit"
-              onClick={() => handleEdit(item.id)} 
+
+            <ActionButton
+              variant="secondary"
+              aria-label={t("tour.edit")}
+              onClick={() => handleEdit(item.id)}
               className="h-8 w-8"
-              title="Edit Schedule"
+              title={t("tour.editSchedule")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </ActionButton>
-            
-            <ActionButton 
-              variant="warning" 
-              aria-label="Delete"
+
+            <ActionButton
+              variant="warning"
+              aria-label={t("tour.delete")}
               onClick={() => setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })}
               className="h-8 w-8"
-              title="Delete Schedule"
+              title={t("tour.deleteSchedule")}
             >
               <Trash2 className="h-3.5 w-3.5" />
             </ActionButton>
@@ -138,17 +138,23 @@ export const TourScheduleList: React.FC = () => {
         ),
       },
     ],
-    [handleEdit, handleView]
+    [t, handleEdit, handleView],
   );
+
+  const deleteMessage = confirmDelete
+    ? t("tour.deleteScheduleCannotUndo", {
+        id: confirmDelete.scheduleId,
+        tourName: confirmDelete.tourName ? ` (${confirmDelete.tourName})` : "",
+      })
+    : "";
 
   return (
     <div className="rounded-2xl">
-      {/* Card header */}
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
           <div>
             <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              Schedule Management
+              {t("tour.scheduleManagement")}
             </h2>
           </div>
         </div>
@@ -158,7 +164,7 @@ export const TourScheduleList: React.FC = () => {
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-              placeholder="Search schedules..."
+              placeholder={t("tour.searchSchedules")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -170,12 +176,11 @@ export const TourScheduleList: React.FC = () => {
             className="gap-2 px-4 py-2 text-sm"
           >
             <Plus className="h-4 w-4" />
-            Create Schedule
+            {t("tour.createSchedule")}
           </ActionButton>
         </div>
       </div>
 
-      {/* Table */}
       {error ? (
         <div className="flex justify-center p-10 text-rose-500 font-semibold">{error}</div>
       ) : (
@@ -183,7 +188,7 @@ export const TourScheduleList: React.FC = () => {
           data={paginatedSchedules}
           columns={columns}
           keyExtractor={(item) => item.id}
-          emptyMessage="No schedules found. Click 'Create Schedule' to add one."
+          emptyMessage={t("tour.noSchedulesFound")}
           isLoading={isLoading}
           skeletonRows={PAGE_SIZE}
         />
@@ -193,16 +198,13 @@ export const TourScheduleList: React.FC = () => {
         open={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
         onConfirm={handleConfirmDelete}
-        title="Delete schedule"
-        message={`Are you sure you want to delete schedule #${confirmDelete?.scheduleId}${
-          confirmDelete?.tourName ? ` (${confirmDelete.tourName})` : ""
-        }? This action cannot be undone.`}
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t("tour.deleteScheduleMgr")}
+        message={deleteMessage}
+        confirmText={t("tour.delete")}
+        cancelText={t("common.cancel")}
         variant="warning"
       />
 
-      {/* Footer / Pagination */}
       <PaginationButton
         currentPage={page}
         totalPages={totalPages}

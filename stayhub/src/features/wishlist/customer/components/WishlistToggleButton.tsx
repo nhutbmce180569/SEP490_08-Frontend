@@ -1,5 +1,6 @@
 import React from 'react';
 import { Heart, Loader2 } from 'lucide-react';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 import { useWishlistToggle } from '../hooks/useWishlistToggle';
 
 type WishlistToggleVariant = 'hero' | 'card';
@@ -28,6 +29,7 @@ export const WishlistToggleButton: React.FC<WishlistToggleButtonProps> = ({
   variant = 'card',
   className = '',
 }) => {
+  const { t } = useTranslation();
   const { isInWishlist, toggleWishlist, isSubmittingTourId } = useWishlistToggle();
   const isWished = isInWishlist(tourId);
   const isBusy = isSubmittingTourId === tourId;
@@ -36,8 +38,8 @@ export const WishlistToggleButton: React.FC<WishlistToggleButtonProps> = ({
   return (
     <button
       type="button"
-      aria-label={isWished ? 'Remove from wishlist' : 'Add to wishlist'}
-      title={isWished ? 'Remove from wishlist' : 'Save to wishlist'}
+      aria-label={isWished ? t('tour.removeFromWishlistAria') : t('tour.addToWishlistAria')}
+      title={isWished ? t('tour.removeFromWishlistAria') : t('tour.saveToWishlist')}
       disabled={isBusy}
       onClick={(e) => {
         e.preventDefault();

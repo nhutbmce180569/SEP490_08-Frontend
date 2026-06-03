@@ -6,12 +6,14 @@ import { MomentsMapFeed } from "./MomentsMapFeed";
 import { MomentModal } from "./MomentModal";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 
 interface MomentsFeedProps {
   scheduleId: number;
 }
 
 export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
+  const { t } = useTranslation();
   const { data, isLoading, isError } = useInfiniteMomentFeed(scheduleId);
   const { user } = useContext(AuthContext);
   const { warning, error } = useToast();
@@ -55,7 +57,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
 
   const handleToggleLike = useCallback(() => {
     if (!selectedMoment) return;
-    if (!user || !currentUserId) { warning("Please log in!"); return; }
+    if (!user || !currentUserId) { warning(t("social.pleaseLogIn")); return; }
     
     const newIsLiked = !isLiked;
     setIsLiked(newIsLiked);
@@ -65,20 +67,20 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
       onError: () => { 
         setIsLiked(!newIsLiked); 
         setLikeCount(initialLikeCount); 
-        error("Failed to react to moment."); 
+        error(t("social.failedReactMoment")); 
       }
     });
-  }, [selectedMoment, user, currentUserId, isLiked, toggleReaction, initialLikeCount, warning, error]);
+  }, [selectedMoment, user, currentUserId, isLiked, toggleReaction, initialLikeCount, warning, error, t]);
 
   const renderPrivacyBadge = (privacy: string) => {
     switch (privacy?.toLowerCase()) {
       case 'private':
-        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Lock className="h-3 w-3" /> Private</div>;
+        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Lock className="h-3 w-3" /> {t("social.private")}</div>;
       case 'friend':
       case 'friends':
-        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Users className="h-3 w-3" /> Friend</div>;
+        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Users className="h-3 w-3" /> {t("social.friendPrivacy")}</div>;
       default:
-        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Globe className="h-3 w-3" /> Public</div>;
+        return <div className="flex items-center gap-1 rounded-lg bg-black/40 px-2 py-1 text-[10px] font-semibold text-white backdrop-blur-md shadow-sm"><Globe className="h-3 w-3" /> {t("social.public")}</div>;
     }
   };
 
@@ -95,7 +97,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
             }`}
           >
-            <LayoutList className="h-4 w-4" /> Feed
+            <LayoutList className="h-4 w-4" /> {t("social.feed")}
           </button>
           <button
             onClick={() => setViewMode('map')}
@@ -105,7 +107,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
             }`}
           >
-            <Map className="h-4 w-4" /> Map
+            <Map className="h-4 w-4" /> {t("social.map")}
           </button>
         </div>
       </div>
@@ -121,7 +123,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
         {isError && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
             <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-6 text-center text-sm font-medium text-rose-400 shadow-lg backdrop-blur-md">
-              The data cannot be loaded at this time. Please try again later.
+              {t("social.momentsLoadFailed")}
             </div>
           </div>
         )}
@@ -134,7 +136,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
                   <Camera className="h-10 w-10 text-slate-500" />
                 </div>
                 <p className="text-sm font-semibold text-slate-400">
-                  Chưa có khoảnh khắc nào. Hãy là người đầu tiên chia sẻ!
+                  {t("social.noMomentsShare")}
                 </p>
               </div>
             ) : (
@@ -147,7 +149,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
                   >
                     <img
                       src={moment.imageUrl || moment.ImageUrl}
-                      alt={moment.caption || "Travel moment"}
+                      alt={moment.caption || t("social.travelMoment")}
                       className="h-full w-full object-cover aspect-[4/5] transition-transform duration-700 group-hover:scale-105"
                       loading="lazy"
                     />

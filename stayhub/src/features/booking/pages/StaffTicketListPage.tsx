@@ -8,6 +8,7 @@ import { ticketService } from "../services/ticket.service";
 import type { AssignedTourSchedule } from "../../tour/types/tourSchedule";
 import type { ReadTicketDTO } from "../types/ticket";
 import { useToast } from "../../../contexts/ToastContext";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { PATH } from "../../../config/routes/route";
 import { Link } from "react-router-dom";
 
@@ -21,6 +22,7 @@ const getStatusStyle = (status?: string | null) =>
   STATUS_STYLES[status ?? ""] ?? "bg-slate-100 text-slate-600";
 
 export const StaffTicketListPage: React.FC = () => {
+  const { t } = useTranslation();
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const { error: showError } = useToast();
@@ -57,20 +59,20 @@ export const StaffTicketListPage: React.FC = () => {
       showError(
         typeof schedulesError === "string"
           ? schedulesError
-          : (schedulesError as Error).message || "Unable to load assigned schedules.",
+          : (schedulesError as Error).message || t("booking.unableLoadAssignedSchedules"),
       );
     }
-  }, [schedulesError, showError]);
+  }, [schedulesError, showError, t]);
 
   useEffect(() => {
     if (ticketsError) {
       showError(
         typeof ticketsError === "string"
           ? ticketsError
-          : (ticketsError as Error).message || "Unable to load tickets for the selected schedule.",
+          : (ticketsError as Error).message || t("booking.unableLoadTickets"),
       );
     }
-  }, [ticketsError, showError]);
+  }, [ticketsError, showError, t]);
 
   const selectedSchedule = useMemo(
     () => schedules.find((item) => item.scheduleId === selectedScheduleId) ?? null,
@@ -94,57 +96,57 @@ export const StaffTicketListPage: React.FC = () => {
   const columns: Column<ReadTicketDTO>[] = useMemo(
     () => [
       {
-        header: "Ticket ID",
+        header: t("booking.ticketIdCol"),
         accessor: "id",
         className: "w-[90px]",
       },
       {
-        header: "Attendee",
+        header: t("booking.attendee"),
         render: (ticket) => (
           <div className="min-w-[200px]">
             <div className="font-semibold text-slate-900">{ticket.attendeeName}</div>
-            <div className="text-xs text-slate-500">Order #{ticket.orderId}</div>
+            <div className="text-xs text-slate-500">{t("booking.orderNumberShort", { id: ticket.orderId })}</div>
           </div>
         ),
       },
       {
-        header: "ID / Passport",
+        header: t("booking.idPassportCol"),
         accessor: "idCard",
         className: "w-[220px] text-sm",
       },
       {
-        header: "Check-in Status",
+        header: t("booking.checkInStatus"),
         render: (ticket) => (
           <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${getStatusStyle(ticket.checkInStatus)}`}>
-            {ticket.checkInStatus || "Pending"}
+            {ticket.checkInStatus || t("common.pending")}
           </span>
         ),
         className: "w-[170px]",
       },
       {
-        header: "Ticket Type",
+        header: t("booking.ticketTypeCol"),
         accessor: "ticketTypeId",
         className: "text-sm",
       },
       {
-        header: "Nationality",
+        header: t("booking.nationalityCol"),
         accessor: "nationality",
       },
       {
-        header: "Details",
+        header: t("booking.detailsCol"),
         render: (ticket) => (
           <Link
             to={PATH.STAFF.TICKET_DETAIL(ticket.id)}
             className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200"
           >
-            View
+            {t("common.view")}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         ),
         className: "w-[110px]",
       },
     ],
-    [],
+    [t],
   );
 
   return (
@@ -154,11 +156,9 @@ export const StaffTicketListPage: React.FC = () => {
           <Ticket className="text-[#0068E0]" size={24} />
           <div>
             <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              Ticket Management
+              {t("booking.ticketManagement")}
             </h2>
-            <p className="text-sm text-slate-500">
-              Xem vé theo lịch trình và quản lý trạng thái check-in.
-            </p>
+            <p className="text-sm text-slate-500">{t("booking.ticketManagementDesc")}</p>
           </div>
         </div>
 
@@ -168,7 +168,7 @@ export const StaffTicketListPage: React.FC = () => {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search attendee, ID, status..."
+              placeholder={t("booking.searchAttendeePlaceholder")}
               className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
           </div>
@@ -177,7 +177,7 @@ export const StaffTicketListPage: React.FC = () => {
             onClick={() => refetchTickets()}
             className="gap-2 px-4 py-2 text-sm"
           >
-            Refresh
+            {t("common.refresh")}
           </ActionButton>
         </div>
       </div>
@@ -187,7 +187,7 @@ export const StaffTicketListPage: React.FC = () => {
           <div className="space-y-4 min-w-0 rounded-3xl border border-slate-100 bg-slate-50 p-5">
             <div className="rounded-3xl bg-white p-4 shadow-sm">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                Select Schedule
+                {t("booking.selectSchedule")}
               </h2>
               <div className="mt-3 space-y-3">
                 {schedulesLoading ? (
@@ -198,7 +198,7 @@ export const StaffTicketListPage: React.FC = () => {
                   </div>
                 ) : schedules.length === 0 ? (
                   <p className="text-sm text-slate-500">
-                    No schedules assigned yet. Please check back later.
+                    {t("booking.noSchedulesAssigned")}
                   </p>
                 ) : (
                   schedules.map((schedule) => (
@@ -237,16 +237,18 @@ export const StaffTicketListPage: React.FC = () => {
             <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm min-w-0">
               <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">Ticket List</p>
+                  <p className="text-sm font-semibold text-slate-900">{t("booking.ticketListTitle")}</p>
                   <p className="mt-1 text-xs text-slate-500">
                     {selectedSchedule
-                      ? `Showing tickets for schedule #${selectedSchedule.scheduleId}`
-                      : "Select a schedule to view tickets."}
+                      ? t("booking.showingTicketsFor", { id: selectedSchedule.scheduleId })
+                      : t("booking.selectScheduleToView")}
                   </p>
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                  {tickets.filter((ticket) => ticket.checkInStatus === "Checked").length} Checked
+                  {t("booking.checkedCount", {
+                    count: tickets.filter((ticket) => ticket.checkInStatus === "Checked").length,
+                  })}
                 </div>
               </div>
               <div className="overflow-x-auto min-w-0">
@@ -256,8 +258,8 @@ export const StaffTicketListPage: React.FC = () => {
                   isLoading={ticketsLoading}
                   emptyMessage={
                     selectedSchedule
-                      ? "No tickets sold for this departure yet."
-                      : "Choose a schedule to view tickets."
+                      ? t("booking.noTicketsForDeparture")
+                      : t("booking.chooseScheduleToView")
                   }
                 />
               </div>

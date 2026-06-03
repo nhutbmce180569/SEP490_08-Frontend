@@ -5,6 +5,7 @@ import { customerVoucherService } from '../services/customerVoucher.service';
 import type { ReadSavedVoucherDTO } from '../types/customerVoucher';
 import type { AppliedVoucherState } from '../hooks/useApplyVoucher';
 import { formatDiscount, formatVnd } from '../../utils/voucherHelpers';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 
 interface VoucherCheckoutPanelProps {
   tourId: number;
@@ -29,6 +30,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
   onApplySaved,
   onClear,
 }) => {
+  const { t } = useTranslation();
   const [showWallet, setShowWallet] = useState(false);
 
   const { data: walletData } = useQuery({
@@ -55,7 +57,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
       <div className="border-b border-slate-100 px-4 py-3">
         <div className="flex items-center gap-2">
           <Tag className="h-4 w-4 text-brand" />
-          <span className="text-sm font-bold text-slate-800">Shop Voucher / Promo Code</span>
+          <span className="text-sm font-bold text-slate-800">{t('voucher.checkoutTitle')}</span>
         </div>
       </div>
 
@@ -63,9 +65,9 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
         {appliedVoucher ? (
           <div className="flex items-start justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Voucher Applied</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{t('voucher.applied')}</p>
               <p className="mt-1 font-mono text-sm font-black text-emerald-900">{appliedVoucher.code}</p>
-              <p className="mt-1 text-xs text-emerald-700">You save {formatVnd(appliedVoucher.discountAmount)}</p>
+              <p className="mt-1 text-xs text-emerald-700">{t('voucher.youSave', { amount: formatVnd(appliedVoucher.discountAmount) })}</p>
             </div>
             <button type="button" onClick={onClear} className="rounded-lg p-1.5 text-emerald-700 hover:bg-emerald-100">
               <X className="h-4 w-4" />
@@ -80,7 +82,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
                   onClick={() => setShowWallet((prev) => !prev)}
                   className="flex w-full items-center justify-between rounded-xl border border-dashed border-brand/40 bg-brand-light/50 px-3 py-2.5 text-left text-sm font-semibold text-brand hover:bg-brand-light"
                 >
-                  <span>Select from My Vouchers ({applicableVouchers.length})</span>
+                  <span>{t('voucher.selectFromWallet', { count: applicableVouchers.length })}</span>
                   <ChevronDown className={`h-4 w-4 transition-transform ${showWallet ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -103,7 +105,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
               <input
                 value={voucherCode}
                 onChange={(event) => onCodeChange(event.target.value.toUpperCase())}
-                placeholder="Enter voucher code"
+                placeholder={t('voucher.enterCode')}
                 maxLength={50}
                 className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold uppercase tracking-wide outline-none focus:border-brand focus:ring-4 focus:ring-brand/10"
               />
@@ -114,7 +116,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
                 className="inline-flex shrink-0 items-center gap-1 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <Percent className="h-4 w-4" />
-                {isApplying ? 'Applying...' : 'Apply'}
+                {isApplying ? t('voucher.applying') : t('voucher.apply')}
               </button>
             </div>
           </>
@@ -123,17 +125,17 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
         {billAmount > 0 && (
           <div className="space-y-1.5 rounded-xl bg-slate-50 px-3 py-2.5 text-sm">
             <div className="flex justify-between text-slate-600">
-              <span>Subtotal</span>
+              <span>{t('voucher.subtotal')}</span>
               <span>{formatVnd(billAmount)}</span>
             </div>
             {appliedVoucher && (
               <div className="flex justify-between font-medium text-emerald-700">
-                <span>Voucher discount</span>
+                <span>{t('voucher.discount')}</span>
                 <span>-{formatVnd(appliedVoucher.discountAmount)}</span>
               </div>
             )}
             <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-slate-900">
-              <span>Total</span>
+              <span>{t('voucher.total')}</span>
               <span className="text-brand">{formatVnd(appliedVoucher?.finalAmount ?? billAmount)}</span>
             </div>
           </div>
@@ -147,7 +149,9 @@ const WalletPickerItem: React.FC<{
   voucher: ReadSavedVoucherDTO;
   onSelect: () => void;
   disabled?: boolean;
-}> = ({ voucher, onSelect, disabled }) => (
+}> = ({ voucher, onSelect, disabled }) => {
+  const { t } = useTranslation();
+  return (
   <button
     type="button"
     onClick={onSelect}
@@ -158,9 +162,10 @@ const WalletPickerItem: React.FC<{
       <div className="font-mono text-xs font-black text-slate-800">{voucher.code}</div>
       <div className="truncate text-[11px] text-slate-500">
         {formatDiscount(voucher.discountType, voucher.discountValue)}
-        {voucher.tourName ? ` · ${voucher.tourName}` : ' · All tours'}
+        {voucher.tourName ? ` · ${voucher.tourName}` : ` · ${t('voucher.allTours')}`}
       </div>
     </div>
-    <span className="shrink-0 text-xs font-bold text-brand">Apply</span>
+    <span className="shrink-0 text-xs font-bold text-brand">{t('voucher.apply')}</span>
   </button>
-);
+  );
+};

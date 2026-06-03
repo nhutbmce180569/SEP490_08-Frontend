@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { FULL_API } from "../../../../config/api/api"; 
+import { FULL_API } from "../../../../config/api/api";
+import { withLanguageHeaders } from "../../../../utils/httpLanguage";
 
 export interface EligibleSchedule {
   scheduleId: number;
@@ -15,9 +16,9 @@ const fetchEligibleSchedules = async (): Promise<EligibleSchedule[]> => {
   
   // 👉 Đã đổi từ "users" sang "orders" theo luồng lách Gateway của BE
   const response = await axios.get(`${FULL_API}/orders/me/eligible-schedules`, {
-    headers: {
+    headers: withLanguageHeaders({
       Authorization: `Bearer ${token}`,
-    },
+    }),
   });
   
   return response.data.data;

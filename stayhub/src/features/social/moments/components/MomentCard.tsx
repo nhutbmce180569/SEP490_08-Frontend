@@ -2,30 +2,32 @@ import React, { useContext, useState, useEffect, useCallback } from "react";
 import { Heart, MessageCircle, Trash2, Globe, Users, Lock } from "lucide-react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 import { useToggleReaction, useDeleteMoment } from "../hooks/useMoments";
 import { MomentModal } from "./MomentModal";
 import type { Moment } from "../types/moment.type";
 
 interface MomentCardProps { moment: Moment; }
 
-const formatTimeAgo = (dateString: string) => {
-  if (!dateString) return "Just now";
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diffInSeconds < 60) return "Just now";
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours} hours ago`;
-  return date.toLocaleDateString('en-US');
-};
-
 const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
+  const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const { mutate: toggleReaction, isPending } = useToggleReaction();
   const { mutate: deleteMoment, isPending: isDeleting } = useDeleteMoment();
   const { warning, error, success } = useToast();
+
+  const formatTimeAgo = useCallback((dateString: string) => {
+    if (!dateString) return t("social.justNow");
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    if (diffInSeconds < 60) return t("social.justNow");
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    if (diffInMinutes < 60) return t("social.minutesAgo", { count: diffInMinutes });
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    if (diffInHours < 24) return t("social.hoursAgo", { count: diffInHours });
+    return date.toLocaleDateString();
+  }, [t]);
 
   const reactionList = moment.reactions || (moment as any).momentReactions || [];
   const commentList = moment.comments || (moment as any).momentComments || [];
@@ -40,7 +42,6 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   const momentUserId = (moment as any).userId || moment.user?.id || (moment as any).User?.Id;
   const isOwner = String(momentUserId) === String(currentUserId);
   
-  // Aggressively check all possible avatar properties from AuthContext
   const currentUserAvatar = (user as any)?.avatarUrl || (user as any)?.AvatarUrl || (user as any)?.avatar || (user as any)?.picture;
   const momentUserAvatar = moment.user?.avatarUrl || (moment.user as any)?.AvatarUrl;
   
@@ -57,7 +58,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
 
   const handleLike = useCallback((e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    if (!user || !currentUserId) { warning("Please log in!"); return; }
+    if (!user || !currentUserId) { warning(t("social.pleaseLogIn")); return; }
     
     const newIsLiked = !isLiked;
     setIsLiked(newIsLiked);
@@ -68,39 +69,41 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
         setIsLiked(!newIsLiked); 
         setLikeCount(reactionList.length); 
         
-        // ✨ ĐÂY LÀ RADAR BẮT LỖI 400 TỪ C#
-        console.error("LỖI REACTION 400 TỪ BACKEND:", err.response?.data);
-        
-        // Cố gắng bóc tách lỗi và hiển thị lên Toast đỏ
         const validationErrors = err.response?.data?.errors;
         let errorDetail = "";
         if (validationErrors) {
            errorDetail = Object.values(validationErrors).flat().join(" | ");
         }
-        const msg = errorDetail || err.response?.data?.message || err.response?.data || "Lỗi 400: Dữ liệu gửi lên C# bị sai cấu trúc.";
-        error(typeof msg === 'string' ? msg : "System error!"); 
+        const msg = errorDetail || err.response?.data?.message || t("social.invalidDtoError");
+        error(typeof msg === 'string' ? msg : t("social.unknownSystemError")); 
       }
     });
-  }, [user, currentUserId, isLiked, moment.id, reactionList.length, toggleReaction, warning, error]);
+  }, [user, currentUserId, isLiked, moment.id, reactionList.length, toggleReaction, warning, error, t]);
 
   const handleDeleteMoment = useCallback(() => {
     if (isDeleting) return;
-    if (window.confirm("Are you sure you want to delete this moment? This action cannot be undone.")) {
+    if (window.confirm(t("social.momentConfirmDelete"))) {
       deleteMoment(
         { momentId: moment.id, userId: Number(currentUserId) },
         {
-          onSuccess: () => success("Moment deleted successfully."),
-          onError: () => error("Failed to delete moment.")
+          onSuccess: () => success(t("social.momentDeleteSuccess")),
+          onError: () => error(t("social.momentDeleteFailed"))
         }
       );
     }
 
-  }, [currentUserId, deleteMoment, isDeleting, moment.id, success, error]);
+  }, [currentUserId, deleteMoment, isDeleting, moment.id, success, error, t]);
 
 
-  const userFullName = moment.user?.fullName || "Anonymous";
+  const userFullName = moment.user?.fullName || t("social.anonymous");
   
   const privacy = moment.privacy || (moment as any).Privacy || 'Public';
+  const privacyLabel =
+    privacy === 'Private'
+      ? t("social.private")
+      : privacy === 'Friend'
+        ? t("social.friendPrivacy")
+        : t("social.public");
   const PrivacyIcon = privacy === 'Private' ? Lock : privacy === 'Friend' ? Users : Globe;
 
   return (
@@ -149,7 +152,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
         </div>
 
         <div className="px-4 mt-1">
-          <div className="text-sm font-bold text-slate-900 mb-1">{likeCount} likes</div>
+          <div className="text-sm font-bold text-slate-900 mb-1">{t("social.momentLikesCount", { count: likeCount })}</div>
           {moment.caption && (
             <div className="text-sm text-slate-800 leading-relaxed">
               <span className="font-bold mr-2">{userFullName}</span>{moment.caption}
@@ -161,16 +164,16 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
               className="text-sm text-slate-500 mt-1 cursor-pointer hover:text-slate-700"
               onClick={() => setIsModalOpen(true)}
             >
-              View all {commentList.length} comments
+              {t("social.momentViewAllComments", { count: commentList.length })}
             </div>
           )}
           
           <div className="flex items-center gap-1.5 text-[10px] text-slate-500 uppercase mt-2 tracking-tight font-medium">
             <span>{formatTimeAgo(moment.createdAt)}</span>
             <span>•</span>
-            <span className="flex items-center gap-1" title={`Privacy: ${privacy}`}>
+            <span className="flex items-center gap-1" title={t("social.privacyLabel", { privacy: privacyLabel })}>
               <PrivacyIcon className="w-3 h-3" />
-              <span>{privacy}</span>
+              <span>{privacyLabel}</span>
             </span>
           </div>
         </div>

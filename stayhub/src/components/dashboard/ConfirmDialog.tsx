@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { X, AlertTriangle } from 'lucide-react';
+import { useTranslation } from '../../contexts/LocaleContext';
 import { ActionButton, type ActionButtonProps } from './ActionButton';
 
 interface ConfirmDialogProps {
@@ -21,11 +22,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'Confirm',
-  cancelText = 'Cancel',
+  confirmText,
+  cancelText,
   variant = 'warning',
   icon = <AlertTriangle className="h-6 w-6 text-rose-500" />,
 }) => {
+  const { t } = useTranslation();
+  const resolvedConfirm = confirmText ?? t('common.confirm');
+  const resolvedCancel = cancelText ?? t('common.cancel');
   if (!open) return null;
 
   return ReactDOM.createPortal(
@@ -42,7 +46,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         <button
           onClick={onClose}
           className="icon-btn absolute right-4 top-4"
-          aria-label="Close"
+          aria-label={t('common.close')}
         >
           <X className="h-5 w-5" />
         </button>
@@ -59,10 +63,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
           <div className="flex w-full gap-3 sm:flex-row">
             <ActionButton variant="secondary" onClick={onClose} className="flex-1 justify-center py-2.5">
-              {cancelText}
+              {resolvedCancel}
             </ActionButton>
             <ActionButton variant={variant === 'warning' ? 'warning' : variant} onClick={onConfirm} className="flex-1 justify-center py-2.5">
-              {confirmText}
+              {resolvedConfirm}
             </ActionButton>
           </div>
         </div>

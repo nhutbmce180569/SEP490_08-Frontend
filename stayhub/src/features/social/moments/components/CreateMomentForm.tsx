@@ -5,6 +5,7 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useCreateMoment } from "../hooks/useMoments";
 import { useGetEligibleSchedules } from "../hooks/useEligibleSchedules";
+import { useTranslation } from "../../../../contexts/LocaleContext";
 
 interface CreateMomentFormProps {
   onClose?: () => void;
@@ -15,6 +16,7 @@ const MAX_CAPTION_LENGTH = 500;
 export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({ 
   onClose
 }) => {
+  const { t } = useTranslation();
   const { mutate: createMoment, isPending } = useCreateMoment();
   
   // 1. GỌI API LẤY DANH SÁCH CHUYẾN ĐI
@@ -77,12 +79,12 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
     if (!imageSrc) return;
     if (isPending) return;
     if (!selectedScheduleId) {
-      warning("Vui lòng chọn chuyến đi để đăng ảnh!");
+      warning(t("social.momentSelectSchedule"));
       return;
     }
     
     if (geoStatus === "locating") {
-      warning("Đang tìm vị trí GPS, vui lòng đợi 1 chút...");
+      warning(t("social.momentGpsWait"));
       return;
     }
 
@@ -114,19 +116,19 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
 
       submitForm(formData);
     } catch (e) {
-      showError("Lỗi xử lý hình ảnh.");
+      showError(t("social.momentImageError"));
     }
   };
 
   const submitForm = (formData: FormData) => {
     createMoment(formData, {
       onSuccess: () => {
-        success("Đã ghim khoảnh khắc lên Bản đồ!");
+        success(t("social.momentPostSuccess"));
         if (onClose) onClose();
       },
       onError: (err: any) => {
         console.error("LỖI UPLOAD:", err.response?.data);
-        showError("Lỗi đăng bài. Vui lòng thử lại!");
+        showError(t("social.momentPostError"));
       }
     });
   };
@@ -145,12 +147,12 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-light mb-5">
           <MapPin className="h-10 w-10 text-brand" />
         </div>
-        <h3 className="text-xl font-black mb-3 text-slate-800">Chưa có chuyến đi nào</h3>
+        <h3 className="text-xl font-black mb-3 text-slate-800">{t("social.momentNoTripsTitle")}</h3>
         <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-          Bạn cần tham gia ít nhất một chuyến đi cùng StayHub để có thể chia sẻ khoảnh khắc nhé. Hãy đặt tour để bắt đầu hành trình!
+          {t("social.momentNoTripsDesc")}
         </p>
         <button onClick={onClose} className="w-full font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-xl transition-all active:scale-95">
-          Đã hiểu
+          {t("common.confirm")}
         </button>
       </div>
     );
@@ -180,7 +182,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
           className="bg-transparent text-white focus:outline-none appearance-none font-semibold truncate max-w-[120px]"
         >
           {isSchedulesLoading ? (
-            <option className="bg-slate-800" disabled>Đang tải...</option>
+            <option className="bg-slate-800" disabled>{t("social.momentLoadingSchedules")}</option>
           ) : (
             eligibleSchedules?.map((trip: any) => (
               <option key={trip.scheduleId} value={trip.scheduleId} className="bg-slate-800">
@@ -195,15 +197,15 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
       {/* RADAR GPS (Dịch xuống dưới Dropdown) */}
       <div className="absolute top-14 left-4 z-50 flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-medium border border-white/5">
         <div className={`w-2 h-2 rounded-full ${geoStatus === 'locating' ? 'animate-ping bg-yellow-400' : geoStatus === 'success' ? 'bg-green-400' : 'bg-red-400'}`} />
-        {geoStatus === 'locating' && <span className="text-yellow-400">Đang tìm GPS...</span>}
-        {geoStatus === 'success' && <span className="text-green-400">Đã ghim vị trí</span>}
-        {geoStatus === 'error' && <span className="text-red-400">Lỗi GPS</span>}
+        {geoStatus === 'locating' && <span className="text-yellow-400">{t("social.momentLocatingGps")}</span>}
+        {geoStatus === 'success' && <span className="text-green-400">{t("social.momentGpsPinned")}</span>}
+        {geoStatus === 'error' && <span className="text-red-400">{t("social.momentGpsError")}</span>}
       </div>
 
       {isPending && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md">
           <Loader2 className="w-12 h-12 animate-spin text-brand mb-4" />
-          <p className="font-semibold text-lg tracking-tight">Đang tải lên...</p>
+          <p className="font-semibold text-lg tracking-tight">{t("social.momentUploading")}</p>
         </div>
       )}
 
@@ -234,9 +236,9 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col gap-4">
             <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
               {[
-                { id: 'Public', icon: Globe, label: 'Public' },
-                { id: 'Friend', icon: Users, label: 'Friends' },
-                { id: 'Private', icon: Lock, label: 'Only me' }
+                { id: 'Public', icon: Globe, label: t('social.public') },
+                { id: 'Friend', icon: Users, label: t('social.momentPrivacyFriends') },
+                { id: 'Private', icon: Lock, label: t('social.momentPrivacyOnlyMe') }
               ].map(opt => (
                 <button
                   key={opt.id}
@@ -253,7 +255,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 type="text"
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
-                placeholder="Thêm mô tả..."
+                placeholder={t("social.momentAddCaption")}
                 className="w-full bg-black/40 backdrop-blur-md border border-white/20 text-white placeholder-white/50 px-5 py-4 rounded-2xl outline-none focus:border-brand transition-colors pr-16"
                 maxLength={MAX_CAPTION_LENGTH}
               />
@@ -268,14 +270,14 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 disabled={isPending}
                 className="flex-1 py-4 px-4 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 disabled:opacity-50"
               >
-                <RefreshCw className="w-5 h-5" /> Chụp lại
+                <RefreshCw className="w-5 h-5" /> {t("social.momentRetake")}
               </button>
               <button
                 onClick={onSubmit}
                 disabled={isPending || geoStatus === 'locating' || !selectedScheduleId}
                 className="flex-1 py-4 px-4 rounded-2xl bg-brand hover:bg-brand-hover font-bold text-white shadow-[0_8px_20px_rgba(0,104,224,0.4)] transition-all active:scale-95 disabled:opacity-50"
               >
-                Đăng
+                {t("social.momentPostBtn")}
               </button>
             </div>
           </div>

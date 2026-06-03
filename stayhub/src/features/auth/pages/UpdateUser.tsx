@@ -4,19 +4,19 @@ import { DynamicForm, type FormField } from "../../../components/dashboard/Dynam
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useRoles } from "../hooks/useRoles";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const UpdateUser: React.FC = () => {
+  const { t } = useTranslation();
   const { id, user, isFetching, fetchError, isSubmitting, serverErrors, handleSubmit, handleCancel } = useUpdateUser();
   const { data: rolesList, isLoading: isRolesLoading } = useRoles();
 
-  // Bắt buộc phải chờ cả 2 API load xong để form không bị reset giữa chừng
-  if (isFetching || isRolesLoading) return <div className="flex justify-center p-10 text-slate-500">Loading user details...</div>;
+  if (isFetching || isRolesLoading) return <div className="flex justify-center p-10 text-slate-500">{t("auth.loadingUserDetails")}</div>;
   if (fetchError) return <div className="flex justify-center p-10 text-rose-500">{fetchError}</div>;
-  if (!user) return <div className="flex justify-center p-10 text-slate-500">User not found.</div>;
+  if (!user) return <div className="flex justify-center p-10 text-slate-500">{t("auth.userNotFound")}</div>;
 
   const roleOptions = Array.isArray(rolesList) ? rolesList.map((role: any) => ({
-    label: role.name || role.Name || "Unknown",
-    // Dùng !== undefined để tránh trường hợp ID = 0 bị loại bỏ sai
+    label: role.name || role.Name || t("auth.unknown"),
     value: role.id !== undefined ? role.id : role.Id,
   })) : [];
 
@@ -28,76 +28,76 @@ export const UpdateUser: React.FC = () => {
   const userFields: FormField[] = [
     {
       name: "fullName",
-      label: "Full Name",
+      label: t("auth.fullName"),
       type: "text",
       icon: <UserIcon className="h-4 w-4" />,
       required: true,
     },
     {
       name: "avatarFile",
-      label: "Avatar",
+      label: t("auth.avatar"),
       type: "file",
       icon: <UserIcon className="h-4 w-4" />,
       colSpan: 2,
     },
     {
       name: "phoneNumber",
-      label: "Phone Number",
+      label: t("auth.phoneNumber"),
       type: "text",
       icon: <Phone className="h-4 w-4" />,
     },
     {
       name: "gender",
-      label: "Gender",
+      label: t("common.gender"),
       type: "select",
       icon: <Users className="h-4 w-4" />,
       options: [
-        { label: "Male", value: "Male" },
-        { label: "Female", value: "Female" },
-        { label: "Other", value: "Other" },
+        { label: t("common.male"), value: "Male" },
+        { label: t("common.female"), value: "Female" },
+        { label: t("common.other"), value: "Other" },
       ],
     },
     {
       name: "dateOfBirth",
-      label: "Date of Birth",
+      label: t("common.dateOfBirth"),
       type: "date",
       icon: <Calendar className="h-4 w-4" />,
     },
     {
       name: "status",
-      label: "Status",
+      label: t("common.status"),
       type: "select",
       icon: <Tag className="h-4 w-4" />,
       options: [
-        { label: "Active", value: "Active" },
-        { label: "Blocked", value: "Blocked" },
+        { label: t("common.active"), value: "Active" },
+        { label: t("auth.blocked"), value: "Blocked" },
       ],
     },
     {
       name: "locPrivacy",
-      label: "Location Privacy",
+      label: t("auth.locationPrivacy"),
       type: "select",
       icon: <MapPin className="h-4 w-4" />,
       options: [
-        { label: "Keep Current", value: "" },
-        { label: "Public", value: "false" },
-        { label: "Private (Friends Only)", value: "true" },
+        { label: t("auth.keepCurrent"), value: "" },
+        { label: t("auth.publicPrivacy"), value: "false" },
+        { label: t("auth.privateFriendsOnly"), value: "true" },
       ],
     },
     {
       name: "momentPrivacy",
-      label: "Moment Privacy",
+      label: t("auth.momentPrivacy"),
       type: "select",
       icon: <ImageIcon className="h-4 w-4" />,
       options: [
-        { label: "Keep Current", value: "" },
-        { label: "Public", value: "false" },
-        { label: "Private (Friends Only)", value: "true" },
+        { label: t("auth.keepCurrent"), value: "" },
+        { label: t("auth.publicPrivacy"), value: "false" },
+        { label: t("auth.privateFriendsOnly"), value: "true" },
       ],
     },
     {
       name: "roleIds",
-      label: "Roles",
+      label: t("auth.rolesLabel"),
       type: "multiselect",
       icon: <Shield className="h-4 w-4" />,
       options: roleOptions,
@@ -108,8 +108,8 @@ export const UpdateUser: React.FC = () => {
   return (
     <>
       <DynamicForm 
-        title="Update User" 
-        description={`Edit profile for user #${id}`} 
+        title={t("auth.updateUser")} 
+        description={t("auth.updateUserDesc", { id })} 
         fields={userFields} 
         initialValues={{ 
           ...user, 
@@ -122,7 +122,7 @@ export const UpdateUser: React.FC = () => {
         serverErrors={serverErrors} 
         onCancel={handleCancel} 
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Updating user..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("auth.updatingUser")} />
     </>
   );
 };

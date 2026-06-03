@@ -1,43 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { AlignLeft, Tag, Type } from "lucide-react";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useUpdateTicketType } from "../hooks/useUpdateTicketType";
 
-const ticketTypeFields: FormField[] = [
-  {
-    name: "name",
-    label: "Ticket Type Name",
-    type: "text",
-    icon: <Type className="h-4 w-4" />,
-    colSpan: 1,
-    required: true,
-    validate: (value) =>
-      String(value || "").trim().length > 100
-        ? "Ticket type name cannot exceed 100 characters."
-        : undefined,
-  },
-  {
-    name: "isActive",
-    label: "Status",
-    type: "select",
-    icon: <Tag className="h-4 w-4" />,
-    options: [
-      { label: "Active", value: "Active" },
-      { label: "Inactive", value: "Inactive" },
-    ],
-    required: true,
-  },
-  {
-    name: "description",
-    label: "Description",
-    type: "textarea",
-    icon: <AlignLeft className="h-4 w-4" />,
-    colSpan: 2,
-  },
-];
-
 export const UpdateTicketType: React.FC = () => {
+  const { t } = useTranslation();
   const {
     id,
     ticketType,
@@ -49,8 +18,48 @@ export const UpdateTicketType: React.FC = () => {
     handleCancel,
   } = useUpdateTicketType();
 
+  const ticketTypeFields: FormField[] = useMemo(
+    () => [
+      {
+        name: "name",
+        label: t("content.ticketTypeName"),
+        type: "text",
+        icon: <Type className="h-4 w-4" />,
+        colSpan: 1,
+        required: true,
+        validate: (value) =>
+          String(value || "").trim().length > 100
+            ? t("content.ticketTypeNameMaxLength")
+            : undefined,
+      },
+      {
+        name: "isActive",
+        label: t("common.status"),
+        type: "select",
+        icon: <Tag className="h-4 w-4" />,
+        options: [
+          { label: t("common.active"), value: "Active" },
+          { label: t("common.inactive"), value: "Inactive" },
+        ],
+        required: true,
+      },
+      {
+        name: "description",
+        label: t("common.description"),
+        type: "textarea",
+        icon: <AlignLeft className="h-4 w-4" />,
+        colSpan: 2,
+      },
+    ],
+    [t],
+  );
+
   if (isFetching) {
-    return <div className="flex justify-center p-10 text-slate-500">Loading ticket type details...</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t("content.loadingTicketTypes")}
+      </div>
+    );
   }
 
   if (fetchError) {
@@ -58,14 +67,18 @@ export const UpdateTicketType: React.FC = () => {
   }
 
   if (!ticketType) {
-    return <div className="flex justify-center p-10 text-slate-500">Ticket type not found.</div>;
+    return (
+      <div className="flex justify-center p-10 text-slate-500">
+        {t("content.ticketTypeNotFound")}
+      </div>
+    );
   }
 
   return (
     <>
       <DynamicForm
-        title="Update Ticket Type"
-        description={`Edit details for ticket type #${id}`}
+        title={t("content.updateTicketType")}
+        description={t("content.updateTicketTypeDesc", { id: String(id) })}
         fields={ticketTypeFields}
         initialValues={{
           ...ticketType,
@@ -75,7 +88,7 @@ export const UpdateTicketType: React.FC = () => {
         serverErrors={serverErrors}
         onCancel={handleCancel}
       />
-      <LoadingOverlay isOpen={isSubmitting} message="Updating ticket type..." />
+      <LoadingOverlay isOpen={isSubmitting} message={t("content.updatingTicketType")} />
     </>
   );
 };

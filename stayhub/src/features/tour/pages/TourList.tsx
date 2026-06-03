@@ -3,6 +3,7 @@ import { Search, Pencil, Trash2, Plus, Eye, Star, Power, ListFilter, X } from "l
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useTours } from "../hooks/useTours";
 import { type Tour } from "../types/tour";
 
@@ -16,6 +17,7 @@ const STATUS_STYLES: Record<string, string> = {
 const PAGE_SIZE = 5;
 
 export const TourList: React.FC = () => {
+  const { t } = useTranslation();
   const {
     data,
     isLoading,
@@ -46,6 +48,16 @@ export const TourList: React.FC = () => {
   );
   const hasActiveFilters = search.trim() !== "" || categoryId !== null;
 
+  const getStatusLabel = (status?: string) => {
+    const map: Record<string, string> = {
+      Active: t("common.active"),
+      Draft: t("tour.draft"),
+      Full: t("tour.full"),
+      Banned: t("tour.banned"),
+    };
+    return map[status || "Draft"] ?? status ?? t("tour.draft");
+  };
+
   const columns: Column<Tour>[] = useMemo(
     () => [
       {
@@ -60,12 +72,12 @@ export const TourList: React.FC = () => {
             />
           ) : (
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-100 bg-slate-100 text-slate-400">
-              <span className="text-[10px] font-medium">No img</span>
+              <span className="text-[10px] font-medium">{t("tour.noImg")}</span>
             </div>
           ),
       },
       {
-        header: "Tour Name",
+        header: t("tour.tourNameCol"),
         render: (tour) => (
           <span className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
             {tour.name}
@@ -73,15 +85,15 @@ export const TourList: React.FC = () => {
         ),
       },
       {
-        header: "Description",
+        header: t("common.description"),
         render: (tour) => (
           <span className="line-clamp-2 max-w-[250px] text-sm text-slate-600">
-            {tour.description || "No description"}
+            {tour.description || t("tour.noDescriptionShort")}
           </span>
         ),
       },
       {
-        header: "Category",
+        header: t("tour.category"),
         render: (tour) => (
           <span className="text-sm text-slate-600">
             {categoryNameById.get(tour.categoryId) ?? `ID ${tour.categoryId}`}
@@ -89,7 +101,7 @@ export const TourList: React.FC = () => {
         ),
       },
       {
-        header: "Status",
+        header: t("common.status"),
         render: (tour) => (
           <span
             className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -97,15 +109,15 @@ export const TourList: React.FC = () => {
               "bg-slate-100 text-slate-500"
             }`}
           >
-            {tour.status || "Draft"}
+            {getStatusLabel(tour.status)}
           </span>
         ),
       },
       {
-        header: "Rating",
+        header: t("tour.rating"),
         render: (tour) => {
           const rating = tour.averageStar ?? 0;
-          const displayRating = rating > 0 ? rating.toFixed(1) : "No ratings";
+          const displayRating = rating > 0 ? rating.toFixed(1) : t("tour.noRatings");
           return (
             <div className="flex items-center gap-1.5">
               <div className="flex gap-0.5">
@@ -130,12 +142,12 @@ export const TourList: React.FC = () => {
         },
       },
       {
-        header: "Action",
+        header: t("common.actions"),
         render: (tour) => (
           <div className="flex items-center gap-1.5">
             <ActionButton
               variant="secondary"
-              aria-label="View"
+              aria-label={t("tour.view")}
               onClick={() => handleView(tour.id)}
               className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
             >
@@ -145,8 +157,8 @@ export const TourList: React.FC = () => {
               <>
                 <ActionButton
                   variant="secondary"
-                  aria-label={tour.status === "Active" ? "Deactivate" : "Activate"}
-                  title={tour.status === "Active" ? "Deactivate tour" : "Activate tour"}
+                  aria-label={tour.status === "Active" ? t("tour.deactivate") : t("tour.activate")}
+                  title={tour.status === "Active" ? t("tour.deactivateTour") : t("tour.activateTour")}
                   onClick={() => handleToggleStatus(tour)}
                   disabled={togglingTourId === tour.id}
                   className={`h-8 w-8 ${
@@ -159,7 +171,7 @@ export const TourList: React.FC = () => {
                 </ActionButton>
                 <ActionButton
                   variant="secondary"
-                  aria-label="Edit"
+                  aria-label={t("tour.edit")}
                   onClick={() => handleEdit(tour.id)}
                   className="h-8 w-8"
                 >
@@ -167,7 +179,7 @@ export const TourList: React.FC = () => {
                 </ActionButton>
                 <ActionButton
                   variant="warning"
-                  aria-label="Delete"
+                  aria-label={t("tour.delete")}
                   onClick={() => handleDelete(tour.id)}
                   className="h-8 w-8"
                 >
@@ -180,6 +192,8 @@ export const TourList: React.FC = () => {
       },
     ],
     [
+      t,
+      getStatusLabel,
       categoryNameById,
       handleEdit,
       handleDelete,
@@ -196,7 +210,7 @@ export const TourList: React.FC = () => {
         <div className="flex items-center gap-2.5">
           <div>
             <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              Tour Management
+              {t("tour.tourManagement")}
             </h2>
           </div>
         </div>
@@ -206,7 +220,7 @@ export const TourList: React.FC = () => {
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-              placeholder="Search tours..."
+              placeholder={t("tour.searchToursPlaceholderMgr")}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -225,7 +239,7 @@ export const TourList: React.FC = () => {
               }
             >
               <option value="">
-                {isCategoryLoading ? "Loading categories..." : "All categories"}
+                {isCategoryLoading ? t("tour.loadingCategories") : t("tour.allCategories")}
               </option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -242,7 +256,7 @@ export const TourList: React.FC = () => {
             className="gap-2 px-4 py-2 text-sm"
           >
             <X className="h-4 w-4" />
-            Clear
+            {t("tour.clear")}
           </ActionButton>
 
           <ActionButton
@@ -251,7 +265,7 @@ export const TourList: React.FC = () => {
             className="gap-2 px-4 py-2 text-sm"
           >
             <Plus className="h-4 w-4" />
-            Create Tour
+            {t("tour.createTourBtn")}
           </ActionButton>
         </div>
       </div>
@@ -264,7 +278,7 @@ export const TourList: React.FC = () => {
           data={tours}
           columns={columns}
           keyExtractor={(item) => item.id}
-          emptyMessage="No tours found."
+          emptyMessage={t("tour.noToursFound")}
           isLoading={isLoading}
           skeletonRows={PAGE_SIZE}
         />

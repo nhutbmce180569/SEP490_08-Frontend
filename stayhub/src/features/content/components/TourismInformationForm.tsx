@@ -15,13 +15,18 @@ import { extractLocationFromPlace, isCoordinateOnlyAddress } from "../../tour/se
 import {
   TOURISM_DEFAULT_COUNTRY,
   TOURISM_INFORMATION_TYPES,
-  TOURISM_TYPE_LABELS,
+  type TourismInformationType,
 } from "../types/tourismInformation";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
-const typeOptions = TOURISM_INFORMATION_TYPES.map((type) => ({
-  label: TOURISM_TYPE_LABELS[type],
-  value: type,
-}));
+const TOURISM_TYPE_I18N: Record<TourismInformationType, string> = {
+  Destination: "content.tourismTypeDestination",
+  Heritage: "content.tourismTypeHeritage",
+  LocalFood: "content.tourismTypeLocalFood",
+  Restaurant: "content.tourismTypeRestaurant",
+  Activity: "content.tourismTypeActivity",
+  Other: "content.tourismTypeOther",
+};
 
 interface TourismInformationFormProps {
   title: string;
@@ -40,10 +45,20 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
   initialValues,
   onSubmit,
   onCancel,
-  submitText = "Save",
+  submitText,
   serverErrors,
   requireImage = false,
 }) => {
+  const { t } = useTranslation();
+  const resolvedSubmitText = submitText ?? t("common.save");
+  const typeOptions = useMemo(
+    () =>
+      TOURISM_INFORMATION_TYPES.map((type) => ({
+        label: t(TOURISM_TYPE_I18N[type]),
+        value: type,
+      })),
+    [t],
+  );
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [currentSetFormData, setCurrentSetFormData] = useState<React.Dispatch<
     React.SetStateAction<Record<string, unknown>>
@@ -94,16 +109,16 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
     () => [
       {
         name: "name",
-        label: "Place Name",
+        label: t("content.placeName"),
         type: "text",
-        placeholder: "e.g. Hoan Kiem Lake",
+        placeholder: t("content.placeNamePlaceholder"),
         icon: <Type className="h-4 w-4" />,
         colSpan: 2,
         required: true,
       },
       {
         name: "type",
-        label: "Type",
+        label: t("content.type"),
         type: "select",
         icon: <Tag className="h-4 w-4" />,
         options: typeOptions,
@@ -112,15 +127,15 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
       },
       {
         name: "description",
-        label: "Description",
+        label: t("content.descriptionLabel"),
         type: "textarea",
-        placeholder: "Describe the place, highlights, and travel tips...",
+        placeholder: t("content.describePlacePlaceholder"),
         icon: <AlignLeft className="h-4 w-4" />,
         colSpan: 2,
       },
       {
         name: "address",
-        label: "Location",
+        label: t("content.location"),
         type: "custom",
         colSpan: 2,
         required: true,
@@ -138,15 +153,15 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
             formData.longitude !== "";
 
           if (!address || isCoordinateOnlyAddress(address)) {
-            return "Please pick a location on the map or search by place name.";
+            return t("content.locationPickRequired");
           }
 
           if (!city || !country) {
-            return "Could not detect city or country. Try searching again or click directly on the map.";
+            return t("content.locationCityCountryRequired");
           }
 
           if (!hasLat || !hasLng) {
-            return "Please drop a pin on the map to save coordinates.";
+            return t("content.locationCoordinatesRequired");
           }
 
           return undefined;
@@ -175,7 +190,7 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
                     className={`w-full min-w-0 cursor-pointer truncate rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${
                       error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"
                     }`}
-                    placeholder="Click to search and pick on map..."
+                    placeholder={t("content.pickOnMapPlaceholder")}
                     value={address}
                   />
                 </div>
@@ -186,7 +201,7 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
                   className="w-full shrink-0 gap-2 border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-600 hover:border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700 sm:w-auto"
                 >
                   <MapPin className="h-4 w-4" />
-                  <span className="whitespace-nowrap">Pick on Map</span>
+                  <span className="whitespace-nowrap">{t("content.pickOnMapBtn")}</span>
                 </ActionButton>
               </div>
 
@@ -194,17 +209,17 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
                 <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-3">
                   <LocationSummaryItem
                     icon={<MapPin className="h-3.5 w-3.5 shrink-0" />}
-                    label="City"
+                    label={t("tour.city")}
                     value={city || "—"}
                   />
                   <LocationSummaryItem
                     icon={<Globe className="h-3.5 w-3.5 shrink-0" />}
-                    label="Country"
+                    label={t("tour.country")}
                     value={country || "—"}
                   />
                   <LocationSummaryItem
                     icon={<Navigation className="h-3.5 w-3.5 shrink-0" />}
-                    label="Coordinates"
+                    label={t("content.coordinates")}
                     value={
                       hasCoordinates
                         ? `${formData.latitude}, ${formData.longitude}`
@@ -217,8 +232,7 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
 
               {!address && (
                 <p className="text-xs text-slate-500">
-                  Search for a place, click the map, or use your current location — city, country,
-                  and coordinates are filled automatically.
+                  {t("content.locationHintAutoFill")}
                 </p>
               )}
 
@@ -229,39 +243,39 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
       },
       {
         name: "sourceName",
-        label: "Source Name",
+        label: t("content.sourceName"),
         type: "text",
-        placeholder: "e.g. Google Maps, Official Website",
+        placeholder: t("content.sourceNamePlaceholder"),
         icon: <LinkIcon className="h-4 w-4" />,
       },
       {
         name: "sourceUrl",
-        label: "Source URL",
+        label: t("content.sourceUrlLabel"),
         type: "text",
-        placeholder: "https://example.com/place",
+        placeholder: t("content.sourceUrlPlaceholder"),
         icon: <LinkIcon className="h-4 w-4" />,
         validate: (value) => {
           if (!value) return undefined;
           try {
             const url = new URL(String(value));
             if (url.protocol !== "http:" && url.protocol !== "https:") {
-              return "Source URL must be a valid HTTP or HTTPS URL.";
+              return t("content.sourceUrlInvalid");
             }
           } catch {
-            return "Source URL must be a valid HTTP or HTTPS URL.";
+            return t("content.sourceUrlInvalid");
           }
           return undefined;
         },
       },
       {
         name: "imageFile",
-        label: requireImage ? "Cover Image" : "Cover Image (Leave empty to keep current)",
+        label: requireImage ? t("content.coverImageRequired") : t("content.coverImageOptional"),
         type: "file",
         colSpan: 2,
         required: requireImage,
       },
     ],
-    [requireImage],
+    [requireImage, t, typeOptions],
   );
 
   return (
@@ -277,7 +291,7 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
         onSubmit={onSubmit}
         serverErrors={serverErrors}
         onCancel={onCancel}
-        submitText={submitText}
+        submitText={resolvedSubmitText}
       />
 
       <MapPickerModal

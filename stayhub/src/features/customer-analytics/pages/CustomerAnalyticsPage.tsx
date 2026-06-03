@@ -36,17 +36,22 @@ import {
   formatNumber,
   formatPercent,
 } from '../utils/analyticsHelpers';
-
-const TABS: { id: AnalyticsTab; label: string; icon: React.ReactNode }[] = [
-  { id: 'overview', label: 'Overview', icon: <BarChart3 className="h-4 w-4" /> },
-  { id: 'demographics', label: 'Demographics', icon: <Users className="h-4 w-4" /> },
-  { id: 'segments', label: 'Segments', icon: <UserCheck className="h-4 w-4" /> },
-  { id: 'engagement', label: 'Engagement', icon: <Heart className="h-4 w-4" /> },
-  { id: 'customers', label: 'Customers', icon: <ShoppingCart className="h-4 w-4" /> },
-];
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 export const CustomerAnalyticsPage: React.FC = () => {
+  const { t } = useTranslation();
   const { preset, setPreset, from, setFrom, to, setTo, dateParams } = useDateRangeState();
+
+  const TABS = useMemo<{ id: AnalyticsTab; label: string; icon: React.ReactNode }[]>(
+    () => [
+      { id: 'overview', label: t('analytics.tabs.overview'), icon: <BarChart3 className="h-4 w-4" /> },
+      { id: 'demographics', label: t('analytics.tabs.demographics'), icon: <Users className="h-4 w-4" /> },
+      { id: 'segments', label: t('analytics.tabs.segments'), icon: <UserCheck className="h-4 w-4" /> },
+      { id: 'engagement', label: t('analytics.tabs.engagement'), icon: <Heart className="h-4 w-4" /> },
+      { id: 'customers', label: t('analytics.tabs.customers'), icon: <ShoppingCart className="h-4 w-4" /> },
+    ],
+    [t],
+  );
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('overview');
   const [granularity, setGranularity] = useState<Granularity>('day');
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
@@ -71,23 +76,23 @@ export const CustomerAnalyticsPage: React.FC = () => {
       trends
         ? [
             {
-              label: 'New Registrations',
+              label: t('analytics.customer.newRegistrations'),
               data: trends.registrationTrend.map((p) => p.count),
               color: 'var(--color-brand)',
             },
             {
-              label: 'Orders',
+              label: t('analytics.customer.orders'),
               data: trends.orderTrend.map((p) => p.count),
               color: '#10b981',
             },
             {
-              label: 'Revenue (M ₫)',
+              label: t('analytics.customer.revenueSeries'),
               data: trends.revenueTrend.map((p) => Math.round((p.amount ?? 0) / 1_000_000)),
               color: '#f59e0b',
             },
           ]
         : [],
-    [trends],
+    [trends, t],
   );
 
   const isRefreshing =
@@ -110,10 +115,10 @@ export const CustomerAnalyticsPage: React.FC = () => {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-            Customer Analytics
+            {t('analytics.customer.title')}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            Customer behavior, revenue, and engagement insights
+            {t('analytics.customer.subtitle')}
             {overview && (
               <span className="ml-1">
                 · {formatDate(overview.periodFrom)} – {formatDate(overview.periodTo)}
@@ -129,7 +134,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
           className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
         >
           <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
+          {t('analytics.refresh')}
         </button>
       </div>
 
@@ -176,58 +181,70 @@ export const CustomerAnalyticsPage: React.FC = () => {
             <>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <StatCard
-                  label="Total Customers"
+                  label={t('analytics.customer.totalCustomers')}
                   value={formatNumber(overview.totalCustomers)}
-                  subLabel={`${formatNumber(overview.activeCustomers)} active`}
+                  subLabel={t('analytics.customer.activeSub', { count: formatNumber(overview.activeCustomers) })}
                   icon={<Users className="h-5 w-5 text-indigo-500" />}
                   iconBgClass="bg-indigo-50"
                 />
                 <StatCard
-                  label="New Customers"
+                  label={t('analytics.customer.newCustomers')}
                   value={formatNumber(overview.newCustomersInPeriod)}
-                  subLabel="In selected period"
+                  subLabel={t('analytics.customer.inSelectedPeriod')}
                   icon={<UserPlus className="h-5 w-5 text-brand" />}
                   iconBgClass="bg-brand-light"
                 />
                 <StatCard
-                  label="Revenue"
+                  label={t('analytics.customer.revenue')}
                   value={formatCompactVnd(overview.totalRevenue)}
-                  subLabel={`AOV: ${formatCompactVnd(overview.averageOrderValue)}`}
+                  subLabel={t('analytics.customer.aovSub', { value: formatCompactVnd(overview.averageOrderValue) })}
                   icon={<DollarSign className="h-5 w-5 text-emerald-500" />}
                   iconBgClass="bg-emerald-50"
                 />
                 <StatCard
-                  label="Orders"
+                  label={t('analytics.customer.orders')}
                   value={formatNumber(overview.totalOrders)}
-                  subLabel={`${formatNumber(overview.paidOrders)} paid · ${formatNumber(overview.completedOrders)} completed`}
+                  subLabel={t('analytics.customer.ordersSub', {
+                    paid: formatNumber(overview.paidOrders),
+                    completed: formatNumber(overview.completedOrders),
+                  })}
                   icon={<ShoppingCart className="h-5 w-5 text-amber-500" />}
                   iconBgClass="bg-amber-50"
                 />
                 <StatCard
-                  label="Unique Buyers"
+                  label={t('analytics.customer.uniqueBuyers')}
                   value={formatNumber(overview.uniqueBuyers)}
-                  subLabel={`Conversion rate: ${formatPercent(overview.buyerConversionRate)}`}
+                  subLabel={t('analytics.customer.conversionSub', {
+                    rate: formatPercent(overview.buyerConversionRate),
+                  })}
                   icon={<UserCheck className="h-5 w-5 text-violet-500" />}
                   iconBgClass="bg-violet-50"
                 />
                 <StatCard
-                  label="Repeat Customers"
+                  label={t('analytics.customer.repeatCustomers')}
                   value={formatNumber(overview.repeatCustomers)}
-                  subLabel={`Rate: ${formatPercent(overview.repeatCustomerRate)}`}
+                  subLabel={t('analytics.customer.rateSub', {
+                    rate: formatPercent(overview.repeatCustomerRate),
+                  })}
                   icon={<RefreshCw className="h-5 w-5 text-cyan-500" />}
                   iconBgClass="bg-cyan-50"
                 />
                 <StatCard
-                  label="Engagement"
+                  label={t('analytics.customer.engagement')}
                   value={formatNumber(overview.totalReviews)}
-                  subLabel={`${formatNumber(overview.totalWishlists)} wishlists · Rating ${overview.averageReviewRating.toFixed(1)}★`}
+                  subLabel={t('analytics.customer.engagementSub', {
+                    wishlists: formatNumber(overview.totalWishlists),
+                    rating: overview.averageReviewRating.toFixed(1),
+                  })}
                   icon={<Star className="h-5 w-5 text-amber-500" />}
                   iconBgClass="bg-amber-50"
                 />
                 <StatCard
-                  label="Cancellation Rate"
+                  label={t('analytics.customer.cancellationRate')}
                   value={formatPercent(overview.cancellationRate)}
-                  subLabel={`Refunds: ${formatCompactVnd(overview.totalRefundAmount)}`}
+                  subLabel={t('analytics.customer.refundsSub', {
+                    amount: formatCompactVnd(overview.totalRefundAmount),
+                  })}
                   icon={<UserX className="h-5 w-5 text-rose-500" />}
                   iconBgClass="bg-rose-50"
                 />
@@ -235,15 +252,15 @@ export const CustomerAnalyticsPage: React.FC = () => {
 
               <section className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="text-lg font-bold text-slate-900">Trends Over Time</h3>
+                  <h3 className="text-lg font-bold text-slate-900">{t('analytics.customer.trendsOverTime')}</h3>
                   <select
                     value={granularity}
                     onChange={(e) => setGranularity(e.target.value as Granularity)}
                     className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600"
                   >
-                    <option value="day">Daily</option>
-                    <option value="week">Weekly</option>
-                    <option value="month">Monthly</option>
+                    <option value="day">{t('analytics.customer.daily')}</option>
+                    <option value="week">{t('analytics.customer.weekly')}</option>
+                    <option value="month">{t('analytics.customer.monthly')}</option>
                   </select>
                 </div>
                 {trendsQuery.isLoading ? (
@@ -259,8 +276,8 @@ export const CustomerAnalyticsPage: React.FC = () => {
 
               <section className="rounded-2xl bg-white shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
                 <div className="border-b border-slate-100 px-6 py-4">
-                  <h3 className="text-lg font-bold text-slate-900">Top Spenders</h3>
-                  <p className="text-sm text-slate-500">Top 10 customers by total spend in the selected period</p>
+                  <h3 className="text-lg font-bold text-slate-900">{t('analytics.customer.topSpenders')}</h3>
+                  <p className="text-sm text-slate-500">{t('analytics.customer.topSpendersDesc')}</p>
                 </div>
                 <TopCustomersTable
                   customers={topCustomersQuery.data ?? []}
@@ -270,7 +287,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
               </section>
             </>
           ) : (
-            <ErrorState message="Unable to load overview data." onRetry={handleRefresh} />
+            <ErrorState message={t('analytics.customer.errorOverview')} onRetry={handleRefresh} />
           )}
         </div>
       )}
@@ -286,20 +303,20 @@ export const CustomerAnalyticsPage: React.FC = () => {
           ) : demographicsQuery.data ? (
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                <MiniStat label="Total Customers" value={formatNumber(demographicsQuery.data.totalCustomers)} />
-                <MiniStat label="Active" value={formatNumber(demographicsQuery.data.activeCustomers)} />
-                <MiniStat label="Inactive" value={formatNumber(demographicsQuery.data.inactiveCustomers)} />
-                <MiniStat label="New" value={formatNumber(demographicsQuery.data.newCustomersInPeriod)} />
+                <MiniStat label={t('analytics.customer.totalCustomers')} value={formatNumber(demographicsQuery.data.totalCustomers)} />
+                <MiniStat label={t('analytics.customer.active')} value={formatNumber(demographicsQuery.data.activeCustomers)} />
+                <MiniStat label={t('analytics.platform.inactive')} value={formatNumber(demographicsQuery.data.inactiveCustomers)} />
+                <MiniStat label={t('analytics.customer.new')} value={formatNumber(demographicsQuery.data.newCustomersInPeriod)} />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                <DistributionChart title="By Gender" data={demographicsQuery.data.byGender} />
-                <DistributionChart title="By Age Group" data={demographicsQuery.data.byAgeGroup} />
-                <DistributionChart title="By Sign-up Provider" data={demographicsQuery.data.byProvider} />
-                <DistributionChart title="By Status" data={demographicsQuery.data.byStatus} />
+                <DistributionChart title={t('analytics.customer.byGender')} data={demographicsQuery.data.byGender} />
+                <DistributionChart title={t('analytics.customer.byAgeGroup')} data={demographicsQuery.data.byAgeGroup} />
+                <DistributionChart title={t('analytics.customer.bySignUpProvider')} data={demographicsQuery.data.byProvider} />
+                <DistributionChart title={t('analytics.customer.byStatus')} data={demographicsQuery.data.byStatus} />
               </div>
             </>
           ) : (
-            <ErrorState message="Unable to load demographics data." onRetry={handleRefresh} />
+            <ErrorState message={t('analytics.customer.errorDemographics')} onRetry={handleRefresh} />
           )}
         </div>
       )}
@@ -316,44 +333,44 @@ export const CustomerAnalyticsPage: React.FC = () => {
             <>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <SegmentCard
-                  label="Never Purchased"
+                  label={t('analytics.customer.neverPurchased')}
                   count={segmentsQuery.data.neverPurchased}
-                  description="No paid/completed orders"
+                  description={t('analytics.customer.neverPurchasedDesc')}
                   colorClass="bg-slate-100 text-slate-500"
                   icon={<UserX className="h-5 w-5" />}
                 />
                 <SegmentCard
-                  label="One-Time Buyer"
+                  label={t('analytics.customer.oneTimeBuyer')}
                   count={segmentsQuery.data.oneTimeBuyers}
-                  description="Exactly 1 paid/completed order"
+                  description={t('analytics.customer.oneTimeBuyerDesc')}
                   colorClass="bg-brand-light text-brand"
                   icon={<ShoppingCart className="h-5 w-5" />}
                 />
                 <SegmentCard
-                  label="Repeat Buyer"
+                  label={t('analytics.customer.repeatBuyer')}
                   count={segmentsQuery.data.repeatBuyers}
-                  description="≥ 2 paid/completed orders"
+                  description={t('analytics.customer.repeatBuyerDesc')}
                   colorClass="bg-emerald-50 text-emerald-500"
                   icon={<RefreshCw className="h-5 w-5" />}
                 />
                 <SegmentCard
-                  label="New Buyers"
+                  label={t('analytics.customer.newBuyers')}
                   count={segmentsQuery.data.newBuyersInPeriod}
-                  description="First purchase in period"
+                  description={t('analytics.customer.newBuyersDesc')}
                   colorClass="bg-indigo-50 text-indigo-500"
                   icon={<UserPlus className="h-5 w-5" />}
                 />
                 <SegmentCard
-                  label="At Risk"
+                  label={t('analytics.customer.atRisk')}
                   count={segmentsQuery.data.atRiskCustomers}
-                  description="No purchase in 90+ days"
+                  description={t('analytics.customer.atRiskDesc')}
                   colorClass="bg-rose-50 text-rose-500"
                   icon={<AlertTriangle className="h-5 w-5" />}
                 />
                 <SegmentCard
-                  label="High Value"
+                  label={t('analytics.customer.highValue')}
                   count={segmentsQuery.data.highValueCustomers}
-                  description="Top 20% by spend"
+                  description={t('analytics.customer.highValueDesc')}
                   colorClass="bg-amber-50 text-amber-500"
                   icon={<Crown className="h-5 w-5" />}
                 />
@@ -361,7 +378,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
 
               <div className="rounded-2xl bg-white p-4 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
                 <div className="text-sm font-semibold text-slate-600">
-                  Buyer conversion rate:{' '}
+                  {t('analytics.customer.buyerConversionRate')}{' '}
                   <span className="text-lg font-bold text-brand">
                     {formatPercent(segmentsQuery.data.buyerConversionRate)}
                   </span>
@@ -370,17 +387,17 @@ export const CustomerAnalyticsPage: React.FC = () => {
 
               <div className="grid gap-4 md:grid-cols-2">
                 <DistributionChart
-                  title="Order Status Distribution"
+                  title={t('analytics.customer.orderStatusDist')}
                   data={segmentsQuery.data.orderStatusDistribution}
                 />
                 <DistributionChart
-                  title="Customer Rating Distribution"
+                  title={t('analytics.customer.ratingDist')}
                   data={segmentsQuery.data.ratingDistribution}
                 />
               </div>
             </>
           ) : (
-            <ErrorState message="Unable to load segment data." onRetry={handleRefresh} />
+            <ErrorState message={t('analytics.customer.errorSegments')} onRetry={handleRefresh} />
           )}
         </div>
       )}
@@ -412,17 +429,20 @@ const MiniStat: React.FC<{ label: string; value: string }> = ({ label, value }) 
 const ErrorState: React.FC<{ message: string; onRetry: () => void }> = ({
   message,
   onRetry,
-}) => (
-  <div className="rounded-2xl bg-white p-12 text-center shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
-    <p className="text-sm text-rose-600">{message}</p>
-    <button
-      type="button"
-      onClick={onRetry}
-      className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-[#0058c0]"
-    >
-      Try Again
-    </button>
-  </div>
-);
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-2xl bg-white p-12 text-center shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
+      <p className="text-sm text-rose-600">{message}</p>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="mt-4 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-[#0058c0]"
+      >
+        {t('analytics.tryAgain')}
+      </button>
+    </div>
+  );
+};
 
 export default CustomerAnalyticsPage;

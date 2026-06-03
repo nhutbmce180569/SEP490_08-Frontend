@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '../../../contexts/ToastContext';
 import { useSearchUsers } from '../../users/hooks/useUsers';
+import { useTranslation } from '../../../contexts/LocaleContext';
 
 // ============ TYPES ============
 interface StaffMember {
@@ -39,6 +40,7 @@ export const TourScheduleStaffManagement: React.FC<
   onAssignSuccess,
   onRemoveSuccess,
 }) => {
+  const { t } = useTranslation();
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [staffToRemove, setStaffToRemove] = useState<StaffMember | null>(null);
 
@@ -105,7 +107,7 @@ const filteredStaffs = React.useMemo(() => {
         staffId: Number(selectedStaff?.id || selectedStaff?.Id || selectedStaff?.userId),
       }),
     onSuccess: () => {
-      success('Staff assigned successfully!');
+      success(t('tour.staffAssignedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['tourSchedules'] });
       queryClient.invalidateQueries({ queryKey: ['tourScheduleStaffs', scheduleId] });
 
@@ -119,7 +121,7 @@ const filteredStaffs = React.useMemo(() => {
         err.response?.data?.message ||
         err.response?.data?.error ||
         err.message ||
-        'Failed to assign staff';
+        t('tour.failedAssignStaff');
       showError(errorMessage);
     },
   });
@@ -128,7 +130,7 @@ const filteredStaffs = React.useMemo(() => {
     mutationFn: (staff: StaffMember) =>
       tourScheduleStaffService.removeStaff(scheduleId, staff.staffId),
     onSuccess: () => {
-      success('Staff removed successfully!');
+      success(t('tour.staffRemovedSuccess'));
       queryClient.invalidateQueries({ queryKey: ['tourSchedules'] });
       queryClient.invalidateQueries({ queryKey: ['tourScheduleStaffs', scheduleId] });
 
@@ -136,7 +138,7 @@ const filteredStaffs = React.useMemo(() => {
       onRemoveSuccess?.();
     },
     onError: (err: any) => {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to remove staff';
+      const errorMessage = err.response?.data?.message || err.message || t('tour.failedRemoveStaff');
       showError(errorMessage);
     },
   });
@@ -145,7 +147,7 @@ const filteredStaffs = React.useMemo(() => {
   const handleAssignSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStaff) {
-      showError('Please select a staff member');
+      showError(t('tour.selectStaffMember'));
       return;
     }
     mutateAssign();
@@ -158,7 +160,7 @@ const filteredStaffs = React.useMemo(() => {
   };
 
   const getStaffName = (staff: StaffMember) => {
-    return staff.fullName || staff.name || `Staff ${staff.staffId}`;
+    return staff.fullName || staff.name || t('tour.staffNameFallback', { id: staff.staffId });
   };
 
   // ============ RENDER ============
@@ -171,10 +173,8 @@ const filteredStaffs = React.useMemo(() => {
             <Users className="w-6 h-6 text-brand" />
           </div>
           <div>
-          <h2 className="text-xl font-bold text-slate-900">Staff Management</h2>
-            <p className="text-sm text-slate-500 mt-1">
-            Assign staff to schedule
-            </p>
+          <h2 className="text-xl font-bold text-slate-900">{t('tour.staffManagementTitle')}</h2>
+            <p className="text-sm text-slate-500 mt-1">{t('tour.staffManagementSubtitle')}</p>
           </div>
         </div>
 
@@ -184,7 +184,7 @@ const filteredStaffs = React.useMemo(() => {
           disabled={isAssigning}
         >
           <UserPlus className="w-5 h-5" />
-          Assign Staff
+          {t('tour.assignStaff')}
         </button>
       </div>
 
@@ -193,7 +193,7 @@ const filteredStaffs = React.useMemo(() => {
         {isLoadingStaff ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-slate-500">
             <Loader2 className="w-8 h-8 animate-spin text-brand mb-4" />
-            <p className="text-sm font-medium text-slate-600">Loading staff...</p>
+            <p className="text-sm font-medium text-slate-600">{t('tour.loadingStaff')}</p>
           </div>
         ) : staffList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-6 text-slate-500">
@@ -201,24 +201,22 @@ const filteredStaffs = React.useMemo(() => {
               <Users className="w-10 h-10 text-slate-300" />
             </div>
             <p className="text-base font-medium text-slate-800 mb-1">
-            No staff assigned yet
+            {t('tour.noStaffAssignedTitle')}
             </p>
-            <p className="text-sm text-slate-500 text-center mb-4">
-            No staff has been assigned to this schedule.
-            </p>
+            <p className="text-sm text-slate-500 text-center mb-4">{t('tour.noStaffAssignedDesc')}</p>
           </div>
         ) : (
           <table className="w-full">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Staff Name
+                {t('tour.staffNameCol')}
                 </th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Staff ID
+                {t('tour.staffIdCol')}
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Action
+                {t('tour.actionCol')}
                 </th>
               </tr>
             </thead>
@@ -239,7 +237,7 @@ const filteredStaffs = React.useMemo(() => {
                       onClick={() => setStaffToRemove(staff)}
                       disabled={isRemoving && staffToRemove?.staffId === staff.staffId}
                       className="p-2 text-rose-500 hover:bg-rose-50 rounded-md transition-colors disabled:opacity-50"
-                      title="Remove Staff"
+                      title={t('tour.removeStaffTitle')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -256,7 +254,7 @@ const filteredStaffs = React.useMemo(() => {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[500] p-4">
           <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white z-10">
-            <h3 className="text-lg font-bold text-slate-900">Assign Staff</h3>
+            <h3 className="text-lg font-bold text-slate-900">{t('tour.assignStaffModalTitle')}</h3>
               <button
                 onClick={handleCloseAssignModal}
                 className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
@@ -269,7 +267,7 @@ const filteredStaffs = React.useMemo(() => {
               {/* STAFF SELECTION */}
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Staff Member <span className="text-rose-500">*</span>
+                  {t('tour.staffMemberLabel')} <span className="text-rose-500">*</span>
                 </label>
                 
                 {selectedStaff ? (
@@ -307,7 +305,7 @@ const filteredStaffs = React.useMemo(() => {
                         type="text"
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
-                        placeholder="Type name or email..."
+                        placeholder={t('tour.searchStaffPlaceholder')}
                         className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm placeholder-slate-400"
                         autoFocus
                       />
@@ -318,7 +316,7 @@ const filteredStaffs = React.useMemo(() => {
                       <div className="absolute z-20 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto py-2">
                         {isSearching ? (
                         <div className="p-4 text-center text-sm text-slate-500 flex items-center justify-center gap-2">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Searching...
+                          <Loader2 className="w-4 h-4 animate-spin" /> {t('tour.searchingStaff')}
                           </div>
                         ) : filteredStaffs.length > 0 ? (
                           <ul>
@@ -348,7 +346,7 @@ const filteredStaffs = React.useMemo(() => {
                           </ul>
                         ) : (
                           <div className="p-4 text-center text-sm text-slate-500">
-                          No staff found
+                          {t('tour.noStaffFound')}
                           </div>
                         )}
                       </div>
@@ -364,14 +362,14 @@ const filteredStaffs = React.useMemo(() => {
                   onClick={handleCloseAssignModal}
                   className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors text-sm"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={isAssigning || !selectedStaff}
                   className="flex-1 px-4 py-2.5 bg-brand hover:bg-brand-hover disabled:bg-blue-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
                 >
-                  {isAssigning ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm'}
+                  {isAssigning ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.confirm')}
                 </button>
               </div>
             </form>
@@ -387,9 +385,9 @@ const filteredStaffs = React.useMemo(() => {
               <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
                 <AlertCircle className="w-6 h-6 text-rose-600" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mb-2">Remove staff?</h3>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">{t('tour.confirmRemoveStaffTitle')}</h3>
               <p className="text-sm text-slate-500 mb-6">
-                Are you sure you want to remove <span className="font-bold text-slate-800">{getStaffName(staffToRemove)}</span> from this schedule? This action cannot be undone.
+                {t('tour.confirmRemoveStaffDesc', { name: getStaffName(staffToRemove) })}
               </p>
               
               <div className="flex gap-3 w-full">
@@ -398,14 +396,14 @@ const filteredStaffs = React.useMemo(() => {
                   disabled={isRemoving}
                   className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors text-sm"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={() => mutateRemove(staffToRemove)}
                   disabled={isRemoving}
                   className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
                 >
-                  {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Confirm Remove'}
+                  {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('tour.confirmRemove')}
                 </button>
               </div>
             </div>

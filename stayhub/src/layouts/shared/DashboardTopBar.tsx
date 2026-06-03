@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bell,
@@ -13,9 +13,11 @@ import {
 
 import { ActionButton } from "../../components/dashboard/ActionButton";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
+import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 export type DashboardRole = "partner" | "admin";
 
@@ -29,22 +31,6 @@ type DashboardTopBarProps = {
   onLogout: () => void;
 };
 
-const roleMeta: Record<
-  DashboardRole,
-  { label: string; badgeClass: string; subtitle: string }
-> = {
-  partner: {
-    label: "Tour partner",
-    badgeClass: "bg-brand-light text-brand",
-    subtitle: "Tours & bookings",
-  },
-  admin: {
-    label: "System admin",
-    badgeClass: "bg-brand-light text-brand",
-    subtitle: "StayHub platform operations",
-  },
-};
-
 export function DashboardTopBar({
   role,
   pageTitle,
@@ -54,6 +40,7 @@ export function DashboardTopBar({
   onOpenMobileSidebar,
   onLogout,
 }: DashboardTopBarProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -61,9 +48,32 @@ export function DashboardTopBar({
   const [searchQuery, setSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const displayName = user?.fullName || user?.FullName || "User";
+  const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
-  const meta = roleMeta[role];
+
+  const meta = useMemo(
+    () =>
+      role === "partner"
+        ? {
+            label: t("dashboard.partner"),
+            badgeClass: "bg-brand-light text-brand",
+            subtitle: t("dashboard.partnerSubtitle"),
+          }
+        : {
+            label: t("dashboard.admin"),
+            badgeClass: "bg-brand-light text-brand",
+            subtitle: t("dashboard.adminSubtitle"),
+          },
+    [role, t],
+  );
+
+  const notificationItems = useMemo(
+    () =>
+      role === "admin"
+        ? [t("dashboard.notifAdminPartnerApproval"), t("dashboard.notifAdminViolation")]
+        : [t("dashboard.notifPartnerReview"), t("dashboard.notifPartnerReview5Star")],
+    [role, t],
+  );
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -82,7 +92,7 @@ export function DashboardTopBar({
           type="button"
           className="icon-btn md:hidden"
           onClick={onOpenMobileSidebar}
-          aria-label="Open menu"
+          aria-label={t("home.openMenu")}
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -91,7 +101,7 @@ export function DashboardTopBar({
           type="button"
           className="icon-btn hidden md:inline-flex"
           onClick={onToggleSidebar}
-          aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={sidebarCollapsed ? t("home.expandSidebar") : t("home.collapseSidebar")}
         >
           {sidebarCollapsed ? (
             <PanelLeftOpen className="h-5 w-5" />
@@ -122,9 +132,9 @@ export function DashboardTopBar({
           <input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Quick search in dashboard..."
+            placeholder={t("home.quickSearchDashboard")}
             className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400"
-            aria-label="Search"
+            aria-label={t("common.search")}
           />
         </div>
 
@@ -134,9 +144,10 @@ export function DashboardTopBar({
           className="hidden h-9 gap-1.5 px-3 md:inline-flex"
         >
           <Home className="h-4 w-4" />
-          <span className="text-xs font-semibold">Home</span>
+          <span className="text-xs font-semibold">{t("dashboard.home")}</span>
         </ActionButton>
 
+        <LanguageSwitcher variant="icon" />
         <ThemeToggle />
 
         <div className="relative">
@@ -147,7 +158,7 @@ export function DashboardTopBar({
               setShowNotifications((v) => !v);
               setShowProfileMenu(false);
             }}
-            aria-label="Notifications"
+            aria-label={t("dashboard.notifications")}
           >
             <Bell className="h-5 w-5" />
             <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-0.5 text-[9px] font-bold text-white ring-2 ring-white">
@@ -157,25 +168,17 @@ export function DashboardTopBar({
 
           {showNotifications && (
             <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 p-4">
-              <h3 className="mb-3 text-sm font-bold text-navy">Notifications</h3>
+              <h3 className="mb-3 text-sm font-bold text-navy">{t("dashboard.notifications")}</h3>
               <ul className="space-y-2 text-sm text-slate-600">
-                {role === "admin" ? (
-                  <>
-                    <li>New partner approval request.</li>
-                    <li>User violation report submitted.</li>
-                  </>
-                ) : (
-                  <>
-                    <li>New bookings need your review.</li>
-                    <li>A customer left a 5-star review.</li>
-                  </>
-                )}
+                {notificationItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
               <button
                 type="button"
                 className="mt-3 text-sm font-semibold text-brand hover:underline"
               >
-                View all
+                {t("dashboard.viewAll")}
               </button>
             </div>
           )}
@@ -214,7 +217,7 @@ export function DashboardTopBar({
                 }}
               >
                 <LogOut className="h-4 w-4" />
-                Sign out
+                {t("header.signOut")}
               </button>
             </div>
           )}

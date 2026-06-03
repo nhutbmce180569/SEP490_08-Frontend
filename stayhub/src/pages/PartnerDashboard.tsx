@@ -7,6 +7,7 @@ import {
   TrendingUp,
   Users,
 } from 'lucide-react';
+import { useTranslation } from '../contexts/LocaleContext';
 
 type Stat = {
   label: string;
@@ -25,12 +26,6 @@ type Deal = {
   piece: number;
   amount: string;
   status: 'Delivered' | 'Pending' | 'Rejected';
-};
-
-const statusPillClass: Record<Deal['status'], string> = {
-  Delivered: 'bg-emerald-500 text-white',
-  Pending: 'bg-amber-400 text-white',
-  Rejected: 'bg-rose-500 text-white',
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -59,11 +54,13 @@ function SalesChart({
   width,
   height,
   stroke = '#3b82f6',
+  ariaLabel,
 }: {
   data: number[];
   width: number;
   height: number;
   stroke?: string;
+  ariaLabel: string;
 }) {
   const paddingX = 10;
   const paddingY = 10;
@@ -90,7 +87,7 @@ function SalesChart({
       width="100%"
       height="100%"
       role="img"
-      aria-label="Sales chart"
+      aria-label={ariaLabel}
       className="overflow-visible"
     >
       <defs>
@@ -100,7 +97,6 @@ function SalesChart({
         </linearGradient>
       </defs>
 
-      {/* grid */}
       {Array.from({ length: 5 }).map((_, i) => {
         const y = paddingY + (i / 4) * innerH;
         return (
@@ -126,7 +122,6 @@ function SalesChart({
         strokeLinecap="round"
       />
 
-      {/* highlight point (roughly like Figma) */}
       {pts.length ? (
         <g>
           <circle cx={pts[4]?.x ?? pts[pts.length - 1].x} cy={pts[4]?.y ?? pts[pts.length - 1].y} r="4" fill={stroke} />
@@ -138,48 +133,82 @@ function SalesChart({
 }
 
 export default function PartnerDashboard() {
-  const [month, setMonth] = useState('October');
+  const { t } = useTranslation();
+  const [month, setMonth] = useState('october');
+
+  const months = useMemo(
+    () => [
+      { value: 'october', label: t('dashboard.october') },
+      { value: 'september', label: t('dashboard.september') },
+      { value: 'august', label: t('dashboard.august') },
+    ],
+    [t],
+  );
+
+  const statusPillClass: Record<Deal['status'], string> = {
+    Delivered: 'bg-emerald-500 text-white',
+    Pending: 'bg-amber-400 text-white',
+    Rejected: 'bg-rose-500 text-white',
+  };
+
+  const statusLabel: Record<Deal['status'], string> = {
+    Delivered: t('dashboard.delivered'),
+    Pending: t('dashboard.pending'),
+    Rejected: t('dashboard.rejected'),
+  };
 
   const stats = useMemo<Stat[]>(
     () => [
       {
-        label: 'Total User',
+        label: t('dashboard.totalUser'),
         value: '40,689',
-        deltaLabel: '8.5% Up from yesterday',
+        deltaLabel: t('dashboard.deltaUpYesterday'),
         deltaDirection: 'up',
         icon: <Users className="h-5 w-5 text-indigo-500" />,
         iconBgClass: 'bg-indigo-50',
         deltaColorClass: 'text-emerald-600',
       },
       {
-        label: 'Total Order',
+        label: t('dashboard.totalOrder'),
         value: '10293',
-        deltaLabel: '1.3% Up from past week',
+        deltaLabel: t('dashboard.deltaUpPastWeek'),
         deltaDirection: 'up',
         icon: <Package className="h-5 w-5 text-amber-500" />,
         iconBgClass: 'bg-amber-50',
         deltaColorClass: 'text-emerald-600',
       },
       {
-        label: 'Total Sales',
+        label: t('dashboard.totalSales'),
         value: '$89,000',
-        deltaLabel: '4.3% Down from yesterday',
+        deltaLabel: t('dashboard.deltaDownYesterday'),
         deltaDirection: 'down',
         icon: <DollarSign className="h-5 w-5 text-emerald-500" />,
         iconBgClass: 'bg-emerald-50',
         deltaColorClass: 'text-rose-600',
       },
       {
-        label: 'Total Pending',
+        label: t('dashboard.totalPending'),
         value: '2040',
-        deltaLabel: '1.8% Up from yesterday',
+        deltaLabel: t('dashboard.deltaUpYesterdayShort'),
         deltaDirection: 'up',
         icon: <Clock className="h-5 w-5 text-brand" />,
         iconBgClass: 'bg-brand-light',
         deltaColorClass: 'text-emerald-600',
       },
     ],
-    [],
+    [t],
+  );
+
+  const tableHeaders = useMemo(
+    () => [
+      t('dashboard.productName'),
+      t('dashboard.location'),
+      t('dashboard.dateTime'),
+      t('dashboard.piece'),
+      t('dashboard.amount'),
+      t('dashboard.status'),
+    ],
+    [t],
   );
 
   const deals = useMemo<Deal[]>(
@@ -222,12 +251,11 @@ export default function PartnerDashboard() {
 
   return (
     <div className="space-y-6">
-          <div className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
-            Dashboard
-          </div>
+      <div className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+        {t('dashboard.title')}
+      </div>
 
-          {/* stats */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <section
             key={s.label}
@@ -254,23 +282,21 @@ export default function PartnerDashboard() {
                 <TrendingDown className={['h-4 w-4', s.deltaColorClass].join(' ')} />
               )}
               <span className={['font-semibold', s.deltaColorClass].join(' ')}>
-                {s.deltaLabel.split(' ')[0]}
+                {s.deltaLabel}
               </span>
-              <span className="text-slate-500">{s.deltaLabel.replace(/^\S+\s*/, '')}</span>
             </div>
           </section>
         ))}
       </div>
 
-      {/* sales details */}
       <section className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
         <div className="flex items-center justify-between gap-3">
           <div className="text-lg font-bold text-slate-900 md:text-xl">
-            Sales Details
+            {t('dashboard.salesDetails')}
           </div>
           <div className="flex items-center gap-2">
             <label className="sr-only" htmlFor="sales-month">
-              Month
+              {t('dashboard.month')}
             </label>
             <select
               id="sales-month"
@@ -278,9 +304,9 @@ export default function PartnerDashboard() {
               onChange={(e) => setMonth(e.target.value)}
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600"
             >
-              {['October', 'September', 'August'].map((m) => (
-                <option key={m} value={m}>
-                  {m}
+              {months.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
                 </option>
               ))}
             </select>
@@ -288,37 +314,39 @@ export default function PartnerDashboard() {
         </div>
 
         <div className="mt-4 grid gap-4 md:grid-cols-[56px_1fr]">
-          {/* y axis labels */}
           <div className="hidden flex-col justify-between pb-7 pt-3 text-xs font-semibold text-slate-400 md:flex">
-            {yTicks.map((t) => (
-              <div key={t}>{t}%</div>
+            {yTicks.map((tick) => (
+              <div key={tick}>{tick}%</div>
             ))}
           </div>
 
           <div className="min-h-[280px] rounded-xl bg-white">
             <div className="h-[280px] w-full">
-              <SalesChart data={salesData.map((n) => clamp(n, 0, 100))} width={980} height={280} />
+              <SalesChart
+                data={salesData.map((n) => clamp(n, 0, 100))}
+                width={980}
+                height={280}
+                ariaLabel={t('ai.salesChart')}
+              />
             </div>
 
-            {/* x axis labels */}
             <div className="mt-2 hidden grid-cols-12 gap-1 text-center text-xs font-semibold text-slate-400 md:grid">
-              {xTicks.map((t) => (
-                <div key={t}>{t}</div>
+              {xTicks.map((tick) => (
+                <div key={tick}>{tick}</div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* deals details */}
       <section className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
         <div className="flex items-center justify-between gap-3">
           <div className="text-lg font-bold text-slate-900 md:text-xl">
-            Deals Details
+            {t('dashboard.dealsDetails')}
           </div>
           <div className="flex items-center gap-2">
             <label className="sr-only" htmlFor="deals-month">
-              Month
+              {t('dashboard.month')}
             </label>
             <select
               id="deals-month"
@@ -326,9 +354,9 @@ export default function PartnerDashboard() {
               onChange={(e) => setMonth(e.target.value)}
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600"
             >
-              {['October', 'September', 'August'].map((m) => (
-                <option key={m} value={m}>
-                  {m}
+              {months.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
                 </option>
               ))}
             </select>
@@ -339,20 +367,18 @@ export default function PartnerDashboard() {
           <table className="min-w-[820px] w-full border-separate border-spacing-0">
             <thead>
               <tr className="rounded-xl bg-slate-50">
-                {['Product Name', 'Location', 'Date - Time', 'Piece', 'Amount', 'Status'].map(
-                  (h, idx) => (
-                    <th
-                      key={h}
-                      className={[
-                        'px-4 py-3 text-left text-xs font-bold text-slate-800',
-                        idx === 0 ? 'rounded-l-xl' : '',
-                        idx === 5 ? 'rounded-r-xl' : '',
-                      ].join(' ')}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
+                {tableHeaders.map((h, idx) => (
+                  <th
+                    key={h}
+                    className={[
+                      'px-4 py-3 text-left text-xs font-bold text-slate-800',
+                      idx === 0 ? 'rounded-l-xl' : '',
+                      idx === 5 ? 'rounded-r-xl' : '',
+                    ].join(' ')}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -385,7 +411,7 @@ export default function PartnerDashboard() {
                         statusPillClass[d.status],
                       ].join(' ')}
                     >
-                      {d.status}
+                      {statusLabel[d.status]}
                     </span>
                   </td>
                 </tr>

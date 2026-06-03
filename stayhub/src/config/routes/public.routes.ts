@@ -8,6 +8,8 @@ export const PUBLIC_ROUTES = {
   TOURS: '/tours',
   TOUR_SEARCH: '/search',
   UNAUTHORIZED: '/unauthorized',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',
   // AI Tour Assistant (public — no login required)
   AI_ASSISTANT: '/ai-assistant',
   AI_RECOMMENDATIONS: '/ai/recommendations',

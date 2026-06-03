@@ -6,6 +6,7 @@ import { useRegister } from "../hooks/useRegister";
 import { SocialAuthButtons } from "../components/SocialAuthButtons";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField, authInputClass } from "../components/AuthFormField";
+import { PATH } from "../../../config/routes/route";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -189,11 +190,19 @@ export default function Register() {
             />
             <span className="text-sm font-medium text-slate-600 transition-colors group-hover:text-slate-900">
               I agree to the{" "}
-              <Link to="/terms" className="text-brand !no-underline hover:underline">
+              <Link
+                to={PATH.PUBLIC.TERMS}
+                state={{ from: PATH.PUBLIC.REGISTER }}
+                className="text-brand !no-underline hover:underline"
+              >
                 Terms of Service
               </Link>{" "}
               and{" "}
-              <Link to="/privacy" className="text-brand !no-underline hover:underline">
+              <Link
+                to={PATH.PUBLIC.PRIVACY}
+                state={{ from: PATH.PUBLIC.REGISTER }}
+                className="text-brand !no-underline hover:underline"
+              >
                 Privacy Policy
               </Link>
               .

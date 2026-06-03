@@ -1,10 +1,14 @@
+import { Link, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { Phone, Send } from "lucide-react";
+import { PATH } from "../../config/routes/route";
 
 type FooterLinkGroup = { title: string; links: string[] };
 
 export default function Footer() {
   const [email, setEmail] = useState("");
+  const location = useLocation();
+  const legalLinkState = { from: location.pathname };
 
   const groups = useMemo<FooterLinkGroup[]>(
     () => [
@@ -118,15 +122,23 @@ export default function Footer() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy/8 py-5 text-xs text-navy-70">
           <div>© {new Date().getFullYear()} StayHub. All rights reserved.</div>
           <div className="flex gap-4">
-            {["Privacy", "Terms", "Support"].map((t) => (
-              <button
-                key={t}
-                type="button"
-                className="transition-colors hover:text-brand"
-              >
-                {t}
-              </button>
-            ))}
+            <Link
+              to={PATH.PUBLIC.PRIVACY}
+              state={legalLinkState}
+              className="transition-colors hover:text-brand !no-underline"
+            >
+              Privacy
+            </Link>
+            <Link
+              to={PATH.PUBLIC.TERMS}
+              state={legalLinkState}
+              className="transition-colors hover:text-brand !no-underline"
+            >
+              Terms
+            </Link>
+            <button type="button" className="transition-colors hover:text-brand">
+              Support
+            </button>
           </div>
         </div>
       </div>

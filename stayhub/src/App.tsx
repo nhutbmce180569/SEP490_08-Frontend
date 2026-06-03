@@ -100,6 +100,8 @@ import { LocationTrackingPage } from "./features/social/tracking/pages/LocationT
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
+import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
+import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
 const queryClient = new QueryClient();
 
 const pageCopy: Record<string, string> = {
@@ -317,6 +319,8 @@ const App: React.FC = () => {
                   path={PATH.PUBLIC.AI_RECOMMENDATIONS}
                   element={<AiRecommendationsPage />}
                 />
+                <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
+                <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
                 <Route
                   path={PATH.CUSTOMER.CHECKOUT()}
                   element={<BookingPage />}

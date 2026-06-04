@@ -13,8 +13,6 @@ import { WeatherAdviceCard } from "../components/WeatherAdviceCard";
 import { useRecommendFromProfile } from "../hooks/useRecommendFromProfile";
 import { useLogAiInteraction } from "../hooks/useLogAiInteraction";
 import type { PersonalizedRecommendationResponse } from "../types/tourAssistant";
-import { useTranslation } from "../../../contexts/LocaleContext";
-
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
 export const AiRecommendationsPage: React.FC = () => {

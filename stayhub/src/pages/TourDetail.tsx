@@ -1,4 +1,4 @@
-import { useState, useMemo, useContext } from "react";
+import { useState, useMemo, useContext, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -26,10 +26,7 @@ import { useWishlist } from "../features/wishlist/hooks/useWishlist";
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
-import { AuthContext } from "../contexts/AuthContext";
 import { useGroupedItineraries } from "../features/tour/hooks/useGroupedItineraries";
-import { useGetTourItineraries } from "../features/social/tours/hooks/useTourItineraries";
-import { TourItineraryMap } from "../features/social/tours/components/TourItineraryMap";
 import { ticketTypeService } from "../features/content/services/ticketType.service";
 import type { ReadTicketTypeDTO } from "../features/content/types/ticketType";
 import { tourismInformationService } from "../features/content/services/tourismInformation.service";
@@ -59,16 +56,6 @@ const fmtDate = (d: string) =>
     month: "short",
     year: "numeric",
   });
-
-const getReviewCustomerName = (review: any) =>
-  review.customerName || review.CustomerName || review.customerId
-    ? String(review.customerName || review.CustomerName || `Customer #${review.customerId}`)
-    : "Anonymous Customer";
-
-const getReviewReplyName = (reply: any) =>
-  reply.userName || reply.UserName || reply.userId
-    ? String(reply.userName || reply.UserName || `Staff #${reply.userId}`)
-    : "Staff";
 
 const getScheduleTickets = (schedule: TourSchedule) =>
   (schedule.tourScheduleTickets ?? []).filter((ticket) => ticket.isActive !== false);
@@ -143,10 +130,10 @@ export default function PublicTourDetail() {
   const { tour, isLoading, error } = usePublicTour(id);
   const { isInWishlist, toggleWishlist, isSubmitting, isSubmittingTourId } = useWishlist();
   const { error: showError } = useToast();
-  const { user } = useContext(AuthContext);
-  const currentUserId = user?.id;
+  // const { user } = useContext(AuthContext);
+  // const currentUserId = user?.id;
 
-  const { data: itineraries = [], isLoading: isItinerariesLoading } = useGetTourItineraries(Number(id));
+  // const { data: itineraries = [], isLoading: isItinerariesLoading } = useGetTourItineraries(Number(id));
 
   const [showFullError, setShowFullError] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
@@ -304,16 +291,55 @@ export default function PublicTourDetail() {
         ? Math.min(...allPrices)
         : null;
 
-  // 💥 BỘ LỌC REVIEW: Chỉ lấy những Review không bị ẩn
-  const visibleReviews = (tour?.reviews || []).filter((review) => {
-    const isHiddenValue = review.isHidden ?? (review as any).IsHidden;
-    return isHiddenValue !== true && isHiddenValue !== 1 && isHiddenValue !== "true";
-  });
+ // ==========================================
+  // 💥 BỘ LỌC VÀ CUỘN REVIEW (CLIENT-SIDE)
+  // ==========================================
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [dateSortOrder, setDateSortOrder] = useState<"newest" | "oldest">("newest"); // Thêm state sắp xếp ngày
+  const [visibleCount, setVisibleCount] = useState(5);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  const filteredReviews = useMemo(() => {
+    return (tour?.reviews || []).filter((review) => {
+      // 1. Loại bỏ review ẩn
+      const isHidden = review.isHidden ?? (review as any).IsHidden;
+      if (isHidden === true || isHidden === 1 || isHidden === "true") return false;
+      
+      // 2. Lọc theo số sao
+      if (ratingFilter !== null && Math.round(review.rating || 0) !== ratingFilter) return false;
+      
+      return true;
+    }).sort((a, b) => {
+      // 3. Sắp xếp theo ngày
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateSortOrder === "newest" ? dateB - dateA : dateA - dateB;
+    });
+  }, [tour?.reviews, ratingFilter, dateSortOrder]);
+
+  const displayedReviews = filteredReviews.slice(0, visibleCount);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && visibleCount < filteredReviews.length) {
+          setVisibleCount((prev) => prev + 5);
+        }
+      },
+      { threshold: 1.0 }
+    );
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [visibleCount, filteredReviews.length]);
 
   const rating = tour?.averageStar || 0;
-  // 💥 Số lượng review bây giờ sẽ dựa vào mảng đã lọc
-  const reviews = visibleReviews.length; 
+  // Đếm tổng số review gốc không bị ẩn
+  const reviews = (tour?.reviews || []).filter((r) => {
+    const isHidden = r.isHidden ?? (r as any).IsHidden;
+    return !(isHidden === true || isHidden === 1 || isHidden === "true");
+  }).length; 
   const days = tour?.tourItineraries?.length || 0;
+  // ==========================================
 
   /* Loading */
   if (isLoading) {
@@ -707,12 +733,54 @@ export default function PublicTourDetail() {
               )}
             </section>
 
-            {/* Reviews */}
+           {/* Reviews */}
             <section>
               <SectionLabel>{t("tour.whatTravelersSay")}</SectionLabel>
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">
-                {t("tour.reviews")}
-              </h2>
+             {/* 💥 BỘ LỌC SAO & NGÀY (DROPDOWN) */}
+              <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <h2 className="text-2xl font-bold text-slate-800">
+                  {t("tour.reviews")}
+                </h2>
+                
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Dropdown Lọc theo sao */}
+                  <div className="relative">
+                    <select
+                      value={ratingFilter === null ? "" : ratingFilter}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRatingFilter(val === "" ? null : Number(val));
+                        setVisibleCount(5); // Reset cuộn khi đổi bộ lọc
+                      }}
+                      className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 focus:border-brand focus:ring-2 focus:ring-brand/20 cursor-pointer"
+                    >
+                      <option value="">{t("common.all")} {t("tour.rating")}</option>
+                      <option value="5">5 {t("tour.stars") || "Stars"}</option>
+                      <option value="4">4 {t("tour.stars") || "Stars"}</option>
+                      <option value="3">3 {t("tour.stars") || "Stars"}</option>
+                      <option value="2">2 {t("tour.stars") || "Stars"}</option>
+                      <option value="1">1 {t("tour.stars") || "Star"}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  </div>
+
+                  {/* Dropdown Sắp xếp theo ngày */}
+                  <div className="relative">
+                    <select
+                      value={dateSortOrder}
+                      onChange={(e) => {
+                        setDateSortOrder(e.target.value as "newest" | "oldest");
+                        setVisibleCount(5);
+                      }}
+                      className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 focus:border-brand focus:ring-2 focus:ring-brand/20 cursor-pointer"
+                    >
+                      <option value="newest">{t("tour.newestFirst") || "Newest First"}</option>
+                      <option value="oldest">{t("tour.oldestFirst") || "Oldest First"}</option>
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  </div>
+                </div>
+              </div>
 
               {/* Rating summary */}
               <div className="flex items-center gap-8 mb-10 bg-slate-50 rounded-2xl p-6 border border-slate-100">
@@ -726,11 +794,7 @@ export default function PublicTourDetail() {
                         key={i}
                         fill="currentColor"
                         size={16}
-                        className={
-                          i < Math.round(rating)
-                            ? "text-amber-400"
-                            : "text-slate-200"
-                        }
+                        className={i < Math.round(rating) ? "text-amber-400" : "text-slate-200"}
                       />
                     ))}
                   </div>
@@ -740,28 +804,17 @@ export default function PublicTourDetail() {
                 </div>
                 <div className="flex-1 space-y-2">
                   {[5, 4, 3, 2, 1].map((star) => {
-                    // 💥 Tính số lượng cho từng mốc sao dựa trên mảng visibleReviews
-                    const count =
-                      visibleReviews.filter(
-                        (r) => Math.round(r.rating || 0) === star,
-                      ).length;
+                    const count = (tour?.reviews || []).filter((r) => {
+                      const isHidden = r.isHidden ?? (r as any).IsHidden;
+                      return !(isHidden === true || isHidden === 1 || isHidden === "true") && Math.round(r.rating || 0) === star;
+                    }).length;
                     const pct = reviews > 0 ? (count / reviews) * 100 : 0;
                     return (
-                      <div
-                        key={star}
-                        className="flex items-center gap-2 text-xs text-slate-500"
-                      >
+                      <div key={star} className="flex items-center gap-2 text-xs text-slate-500">
                         <span className="w-3">{star}</span>
-                        <Star
-                          size={11}
-                          fill="currentColor"
-                          className="text-amber-400 shrink-0"
-                        />
+                        <Star size={11} fill="currentColor" className="text-amber-400 shrink-0" />
                         <div className="flex-1 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-amber-400 h-full rounded-full"
-                            style={{ width: `${pct}%` }}
-                          />
+                          <div className="bg-amber-400 h-full rounded-full" style={{ width: `${pct}%` }} />
                         </div>
                         <span className="w-4 text-right">{count}</span>
                       </div>
@@ -772,117 +825,59 @@ export default function PublicTourDetail() {
 
               {/* Review list */}
               <div className="space-y-6">
-                {/* 💥 Lặp qua mảng visibleReviews thay vì tour.reviews */}
-                {visibleReviews.length > 0 ? (
-                  visibleReviews.map((review) => {
-                    const reviewerName = review.customerName || review.CustomerName || (review.customerId ? `Customer #${review.customerId}` : t("tour.anonymousCustomer"));
-                    const initials =
-                      reviewerName
-                        .split(" ")
-                        .map((n: string) => n[0])
-                        .join("")
-                        .substring(0, 2)
-                        .toUpperCase() || "A";
+                {displayedReviews.length > 0 ? (
+                  displayedReviews.map((review) => {
+                    // 💥 GẮN CỨNG ẨN DANH Ở ĐÂY
+                    const reviewerName = t("tour.anonymousCustomer"); 
+                    const initials = "A";
                     const reviewRating = review.rating || 0;
                     
                     return (
-                      <div
-                        key={review.id}
-                        className="border-b border-slate-100 pb-6 last:border-0 last:pb-0"
-                      >
+                      <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            {/* Avatar */}
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-brand font-bold text-lg uppercase shrink-0 overflow-hidden border border-brand/20">
-                              {review.customerAvatar ? (
-                                <img 
-                                  src={review.customerAvatar} 
-                                  alt={reviewerName} 
-                                  className="h-full w-full object-cover"
-                                  onError={(e) => {
-                                    // Fallback if avatar fails
-                                    e.currentTarget.style.display = 'none';
-                                    e.currentTarget.parentElement!.innerText = initials;
-                                  }}
-                                />
-                              ) : (
-                                initials
-                              )}
+                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-brand font-bold text-lg uppercase shrink-0">
+                              {initials}
                             </div>
                             <div>
                               <div className="font-bold text-slate-800">{reviewerName}</div>
                               {review.createdAt && (
-                                <div className="text-xs text-slate-400">
-                                  {fmtDate(review.createdAt)}
-                                </div>
+                                <div className="text-xs text-slate-400">{fmtDate(review.createdAt)}</div>
                               )}
                             </div>
                           </div>
                           <div className="flex text-amber-400">
                             {[...Array(5)].map((_, i) => (
-                              <Star
-                                key={i}
-                                fill="currentColor"
-                                size={16}
-                                className={
-                                  i >= reviewRating ? "text-slate-200" : ""
-                                }
-                              />
+                              <Star key={i} fill="currentColor" size={16} className={i >= reviewRating ? "text-slate-200" : ""} />
                             ))}
                           </div>
                         </div>
-                        <p className="text-slate-600 leading-relaxed">
-                          {review.comment || t("tour.noComment")}
-                        </p>
+                        <p className="text-slate-600 leading-relaxed">{review.comment || t("tour.noComment")}</p>
 
                         {review.replies && review.replies.length > 0 && (
                           <div className="mt-4 space-y-4">
-                            {review.replies.map((reply) => {
-                              const replyName = getReviewReplyName(reply);
-                              const replyInitial = replyName
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")
-                                .substring(0, 2)
-                                .toUpperCase();
+                            {review.replies.map((reply: any) => {
+                              const replyName = t("tour.tourManager"); 
+                              const replyInitial = "TM";
 
                               return (
-                                <div
-                                  key={reply.id}
-                                  className="rounded-3xl border border-slate-200 bg-slate-50 p-4"
-                                >
+                                <div key={reply.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                                   <div className="mb-3 flex items-center gap-3">
-                                    <div className="h-10 w-10 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase border border-indigo-200">
-                                      {reply.userAvatar ? (
-                                        <img
-                                          src={reply.userAvatar}
-                                          alt={replyName}
-                                          className="h-full w-full object-cover"
-                                          onError={(e) => {
-                                            e.currentTarget.style.display = 'none';
-                                            e.currentTarget.parentElement!.innerText = replyInitial;
-                                          }}
-                                        />
-                                      ) : (
-                                        replyInitial
-                                      )}
+                                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase">
+                                      {replyInitial}
                                     </div>
                                     <div>
                                       <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
                                         <span>{replyName}</span>
                                         <span className="text-slate-400">•</span>
                                         <span className="text-xs font-medium text-slate-500">
-                                          {reply.createdAt
-                                            ? fmtDate(reply.createdAt)
-                                            : ""}
+                                          {reply.createdAt ? fmtDate(reply.createdAt) : ""}
                                         </span>
                                       </div>
                                       <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
                                     </div>
                                   </div>
-                                  <p className="text-sm text-slate-700 leading-relaxed">
-                                    {reply.content}
-                                  </p>
+                                  <p className="text-sm text-slate-700 leading-relaxed">{reply.content}</p>
                                 </div>
                               );
                             })}
@@ -896,6 +891,9 @@ export default function PublicTourDetail() {
                     {t("tour.noReviewsYet")}
                   </p>
                 )}
+
+                {/* 💥 ĐIỂM NEO ĐỂ CUỘN */}
+                <div ref={observerTarget} className="h-2 w-full" />
               </div>
             </section>
           </div>

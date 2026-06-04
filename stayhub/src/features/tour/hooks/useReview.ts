@@ -1,42 +1,55 @@
 import { useState, useCallback } from "react";
 import { tStored } from "../../../i18n/tStored";
 import { reviewService } from "../services/review.service";
-import type { Review, CreateReviewRequest, UpdateReviewRequest } from "../types/review";
-import axios from "axios";
-import { TOURS_API } from "../../../config/api/tours.api";
+import type { Review, CreateReviewRequest, UpdateReviewRequest, ReviewFilterParams } from "../types/review";
+
+export const buildReviewODataQuery = (params: ReviewFilterParams): string => {
+  const queries: string[] = [];
+  const skip = (params.page - 1) * params.pageSize;
+  queries.push(`$top=${params.pageSize}`);
+  queries.push(`$skip=${skip}`);
+
+  if (params.rating) {
+    queries.push(`$filter=Rating eq ${params.rating}`);
+  }
+
+  const sortDirection = params.sortByDate === "asc" ? "asc" : "desc";
+  queries.push(`$orderby=CreatedAt ${sortDirection}`);
+
+  return `?${queries.join("&")}`;
+};
 
 export const useReview = () => {
-  // States lưu trữ dữ liệu
-  const [reviews, setReviews] = useState<Review[]>([]); // Tất cả review của 1 tour (Public)
-  const [myReview, setMyReview] = useState<Review | null>(null); // Review của "Tôi" trong 1 tour (Để check xem đã review chưa)
-  const [myAllReviews, setMyAllReviews] = useState<Review[]>([]); // Tất cả lịch sử review của "Tôi" (Dùng cho trang cá nhân)
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0); 
+  const [myReview, setMyReview] = useState<Review | null>(null); 
+  const [myAllReviews, setMyAllReviews] = useState<Review[]>([]); 
   
-  // States trạng thái
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Lấy tất cả đánh giá của 1 Tour (Gọi khi vào xem chi tiết Tour)
-  const fetchReviewsByTour = useCallback(async (tourId: number) => {
+  // 💥 1. Bổ sung tham số odataQuery để nhận chuỗi phân trang/lọc
+  const fetchReviewsByTour = useCallback(async (tourId: number, odataQuery: string = "") => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await reviewService.getReviewsByTour(tourId);
-      setReviews(data);
+      const data = await reviewService.getReviewsByTour(tourId, odataQuery);
+      setReviews(data.items || []); // Cập nhật mảng review
+      setTotalCount(data.totalCount || 0); // Lưu lại tổng số lượng
     } catch (err: any) {
       setError(err?.response?.data?.message || tStored("tour.errorLoadReviews"));
       setReviews([]);
+      setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // 2. Lấy đánh giá CỦA TÔI cho 1 Tour (Để xác định xem nên hiện nút "Viết Đánh Giá" hay form "Chỉnh Sửa")
   const fetchMyReviewForTour = useCallback(async (tourId: number) => {
     try {
       const data = await reviewService.getMyReviewByTour(tourId);
       setMyReview(data);
     } catch (err: any) {
-      // 404 nghĩa là user chưa review tour này, không phải lỗi hệ thống -> Bỏ qua
       if (err?.response?.status !== 404) {
         console.error("Lỗi khi kiểm tra review của tôi:", err);
       }
@@ -44,7 +57,6 @@ export const useReview = () => {
     }
   }, []);
 
-  // 3. Lấy TẤT CẢ lịch sử đánh giá CỦA TÔI (Gọi khi vào trang Profile -> Lịch sử đánh giá)
   const fetchAllMyReviews = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -58,41 +70,33 @@ export const useReview = () => {
     }
   }, []);
 
-  // 4. Viết đánh giá mới
   const submitReview = async (data: CreateReviewRequest) => {
     setIsLoading(true);
     setError(null);
     try {
       const newReview = await reviewService.createReview(data);
-      
-      // 💥 Cập nhật UI lập tức: Gắn review vừa tạo vào myReview và chèn lên đầu danh sách chung
       setMyReview(newReview);
       setReviews((prev) => [newReview, ...prev]); 
-      
+      setTotalCount((prev) => prev + 1); // Tăng tổng số lượng lên 1
       return newReview;
     } catch (err: any) {
       const errMsg = err?.response?.data?.message || tStored("tour.errorSubmitReview");
       setError(errMsg);
-      // Ném lỗi ra để component giao diện dùng Toast hiện thông báo
       throw new Error(errMsg); 
     } finally {
       setIsLoading(false);
     }
   };
 
-  // 5. Chỉnh sửa đánh giá
   const editReview = async (reviewId: number, data: UpdateReviewRequest) => {
     setIsLoading(true);
     setError(null);
     try {
       const updatedReview = await reviewService.updateReview(reviewId, data);
-      
-      // 💥 Cập nhật UI: Đổi nội dung của myReview và tìm & sửa review đó trong danh sách chung
       setMyReview(updatedReview);
       setReviews((prev) =>
         prev.map((r) => (r.id === reviewId ? updatedReview : r))
       );
-      
       return updatedReview;
     } catch (err: any) {
       const errMsg = err?.response?.data?.message || tStored("tour.errorUpdateReview");
@@ -102,10 +106,6 @@ export const useReview = () => {
       setIsLoading(false);
     }
   };
-
-  // ==========================================
-  // MANAGER / STAFF ACTIONS
-  // ==========================================
 
   const replyToReview = async (reviewId: number, content: string) => {
     setIsLoading(true);
@@ -156,8 +156,6 @@ export const useReview = () => {
     setIsLoading(true);
     try {
       await reviewService.deleteReply(replyId);
-      
-      // Lọc bỏ cái reply vừa bị xóa ra khỏi UI
       setReviews((prev) =>
         prev.map((r) => {
           if (r.id === reviewId) {
@@ -181,8 +179,6 @@ export const useReview = () => {
     setIsLoading(true);
     try {
       await reviewService.hideReview(reviewId, isHidden);
-      
-      // Cập nhật lại trạng thái isHidden trên UI (Nếu Type Review của bạn chưa có isHidden thì nhớ bổ sung nhé)
       setReviews((prev) =>
         prev.map((r) => (r.id === reviewId ? { ...r, isHidden } : r))
       );
@@ -194,40 +190,32 @@ export const useReview = () => {
     }
   };
 
-  const fetchReviewsForAdmin = useCallback(async (tourId: number) => {
+  // 💥 2. Sửa lại hàm Admin: Dùng ReviewService để đảm bảo chuẩn type (Tránh gọi Axios trực tiếp)
+  const fetchReviewsForAdmin = useCallback(async (tourId: number, odataQuery: string = "") => {
     setIsLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("accessToken"); 
-      const response = await axios.get(
-        TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId), 
-        {
-          headers: {
-            Authorization: `Bearer ${token}` 
-          }
-        }
-      );
-      
-      setReviews(response.data);
-      return response.data;
+      const data = await reviewService.getReviewsByTourAdmin(tourId, odataQuery);
+      setReviews(data.items || []); 
+      setTotalCount(data.totalCount || 0);
+      return data;
     } catch (err: any) {
       console.error("Lỗi khi lấy review cho Admin", err);
       setError(err?.response?.data?.message || tStored("tour.errorLoadAdminReviews"));
       setReviews([]); 
+      setTotalCount(0);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
   return {
-    // Data
     reviews,
+    totalCount, 
     myReview,
     myAllReviews,
-    // Status
     isLoading,
     error,
-    // Actions
     fetchReviewsByTour,
     fetchMyReviewForTour,
     fetchAllMyReviews,

@@ -1,4 +1,3 @@
-// Interface cho Reply (ReadReviewReply maps to backend ReadReviewReplyDTO)
 export interface ReadReviewReply {
   id: number;
   reviewId: number;
@@ -23,6 +22,7 @@ export interface Review {
   createdAt?: string | null;
   updatedAt?: string | null;
   isHidden?: boolean;
+  canEdit?: boolean;
   replies?: ReadReviewReply[] | null;
 }
 
@@ -50,13 +50,16 @@ export interface UpdateReviewReplyRequest {
 }
 
 export interface PagedReviewResult {
-  totalCount: number;
-  items: Review[];
+  data: Review[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
 }
 
 export interface ReviewFilterParams {
   page: number;
   pageSize: number;
   rating?: number | null;
-  sortByDate?: "desc" | "asc"; // Mới nhất (desc) hoặc Cũ nhất (asc)
+  sortOrder?: "newest" | "oldest"; 
 }

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -18,6 +18,7 @@ import {
   ChevronUp,
   Image as ImageIcon,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
@@ -40,8 +41,8 @@ import {
   getScheduleTicketName,
   getScheduleTicketTypeId,
 } from "../features/tour/utils/tourScheduleTicket";
-import { TourScheduleStaffManagement } from "../features/tour/components/TourScheduleStaffManagement";
 import { useTranslation } from "../contexts/LocaleContext";
+import { useReview } from "../features/tour/hooks/useReview";
 import { MoneyDisplay } from "../features/currency/MoneyDisplay";
 
 type PublicTourItinerary = TourItinerary & {
@@ -49,6 +50,7 @@ type PublicTourItinerary = TourItinerary & {
   endLocationName?: string | null;
 };
 
+const fmt = (n: number) => n.toLocaleString("vi-VN");
 
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("vi-VN", {
@@ -128,20 +130,12 @@ export default function PublicTourDetail() {
   const { tour, isLoading, error } = usePublicTour(id);
   const { isInWishlist, toggleWishlist, isSubmitting, isSubmittingTourId } = useWishlist();
   const { error: showError } = useToast();
-  // const { user } = useContext(AuthContext);
-  // const currentUserId = user?.id;
-
-  // const { data: itineraries = [], isLoading: isItinerariesLoading } = useGetTourItineraries(Number(id));
 
   const [showFullError, setShowFullError] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
-  const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(
-    null,
-  );
+  const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
-  const [expandedTicketScheduleId, setExpandedTicketScheduleId] = useState<
-    number | null
-  >(null);
+  const [expandedTicketScheduleId, setExpandedTicketScheduleId] = useState<number | null>(null);
   const [currentTime] = useState(() => Date.now());
 
   const { data: category } = useQuery({
@@ -153,8 +147,7 @@ export default function PublicTourDetail() {
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
   const isWished = tour ? isInWishlist(Number(tour.id)) : false;
-  const isWishlistBusy =
-    tour ? isSubmitting && isSubmittingTourId === Number(tour.id) : false;
+  const isWishlistBusy = tour ? isSubmitting && isSubmittingTourId === Number(tour.id) : false;
 
   const sortedSchedules = useMemo(() => {
     const arr = [...(tour?.tourSchedules || [])];
@@ -204,9 +197,7 @@ export default function PublicTourDetail() {
       );
 
       return Object.fromEntries(
-        details.filter(
-          (detail): detail is readonly [number, ReadTicketTypeDTO] => detail !== null,
-        ),
+        details.filter((detail): detail is readonly [number, ReadTicketTypeDTO] => detail !== null),
       );
     },
     enabled: ticketTypeIds.length > 0,
@@ -223,9 +214,7 @@ export default function PublicTourDetail() {
       );
 
       return Object.fromEntries(
-        details.filter(
-          (detail): detail is readonly [number, TourismInformation] => detail !== null,
-        ),
+        details.filter((detail): detail is readonly [number, TourismInformation] => detail !== null),
       );
     },
     enabled: tourismInfoIds.length > 0,
@@ -292,55 +281,66 @@ export default function PublicTourDetail() {
         ? Math.min(...allPrices)
         : null;
 
- // ==========================================
-  // 💥 BỘ LỌC VÀ CUỘN REVIEW (CLIENT-SIDE)
   // ==========================================
+  // 💥 ODATA REVIEW FILTER & INFINITE SCROLL (ĐÃ SỬA CHUẨN)
+  // ==========================================
+  const [reviewPage, setReviewPage] = useState(1);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
-  const [dateSortOrder, setDateSortOrder] = useState<"newest" | "oldest">("newest"); // Thêm state sắp xếp ngày
-  const [visibleCount, setVisibleCount] = useState(5);
+  const [dateSortOrder, setDateSortOrder] = useState<"newest" | "oldest">("newest");
+  const [localReviews, setLocalReviews] = useState<any[]>([]);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const filteredReviews = useMemo(() => {
-    return (tour?.reviews || []).filter((review) => {
-      // 1. Loại bỏ review ẩn
-      const isHidden = review.isHidden ?? (review as any).IsHidden;
-      if (isHidden === true || isHidden === 1 || isHidden === "true") return false;
-      
-      // 2. Lọc theo số sao
-      if (ratingFilter !== null && Math.round(review.rating || 0) !== ratingFilter) return false;
-      
-      return true;
-    }).sort((a, b) => {
-      // 3. Sắp xếp theo ngày
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateSortOrder === "newest" ? dateB - dateA : dateA - dateB;
-    });
-  }, [tour?.reviews, ratingFilter, dateSortOrder]);
+  const { 
+    reviews: fetchedReviews, 
+    totalCount, 
+    isLoading: isReviewsLoading, 
+    fetchReviewsByTour 
+  } = useReview();
 
-  const displayedReviews = filteredReviews.slice(0, visibleCount);
+  // 1. Gọi API khi tham số thay đổi
+  useEffect(() => {
+    if (id) {
+      fetchReviewsByTour(Number(id), {
+        page: reviewPage,
+        pageSize: 5,
+        rating: ratingFilter,
+        sortOrder: dateSortOrder
+      });
+    }
+  }, [id, reviewPage, ratingFilter, dateSortOrder, fetchReviewsByTour]);
 
+  // 2. Nối (Append) dữ liệu khi cuộn trang
+  useEffect(() => {
+    if (reviewPage === 1) {
+      setLocalReviews(fetchedReviews || []);
+    } else {
+      setLocalReviews((prev) => {
+        const existingIds = new Set(prev.map((r: any) => r.id));
+        const newItems = (fetchedReviews || []).filter((r: any) => !existingIds.has(r.id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [fetchedReviews, reviewPage]);
+
+  // 3. Tự động chuyển trang khi cuộn đến cuối
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && visibleCount < filteredReviews.length) {
-          setVisibleCount((prev) => prev + 5);
+        if (entries[0].isIntersecting && !isReviewsLoading && localReviews.length < (totalCount || 0)) {
+          setReviewPage((prev) => prev + 1);
         }
       },
       { threshold: 1.0 }
     );
     if (observerTarget.current) observer.observe(observerTarget.current);
     return () => observer.disconnect();
-  }, [visibleCount, filteredReviews.length]);
+  }, [isReviewsLoading, localReviews.length, totalCount]);
 
+  const visibleReviews = localReviews.filter((review) => !review.isHidden);
+  
   const rating = tour?.averageStar || 0;
-  // Đếm tổng số review gốc không bị ẩn
-  const reviews = (tour?.reviews || []).filter((r) => {
-    const isHidden = r.isHidden ?? (r as any).IsHidden;
-    return !(isHidden === true || isHidden === 1 || isHidden === "true");
-  }).length; 
+  const reviewsCount = totalCount || 0;
   const days = tour?.tourItineraries?.length || 0;
-  // ==========================================
 
   /* Loading */
   if (isLoading) {
@@ -475,7 +475,7 @@ export default function PublicTourDetail() {
                     {rating.toFixed(1)}
                   </span>
                   <span className="text-white/70 text-xs">
-                    ({t("tour.reviewsLabel", { count: reviews })})
+                    ({t("tour.reviewsLabel", { count: reviewsCount })})
                   </span>
                 </div>
               )}
@@ -555,19 +555,6 @@ export default function PublicTourDetail() {
                 {t("tour.itinerary")}
               </h2>
               
-              {/* <div className="mb-10">
-                <h2 className="mb-6 text-2xl font-bold text-slate-900">Itinerary Map</h2>
-                {isItinerariesLoading ? (
-                  <div className="flex h-[400px] items-center justify-center rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-                  </div>
-                ) : itineraries.length > 0 ? (
-                  <TourItineraryMap itineraries={itineraries} />
-                ) : (
-                  <p className="text-slate-500 italic">{t("tour.noMapDataAvailable")}</p>
-                )}
-              </div> */}
-
               {tourItineraries.length > 0 ? (
                 <div className="relative">
                   <div className="absolute left-[19px] top-6 bottom-6 w-[2px] bg-gradient-to-b from-brand via-brand-light to-transparent hidden sm:block" />
@@ -750,8 +737,9 @@ export default function PublicTourDetail() {
                       value={ratingFilter === null ? "" : ratingFilter}
                       onChange={(e) => {
                         const val = e.target.value;
+                        setReviewPage(1);
+                        setLocalReviews([]);
                         setRatingFilter(val === "" ? null : Number(val));
-                        setVisibleCount(5); // Reset cuộn khi đổi bộ lọc
                       }}
                       className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 focus:border-brand focus:ring-2 focus:ring-brand/20 cursor-pointer"
                     >
@@ -771,7 +759,8 @@ export default function PublicTourDetail() {
                       value={dateSortOrder}
                       onChange={(e) => {
                         setDateSortOrder(e.target.value as "newest" | "oldest");
-                        setVisibleCount(5);
+                        setReviewPage(1);
+                        setLocalReviews([]);
                       }}
                       className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 focus:border-brand focus:ring-2 focus:ring-brand/20 cursor-pointer"
                     >
@@ -800,7 +789,7 @@ export default function PublicTourDetail() {
                     ))}
                   </div>
                   <div className="text-slate-400 text-xs">
-                    {reviews === 1 ? t("tour.reviewCount", { count: reviews }) : t("tour.reviewsCount", { count: reviews })}
+                    {reviewsCount === 1 ? t("tour.reviewCount", { count: reviewsCount }) : t("tour.reviewsCount", { count: reviewsCount })}
                   </div>
                 </div>
                 <div className="flex-1 space-y-2">
@@ -809,7 +798,7 @@ export default function PublicTourDetail() {
                       const isHidden = r.isHidden ?? (r as any).IsHidden;
                       return !(isHidden === true || isHidden === 1 || isHidden === "true") && Math.round(r.rating || 0) === star;
                     }).length;
-                    const pct = reviews > 0 ? (count / reviews) * 100 : 0;
+                    const pct = reviewsCount > 0 ? (count / reviewsCount) * 100 : 0;
                     return (
                       <div key={star} className="flex items-center gap-2 text-xs text-slate-500">
                         <span className="w-3">{star}</span>
@@ -826,9 +815,9 @@ export default function PublicTourDetail() {
 
               {/* Review list */}
               <div className="space-y-6">
-                {displayedReviews.length > 0 ? (
-                  displayedReviews.map((review) => {
-                    // 💥 GẮN CỨNG ẨN DANH Ở ĐÂY
+                {visibleReviews.length > 0 ? (
+                  visibleReviews.map((review) => {
+                    // 💥 GẮN CỨNG ẨN DANH Ở ĐÂY CHO KHÁCH XEM (PUBLC VIEW)
                     const reviewerName = t("tour.anonymousCustomer"); 
                     const initials = "A";
                     const reviewRating = review.rating || 0;
@@ -888,13 +877,21 @@ export default function PublicTourDetail() {
                     );
                   })
                 ) : (
-                  <p className="text-slate-500 bg-slate-50 rounded-xl p-6 text-center">
-                    {t("tour.noReviewsYet")}
-                  </p>
+                  !isReviewsLoading && (
+                    <p className="text-slate-500 bg-slate-50 rounded-xl p-6 text-center">
+                      {t("tour.noReviewsYet")}
+                    </p>
+                  )
                 )}
 
                 {/* 💥 ĐIỂM NEO ĐỂ CUỘN */}
-                <div ref={observerTarget} className="h-2 w-full" />
+                <div ref={observerTarget} className="h-4 w-full" />
+                
+                {isReviewsLoading && (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-brand" />
+                  </div>
+                )}
               </div>
             </section>
           </div>
@@ -1056,7 +1053,7 @@ export default function PublicTourDetail() {
                 </div>
                 <div className="border-x border-slate-100">
                   <div className="text-lg font-black text-brand">
-                    {reviews || "-"}
+                    {reviewsCount || "-"}
                   </div>
                   <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">
                     {t("tour.reviewsStat")}
@@ -1341,19 +1338,3 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-export const TourScheduleDetail: React.FC = () => {
-  // Lấy ID lịch trình từ URL
-  const { id } = useParams(); 
-
-  return (
-    <div className="space-y-6">
-      {/* ... CÁC ĐOẠN CODE HIỂN THỊ THÔNG TIN LỊCH TRÌNH CŨ CỦA BẠN ... */}
-      
-      {/* THÊM KHỐI NÀY VÀO DƯỚI CÙNG */}
-      <div className="mt-8">
-         <TourScheduleStaffManagement scheduleId={Number(id)} />
-      </div>
-    </div>
-  );
-};

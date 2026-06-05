@@ -10,6 +10,7 @@ interface ReviewFormProps {
   tourId: number;
   customerId: number;
   existingReview?: Review | null;
+  isReadOnly?: boolean; // 💥 Khai báo thêm prop isReadOnly
   onSuccess?: () => void;
   onCancel?: () => void;
 }
@@ -18,6 +19,7 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
   tourId,
   customerId,
   existingReview,
+  isReadOnly = false, // 💥 Nhận prop với giá trị mặc định là false
   onSuccess,
   onCancel,
 }) => {
@@ -42,6 +44,9 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Nếu đang ở chế độ ReadOnly thì chặn submit
+    if (isReadOnly) return;
 
     if (rating < 1 || rating > 5) {
       showError(t("tour.ratingRequired"));
@@ -88,26 +93,38 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         </div>
         <div>
           <h3 className="text-lg font-bold text-slate-900">
-            {isUpdateMode ? t("tour.editYourReview") : t("tour.writeReview")}
+            {/* Đổi tiêu đề dựa theo trạng thái ReadOnly */}
+            {isReadOnly 
+              ? t("booking.yourReview") || "Your Review" 
+              : isUpdateMode 
+                ? t("tour.editYourReview") 
+                : t("tour.writeReview")}
           </h3>
-          <p className="text-sm text-slate-500">{t("tour.shareExperience")}</p>
+          <p className="text-sm text-slate-500">
+            {isReadOnly 
+              ? t("booking.shareFeedback") || "Thank you for sharing your experience!" 
+              : t("tour.shareExperience")}
+          </p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="mb-2 block text-sm font-semibold text-slate-700">
-            {t("tour.rateTourQuestion")} <span className="text-rose-500">*</span>
+            {t("tour.rateTourQuestion")} {!isReadOnly && <span className="text-rose-500">*</span>}
           </label>
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
                 key={star}
                 type="button"
-                onMouseEnter={() => setHoverRating(star)}
-                onMouseLeave={() => setHoverRating(0)}
-                onClick={() => setRating(star)}
-                className="p-1 transition-transform hover:scale-110 focus:outline-none"
+                disabled={isReadOnly} // 💥 Khóa nút nếu ReadOnly
+                onMouseEnter={() => !isReadOnly && setHoverRating(star)}
+                onMouseLeave={() => !isReadOnly && setHoverRating(0)}
+                onClick={() => !isReadOnly && setRating(star)}
+                className={`p-1 focus:outline-none ${
+                  !isReadOnly ? "transition-transform hover:scale-110" : "cursor-default"
+                }`}
               >
                 <Star
                   className={`h-8 w-8 transition-colors ${
@@ -127,15 +144,20 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
         <div>
           <label htmlFor="comment" className="mb-2 block text-sm font-semibold text-slate-700">
             {t("tour.shareExperienceDetails")}
-            {isUpdateMode && <span className="text-rose-500 ml-1">*</span>}
+            {isUpdateMode && !isReadOnly && <span className="text-rose-500 ml-1">*</span>}
           </label>
           <textarea
             id="comment"
             rows={4}
             value={comment}
+            disabled={isReadOnly} // 💥 Khóa Textarea nếu ReadOnly
             onChange={(e) => setComment(e.target.value)}
-            placeholder={t("tour.reviewPlaceholder")}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-900 transition-colors focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            placeholder={!isReadOnly ? t("tour.reviewPlaceholder") : ""}
+            className={`w-full rounded-xl border p-4 text-sm transition-colors focus:outline-none ${
+              isReadOnly
+                ? "bg-slate-50 border-slate-100 text-slate-600 cursor-not-allowed resize-none"
+                : "bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-500 focus:bg-white focus:ring-1 focus:ring-indigo-500"
+            }`}
           ></textarea>
         </div>
 
@@ -143,31 +165,36 @@ export const ReviewForm: React.FC<ReviewFormProps> = ({
           {onCancel && (
             <ActionButton
               type="button"
-              variant="secondary"
+              // Nếu là View Only thì làm nút này nổi bật lên để user dễ đóng
+              variant={isReadOnly ? "primary" : "secondary"} 
               onClick={onCancel}
               disabled={isSubmitting}
               className="px-5 py-2.5 text-sm"
             >
-              {t("common.cancel")}
+              {t("common.close")}
             </ActionButton>
           )}
-          <ActionButton
-            type="submit"
-            variant="primary"
-            disabled={isSubmitting}
-            className="gap-2 px-6 py-2.5 text-sm min-w-[140px]"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t("tour.processing")}
-              </>
-            ) : isUpdateMode ? (
-              t("common.saveChanges")
-            ) : (
-              t("tour.submitReview")
-            )}
-          </ActionButton>
+          
+          {/* 💥 Ẩn hoàn toàn nút Gửi/Cập nhật nếu ở trạng thái ReadOnly */}
+          {!isReadOnly && (
+            <ActionButton
+              type="submit"
+              variant="primary"
+              disabled={isSubmitting}
+              className="gap-2 px-6 py-2.5 text-sm min-w-[140px]"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {t("tour.processing")}
+                </>
+              ) : isUpdateMode ? (
+                t("common.saveChanges")
+              ) : (
+                t("tour.submitReview")
+              )}
+            </ActionButton>
+          )}
         </div>
       </form>
     </div>

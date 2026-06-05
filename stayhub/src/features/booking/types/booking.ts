@@ -64,6 +64,8 @@ export interface ReadOrderDTO {
     id: number;
     rating: number;
     comment?: string | null;
+    createdAt?: string | null; // 💥 THÊM DÒNG NÀY (Để dùng cho hàm isReviewEditable)
+    canEdit?: boolean;         // 💥 THÊM DÒNG NÀY (Nếu Backend trả về sẵn thuộc tính này)
   } | null;
 }
 

@@ -328,7 +328,12 @@ const GuideTab: React.FC = () => {
               </h3>
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 {data.recommendedTours.map((tour) => (
-                  <AiTourRecommendationCard key={tour.tourId} tour={tour} showScoreBreakdown />
+                  <AiTourRecommendationCard
+                    key={tour.tourId}
+                    tour={tour}
+                    customerMode={false}
+                    showScoreBreakdown
+                  />
                 ))}
               </div>
               <RelatedInsightsCarousel insights={data.relatedInsights} />

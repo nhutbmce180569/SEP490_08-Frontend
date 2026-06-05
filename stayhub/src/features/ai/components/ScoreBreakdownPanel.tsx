@@ -1,7 +1,7 @@
 import React from "react";
 import type { TourScoreBreakdown } from "../types/tourAssistant";
 import { formatDimensionKey, formatMatchPercent, formatPersonaKey } from "../utils/formatters";
-import { useTranslation } from "../../../contexts/LocaleContext";
+import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   breakdown: TourScoreBreakdown;
@@ -9,6 +9,7 @@ interface Props {
 
 export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const dimensions = Object.entries(breakdown.dimensionScores ?? {});
   const personas = Object.entries(breakdown.personaScores ?? {});
 
@@ -18,10 +19,10 @@ export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
       style={{ background: "rgba(5,7,60,0.02)", border: "1px solid rgba(5,7,60,0.06)" }}
     >
       <div className="grid grid-cols-2 gap-3">
-        <Metric label={t("ai.fairness")} value={formatMatchPercent(breakdown.fairnessScore)} highlight />
-        <Metric label={t("ai.envyGap")} value={breakdown.envyGap.toFixed(2)} />
-        <Metric label={t("ai.minPersona")} value={formatMatchPercent(breakdown.minPersonaScore)} />
-        <Metric label={t("ai.meanPersona")} value={formatMatchPercent(breakdown.meanPersonaScore)} />
+        <Metric label={t("ai.fairnessAdmin")} value={formatMatchPercent(breakdown.fairnessScore)} highlight />
+        <Metric label={t("ai.envyGapAdmin")} value={breakdown.envyGap.toFixed(2)} />
+        <Metric label={t("ai.minPersonaAdmin")} value={formatMatchPercent(breakdown.minPersonaScore)} />
+        <Metric label={t("ai.meanPersonaAdmin")} value={formatMatchPercent(breakdown.meanPersonaScore)} />
       </div>
 
       {dimensions.length > 0 && (
@@ -31,7 +32,7 @@ export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
           </p>
           <div className="space-y-2">
             {dimensions.map(([key, score]) => (
-              <BarRow key={key} label={formatDimensionKey(key)} value={score} />
+              <BarRow key={key} label={formatDimensionKey(key, locale)} value={score} />
             ))}
           </div>
         </div>
@@ -44,7 +45,7 @@ export const ScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
           </p>
           <div className="space-y-2">
             {personas.map(([key, score]) => (
-              <BarRow key={key} label={formatPersonaKey(key)} value={score} color="#6366f1" />
+              <BarRow key={key} label={formatPersonaKey(key, locale)} value={score} color="#6366f1" />
             ))}
           </div>
         </div>

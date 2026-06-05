@@ -94,6 +94,7 @@ export const AdminAiChatPanel: React.FC = () => {
                       key={tour.tourId}
                       tour={tour}
                       compact
+                      customerMode={false}
                       showScoreBreakdown
                       onTourClick={(id) => logInteraction(id, "chat_recommend")}
                     />

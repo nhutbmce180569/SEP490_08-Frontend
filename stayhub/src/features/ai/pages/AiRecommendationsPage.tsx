@@ -5,7 +5,9 @@ import { ActionButton } from "../../../components/home/ActionButton";
 import { PATH } from "../../../config/routes/route";
 import { AiTourRecommendationCard } from "../components/AiTourRecommendationCard";
 import { AiModelsNotReadyBanner } from "../components/AiModelsNotReadyBanner";
-import { CulturalFactsSidebar } from "../components/CulturalFactsSidebar";
+import { DestinationTipsPanel } from "../components/DestinationTipsPanel";
+import { ScheduleNoticeBanner } from "../components/ScheduleNoticeBanner";
+import { TripContextPanel } from "../components/TripContextPanel";
 import { RelatedInsightsCarousel } from "../components/RelatedInsightsCarousel";
 import { RecommenderMetaPanel } from "../components/RecommenderMetaPanel";
 import { TipsTabsPanel } from "../components/TipsTabsPanel";
@@ -92,6 +94,24 @@ export const AiRecommendationsPage: React.FC = () => {
 
   if (!data) return null;
 
+  const exactTours = data.recommendedTours ?? [];
+  const nearbyTours = data.nearbyScheduleTours ?? [];
+  const schedule = data.scheduleAvailability;
+  const showExactSection = exactTours.length > 0;
+  const showNearbySection = nearbyTours.length > 0;
+  const totalTours = exactTours.length + nearbyTours.length;
+  const requestedTop = data.appliedProfile?.top ?? 8;
+  const preferredCity = data.appliedProfile?.preferredCity?.trim();
+  const tourCities = preferredCity
+    ? [preferredCity]
+    : [
+        ...new Set(
+          [...exactTours, ...nearbyTours]
+            .map((t) => t.city?.trim())
+            .filter((c): c is string => Boolean(c)),
+        ),
+      ];
+
   return (
     <div className="home-page min-h-screen pb-24">
       <div className="mx-auto max-w-7xl px-4 pt-10">
@@ -125,9 +145,24 @@ export const AiRecommendationsPage: React.FC = () => {
           </div>
         </div>
 
+        <TripContextPanel profile={data.appliedProfile} />
+
+        {schedule && (
+          <ScheduleNoticeBanner
+            schedule={schedule}
+            hasNearbyTours={nearbyTours.length > 0}
+          />
+        )}
+
         {/* Weather + tips */}
         <div className="mb-8 grid gap-5 lg:grid-cols-2">
-          {data.weatherAdvice && <WeatherAdviceCard weather={data.weatherAdvice} />}
+          {data.weatherAdvice ? (
+            <WeatherAdviceCard weather={data.weatherAdvice} />
+          ) : (
+            <div className="glass-card flex h-full items-center justify-center p-8 text-center text-sm text-slate-500">
+              {t("ai.weatherUnavailable")}
+            </div>
+          )}
           <TipsTabsPanel
             generalTips={data.generalTips}
             foreignVisitorTips={data.foreignVisitorTips}
@@ -136,14 +171,16 @@ export const AiRecommendationsPage: React.FC = () => {
           />
         </div>
 
-        {/* Tours + cultural sidebar */}
+        {/* Tours */}
         <div className="flex flex-col items-start gap-8 lg:flex-row">
           <div className="min-w-0 w-full flex-1">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
               <h2 className="travel-heading text-xl text-navy">
-                {data.recommendedTours.length === 1
-                  ? t("ai.toursFound", { count: data.recommendedTours.length })
-                  : t("ai.toursFoundPlural", { count: data.recommendedTours.length })}
+                {totalTours === 0
+                  ? t("ai.toursFoundPlural", { count: 0 })
+                  : totalTours === 1
+                    ? t("ai.toursRecommendedTitle", { count: totalTours, requested: requestedTop })
+                    : t("ai.toursRecommendedTitlePlural", { count: totalTours, requested: requestedTop })}
               </h2>
               <ActionButton
                 variant="outline"
@@ -154,24 +191,67 @@ export const AiRecommendationsPage: React.FC = () => {
                 <RefreshCw size={14} /> {t("ai.newSearch")}
               </ActionButton>
             </div>
+            <p className="mb-6 text-sm text-slate-500">{t("ai.matchScoreHelp")}</p>
 
-            {data.recommendedTours.length === 0 ? (
-              <div className="glass-card rounded-2xl p-12 text-center">
-                <p className="font-medium text-slate-500">
-                  {t("ai.noMatchingTours")}
-                </p>
+            {totalTours === 0 ? (
+              <div className="glass-card mb-8 rounded-2xl p-12 text-center">
+                <p className="font-medium text-slate-500">{t("ai.noMatchingTours")}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                {data.recommendedTours.map((tour) => (
-                  <AiTourRecommendationCard
-                    key={tour.tourId}
-                    tour={tour}
-                    showScoreBreakdown={isAdminView}
-                    onTourClick={(id) => logInteraction(id, "click")}
-                  />
-                ))}
-              </div>
+              <>
+                {!showExactSection && showNearbySection && (
+                  <div className="glass-card mb-6 rounded-2xl p-6 text-center">
+                    <p className="font-medium text-slate-600">{t("ai.noExactToursButNearby")}</p>
+                  </div>
+                )}
+
+                {showExactSection && (
+                  <section className="mb-10">
+                    <h3 className="travel-heading mb-1 text-lg text-navy">
+                      {exactTours.length === 1
+                        ? t("ai.toursExactMatchTitle", { count: exactTours.length })
+                        : t("ai.toursExactMatchTitlePlural", { count: exactTours.length })}
+                    </h3>
+                    <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
+                      {exactTours.map((tour) => (
+                        <AiTourRecommendationCard
+                          key={tour.tourId}
+                          tour={tour}
+                          variant="exact"
+                          showWhyFit
+                          customerMode={true}
+                          showScoreBreakdown={isAdminView}
+                          onTourClick={(id) => logInteraction(id, "click")}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {showNearbySection && (
+                  <section className="mb-10">
+                    <h3 className="travel-heading mb-1 text-lg text-navy">{t("ai.toursNearbyTitle")}</h3>
+                    <p className="mb-5 text-sm text-slate-500">{t("ai.toursNearbyDesc")}</p>
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                      {nearbyTours.map((tour) => (
+                        <AiTourRecommendationCard
+                          key={`nearby-${tour.tourId}`}
+                          tour={tour}
+                          variant="nearby"
+                          showWhyFit
+                          customerMode={true}
+                          showScoreBreakdown={isAdminView}
+                          onTourClick={(id) => logInteraction(id, "click")}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+
+            {tourCities.length > 0 && (
+              <DestinationTipsPanel facts={data.culturalFacts} allowedCities={tourCities} />
             )}
 
             {isAdminView && (
@@ -181,12 +261,6 @@ export const AiRecommendationsPage: React.FC = () => {
               </>
             )}
           </div>
-
-          {isAdminView && data.culturalFacts.length > 0 && (
-            <div className="w-full shrink-0 lg:sticky lg:top-24 lg:w-80">
-              <CulturalFactsSidebar facts={data.culturalFacts} />
-            </div>
-          )}
         </div>
       </div>
     </div>

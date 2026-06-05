@@ -8,6 +8,7 @@ import {
   ChevronUp,
   Sparkles,
   ArrowRight,
+  CalendarDays,
 } from "lucide-react";
 import { PATH } from "../../../config/routes/route";
 import { getImg } from "../../../config/api/api";
@@ -15,13 +16,21 @@ import type { TourRecommendationItem } from "../types/tourAssistant";
 import { formatMatchPercent, formatVnd } from "../utils/formatters";
 import { resolvePublicTourId } from "../utils/catalogTourId";
 import { ScoreBreakdownPanel } from "./ScoreBreakdownPanel";
-import { useTranslation } from "../../../contexts/LocaleContext";
+import { TourWhyFitPanel } from "./TourWhyFitPanel";
+import {
+  formatMatchReasonTechnical,
+  getCustomerMatchTags,
+} from "../utils/customerMatchReasons";
+import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   tour: TourRecommendationItem;
   onTourClick?: (tourId: number) => void;
   compact?: boolean;
   showScoreBreakdown?: boolean;
+  showWhyFit?: boolean;
+  customerMode?: boolean;
+  variant?: "exact" | "nearby";
 }
 
 export const AiTourRecommendationCard: React.FC<Props> = ({
@@ -29,8 +38,12 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   onTourClick,
   compact,
   showScoreBreakdown = false,
+  showWhyFit = true,
+  customerMode = true,
+  variant = "exact",
 }) => {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const [expanded, setExpanded] = useState(false);
   const publicTourId = resolvePublicTourId(tour.tourId);
   const location = [tour.city, tour.country].filter(Boolean).join(", ") || t("home.vietnam");
@@ -59,12 +72,20 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             </div>
           )}
 
-          <div
-            className="absolute left-3 top-3 flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black backdrop-blur-md"
-            style={{ background: "rgba(255,255,255,0.96)", borderRadius: 999, color: "var(--color-brand)" }}
-          >
-            <Sparkles size={12} />
-            {t("ai.matchLabel", { percent: formatMatchPercent(tour.score) })}
+          <div className="absolute left-3 top-3 flex flex-col gap-1">
+            <span
+              className="flex w-fit items-center gap-1.5 px-2.5 py-1.5 text-xs font-black backdrop-blur-md"
+              style={{ background: "rgba(255,255,255,0.96)", borderRadius: 999, color: "var(--color-brand)" }}
+              title={t("ai.matchScoreHelp")}
+            >
+              <Sparkles size={12} />
+              {t("ai.matchLabel", { percent: formatMatchPercent(tour.score) })}
+            </span>
+            {variant === "nearby" && (
+              <span className="w-fit rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                {t("ai.nearbyDateBadge")}
+              </span>
+            )}
           </div>
 
           {tour.averageStar != null && tour.averageStar > 0 && (
@@ -97,30 +118,44 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           </h3>
         </Link>
 
-        {tour.reason && (
-          <p className="text-xs text-slate-500 font-medium mb-3 line-clamp-2">{tour.reason}</p>
-        )}
-
         {tour.matchReasons.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {tour.matchReasons.slice(0, 4).map((reason) => (
+          <div className="mb-3 flex flex-wrap gap-1.5">
+            {(customerMode
+              ? getCustomerMatchTags(tour.matchReasons, locale, 3)
+              : tour.matchReasons.slice(0, 3).map((r) => formatMatchReasonTechnical(r, locale))
+            ).map((label) => (
               <span
-                key={reason}
-                className="px-2.5 py-1 rounded-lg text-[10px] font-bold"
+                key={label}
+                className="rounded-lg px-2.5 py-1 text-[10px] font-bold"
                 style={{
                   background: "var(--color-brand-light)",
                   color: "var(--color-brand)",
                   border: "1px solid rgba(235,102,43,0.15)",
                 }}
               >
-                {reason}
+                {label.length > 48 ? `${label.slice(0, 48)}…` : label}
               </span>
             ))}
           </div>
         )}
 
+        {(tour.scheduleNote || tour.nextDeparture) && (
+          <div className="mb-3 flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
+            <CalendarDays size={14} className="mt-0.5 shrink-0 text-brand" />
+            <span>{tour.scheduleNote ?? formatDeparture(tour.nextDeparture, locale)}</span>
+          </div>
+        )}
+
+        {showWhyFit && (
+          <TourWhyFitPanel
+            reason={tour.reason}
+            matchReasons={tour.matchReasons}
+            customerMode={customerMode}
+          />
+        )}
+
         <div
-          className="mt-auto flex items-center justify-between pt-4"
+          className={`flex items-center justify-between pt-4 ${showWhyFit ? "mt-3" : "mt-auto"}`}
           style={{ borderTop: "1px solid rgba(5,7,60,0.07)" }}
         >
           <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
@@ -138,7 +173,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               {t("home.priceFrom")}
             </div>
             <div className="text-base font-black" style={{ color: "var(--color-brand)" }}>
-              {formatVnd(tour.minPrice)}
+              {formatVnd(tour.minPrice, locale)}
             </div>
           </div>
         </div>
@@ -153,7 +188,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             >
               <span className="flex items-center gap-1.5">
                 <Sparkles size={14} style={{ color: "var(--color-brand)" }} />
-                {t("ai.aiExplanation")}
+                {t("ai.aiExplanationAdmin")}
               </span>
               {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
@@ -177,3 +212,14 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
     </div>
   );
 };
+
+function formatDeparture(iso: string | undefined, locale: "en" | "vi") {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const formatted = d.toLocaleDateString(locale === "vi" ? "vi-VN" : "en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+  return locale === "vi" ? `Khởi hành ${formatted}` : `Departs ${formatted}`;
+}

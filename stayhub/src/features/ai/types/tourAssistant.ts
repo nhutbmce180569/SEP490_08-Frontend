@@ -81,6 +81,16 @@ export interface TourRecommendationItem {
   reason: string;
   matchReasons: string[];
   scoreBreakdown?: TourScoreBreakdown;
+  nextDeparture?: string;
+  matchesPreferredDates?: boolean;
+  scheduleNote?: string;
+}
+
+export interface ScheduleAvailability {
+  hasToursInPreferredWindow: boolean;
+  preferredStartDate: string;
+  preferredEndDate: string;
+  customerMessage: string;
 }
 
 export interface TourismInsight {
@@ -125,12 +135,14 @@ export interface PersonalizedRecommendationResponse {
   sessionId: string;
   summary: string;
   appliedProfile: TourPreferenceQuestionnaire;
+  scheduleAvailability?: ScheduleAvailability;
   weatherAdvice?: WeatherAdvice;
   generalTips: string[];
   foreignVisitorTips: string[];
   elderlyCompanionTips: string[];
   childrenCompanionTips: string[];
   recommendedTours: TourRecommendationItem[];
+  nearbyScheduleTours?: TourRecommendationItem[];
   relatedInsights: TourismInsight[];
   culturalFacts: CulturalFact[];
   recommenderMeta: RecommenderTransparency;

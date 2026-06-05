@@ -64,13 +64,27 @@ export const TipsTabsPanel: React.FC<Props> = ({
         ))}
       </div>
 
-      <ul className="max-h-60 flex-1 space-y-2.5 overflow-y-auto pr-1">
-        {currentTips.map((tip, i) => (
-          <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-slate-600">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
-            {tip}
-          </li>
-        ))}
+      <ul className="max-h-72 flex-1 space-y-2.5 overflow-y-auto pr-1">
+        {currentTips.map((tip, i) => {
+          const isHeader = tip.endsWith(":") && tip.length < 96;
+          if (isHeader) {
+            return (
+              <li
+                key={i}
+                className="pt-2 text-xs font-black uppercase tracking-wide text-navy first:pt-0"
+              >
+                {tip}
+              </li>
+            );
+          }
+
+          return (
+            <li key={i} className="flex gap-2.5 text-sm leading-relaxed text-slate-600">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
+              {tip}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

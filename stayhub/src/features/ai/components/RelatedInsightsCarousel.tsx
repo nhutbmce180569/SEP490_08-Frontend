@@ -1,14 +1,17 @@
 import React, { useRef } from "react";
 import { ChevronLeft, ChevronRight, Compass, ExternalLink } from "lucide-react";
 import type { TourismInsight } from "../types/tourAssistant";
-import { useTranslation } from "../../../contexts/LocaleContext";
+import { localizeInsightType } from "../utils/localizeAiContent";
+import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   insights: TourismInsight[];
+  hideAuthority?: boolean;
 }
 
-export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
+export const RelatedInsightsCarousel: React.FC<Props> = ({ insights, hideAuthority }) => {
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   if (!insights || insights.length === 0) return null;
@@ -49,7 +52,9 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
           >
             {/* type → eyebrow label */}
             {insight.type && (
-              <p className="travel-eyebrow mb-2">{insight.type}</p>
+              <p className="travel-eyebrow mb-2">
+                {localizeInsightType(insight.type, locale) ?? insight.type}
+              </p>
             )}
 
             {/* name → card title */}
@@ -71,7 +76,7 @@ export const RelatedInsightsCarousel: React.FC<Props> = ({ insights }) => {
                   {insight.city}
                 </span>
               )}
-              {insight.authorityLevel && (
+              {!hideAuthority && insight.authorityLevel && (
                 <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">
                   {insight.authorityLevel}
                 </span>

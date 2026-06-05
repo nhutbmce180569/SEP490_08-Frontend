@@ -1,19 +1,23 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, Send, Sparkles, Trash2 } from "lucide-react";
 import { useTourAssistantChat } from "../../hooks/useTourAssistantChat";
-import { AiTourRecommendationCard } from "../AiTourRecommendationCard";
 import { AdminJsonPanel } from "./AdminJsonPanel";
 import { useTranslation } from "../../../../contexts/LocaleContext";
 
 export const AdminAiChatPanel: React.FC = () => {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
-  const { messages, isSending, sendMessage, logInteraction, clearMessages, sessionId } =
+  const { messages, isSending, sendMessage, clearMessages, sessionId } =
     useTourAssistantChat();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const defaultSuggestions = useMemo(
-    () => [t("ai.suggestionBeach"), t("ai.suggestionCulture"), t("ai.suggestionDaLat")],
+    () => [
+      t("ai.suggestionSystem"),
+      t("ai.suggestionBooking"),
+      t("ai.suggestionVoucher"),
+      t("ai.suggestionAiFeatures"),
+    ],
     [t],
   );
 
@@ -56,8 +60,8 @@ export const AdminAiChatPanel: React.FC = () => {
           {messages.length === 0 && (
             <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
               <Sparkles size={28} className="mx-auto mb-3 text-brand" />
-              <p className="text-sm font-bold text-slate-800">{t("ai.greeting")}</p>
-              <p className="mt-1 text-xs text-slate-500">{t("ai.greetingHint")}</p>
+              <p className="text-sm font-bold text-slate-800">{t("ai.systemGreeting")}</p>
+              <p className="mt-1 text-xs text-slate-500">{t("ai.systemGreetingHint")}</p>
               <div className="mt-4 flex flex-wrap justify-center gap-2">
                 {suggestions.slice(0, 3).map((q) => (
                   <button
@@ -86,21 +90,6 @@ export const AdminAiChatPanel: React.FC = () => {
                   {msg.text}
                 </div>
               </div>
-
-              {msg.response && msg.response.recommendedTours.length > 0 && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {msg.response.recommendedTours.slice(0, 4).map((tour) => (
-                    <AiTourRecommendationCard
-                      key={tour.tourId}
-                      tour={tour}
-                      compact
-                      customerMode={false}
-                      showScoreBreakdown
-                      onTourClick={(id) => logInteraction(id, "chat_recommend")}
-                    />
-                  ))}
-                </div>
-              )}
 
               {msg.response && (
                 <div className="mt-3">
@@ -136,7 +125,7 @@ export const AdminAiChatPanel: React.FC = () => {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={t("ai.inputPlaceholder")}
+            placeholder={t("ai.systemInputPlaceholder")}
             maxLength={2000}
             disabled={isSending}
             className="input-field flex-1 py-2.5"

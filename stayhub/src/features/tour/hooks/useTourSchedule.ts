@@ -10,7 +10,14 @@ import type {
 export const useTourSchedule = () => {
   const [schedules, setSchedules] = useState<TourSchedule[]>([]);
   const [currentSchedule, setCurrentSchedule] = useState<TourSchedule | null>(null);
-  
+
+  const [pagination, setPagination] = useState({
+    total: 0,
+    totalPages: 0,
+    currentPage: 1,
+    pageSize: 10,
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,13 +26,20 @@ export const useTourSchedule = () => {
 
   // --- QUERIES ---
 
-  // Lấy danh sách lịch trình
-  const fetchAllSchedules = useCallback(async () => {
+  // 💥 Sửa lại hàm này để nhận param phân trang
+  const fetchAllSchedules = useCallback(async (page: number = 1, pageSize: number = 10) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await tourScheduleService.getAllSchedules();
-      setSchedules(data);
+      const response = await tourScheduleService.getAllSchedules(page, pageSize);
+      // Backend C# sẽ tự động parse "Data" thành "data", "TotalPages" thành "totalPages" (camelCase)
+      setSchedules(response.data || []);
+      setPagination({
+        total: response.total || 0,
+        totalPages: response.totalPages || 0,
+        currentPage: response.currentPage || page,
+        pageSize: response.pageSize || pageSize,
+      });
     } catch (err: any) {
       setError(err?.response?.data?.message || err.message || "Failed to fetch schedules.");
     } finally {
@@ -109,7 +123,6 @@ export const useTourSchedule = () => {
     }
   };
 
-  // Nhả chỗ (Hủy vé)
   const releaseSeats = async (id: string | number, quantity: number) => {
     setIsSubmitting(true);
     try {
@@ -125,6 +138,7 @@ export const useTourSchedule = () => {
   return {
     schedules,
     currentSchedule,
+    pagination, // 💥 Export thêm biến này để dùng ở UI
     isLoading,
     isSubmitting,
     error,

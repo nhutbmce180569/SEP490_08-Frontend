@@ -49,15 +49,20 @@ export function DashboardShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const pageTitle = useMemo(
+ const pageTitle = useMemo(
     () =>
       resolvePageTitle(
         location.pathname,
         items,
         groups,
-        defaultTitle ?? (role === "admin" ? t("dashboard.adminDashboard") : t("dashboard.partnerDashboard")),
+        defaultTitle ?? 
+          (role === "admin" 
+            ? t("dashboard.adminDashboard") 
+            : role === "staff"
+              ? t("dashboard.staffDashboard")
+              : t("dashboard.partnerDashboard")),
       ),
-    [location.pathname, items, groups, defaultTitle, role],
+    [location.pathname, items, groups, defaultTitle, role, t], // Nhớ thêm chữ 't' vào mảng dependency này
   );
 
   const handleLogout = async () => {

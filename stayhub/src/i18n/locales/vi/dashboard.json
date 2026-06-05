@@ -41,11 +41,14 @@
   "rejected": "Từ chối",
   "adminDashboard": "Bảng điều khiển quản trị",
   "partnerDashboard": "Bảng điều khiển đối tác",
+  "staffDashboard": "Bảng điều khiển nhân viên",
   "signedOutSuccess": "Đã đăng xuất thành công.",
   "signOut": "Đăng xuất",
   "signOutConfirm": "Bạn có chắc muốn đăng xuất khỏi tài khoản?",
   "stayhubAdmin": "StayHub Quản trị",
   "stayhubPartner": "StayHub Đối tác",
   "adminSidebarDesc": "Quản lý nền tảng du lịch tập trung.",
-  "partnerSidebarDesc": "Tối ưu tour, lịch trình và doanh thu."
+  "partnerSidebarDesc": "Tối ưu tour, lịch trình và doanh thu.",
+  "staffSubtitle": "Quản lý lịch trình, khách hàng.",
+  "operations": "Hoạt động"
 }

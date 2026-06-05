@@ -5,11 +5,15 @@ import type {
   CreateTourScheduleRequest,
   UpdateTourScheduleRequest,
   AssignedTourSchedule,
+  PaginationResponse,
 } from "../types/tourSchedule";
 
 export const tourScheduleService = {
-  getAllSchedules: async (): Promise<TourSchedule[]> => {
-    return await apiClient.get<TourSchedule[]>(TOURS_API.GET_ALL_SCHEDULES);
+  
+  getAllSchedules: async (page: number = 1, pageSize: number = 10): Promise<PaginationResponse<TourSchedule>> => {
+    return await apiClient.get<PaginationResponse<TourSchedule>>(TOURS_API.GET_ALL_SCHEDULES, {
+      params: { page, pageSize } 
+    });
   },
 
   getScheduleById: async (id: string | number): Promise<TourSchedule> => {

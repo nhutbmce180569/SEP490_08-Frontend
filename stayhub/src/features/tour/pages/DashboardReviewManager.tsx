@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { 
   Star, 
   MessageSquare, 
@@ -11,7 +11,7 @@ import {
   MessageSquarePlus,
   Loader2,
   ChevronRight,
-  ShieldAlert
+  ChevronDown
 } from "lucide-react";
 import { useReview } from "../hooks/useReview"; 
 import { ActionButton } from "../../../components/dashboard/ActionButton"; 
@@ -116,7 +116,6 @@ const AdminReviewCard: React.FC<{
     }
   };
 
-  // Tạo chữ cái đầu tiên của tên để làm Avatar dự phòng
   const reviewerName = review.customerName || t("tour.anonymousCustomer");
   const initials = reviewerName.charAt(0).toUpperCase();
 
@@ -127,7 +126,6 @@ const AdminReviewCard: React.FC<{
         {/* HEADER REVIEW CÓ AVATAR VÀ TÊN */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            {/* Cục Avatar */}
             <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg uppercase border border-indigo-200">
               {review.customerAvatar ? (
                 <img 
@@ -144,7 +142,6 @@ const AdminReviewCard: React.FC<{
               )}
             </div>
             
-            {/* Tên và Đánh giá */}
             <div>
               <div className="flex items-center gap-2">
                 <h4 className="font-bold text-slate-900">{reviewerName}</h4>
@@ -281,7 +278,7 @@ const AdminReviewCard: React.FC<{
             ? t("tour.hide")
             : t("tour.unhide")
         }
-        variant={confirmDialog.action === "deleteReply" ? "warning" : "warning"}
+        variant="warning"
       />
     </div>
   );
@@ -297,8 +294,16 @@ export const DashboardReviewManager: React.FC = () => {
   const [isToursLoading, setIsToursLoading] = useState(true);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
 
+  // 💥 STATE CHO BỘ LỌC VÀ INFINITE SCROLL
+  const [reviewPage, setReviewPage] = useState(1);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [dateSortOrder, setDateSortOrder] = useState<"newest" | "oldest">("newest");
+  const [localReviews, setLocalReviews] = useState<Review[]>([]);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
   const { 
     reviews, 
+    totalCount,
     isLoading: isReviewsLoading, 
     fetchReviewsForAdmin, 
     replyToReview,
@@ -307,6 +312,7 @@ export const DashboardReviewManager: React.FC = () => {
     toggleHideReview
   } = useReview();
 
+  // 1. Tải danh sách Tour
   useEffect(() => {
     const fetchTours = async () => {
       try {
@@ -323,23 +329,85 @@ export const DashboardReviewManager: React.FC = () => {
         setIsToursLoading(false);
       }
     };
-    
     fetchTours();
   }, []);
 
-  // Fetch Reviews mỗi khi chọn Tour khác
+  // 2. Reset Filter và Danh sách Review khi đổi TourId
   useEffect(() => {
     if (selectedTourId) {
-      if (fetchReviewsForAdmin) {
-        fetchReviewsForAdmin(selectedTourId);
-      } else {
-        console.error("LỖI: Bạn chưa khai báo hoặc return hàm fetchReviewsForAdmin bên trong file useReview.ts!");
-      }
+      setReviewPage(1);
+      setRatingFilter(null);
+      setDateSortOrder("newest");
+      setLocalReviews([]);
     }
-  }, [selectedTourId, fetchReviewsForAdmin]);
+  }, [selectedTourId]);
+
+  // 3. Kích hoạt gọi API mỗi khi State lọc / phân trang thay đổi
+  useEffect(() => {
+    if (selectedTourId) {
+      fetchReviewsForAdmin(selectedTourId, {
+        page: reviewPage,
+        pageSize: 5,
+        rating: ratingFilter,
+        sortOrder: dateSortOrder
+      });
+    }
+  }, [selectedTourId, reviewPage, ratingFilter, dateSortOrder, fetchReviewsForAdmin]);
+
+  // 4. Cập nhật dữ liệu vào localReviews để hiển thị (Nối mảng khi scroll)
+  useEffect(() => {
+    if (reviewPage === 1) {
+      setLocalReviews(reviews || []);
+    } else {
+      setLocalReviews(prev => {
+        const existingIds = new Set(prev.map(r => r.id));
+        const newItems = (reviews || []).filter(r => !existingIds.has(r.id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [reviews, reviewPage]);
+
+  // 5. Tính năng Infinite Scroll (Tự động kéo trang)
+  useEffect(() => {
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && !isReviewsLoading && localReviews.length < (totalCount || 0)) {
+        setReviewPage(p => p + 1);
+      }
+    }, { threshold: 1.0 });
+
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [isReviewsLoading, localReviews.length, totalCount]);
+
+
+  // --- WRAPPER CHO CÁC HÀM CẬP NHẬT GIAO DIỆN TỨC THÌ (OPTIMISTIC UI) ---
+  const handleReplyWrapper = async (reviewId: number, text: string) => {
+    const newReply = await replyToReview(reviewId, text);
+    setLocalReviews(prev => prev.map(r => r.id === reviewId ? { ...r, replies: [...(r.replies || []), newReply] } : r));
+    return newReply;
+  };
+
+  const handleEditReplyWrapper = async (reviewId: number, replyId: number, text: string) => {
+    const updated = await editReply(reviewId, replyId, text);
+    setLocalReviews(prev => prev.map(r => r.id === reviewId ? { ...r, replies: r.replies?.map(rep => rep.id === replyId ? updated : rep) } : r));
+    return updated;
+  };
+
+  const handleRemoveReplyWrapper = async (reviewId: number, replyId: number) => {
+    await removeReply(reviewId, replyId);
+    setLocalReviews(prev => prev.map(r => r.id === reviewId ? { ...r, replies: r.replies?.filter(rep => rep.id !== replyId) } : r));
+  };
+
+  const handleToggleHideWrapper = async (reviewId: number, isHidden: boolean) => {
+    await toggleHideReview(reviewId, isHidden);
+    setLocalReviews(prev => prev.map(r => r.id === reviewId ? { ...r, isHidden } : r));
+  };
+
 
   return (
     <div className="h-[calc(100vh-100px)] flex flex-col md:flex-row gap-6 p-6">
+      
+      {/* CỘT TRÁI: DANH SÁCH TOUR */}
       <div className="w-full md:w-1/3 lg:w-1/4 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/50">
           <h2 className="text-base font-black text-slate-900">{t("tour.selectTourTitle")}</h2>
@@ -382,38 +450,88 @@ export const DashboardReviewManager: React.FC = () => {
         </div>
       </div>
 
+      {/* CỘT PHẢI: QUẢN LÝ REVIEW */}
       <div className="flex-1 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+        <div className="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-base font-black text-slate-900">{t("tour.tourReviews")}</h2>
             <p className="text-xs font-medium text-slate-500 mt-1">
-              {t("tour.reviewsFound", { count: reviews?.length || 0 })}
+              {t("tour.reviewsFound", { count: totalCount || 0 })}
             </p>
+          </div>
+
+          {/* 💥 BỘ LỌC SAO VÀ NGÀY */}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <select
+                value={ratingFilter === null ? "" : ratingFilter}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setReviewPage(1);
+                  setLocalReviews([]);
+                  setRatingFilter(val === "" ? null : Number(val));
+                }}
+                className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 cursor-pointer"
+              >
+                <option value="">{t("common.all")} {t("tour.rating")}</option>
+                <option value="5">5 {t("tour.stars") || "Stars"}</option>
+                <option value="4">4 {t("tour.stars") || "Stars"}</option>
+                <option value="3">3 {t("tour.stars") || "Stars"}</option>
+                <option value="2">2 {t("tour.stars") || "Stars"}</option>
+                <option value="1">1 {t("tour.star") || "Star"}</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            </div>
+
+            <div className="relative">
+              <select
+                value={dateSortOrder}
+                onChange={(e) => {
+                  setReviewPage(1);
+                  setLocalReviews([]);
+                  setDateSortOrder(e.target.value as "newest" | "oldest");
+                }}
+                className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 cursor-pointer"
+              >
+                <option value="newest">{t("tour.newestFirst") || "Newest"}</option>
+                <option value="oldest">{t("tour.oldestFirst") || "Oldest"}</option>
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            </div>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/30">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/30 relative">
           {!selectedTourId ? (
             <div className="flex h-full flex-col items-center justify-center text-slate-400">
               <Map className="mb-3 h-12 w-12 opacity-50" />
               <p>{t("tour.selectTourForReviews")}</p>
             </div>
-          ) : isReviewsLoading ? (
-            <div className="flex h-full items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-            </div>
-          ) : (reviews?.length || 0) > 0 ? (
+          ) : localReviews.length > 0 ? (
             <div className="flex flex-col gap-5 max-w-3xl mx-auto">
-              {(reviews || []).map((review) => (
+              {localReviews.map((review) => (
                 <AdminReviewCard 
                   key={review.id} 
                   review={review}
-                  onReply={replyToReview}
-                  onEditReply={editReply}
-                  onDeleteReply={removeReply}
-                  onToggleHide={toggleHideReview}
+                  onReply={handleReplyWrapper}
+                  onEditReply={handleEditReplyWrapper}
+                  onDeleteReply={handleRemoveReplyWrapper}
+                  onToggleHide={handleToggleHideWrapper}
                 />
               ))}
+
+              {/* KHỐI NEO ĐỂ CUỘN TRANG */}
+              <div ref={observerTarget} className="h-4 w-full" />
+              
+              {isReviewsLoading && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                </div>
+              )}
+            </div>
+          ) : isReviewsLoading ? (
+            <div className="flex h-full items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
             </div>
           ) : (
             <div className="flex h-full flex-col items-center justify-center text-slate-400 text-center">

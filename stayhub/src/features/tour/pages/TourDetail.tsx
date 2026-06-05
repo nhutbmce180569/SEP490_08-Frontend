@@ -66,7 +66,7 @@ export const TourDetail: React.FC = () => {
   const { tour, categoryName, isLoading, error } = useTour(id);
 
   // ==========================================
-  // 💥 ODATA REVIEW FILTER & INFINITE SCROLL HOOKS
+  // 💥 REVIEW FILTER & INFINITE SCROLL HOOKS (ĐÃ BỎ ODATA)
   // ==========================================
   const [reviewPage, setReviewPage] = useState(1);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
@@ -81,20 +81,15 @@ export const TourDetail: React.FC = () => {
     fetchReviewsByTour 
   } = useReview();
 
-  // 1. Gọi API OData khi các dependency thay đổi
+  // 1. Gọi API khi các dependency thay đổi (Truyền tham số Object chuẩn)
   useEffect(() => {
     if (id) {
-      const skip = (reviewPage - 1) * 5;
-      let query = `?$top=5&$skip=${skip}`;
-      
-      const sortDirection = dateSortOrder === "newest" ? "desc" : "asc";
-      query += `&$orderby=CreatedAt ${sortDirection}`;
-      
-      if (ratingFilter) {
-        query += `&$filter=Rating eq ${ratingFilter}`;
-      }
-
-      fetchReviewsByTour(Number(id), query);
+      fetchReviewsByTour(Number(id), {
+        page: reviewPage,
+        pageSize: 5,
+        rating: ratingFilter,
+        sortOrder: dateSortOrder
+      });
     }
   }, [id, reviewPage, ratingFilter, dateSortOrder, fetchReviewsByTour]);
 
@@ -735,7 +730,7 @@ export const TourDetail: React.FC = () => {
                     <option value="4">4 {t("tour.stars") || "Sao"}</option>
                     <option value="3">3 {t("tour.stars") || "Sao"}</option>
                     <option value="2">2 {t("tour.stars") || "Sao"}</option>
-                    <option value="1">1 {t("tour.stars") || "Sao"}</option>
+                    <option value="1">1 {t("tour.star") || "Sao"}</option>
                   </select>
                   <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>

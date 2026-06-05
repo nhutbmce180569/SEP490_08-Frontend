@@ -249,6 +249,7 @@
   "searchSchedulePlaceholder": "Tìm lịch trình...",
   "searchCustomerPlaceholder": "Tìm khách hàng...",
   "idCardLabel": "CMND / Hộ chiếu",
+  "viewReview": "Xem đánh giá",
   "selectSchedule": "Chọn lịch",
   "noSchedulesAssigned": "Chưa có lịch được phân công. Vui lòng quay lại sau.",
   "showingTicketsFor": "Hiển thị vé cho lịch #{{id}}",

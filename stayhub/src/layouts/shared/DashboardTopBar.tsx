@@ -19,7 +19,7 @@ import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
 import { useTranslation } from "../../contexts/LocaleContext";
 
-export type DashboardRole = "partner" | "admin";
+export type DashboardRole = "partner" | "admin" | "staff";
 
 type DashboardTopBarProps = {
   role: DashboardRole;
@@ -51,21 +51,34 @@ export function DashboardTopBar({
   const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
 
-  const meta = useMemo(
-    () =>
-      role === "partner"
-        ? {
-            label: t("dashboard.partner"),
-            badgeClass: "bg-brand-light text-brand",
-            subtitle: t("dashboard.partnerSubtitle"),
-          }
-        : {
-            label: t("dashboard.admin"),
-            badgeClass: "bg-brand-light text-brand",
-            subtitle: t("dashboard.adminSubtitle"),
-          },
-    [role, t],
-  );
+  const meta = useMemo(() => {
+    switch (role) {
+      case "partner":
+        return {
+          label: t("dashboard.partner"),
+          badgeClass: "bg-brand-light text-brand", 
+          subtitle: t("dashboard.partnerSubtitle"),
+        };
+      case "admin":
+        return {
+          label: t("dashboard.admin"),
+          badgeClass: "bg-brand-light text-brand", 
+          subtitle: t("dashboard.adminSubtitle"),
+        };
+      case "staff":
+        return {
+          label: "STAFF", 
+          badgeClass: "bg-brand-light text-brand",
+          subtitle: t("dashboard.staffSubtitle"),
+        };
+      default:
+        return {
+          label: role,
+          badgeClass: "bg-slate-100 text-slate-700",
+          subtitle: "User",
+        };
+    }
+  }, [role, t]);
 
   const notificationItems = useMemo(
     () =>

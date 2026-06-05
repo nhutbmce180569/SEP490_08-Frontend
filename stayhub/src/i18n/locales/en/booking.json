@@ -249,6 +249,7 @@
   "searchSchedulePlaceholder": "Search schedules...",
   "searchCustomerPlaceholder": "Search customers...",
   "idCardLabel": "ID Card",
+  "viewReview": "View Review",
   "selectSchedule": "Select Schedule",
   "noSchedulesAssigned": "No schedules assigned yet. Please check back later.",
   "showingTicketsFor": "Showing tickets for schedule #{{id}}",

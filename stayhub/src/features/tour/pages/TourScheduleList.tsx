@@ -18,6 +18,7 @@ export const TourScheduleList: React.FC = () => {
 
   const {
     schedules,
+    pagination, // 💥 Lấy thông tin phân trang từ API Backend trả về
     isLoading,
     error,
     fetchAllSchedules,
@@ -31,10 +32,12 @@ export const TourScheduleList: React.FC = () => {
     tourName?: string;
   } | null>(null);
 
+  // 💥 Gọi API lại mỗi khi 'page' thay đổi
   useEffect(() => {
-    fetchAllSchedules();
-  }, [fetchAllSchedules]);
+    fetchAllSchedules(page, PAGE_SIZE);
+  }, [fetchAllSchedules, page]);
 
+  // Reset trang về 1 khi gõ tìm kiếm
   useEffect(() => {
     setPage(1);
   }, [search]);
@@ -46,8 +49,11 @@ export const TourScheduleList: React.FC = () => {
     if (!confirmDelete) return;
     await deleteSchedule(confirmDelete.scheduleId);
     setConfirmDelete(null);
+    // Reload lại dữ liệu sau khi xóa
+    fetchAllSchedules(page, PAGE_SIZE);
   };
 
+  // Tìm kiếm cục bộ (Trên dữ liệu của trang hiện tại)
   const filteredSchedules = useMemo(() => {
     if (!search.trim()) return schedules;
     const keyword = search.trim().toLowerCase();
@@ -64,14 +70,6 @@ export const TourScheduleList: React.FC = () => {
   const sortedSchedules = useMemo(() => {
     return [...filteredSchedules].sort((a, b) => a.tourId - b.tourId);
   }, [filteredSchedules]);
-
-  const paginatedSchedules = useMemo(() => {
-    const startIndex = (page - 1) * PAGE_SIZE;
-    return sortedSchedules.slice(startIndex, startIndex + PAGE_SIZE);
-  }, [sortedSchedules, page]);
-
-  const totalPages = Math.ceil(sortedSchedules.length / PAGE_SIZE) || 1;
-  const totalItems = sortedSchedules.length;
 
   const columns: Column<TourSchedule>[] = useMemo(
     () => [
@@ -138,7 +136,7 @@ export const TourScheduleList: React.FC = () => {
         ),
       },
     ],
-    [t, handleEdit, handleView],
+    [t],
   );
 
   const deleteMessage = confirmDelete
@@ -185,7 +183,7 @@ export const TourScheduleList: React.FC = () => {
         <div className="flex justify-center p-10 text-rose-500 font-semibold">{error}</div>
       ) : (
         <Table
-          data={paginatedSchedules}
+          data={sortedSchedules} // 💥 Truyền thẳng sortedSchedules vì Backend đã cắt trang sẵn
           columns={columns}
           keyExtractor={(item) => item.id}
           emptyMessage={t("tour.noSchedulesFound")}
@@ -205,12 +203,13 @@ export const TourScheduleList: React.FC = () => {
         variant="warning"
       />
 
+      {/* 💥 Truyền data từ pagination API vào PaginationButton */}
       <PaginationButton
-        currentPage={page}
-        totalPages={totalPages}
-        totalItems={totalItems}
-        pageSize={PAGE_SIZE}
-        onPageChange={setPage}
+        currentPage={pagination?.currentPage || 1}
+        totalPages={pagination?.totalPages || 1}
+        totalItems={pagination?.total || 0}
+        pageSize={pagination?.pageSize || PAGE_SIZE}
+        onPageChange={(newPage) => setPage(newPage)}
       />
     </div>
   );

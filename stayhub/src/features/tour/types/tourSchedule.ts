@@ -3,7 +3,6 @@ import type { TourScheduleItinerary } from "./tourScheduleItinerary";
 import type { TourScheduleTicket } from "./tourScheduleTicket"; 
 import type { TourScheduleStaff } from "./tourScheduleStaff";
 
-// Map theo ReadTourScheduleDTO
 export interface TourSchedule {
   id: number;
   tourId: number;
@@ -36,3 +35,11 @@ export interface CreateTourScheduleRequest {
 
 // Update dùng chung form với Create
 export type UpdateTourScheduleRequest = CreateTourScheduleRequest;
+
+export interface PaginationResponse<T> {
+  data: T[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}

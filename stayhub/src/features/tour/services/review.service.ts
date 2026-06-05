@@ -1,8 +1,8 @@
 import axios from "axios";
-import { TOURS_API } from "../../../config/api/tours.api"; // Đổi lại đường dẫn import file TOURS_API của bạn
-import type { Review, CreateReviewRequest, UpdateReviewRequest, CreateReviewReplyRequest, ReadReviewReply, UpdateReviewReplyRequest, PagedReviewResult } from "../types/review";
+import { TOURS_API } from "../../../config/api/tours.api"; 
 import { apiClient } from "../../auth/utils/axiosClient";
 import { withLanguageHeaders } from "../../../utils/httpLanguage";
+import type { CreateReviewReplyRequest, CreateReviewRequest, PagedReviewResult, ReadReviewReply, Review, ReviewFilterParams, UpdateReviewReplyRequest, UpdateReviewRequest } from "../types/review";
 
 const getAuthConfig = () => {
   const token = localStorage.getItem("accessToken");
@@ -16,18 +16,20 @@ const getAuthConfig = () => {
 const getPublicConfig = () => ({ headers: withLanguageHeaders() });
 
 export const reviewService = {
-  // 1. Lấy tất cả review của 1 tour (Không cần đăng nhập)
- getReviewsByTour: async (tourId: number, odataQuery: string = ""): Promise<PagedReviewResult> => {
-    // Nếu có odataQuery (VD: "?$top=5&$skip=0"), nối nó vào sau URL
-    const url = `${TOURS_API.GET_REVIEWS_BY_TOUR(tourId)}${odataQuery}`;
-    const response = await axios.get(url, getPublicConfig());
+ 
+  getReviewsByTour: async (tourId: number, params: ReviewFilterParams): Promise<PagedReviewResult> => {
+    const response = await axios.get(TOURS_API.GET_REVIEWS_BY_TOUR(tourId), {
+      ...getPublicConfig(),
+      params,
+    });
     return response.data;
   },
 
- getReviewsByTourAdmin: async (tourId: number, odataQuery: string = ""): Promise<PagedReviewResult> => {
-    const url = `${TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId)}${odataQuery}`;
-    const response = await apiClient.get<PagedReviewResult>(url);
-    return response;  
+  getReviewsByTourAdmin: async (tourId: number, params: ReviewFilterParams): Promise<PagedReviewResult> => {
+    const response = await apiClient.get<PagedReviewResult>(TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId), {
+      params,
+    });
+    return response as any; 
   },
 
   // 2. Lấy review CỦA TÔI cho 1 tour cụ thể (Cần Auth)
@@ -53,7 +55,6 @@ export const reviewService = {
     const response = await axios.patch(TOURS_API.UPDATE_REVIEW(reviewId), data, getAuthConfig());
     return response.data;
   },
-
 
   // Trả lời đánh giá
   createReply: async (reviewId: number, data: CreateReviewReplyRequest): Promise<ReadReviewReply> => {

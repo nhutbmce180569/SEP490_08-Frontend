@@ -21,12 +21,14 @@ interface Props {
   tour: TourRecommendationItem;
   onTourClick?: (tourId: number) => void;
   compact?: boolean;
+  showScoreBreakdown?: boolean;
 }
 
 export const AiTourRecommendationCard: React.FC<Props> = ({
   tour,
   onTourClick,
   compact,
+  showScoreBreakdown = false,
 }) => {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -141,7 +143,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           </div>
         </div>
 
-        {tour.scoreBreakdown && (
+        {showScoreBreakdown && tour.scoreBreakdown && (
           <div className="mt-4">
             <button
               type="button"

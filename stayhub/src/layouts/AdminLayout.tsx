@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import {
   BarChart3,
+  Bot,
   Building,
   Compass,
   CreditCard,
@@ -89,6 +90,16 @@ export const AdminLayout = () => {
             label: t("admin.ticketTypes"),
             to: PATH.ADMIN.TICKET_TYPE_MANAGEMENT,
             icon: <Ticket className={iconClass} />,
+          },
+        ],
+      },
+      {
+        title: t("admin.aiSystems"),
+        items: [
+          {
+            label: t("admin.aiConsole"),
+            to: PATH.ADMIN.AI_CONSOLE,
+            icon: <Bot className={iconClass} />,
           },
         ],
       },

@@ -30,6 +30,8 @@ export const AI_API = {
     BASELINES: `${AI_BASE}/evaluation/baselines`,
     RUN: `${AI_BASE}/evaluation/run`,
     JUDGMENTS: `${AI_BASE}/evaluation/judgments`,
+    CALIBRATE_WEIGHTS: `${AI_BASE}/evaluation/calibrate-weights`,
+    RAG_CORPUS_ABLATION: `${AI_BASE}/evaluation/rag-corpus-ablation`,
     METHODOLOGY: `${AI_BASE}/evaluation/methodology`,
     INTER_RATER: `${AI_BASE}/evaluation/inter-rater-agreement`,
     PAPER_BUNDLE: `${AI_BASE}/evaluation/paper-bundle`,

@@ -79,6 +79,7 @@ import PublicTourDetail from "./pages/TourDetail";
 import TourSearch from "./pages/TourSearch";
 import { AiQuestionnairePage, AiPlannerModal } from "./features/ai/pages/AiQuestionnairePage";
 import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
+import { AdminAiConsolePage } from "./features/ai/pages/AdminAiConsolePage";
 import { AiPlannerProvider } from "./contexts/AiPlannerContext";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
@@ -612,6 +613,10 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
                     element={mock("app.titles.systemSettings", "app.mockSystemSettings", "app.sectionAdmin")}
+                  />
+                  <Route
+                    path={childPath(PATH.ADMIN.AI_CONSOLE)}
+                    element={<AdminAiConsolePage />}
                   />
                 </Route>
               </Route>

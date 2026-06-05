@@ -21,6 +21,7 @@ export const ADMIN_ROUTES = {
   CUSTOMER_ANALYTICS: '/admin/customer-analytics',
   PLATFORM_ANALYTICS: '/admin/platform-analytics',
   SYSTEM_SETTINGS: '/admin/settings',
+  AI_CONSOLE: '/admin/ai',
 
   // Dynamic Routes & Delete Confirms
   DELETE_CATEGORY: (id: string | number = ':id') => `/admin/categories/${id}/delete`,

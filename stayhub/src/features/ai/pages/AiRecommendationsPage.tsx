@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, RefreshCw, Sparkles } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
@@ -16,10 +16,13 @@ import type { PersonalizedRecommendationResponse } from "../types/tourAssistant"
 import { useTranslation } from "../../../contexts/LocaleContext";
 
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
+import { normalizeRoles } from "../../../utils/jwt";
 
 export const AiRecommendationsPage: React.FC = () => {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const { user } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
   const stateData = location.state as PersonalizedRecommendationResponse | undefined;
@@ -27,6 +30,7 @@ export const AiRecommendationsPage: React.FC = () => {
     useRecommendFromProfile();
   const logInteraction = useLogAiInteraction();
   const retriedRef = useRef(false);
+  const isAdminView = normalizeRoles(user?.roles).includes("ADMIN");
   const [data, setData] = useState<PersonalizedRecommendationResponse | undefined>(
     stateData ?? hookData ?? undefined,
   );
@@ -165,17 +169,22 @@ export const AiRecommendationsPage: React.FC = () => {
                   <AiTourRecommendationCard
                     key={tour.tourId}
                     tour={tour}
+                    showScoreBreakdown={isAdminView}
                     onTourClick={(id) => logInteraction(id, "click")}
                   />
                 ))}
               </div>
             )}
 
-            <RelatedInsightsCarousel insights={data.relatedInsights} />
-            <RecommenderMetaPanel meta={data.recommenderMeta} />
+            {isAdminView && (
+              <>
+                <RelatedInsightsCarousel insights={data.relatedInsights} />
+                <RecommenderMetaPanel meta={data.recommenderMeta} />
+              </>
+            )}
           </div>
 
-          {data.culturalFacts.length > 0 && (
+          {isAdminView && data.culturalFacts.length > 0 && (
             <div className="w-full shrink-0 lg:sticky lg:top-24 lg:w-80">
               <CulturalFactsSidebar facts={data.culturalFacts} />
             </div>

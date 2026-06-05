@@ -3,9 +3,15 @@ import type { UserProfile, PaginatedResult } from "../types/user.type";
 
 const USER_API_URL = "/users";
 
-export const searchUsers = async (query: string, page = 1, pageSize = 10): Promise<PaginatedResult<UserProfile>> => {
+export const searchUsers = async (
+  query: string,
+  page = 1,
+  pageSize = 10,
+  role?: string,
+): Promise<PaginatedResult<UserProfile>> => {
+  const roleParam = role ? `&role=${encodeURIComponent(role)}` : '';
   const response = await apiClient.get<any>(
-    `${USER_API_URL}/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`
+    `${USER_API_URL}/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}${roleParam}`
   );
 
   const resBody = response.data ?? response;

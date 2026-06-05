@@ -10,7 +10,7 @@ import {
 import { DynamicForm, type FormField } from '../../../components/dashboard/DynamicForm';
 import { LoadingOverlay } from '../../../components/dashboard/LoadingOverlay';
 import { useTranslation } from '../../../contexts/LocaleContext';
-import { CustomerAssignmentEditor, type CustomerAssignmentRow } from '../components/CustomerAssignmentEditor';
+import { createDefaultVoucherTarget, VoucherTargetEditor, type VoucherTargetValue } from '../components/VoucherTargetEditor';
 import { useCreateVoucher } from '../hooks/useCreateVoucher';
 import { useTourOptions } from '../hooks/useTourOptions';
 import { validateVoucherCode } from '../utils/voucherHelpers';
@@ -110,13 +110,13 @@ export const CreateVoucher: React.FC = () => {
         colSpan: 2,
       },
       {
-        name: 'customerAssignments',
-        label: t('voucher.customerAssignments'),
+        name: 'voucherTarget',
+        label: t('voucher.targetAudience'),
         type: 'custom',
         colSpan: 2,
         render: (value, onChange, error) => (
-          <CustomerAssignmentEditor
-            value={(value as CustomerAssignmentRow[]) || []}
+          <VoucherTargetEditor
+            value={(value as VoucherTargetValue) || createDefaultVoucherTarget()}
             onChange={onChange}
             error={error}
           />
@@ -140,7 +140,7 @@ export const CreateVoucher: React.FC = () => {
         initialValues={{
           discountType: 'Percent',
           availableCount: 1,
-          customerAssignments: [],
+          voucherTarget: createDefaultVoucherTarget(),
         }}
         onSubmit={handleSubmit}
         serverErrors={serverErrors}

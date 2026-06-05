@@ -38,6 +38,16 @@ export interface CreateUserVoucherAssignmentDTO {
   quantity: number;
 }
 
+export type RevenuePeriod = 'Month' | 'Year' | 'AllTime';
+
+export type VoucherTargetType = 'public' | 'specific' | 'topRevenue';
+
+export interface TopCustomerVoucherAssignmentDTO {
+  top: number;
+  revenuePeriod: RevenuePeriod;
+  quantity: number;
+}
+
 export interface CreateVoucherDTO {
   code: string;
   tourId?: number;
@@ -49,6 +59,7 @@ export interface CreateVoucherDTO {
   endDate: string;
   description?: string;
   customerAssignments?: CreateUserVoucherAssignmentDTO[];
+  topCustomerAssignment?: TopCustomerVoucherAssignmentDTO;
 }
 
 export interface UpdateVoucherDTO {
@@ -61,6 +72,7 @@ export interface UpdateVoucherDTO {
   endDate?: string;
   description?: string;
   customerAssignments?: CreateUserVoucherAssignmentDTO[];
+  topCustomerAssignment?: TopCustomerVoucherAssignmentDTO;
 }
 
 export interface VoucherFilters {

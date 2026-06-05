@@ -1,5 +1,5 @@
 import { useState, useContext, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Heart,
   Lock,
@@ -11,6 +11,7 @@ import {
   Sparkles,
   Search,
   ShoppingBag,
+  Info,
 } from "lucide-react";
 
 import { ActionButton } from "../../components/home/ActionButton";
@@ -31,6 +32,7 @@ import { useGetPendingRequests } from "../../features/social/friends/hooks/useFr
 
 export default function Header() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { success } = useToast();
   const { t } = useTranslation();
   const { open: openAiPlanner } = useAiPlanner();
@@ -160,6 +162,19 @@ export default function Header() {
           >
             <Search className="h-5 w-5" />
           </button>
+
+          <Link
+            to={PATH.PUBLIC.ABOUT}
+            className={`hidden items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors md:inline-flex !no-underline ${
+              pathname === PATH.PUBLIC.ABOUT
+                ? "bg-brand-light text-brand"
+                : "text-slate-600 hover:bg-brand-light/40 hover:text-brand"
+            }`}
+            title={t("header.aboutUsTitle")}
+          >
+            <Info className="h-4 w-4" />
+            <span>{t("header.aboutUs")}</span>
+          </Link>
 
           <ActionButton
             variant="ghost"

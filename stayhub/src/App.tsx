@@ -105,6 +105,7 @@ import { BookingStatisticsPage } from "./features/booking/pages/BookingStatistic
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
+import AboutPage from "./pages/about/AboutPage";
 import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 const queryClient = new QueryClient();
@@ -299,6 +300,7 @@ const App: React.FC = () => {
                 />
                 <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
                 <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
+                <Route path={PATH.PUBLIC.ABOUT} element={<AboutPage />} />
                 <Route
                   path={PATH.CUSTOMER.CHECKOUT()}
                   element={<BookingPage />}

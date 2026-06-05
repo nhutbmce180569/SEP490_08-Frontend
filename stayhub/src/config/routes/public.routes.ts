@@ -10,6 +10,7 @@ export const PUBLIC_ROUTES = {
   UNAUTHORIZED: '/unauthorized',
   TERMS: '/terms',
   PRIVACY: '/privacy',
+  ABOUT: '/about',
   // AI Tour Assistant (public — no login required)
   AI_ASSISTANT: '/ai-assistant',
   AI_RECOMMENDATIONS: '/ai/recommendations',

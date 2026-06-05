@@ -15,7 +15,7 @@ export default function Footer() {
       {
         title: t("footer.company"),
         links: [
-          t("footer.aboutUs"),
+          { label: t("footer.aboutUs"), href: PATH.PUBLIC.ABOUT },
           t("footer.reviews"),
           t("footer.contactUs"),
           t("footer.travelGuides"),
@@ -78,16 +78,30 @@ export default function Footer() {
             <div key={g.title}>
               <h4 className="travel-heading mb-3 text-lg">{g.title}</h4>
               <ul className="space-y-2">
-                {g.links.map((l) => (
-                  <li key={l}>
-                    <button
-                      type="button"
-                      className="text-sm text-slate-600 transition-colors hover:text-brand"
-                    >
-                      {l}
-                    </button>
-                  </li>
-                ))}
+                {g.links.map((l) => {
+                  const label = typeof l === "string" ? l : l.label;
+                  const href = typeof l === "string" ? undefined : l.href;
+
+                  return (
+                    <li key={label}>
+                      {href ? (
+                        <Link
+                          to={href}
+                          className="text-sm text-slate-600 transition-colors hover:text-brand !no-underline"
+                        >
+                          {label}
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          className="text-sm text-slate-600 transition-colors hover:text-brand"
+                        >
+                          {label}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}

@@ -1,6 +1,10 @@
 {
-  "speakExpert": "Speak to our travel expert",
+  "speakExpert": "Contact StayHub support",
   "followUs": "Follow Us",
+  "brandDesc": "StayHub helps customers discover Vietnam tours, get AI recommendations, apply vouchers, and pay in VND through familiar local gateways.",
+  "trustPayment": "Base payment",
+  "trustAi": "Tour guidance",
+  "trustCampus": "FPT Can Tho",
   "contact": "Contact",
   "company": "Company",
   "supportSection": "Support",
@@ -25,8 +29,10 @@
   "helpCenter": "Help center",
   "liveChat": "Live chat",
   "howItWorks": "How it works",
-  "address": "328 Queensberry Street, North Melbourne VIC3051, Australia.",
-  "email": "hi@stayhub.com",
+  "address": "FPT University Can Tho, 600 Nguyen Van Cu extended, An Binh Ward, Can Tho City.",
+  "email": "stayhub.fpt@gmail.com",
+  "mapTitle": "Map of FPT University Can Tho",
+  "openMap": "Open in Google Maps",
   "phone": "1-800-453-6744",
   "copyrightBrand": "StayHub"
 }

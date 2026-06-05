@@ -1,12 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
-import { useMemo, useState } from "react";
-import { Phone, Send } from "lucide-react";
+import { useMemo } from "react";
+import { ExternalLink, Mail, MapPin } from "lucide-react";
 import { PATH } from "../../config/routes/route";
 import { useTranslation } from "../../contexts/LocaleContext";
+import { StayHubLogo } from "../../components/brand/StayHubLogo";
+
+const FPT_CAN_THO_MAP_LINK =
+  "https://www.google.com/maps/search/?api=1&query=Tr%C6%B0%E1%BB%9Dng%20%C4%90%E1%BA%A1i%20h%E1%BB%8Dc%20FPT%20C%E1%BA%A7n%20Th%C6%A1%20600%20Nguy%E1%BB%85n%20V%C4%83n%20C%E1%BB%AB%20n%E1%BB%91i%20d%C3%A0i";
 
 export default function Footer() {
   const { t } = useTranslation();
-  const [email, setEmail] = useState("");
   const location = useLocation();
   const legalLinkState = { from: location.pathname };
 
@@ -16,22 +19,27 @@ export default function Footer() {
         title: t("footer.company"),
         links: [
           { label: t("footer.aboutUs"), href: PATH.PUBLIC.ABOUT },
-          t("footer.reviews"),
-          t("footer.contactUs"),
-          t("footer.travelGuides"),
-          t("footer.dataPolicy"),
-          t("footer.cookiePolicy"),
-          t("footer.legal"),
-          t("footer.sitemap"),
+          { label: t("footer.reviews"), href: PATH.PUBLIC.INFO("reviews") },
+          { label: t("footer.contactUs"), href: PATH.PUBLIC.INFO("contact") },
+          { label: t("footer.travelGuides"), href: PATH.PUBLIC.INFO("travel-guides") },
         ],
       },
       {
         title: t("footer.supportSection"),
         links: [
-          t("footer.getInTouch"),
-          t("footer.helpCenter"),
-          t("footer.liveChat"),
-          t("footer.howItWorks"),
+          { label: t("footer.helpCenter"), href: PATH.PUBLIC.INFO("help-center") },
+          { label: t("footer.liveChat"), href: PATH.PUBLIC.AI_ASSISTANT },
+          { label: t("footer.howItWorks"), href: PATH.PUBLIC.INFO("how-it-works") },
+          { label: t("footer.sitemap"), href: PATH.PUBLIC.INFO("sitemap") },
+        ],
+      },
+      {
+        title: t("footer.legal"),
+        links: [
+          { label: t("footer.privacy"), href: PATH.PUBLIC.PRIVACY },
+          { label: t("footer.terms"), href: PATH.PUBLIC.TERMS },
+          { label: t("footer.dataPolicy"), href: PATH.PUBLIC.PRIVACY },
+          { label: t("footer.cookiePolicy"), href: PATH.PUBLIC.PRIVACY },
         ],
       },
     ],
@@ -39,126 +47,82 @@ export default function Footer() {
   );
 
   return (
-    <footer className="mt-auto border-t border-brand/15 bg-white/80 backdrop-blur-xl">
-      <div className="page-container py-4">
-        <div className="flex flex-wrap items-center justify-between gap-6 border-b border-brand/10 py-8 md:py-10">
-          <div className="flex min-w-[280px] items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-light text-brand shadow-sm">
-              <Phone className="h-5 w-5" aria-hidden />
-            </div>
-            <p className="text-base font-semibold text-navy md:text-lg">
-              {t("footer.speakExpert")}{" "}
-              <span className="text-brand">{t("footer.phone")}</span>
+    <footer className="mt-auto border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+      <div className="page-container py-8 md:py-10">
+        <div className="grid gap-8 border-b border-slate-200 pb-8 dark:border-slate-800 lg:grid-cols-[minmax(260px,0.95fr)_minmax(0,1.05fr)]">
+          <div className="min-w-0">
+            <StayHubLogo className="mb-3" />
+            <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
+              {t("footer.brandDesc")}
             </p>
+
+            <div className="mt-5 space-y-2.5">
+              <a
+                href={`mailto:${t("footer.email")}`}
+                className="inline-flex items-center gap-2 text-sm font-bold text-brand transition-colors hover:text-brand-hover dark:text-sky-300 dark:hover:text-sky-200 !no-underline"
+              >
+                <Mail className="h-4 w-4" aria-hidden />
+                <span className="break-all">{t("footer.email")}</span>
+              </a>
+              <p className="flex max-w-xl items-start gap-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand dark:text-sky-300" aria-hidden />
+                <span>{t("footer.address")}</span>
+              </p>
+              <a
+                href={FPT_CAN_THO_MAP_LINK}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-brand transition-colors hover:text-brand-hover dark:text-sky-300 dark:hover:text-sky-200 !no-underline"
+              >
+                {t("footer.openMap")}
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+              </a>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-navy">{t("footer.followUs")}</span>
-            {["in", "fb", "tw", "yt"].map((k) => (
-              <button
-                key={k}
-                type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-navy/10 bg-white/90 text-xs font-bold text-navy transition-colors hover:border-brand/30 hover:bg-brand-light hover:text-brand"
-                aria-label={k}
-              >
-                {k}
-              </button>
+          <div className="grid gap-7 sm:grid-cols-3">
+            {groups.map((group) => (
+              <nav key={group.title} aria-label={group.title}>
+                <h4 className="mb-3 text-xs font-black uppercase tracking-[0.16em] text-slate-900 dark:text-slate-100">
+                  {group.title}
+                </h4>
+                <ul className="space-y-2">
+                  {group.links.map((link) => (
+                    <li key={link.label}>
+                      <Link
+                        to={link.href}
+                        state={legalLinkState}
+                        className="text-sm leading-6 text-slate-600 transition-colors hover:text-brand dark:text-slate-400 dark:hover:text-sky-300 !no-underline"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             ))}
           </div>
         </div>
 
-        <div className="grid gap-8 py-10 md:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <h4 className="travel-heading mb-3 text-lg">{t("footer.contact")}</h4>
-            <p className="text-sm leading-7 text-slate-600">{t("footer.address")}</p>
-            <p className="mt-2 text-sm font-medium text-brand">{t("footer.email")}</p>
-          </div>
-
-          {groups.map((g) => (
-            <div key={g.title}>
-              <h4 className="travel-heading mb-3 text-lg">{g.title}</h4>
-              <ul className="space-y-2">
-                {g.links.map((l) => {
-                  const label = typeof l === "string" ? l : l.label;
-                  const href = typeof l === "string" ? undefined : l.href;
-
-                  return (
-                    <li key={label}>
-                      {href ? (
-                        <Link
-                          to={href}
-                          className="text-sm text-slate-600 transition-colors hover:text-brand !no-underline"
-                        >
-                          {label}
-                        </Link>
-                      ) : (
-                        <button
-                          type="button"
-                          className="text-sm text-slate-600 transition-colors hover:text-brand"
-                        >
-                          {label}
-                        </button>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-
-          <div>
-            <h4 className="travel-heading mb-3 text-lg">{t("footer.newsletter")}</h4>
-            <p className="mb-4 text-sm text-slate-600">{t("footer.newsletterDesc")}</p>
-
-            <div className="relative mb-6">
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("footer.emailPlaceholder")}
-                className="input-field h-14 pr-24"
-              />
-              <button
-                type="button"
-                className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1 rounded-lg px-3 py-2 text-sm font-bold text-brand transition-colors hover:bg-brand-light"
-              >
-                <Send className="h-4 w-4" />
-                {t("common.send")}
-              </button>
-            </div>
-
-            <h4 className="mb-2 text-sm font-bold text-navy">{t("footer.mobileApps")}</h4>
-            <div className="flex flex-col gap-2 text-sm text-slate-600">
-              <span>{t("footer.iosApp")}</span>
-              <span>{t("footer.androidApp")}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-navy/8 py-5 text-xs text-navy-70">
+        <div className="flex flex-col gap-4 pt-5 text-xs text-slate-500 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <div>
             © {new Date().getFullYear()} {t("footer.copyrightBrand")}. {t("footer.copyright")}
           </div>
-          <div className="flex gap-4">
-            <Link
-              to={PATH.PUBLIC.PRIVACY}
-              state={legalLinkState}
-              className="transition-colors hover:text-brand !no-underline"
-            >
-              {t("footer.privacy")}
-            </Link>
-            <Link
-              to={PATH.PUBLIC.TERMS}
-              state={legalLinkState}
-              className="transition-colors hover:text-brand !no-underline"
-            >
-              {t("footer.terms")}
-            </Link>
-            <button type="button" className="transition-colors hover:text-brand">
-              {t("common.support")}
-            </button>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {["in", "fb", "tw", "yt"].map((item) => (
+              <button
+                key={item}
+                type="button"
+                className="font-bold uppercase tracking-wide transition-colors hover:text-brand dark:hover:text-sky-300"
+                aria-label={item}
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
       </div>
     </footer>
   );
-};
+}

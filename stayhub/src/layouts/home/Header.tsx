@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Map,
   Users,
-  Sparkles,
   Search,
   ShoppingBag,
   Info,
@@ -16,7 +15,6 @@ import {
 
 import { ActionButton } from "../../components/home/ActionButton";
 import dragonLogoVideo from "../../assets/làm_hiệu_ứng_cho_con_rồng_bay-Picsart-BackgroundRemover.mp4";
-import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
@@ -36,7 +34,6 @@ export default function Header() {
   const { pathname } = useLocation();
   const { success } = useToast();
   const { t } = useTranslation();
-  const { open: openAiPlanner } = useAiPlanner();
   const { user, logout: contextLogout } = useContext(AuthContext);
 
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
@@ -176,16 +173,6 @@ export default function Header() {
             <Info className="h-4 w-4" />
             <span>{t("header.aboutUs")}</span>
           </Link>
-
-          <ActionButton
-            variant="ghost"
-            onClick={() => openAiPlanner(pathname)}
-            className="hidden gap-1.5 sm:inline-flex"
-            title={t("header.aiGuideTitle")}
-          >
-            <Sparkles className="h-4 w-4 text-brand" />
-            <span className="hidden text-brand md:inline">{t("header.aiGuide")}</span>
-          </ActionButton>
 
           <button
             type="button"

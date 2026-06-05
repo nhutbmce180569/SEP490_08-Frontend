@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Search, Sparkles, X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
+import { useAiPlanner } from "../../../contexts/AiPlannerContext";
 import { useAiSemanticSearch } from "../hooks/useAiSemanticSearch";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
@@ -20,6 +21,8 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
   const [showResults, setShowResults] = useState(false);
   const { results, isSearching, search, clearResults } = useAiSemanticSearch();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { open: openAiPlanner } = useAiPlanner();
 
   const handleSearch = async () => {
     const list = await search(query);
@@ -33,7 +36,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
     setShowResults(false);
   };
 
-  const goToAiAssistant = () => navigate(PATH.PUBLIC.AI_ASSISTANT);
+  const goToAiAssistant = () => openAiPlanner(pathname);
 
   return (
     <div className={`relative ${className}`}>

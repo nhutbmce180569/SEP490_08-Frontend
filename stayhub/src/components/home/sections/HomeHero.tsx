@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { MapPin, Search, Sparkles, Calendar } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ActionButton } from "../ActionButton";
 import { PATH } from "../../../config/routes/route";
+import { useAiPlanner } from "../../../contexts/AiPlannerContext";
 import { HOME_CONTAINER, getFreeApiImage } from "./shared";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
@@ -13,6 +14,8 @@ const QUICK_DEST = ["Da Nang", "Hoi An", "Da Lat", "Ha Long", "Phu Quoc"];
 export const HomeHero: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { open: openAiPlanner } = useAiPlanner();
   const [searchLocation, setSearchLocation] = useState("");
   const [searchDate, setSearchDate] = useState("");
 
@@ -73,7 +76,7 @@ export const HomeHero: React.FC = () => {
                 </ActionButton>
                 <ActionButton
                   variant="outline"
-                  onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
+                  onClick={() => openAiPlanner(pathname)}
                   className="home-glass-chip !h-11 gap-1.5 !rounded-xl !border-white/30 !bg-white/10 !px-4 !text-white hover:!bg-white/18"
                 >
                   <Sparkles size={16} />

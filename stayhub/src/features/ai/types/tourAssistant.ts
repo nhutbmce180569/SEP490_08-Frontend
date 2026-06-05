@@ -57,6 +57,14 @@ export interface WeatherAdvice {
   impactOnTours: string;
 }
 
+export interface ScoreDimensionExplanation {
+  dimensionKey: string;
+  label: string;
+  score: number;
+  weight: number;
+  explanation: string;
+}
+
 export interface TourScoreBreakdown {
   fairnessScore: number;
   minPersonaScore: number;
@@ -65,7 +73,9 @@ export interface TourScoreBreakdown {
   dissatisfactionVariance: number;
   personaScores: Record<string, number>;
   dimensionScores: Record<string, number>;
+  dimensionExplanations?: ScoreDimensionExplanation[];
   aggregationFormula: string;
+  overallExplanation?: string;
 }
 
 export interface TourRecommendationItem {

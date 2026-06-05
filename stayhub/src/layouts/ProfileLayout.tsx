@@ -17,6 +17,7 @@ import {
 import { PATH } from "../config/routes/route";
 import { AuthContext } from "../contexts/AuthContext";
 import { useTranslation } from "../contexts/LocaleContext";
+import { useAiPlanner } from "../contexts/AiPlannerContext";
 import { UserAvatar } from "../components/ui/UserAvatar";
 
 const navItems = [
@@ -27,7 +28,7 @@ const navItems = [
   { labelKey: "nav.wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
   { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
   { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
-  { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles },
+  { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles, openPlanner: true },
   { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
   { labelKey: "nav.settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
 ];
@@ -36,6 +37,8 @@ export const ProfileLayout = () => {
   const { user } = useContext(AuthContext);
   const { t } = useTranslation();
   const location = useLocation();
+  const { open: openAiPlanner } = useAiPlanner();
+  const openPlanner = () => openAiPlanner(location.pathname);
 
   const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
@@ -73,22 +76,34 @@ export const ProfileLayout = () => {
           className="account-mobile-nav custom-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1 md:hidden"
           aria-label="Account menu"
         >
-          {navItems.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${
-                  isActive
-                    ? "bg-brand text-white shadow-md shadow-brand/25"
-                    : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80"
-                }`
-              }
-            >
-              <item.icon size={16} />
-              {t(item.labelKey)}
-            </NavLink>
-          ))}
+          {navItems.map((item) =>
+            item.openPlanner ? (
+              <button
+                key={item.path}
+                type="button"
+                onClick={openPlanner}
+                className="flex shrink-0 items-center gap-2 rounded-full bg-white/80 px-4 py-2.5 text-sm font-bold text-slate-600 ring-1 ring-slate-200/80 transition-all hover:text-brand"
+              >
+                <item.icon size={16} />
+                {t(item.labelKey)}
+              </button>
+            ) : (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${
+                    isActive
+                      ? "bg-brand text-white shadow-md shadow-brand/25"
+                      : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80"
+                  }`
+                }
+              >
+                <item.icon size={16} />
+                {t(item.labelKey)}
+              </NavLink>
+            ),
+          )}
         </nav>
 
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
@@ -99,32 +114,47 @@ export const ProfileLayout = () => {
                 <h2 className="travel-heading mt-1 text-sm text-navy">Account</h2>
               </div>
               <nav className="flex flex-col gap-0.5">
-                {navItems.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${
-                        isActive ? "nav-item-active" : "nav-item-inactive"
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <item.icon
-                          size={18}
-                          strokeWidth={isActive ? 2.5 : 2}
-                          className={
-                            isActive
-                              ? "text-white"
-                              : "text-slate-400 group-hover:text-brand"
-                          }
-                        />
-                        <span>{t(item.labelKey)}</span>
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+                {navItems.map((item) =>
+                  item.openPlanner ? (
+                    <button
+                      key={item.path}
+                      type="button"
+                      onClick={openPlanner}
+                      className="group flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all nav-item-inactive"
+                    >
+                      <item.icon
+                        size={18}
+                        className="text-slate-400 group-hover:text-brand"
+                      />
+                      <span>{t(item.labelKey)}</span>
+                    </button>
+                  ) : (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={({ isActive }) =>
+                        `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${
+                          isActive ? "nav-item-active" : "nav-item-inactive"
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <item.icon
+                            size={18}
+                            strokeWidth={isActive ? 2.5 : 2}
+                            className={
+                              isActive
+                                ? "text-white"
+                                : "text-slate-400 group-hover:text-brand"
+                            }
+                          />
+                          <span>{t(item.labelKey)}</span>
+                        </>
+                      )}
+                    </NavLink>
+                  ),
+                )}
               </nav>
             </div>
           </aside>

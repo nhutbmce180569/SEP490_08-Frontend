@@ -163,6 +163,26 @@ export function getCustomerMatchTags(
   return [...new Set(tags)].slice(0, max);
 }
 
+const scheduleTag = (locale: Locale) =>
+  locale === "vi" ? "Khớp lịch đi" : "Fits dates";
+
+/** Tags for cards — ưu tiên "Khớp lịch đi" khi tour khớp ngày user chọn. */
+export function getDisplayMatchTags(
+  matchReasons: string[],
+  locale: Locale,
+  max = 3,
+  matchesPreferredDates?: boolean,
+): string[] {
+  const tags = getCustomerMatchTags(matchReasons, locale, max + 2);
+  const schedule = scheduleTag(locale);
+
+  if (matchesPreferredDates && !tags.includes(schedule)) {
+    return [schedule, ...tags].slice(0, max);
+  }
+
+  return tags.slice(0, max);
+}
+
 export function getCustomerWhyFitContent(matchReasons: string[], locale: Locale) {
   const parsed = dedupeByKind(matchReasons.map((r) => parseMatchReason(r, locale)));
   const positive = parsed.filter((p) => p.isPositive).map((p) => p.text);

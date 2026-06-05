@@ -8,6 +8,12 @@ import {
   validateQuestionnaireStep,
 } from "../utils/questionnaireValidation";
 import { getOrCreateAiSessionId } from "../utils/sessionId";
+import {
+  buildInitialQuestionnaireValues,
+  clearQuestionnaireDraft,
+  loadQuestionnaireDraft,
+  saveQuestionnaireDraft,
+} from "../utils/questionnaireDraft";
 import { ExtraCountFields, QuestionnaireFieldInput } from "./QuestionnaireFieldInput";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
@@ -25,15 +31,11 @@ export const QuestionnaireWizard: React.FC<Props> = ({
   isSubmitting,
 }) => {
   const { t } = useTranslation();
-  const [step, setStep] = useState(0);
-  const [values, setValues] = useState<QuestionnaireFormValues>(() => {
-    const init: QuestionnaireFormValues = { hasElderly: false, hasChildren: false, top: 8 };
-    questions.forEach((q) => {
-      if (q.inputType === "boolean") init[q.fieldKey] = false;
-      if (q.inputType === "multi_select") init[q.fieldKey] = [];
-    });
-    return init;
-  });
+  const draft = useMemo(() => loadQuestionnaireDraft(), []);
+  const [step, setStep] = useState(() => draft?.step ?? 0);
+  const [values, setValues] = useState<QuestionnaireFormValues>(() =>
+    buildInitialQuestionnaireValues(questions, draft),
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const steps = useMemo(() => {
@@ -79,6 +81,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
       };
       setErrors(allErrors);
       if (Object.keys(allErrors).length > 0) return;
+      clearQuestionnaireDraft();
       onSubmit(buildRecommendPayload(values, getOrCreateAiSessionId()));
       return;
     }
@@ -86,6 +89,10 @@ export const QuestionnaireWizard: React.FC<Props> = ({
   };
 
   useEffect(() => { setErrors({}); }, [step]);
+
+  useEffect(() => {
+    saveQuestionnaireDraft(values, step);
+  }, [values, step]);
 
   return (
     <div>

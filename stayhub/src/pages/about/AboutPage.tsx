@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowRight,
   Cpu,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { PATH } from "../../config/routes/route";
 import { useTranslation } from "../../contexts/LocaleContext";
+import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { getAboutContent } from "./getAboutContent";
 import { TeamMemberCard } from "./components/TeamMemberCard";
 
@@ -18,6 +19,8 @@ const FEATURE_ICONS = [Map, Sparkles, Users, Layers, Cpu, Globe] as const;
 
 export default function AboutPage() {
   const { locale } = useTranslation();
+  const { pathname } = useLocation();
+  const { open: openAiPlanner } = useAiPlanner();
   const content = getAboutContent(locale);
 
   return (
@@ -191,13 +194,14 @@ export default function AboutPage() {
               {content.cta.browseTours}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-            <Link
-              to={PATH.PUBLIC.AI_ASSISTANT}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 px-4 py-2 text-sm font-bold text-white !no-underline hover:bg-white/10"
+            <button
+              type="button"
+              onClick={() => openAiPlanner(pathname)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-white/30 px-4 py-2 text-sm font-bold text-white hover:bg-white/10"
             >
               <Sparkles className="h-3.5 w-3.5" />
               {content.cta.aiAssistant}
-            </Link>
+            </button>
           </div>
         </section>
       </div>

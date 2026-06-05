@@ -178,7 +178,7 @@ export default function Header() {
 
           <ActionButton
             variant="ghost"
-            onClick={openAiPlanner}
+            onClick={() => openAiPlanner(pathname)}
             className="hidden gap-1.5 sm:inline-flex"
             title={t("header.aiGuideTitle")}
           >

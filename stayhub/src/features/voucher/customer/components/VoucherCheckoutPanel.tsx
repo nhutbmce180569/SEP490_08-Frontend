@@ -6,6 +6,7 @@ import type { ReadSavedVoucherDTO } from '../types/customerVoucher';
 import type { AppliedVoucherState } from '../hooks/useApplyVoucher';
 import { formatDiscount, formatVnd } from '../../utils/voucherHelpers';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { MoneyDisplay } from '../../../currency/MoneyDisplay';
 
 interface VoucherCheckoutPanelProps {
   tourId: number;
@@ -126,17 +127,19 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
           <div className="space-y-1.5 rounded-xl bg-slate-50 px-3 py-2.5 text-sm">
             <div className="flex justify-between text-slate-600">
               <span>{t('voucher.subtotal')}</span>
-              <span>{formatVnd(billAmount)}</span>
+              <span><MoneyDisplay amountVnd={billAmount} compact /></span>
             </div>
             {appliedVoucher && (
               <div className="flex justify-between font-medium text-emerald-700">
                 <span>{t('voucher.discount')}</span>
-                <span>-{formatVnd(appliedVoucher.discountAmount)}</span>
+                <span>-<MoneyDisplay amountVnd={appliedVoucher.discountAmount} compact /></span>
               </div>
             )}
             <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-slate-900">
               <span>{t('voucher.total')}</span>
-              <span className="text-brand">{formatVnd(appliedVoucher?.finalAmount ?? billAmount)}</span>
+              <span className="text-brand">
+                <MoneyDisplay amountVnd={appliedVoucher?.finalAmount ?? billAmount} compact />
+              </span>
             </div>
           </div>
         )}

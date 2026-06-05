@@ -8,6 +8,7 @@ import { SectionHeader } from "./SectionHeader";
 import { HomeSection } from "./HomeSection";
 import { getFreeApiImage, HOME_GLASS, HOME_GLASS_MEDIA } from "./shared";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { MoneyDisplay } from "../../../features/currency/MoneyDisplay";
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -119,9 +120,11 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
                     {t("common.from")}
                   </p>
                   <p className="text-2xl font-extrabold text-white">
-                    {featuredMeta.minPrice !== null
-                      ? `${featuredMeta.minPrice.toLocaleString("vi-VN")}đ`
-                      : t("home.contactUs")}
+                    {featuredMeta.minPrice !== null ? (
+                      <MoneyDisplay amountVnd={featuredMeta.minPrice} compact />
+                    ) : (
+                      t("home.contactUs")
+                    )}
                   </p>
                 </div>
                 <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand shadow-lg transition group-hover:translate-x-1">
@@ -168,9 +171,11 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
                   <div className="mt-2 flex items-center justify-between text-xs font-semibold">
                     <span className="text-slate-500">{meta.duration}</span>
                     <span className="text-brand">
-                      {meta.minPrice !== null
-                        ? `${meta.minPrice.toLocaleString("vi-VN")}đ`
-                        : t("home.contact")}
+                      {meta.minPrice !== null ? (
+                        <MoneyDisplay amountVnd={meta.minPrice} compact />
+                      ) : (
+                        t("home.contact")
+                      )}
                     </span>
                   </div>
                 </div>

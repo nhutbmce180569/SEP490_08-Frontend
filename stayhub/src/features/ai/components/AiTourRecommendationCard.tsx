@@ -13,11 +13,12 @@ import {
 import { PATH } from "../../../config/routes/route";
 import { getImg } from "../../../config/api/api";
 import type { TourRecommendationItem } from "../types/tourAssistant";
-import { formatMatchPercent, formatVnd } from "../utils/formatters";
+import { formatMatchPercent } from "../utils/formatters";
 import { resolvePublicTourId } from "../utils/catalogTourId";
 import { ScoreBreakdownPanel } from "./ScoreBreakdownPanel";
 import { CustomerScoreBreakdownPanel } from "./CustomerScoreBreakdownPanel";
 import { TourWhyFitPanel } from "./TourWhyFitPanel";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import {
   buildWhyFitSummary,
   formatMatchReasonTechnical,
@@ -37,6 +38,9 @@ interface Props {
   variant?: "exact" | "nearby";
   onExplainClick?: (tour: TourRecommendationItem) => void;
 }
+
+const getContactPriceText = (locale: "en" | "vi") =>
+  locale === "vi" ? "Liên hệ" : "Contact us";
 
 export const AiTourRecommendationCard: React.FC<Props> = ({
   tour,
@@ -164,7 +168,9 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
                   {tour.durationDays} {locale === "vi" ? "ngày" : "days"}
                 </p>
               )}
-              <p className="text-base font-black text-brand">{formatVnd(tour.minPrice, locale)}</p>
+              <p className="text-base font-black text-brand">
+                {tour.minPrice == null ? getContactPriceText(locale) : <MoneyDisplay amountVnd={tour.minPrice} compact />}
+              </p>
             </div>
             <Link
               to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
@@ -265,7 +271,9 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             </div>
             <div className="shrink-0 text-right">
               <p className="text-[8px] font-bold uppercase text-slate-400">{t("home.priceFrom")}</p>
-              <p className="text-sm font-black text-brand">{formatVnd(tour.minPrice, locale)}</p>
+              <p className="text-sm font-black text-brand">
+                {tour.minPrice == null ? getContactPriceText(locale) : <MoneyDisplay amountVnd={tour.minPrice} compact />}
+              </p>
             </div>
           </div>
 
@@ -420,7 +428,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               {t("home.priceFrom")}
             </div>
             <div className="text-base font-black" style={{ color: "var(--color-brand)" }}>
-              {formatVnd(tour.minPrice, locale)}
+              {tour.minPrice == null ? getContactPriceText(locale) : <MoneyDisplay amountVnd={tour.minPrice} compact />}
             </div>
           </div>
         </div>

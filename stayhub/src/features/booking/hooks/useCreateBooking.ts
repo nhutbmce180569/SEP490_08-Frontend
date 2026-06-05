@@ -51,7 +51,7 @@ export const useCreateBooking = () => {
       const paymentUrl = await createPayment(
         {
           orderId: order.id,
-          amount: order.finalAmount,
+          amount: Math.round(Number(order.finalAmount)),
         },
         paymentProvider,
       );

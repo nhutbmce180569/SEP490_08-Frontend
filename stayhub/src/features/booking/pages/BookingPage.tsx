@@ -31,6 +31,7 @@ import {
   getScheduleTicketName,
   getScheduleTicketTypeId,
 } from "../../tour/utils/tourScheduleTicket";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 type CheckoutSchedule = TourSchedule & {
   price?: number | string | null;
@@ -64,8 +65,6 @@ type TicketSummaryItem = {
   price: number;
   quantity: number;
 };
-
-const formatCurrency = (value: number) => `${value.toLocaleString("vi-VN")} đ`;
 
 const getTicketPrice = (ticket: TourScheduleTicket) => getNumberValue(ticket.price);
 
@@ -387,7 +386,7 @@ export const BookingPage: React.FC = () => {
           groups.set(ticket.tourScheduleTicketId, {
             tourScheduleTicketId: ticket.tourScheduleTicketId,
             ticketTypeId: ticket.ticketTypeId,
-            unitPrice: ticket.price,
+            unitPrice: Math.round(ticket.price),
             tickets: [requestTicket],
           });
         }
@@ -414,7 +413,7 @@ export const BookingPage: React.FC = () => {
         totalQuantity: ticketCount,
         ticketCount,
         note,
-        finalAmount: finalPayable,
+        finalAmount: Math.round(finalPayable),
         orderDetails,
       },
       paymentProvider,
@@ -465,7 +464,7 @@ export const BookingPage: React.FC = () => {
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
                             <span>
-                              {price === null ? t("booking.noPrice") : formatCurrency(price)}
+                              {price === null ? t("booking.noPrice") : <MoneyDisplay amountVnd={price} compact />}
                             </span>
                             <span className="h-1 w-1 rounded-full bg-slate-300" />
                             <span>
@@ -632,11 +631,11 @@ export const BookingPage: React.FC = () => {
                               {item.name}
                             </div>
                             <div className="text-xs text-slate-400">
-                              {formatCurrency(item.price)} x {item.quantity}
+                              <MoneyDisplay amountVnd={item.price} compact /> x {item.quantity}
                             </div>
                           </div>
                           <span className="font-medium text-slate-900">
-                            {formatCurrency(item.price * item.quantity)}
+                            <MoneyDisplay amountVnd={item.price * item.quantity} compact />
                           </span>
                         </div>
                       ))
@@ -668,7 +667,11 @@ export const BookingPage: React.FC = () => {
                   <div className="mb-6 flex items-center justify-between border-t border-slate-200 pt-4">
                     <span className="font-bold text-slate-800">{t("booking.totalPrice")}</span>
                     <span className="text-2xl font-black text-brand">
-                      {formatCurrency(finalPayable)}
+                      <MoneyDisplay
+                        amountVnd={finalPayable}
+                        showVndBacking
+                        subTextClassName="mt-1 block text-right text-[11px] font-semibold text-slate-400"
+                      />
                     </span>
                   </div>
 

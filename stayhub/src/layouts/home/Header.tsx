@@ -29,6 +29,7 @@ import { useTranslation } from "../../contexts/LocaleContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
+import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -247,7 +248,7 @@ export default function Header() {
                           {t("header.noNewRequests")}
                         </p>
                       ) : (
-                        (pendingRequests as { id: string; senderId: string; senderName?: string; senderAvatarUrl?: string }[])
+                        (pendingRequests ?? [])
                           .slice(0, 5)
                           .map((req) => (
                             <button
@@ -300,6 +301,7 @@ export default function Header() {
 
               <NotificationBell />
 
+              <CurrencyToggle />
               <LanguageSwitcher />
               <ThemeToggle />
 
@@ -382,6 +384,7 @@ export default function Header() {
             </>
           ) : (
             <>
+              <CurrencyToggle />
               <LanguageSwitcher />
               <ThemeToggle />
 

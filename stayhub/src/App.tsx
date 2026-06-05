@@ -108,6 +108,7 @@ import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
 import AboutPage from "./pages/about/AboutPage";
 import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
+import { CurrencyProvider } from "./features/currency/CurrencyContext";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -250,6 +251,7 @@ const MomentsRouteWrapper = () => {
 const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
+      <CurrencyProvider>
       <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
@@ -633,6 +635,7 @@ const App: React.FC = () => {
         </AuthProvider>
       </ToastProvider>
       </ThemeProvider>
+      </CurrencyProvider>
     </QueryClientProvider>
   );
 };

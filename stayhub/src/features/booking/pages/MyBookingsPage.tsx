@@ -15,11 +15,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-});
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 const STATUS_STYLES: Record<string, string> = {
   Completed: "bg-emerald-100 text-emerald-700",
@@ -217,7 +213,7 @@ export const MyBookingsPage: React.FC = () => {
                       </span>
                       <span className="flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-100 font-bold text-emerald-600">
                         <Banknote size={13} />
-                        {currencyFormatter.format(order.finalAmount)}
+                        <MoneyDisplay amountVnd={order.finalAmount} compact />
                       </span>
                     </div>
                   </div>

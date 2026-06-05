@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -13,7 +13,6 @@ import {
   Plus,
   Map,
   Trash2,
-  Banknote,
   Tag,
   ChevronDown,
   ChevronUp,
@@ -35,7 +34,6 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 
 const getNumberValue = (value?: number | string | null) => {
   if (value === undefined || value === null || value === "") return null;
-
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : null;
 };
@@ -65,8 +63,83 @@ export const TourDetail: React.FC = () => {
   const { error: showError } = useToast();
   const [tourismInformationById, setTourismInformationById] = useState<Record<number, TourismInformation>>({});
   
-  const { tour, categoryName, isLoading, error } =
-    useTour(id);
+  const { tour, categoryName, isLoading, error } = useTour(id);
+
+  // ==========================================
+  // 💥 ODATA REVIEW FILTER & INFINITE SCROLL HOOKS
+  // ==========================================
+  const [reviewPage, setReviewPage] = useState(1);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
+  const [dateSortOrder, setDateSortOrder] = useState<"newest" | "oldest">("newest");
+  const [localReviews, setLocalReviews] = useState<any[]>([]);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  const { 
+    reviews: fetchedReviews, 
+    totalCount, 
+    isLoading: isReviewsLoading, 
+    fetchReviewsByTour 
+  } = useReview();
+
+  // 1. Gọi API OData khi các dependency thay đổi
+  useEffect(() => {
+    if (id) {
+      const skip = (reviewPage - 1) * 5;
+      let query = `?$top=5&$skip=${skip}`;
+      
+      const sortDirection = dateSortOrder === "newest" ? "desc" : "asc";
+      query += `&$orderby=CreatedAt ${sortDirection}`;
+      
+      if (ratingFilter) {
+        query += `&$filter=Rating eq ${ratingFilter}`;
+      }
+
+      fetchReviewsByTour(Number(id), query);
+    }
+  }, [id, reviewPage, ratingFilter, dateSortOrder, fetchReviewsByTour]);
+
+  // 2. Nối (Append) dữ liệu khi cuộn trang
+  useEffect(() => {
+    if (reviewPage === 1) {
+      setLocalReviews(fetchedReviews || []);
+    } else {
+      setLocalReviews((prev) => {
+        const existingIds = new Set(prev.map((r: any) => r.id));
+        const newItems = (fetchedReviews || []).filter((r: any) => !existingIds.has(r.id));
+        return [...prev, ...newItems];
+      });
+    }
+  }, [fetchedReviews, reviewPage]);
+
+  // 3. Tự động chuyển trang khi cuộn đến cuối
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isReviewsLoading && localReviews.length < (totalCount || 0)) {
+          setReviewPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 1.0 }
+    );
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => observer.disconnect();
+  }, [isReviewsLoading, localReviews.length, totalCount]);
+
+  const handleRatingChange = (val: string) => {
+    setRatingFilter(val === "" ? null : Number(val));
+    setReviewPage(1);
+    setLocalReviews([]); 
+  };
+
+  const handleSortChange = (val: "newest" | "oldest") => {
+    setDateSortOrder(val);
+    setReviewPage(1);
+    setLocalReviews([]);
+  };
+
+  // ==========================================
+  // Xử lý các thông tin khác của Tour
+  // ==========================================
 
   const getStatusLabel = (status?: string) => {
     const map: Record<string, string> = {
@@ -109,29 +182,7 @@ export const TourDetail: React.FC = () => {
       : t("tour.available", { count: available });
   };
 
-  const getReviewCustomerName = (review: any) =>
-    review.customerName || review.CustomerName || review.customerId
-      ? String(review.customerName || review.CustomerName || t("tour.customerHash", { id: review.customerId }))
-      : t("tour.anonymousCustomer");
-
-  const getReviewReplyName = (reply: any) =>
-    reply.userName || reply.UserName || reply.userId
-      ? String(reply.userName || reply.UserName || t("tour.staffHash", { id: reply.userId }))
-      : t("tour.staff");
-
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
-
-  const { 
-    reviews: fetchedReviews, 
-    isLoading: isReviewsLoading, 
-    fetchReviewsByTour 
-  } = useReview();
-
-  useEffect(() => {
-    if (id) {
-      fetchReviewsByTour(Number(id));
-    }
-  }, [id, fetchReviewsByTour]);
 
   useEffect(() => {
     const tourismInfoIds = Array.from(
@@ -177,6 +228,7 @@ export const TourDetail: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-64 items-center justify-center text-slate-500">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
         {t("tour.loadingTourDetailsMgr")}
       </div>
     );
@@ -210,21 +262,9 @@ export const TourDetail: React.FC = () => {
     if (!itineraryDayNumbers.includes(i)) missingItineraryDays.push(i);
   }
   const scheduleCount = tour.tourSchedules?.length || 0;
-  const prices =
-    tour.tourSchedules
-      ?.flatMap((schedule) => getScheduleTickets(schedule).map(getTicketPrice))
-      .filter((price): price is number => price !== null) || [];
-  const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
-  const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
-  const priceText =
-    prices.length === 0
-      ? t("tour.noTicketPrice")
-      : minPrice === maxPrice
-        ? formatCurrency(minPrice)
-        : t("tour.priceFrom", { price: formatCurrency(minPrice) });
+  const rating = tour.averageStar || 0;
 
-  // 💥 LỌC BỎ CÁC REVIEW BỊ ẨN
-  const visibleReviews = fetchedReviews.filter((review) => !review.isHidden);
+  const visibleReviews = localReviews.filter((review) => !review.isHidden);
 
   return (
     <div className="mx-auto max-w-4xl py-6">
@@ -369,20 +409,6 @@ export const TourDetail: React.FC = () => {
               </div>
             </div>
 
-            {/* <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <Banknote className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="mb-1 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-                  Lowest Price
-                </p>
-                <p className="break-words text-base font-bold text-emerald-600 sm:text-lg">
-                  {priceText}
-                </p>
-              </div>
-            </div> */}
-
             <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:p-5 transition-colors hover:bg-slate-100/50">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                 <Star className="h-5 w-5" />
@@ -392,7 +418,7 @@ export const TourDetail: React.FC = () => {
                   {t("tour.rating")}
                 </p>
                 <p className="break-words text-base font-bold text-amber-600 sm:text-lg">
-                  {tour.averageStar && tour.averageStar > 0 ? `${tour.averageStar.toFixed(1)}/5` : t("tour.noRatings")}
+                  {rating > 0 ? `${rating.toFixed(1)}/5` : t("tour.noRatings")}
                 </p>
               </div>
             </div>
@@ -424,9 +450,7 @@ export const TourDetail: React.FC = () => {
                 {tour.status !== "Banned" && (
                   <ActionButton
                     variant="primary"
-                    onClick={() =>
-                      navigate(PATH.MANAGER.CREATE_ITINERARY(tour.id))
-                    }
+                    onClick={() => navigate(PATH.MANAGER.CREATE_ITINERARY(tour.id))}
                     className="gap-2 px-4 py-2 text-sm"
                   >
                     <Plus className="h-4 w-4" />
@@ -691,135 +715,147 @@ export const TourDetail: React.FC = () => {
             )}
           </div>
 
-          {/* 💥 Reviews Section (Sử dụng visibleReviews) */}
+          {/* 💥 REVIEWS SECTION (OData Filter, Infinite Scroll, Dashboard Real Names) */}
           <div className="mt-8 border-t border-slate-100 pt-8">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">{t("tour.reviews")} ({visibleReviews.length})</h2>
+            <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+              <h2 className="text-2xl font-bold text-slate-800">
+                {t("tour.reviews")} ({totalCount || 0})
+              </h2>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Lọc theo sao */}
+                <div className="relative">
+                  <select
+                    value={ratingFilter === null ? "" : ratingFilter}
+                    onChange={(e) => handleRatingChange(e.target.value)}
+                    className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 focus:border-brand focus:ring-2 focus:ring-brand/20 cursor-pointer"
+                  >
+                    <option value="">{t("common.all")} {t("tour.rating")}</option>
+                    <option value="5">5 {t("tour.stars") || "Sao"}</option>
+                    <option value="4">4 {t("tour.stars") || "Sao"}</option>
+                    <option value="3">3 {t("tour.stars") || "Sao"}</option>
+                    <option value="2">2 {t("tour.stars") || "Sao"}</option>
+                    <option value="1">1 {t("tour.stars") || "Sao"}</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+
+                {/* Sắp xếp theo ngày */}
+                <div className="relative">
+                  <select
+                    value={dateSortOrder}
+                    onChange={(e) => handleSortChange(e.target.value as "newest" | "oldest")}
+                    className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-4 pr-10 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 focus:border-brand focus:ring-2 focus:ring-brand/20 cursor-pointer"
+                  >
+                    <option value="newest">{t("tour.newestFirst") || "Mới nhất trước"}</option>
+                    <option value="oldest">{t("tour.oldestFirst") || "Cũ nhất trước"}</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                </div>
+              </div>
             </div>
 
-            {isReviewsLoading ? (
-              <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                <Loader2 className="mb-3 h-8 w-8 animate-spin text-indigo-500" />
-                <p className="text-sm font-medium">{t("tour.loadingReviewsMgr")}</p>
-              </div>
-            ) : visibleReviews.length > 0 ? (
-              <div className="flex flex-col gap-4">
-                {visibleReviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all hover:shadow-md"
-                  >
-                    <div className="mb-3 flex items-start justify-between">
-                      <div className="flex gap-3">
-                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100">
-                          {review.customerAvatar ? (
-                            <img src={review.customerAvatar} alt={getReviewCustomerName(review)} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-600">
-                              <User className="h-5 w-5" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div>
-                          <h3 className="font-semibold text-slate-900">
-                            {getReviewCustomerName(review)}
-                          </h3>
-                          <div className="mt-1 flex items-center gap-2">
-                            <div className="flex items-center">
-                              {[...Array(5)].map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-3.5 w-3.5 ${
-                                    i < (review.rating || 0)
-                                      ? "fill-amber-400 text-amber-400"
-                                      : "text-slate-200"
-                                  }`}
-                                />
-                              ))}
-                            </div>
+            {/* Danh sách Reviews */}
+            <div className="space-y-6">
+              {visibleReviews.length > 0 ? (
+                visibleReviews.map((review) => {
+                  // KHÔI PHỤC HIỂN THỊ TÊN VÀ AVATAR THẬT BÊN DASHBOARD
+                  const reviewerName = review.customerName || review.CustomerName || (review.customerId ? `Customer #${review.customerId}` : t("tour.anonymousCustomer"));
+                  const initials = reviewerName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "A";
+                  const reviewRating = review.rating || 0;
+                  
+                  return (
+                    <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-brand font-bold text-lg uppercase shrink-0 overflow-hidden border border-blue-200">
+                            {review.customerAvatar ? (
+                              <img src={review.customerAvatar} alt={reviewerName} className="h-full w-full object-cover" />
+                            ) : (
+                              initials
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-bold text-slate-800">{reviewerName}</div>
                             {review.createdAt && (
-                              <span className="text-[11px] font-medium text-slate-400">
-                                • {new Date(review.createdAt).toLocaleDateString("vi-VN")}
-                              </span>
+                              <div className="text-xs text-slate-400">
+                                {new Date(review.createdAt).toLocaleDateString("vi-VN")}
+                              </div>
                             )}
                           </div>
                         </div>
+                        <div className="flex text-amber-400">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} fill="currentColor" size={16} className={i >= reviewRating ? "text-slate-200" : ""} />
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                    {review.comment && (
-                      <p className="mt-2 text-sm text-slate-700 leading-relaxed">
-                        {review.comment}
-                      </p>
-                    )}
+                      <p className="text-slate-600 leading-relaxed">{review.comment || t("tour.noComment")}</p>
 
-                    {review.replies && review.replies.length > 0 && (
-                      <div className="mt-4 space-y-4">
-                        {review.replies.map((reply) => {
-                          const replyName = getReviewReplyName(reply);
-                          const replyInitial = replyName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .substring(0, 2)
-                            .toUpperCase();
+                      {review.replies && review.replies.length > 0 && (
+                        <div className="mt-4 space-y-4">
+                          {review.replies.map((reply: any) => {
+                            // KHÔI PHỤC TÊN VÀ AVATAR THẬT CỦA NGƯỜI TRẢ LỜI
+                            const replyName = reply.userName || reply.UserName || (reply.userId ? `Staff #${reply.userId}` : t("tour.tourManager"));
+                            const replyInitial = replyName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "TM";
 
-                          return (
-                            <div
-                              key={reply.id}
-                              className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-                            >
-                              <div className="mb-3 flex items-center gap-3">
-                                <div className="h-10 w-10 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase border border-indigo-200">
-                                  {reply.userAvatar ? (
-                                    <img
-                                      src={reply.userAvatar}
-                                      alt={replyName}
-                                      className="h-full w-full object-cover"
-                                      onError={(e) => {
-                                        e.currentTarget.style.display = "none";
-                                        e.currentTarget.parentElement!.innerText = replyInitial;
-                                      }}
-                                    />
-                                  ) : (
-                                    replyInitial
-                                  )}
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                                    <span>{replyName}</span>
-                                    <span className="text-slate-400">•</span>
-                                    <span className="text-xs font-medium text-slate-500">
-                                      {reply.createdAt
-                                        ? new Date(reply.createdAt).toLocaleDateString("vi-VN")
-                                        : ""}
-                                    </span>
+                            return (
+                              <div key={reply.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                                <div className="mb-3 flex items-center gap-3">
+                                  <div className="h-10 w-10 rounded-full border border-indigo-200 bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm uppercase overflow-hidden">
+                                    {reply.userAvatar ? (
+                                      <img src={reply.userAvatar} alt={replyName} className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement!.innerText = replyInitial; }} />
+                                    ) : (
+                                      replyInitial
+                                    )}
                                   </div>
-                                  <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
+                                  <div>
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                                      <span>{replyName}</span>
+                                      <span className="text-slate-400">•</span>
+                                      <span className="text-xs font-medium text-slate-500">
+                                        {reply.createdAt ? new Date(reply.createdAt).toLocaleDateString("vi-VN") : ""}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
+                                  </div>
                                 </div>
+                                <p className="text-sm text-slate-700 leading-relaxed">{reply.content}</p>
                               </div>
-                              <p className="text-sm text-slate-700 leading-relaxed">
-                                {reply.content}
-                              </p>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                !isReviewsLoading && (
+                  <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                    <Star className="mb-3 h-10 w-10 text-slate-400" />
+                    <h3 className="mb-1 font-semibold text-slate-900">
+                      {t("tour.noReviews")}
+                    </h3>
+                    <p className="mb-4 text-sm text-slate-500">
+                      Chưa có đánh giá phù hợp với bộ lọc
+                    </p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
-                <Star className="mb-3 h-10 w-10 text-slate-400" />
-                <h3 className="mb-1 font-semibold text-slate-900">
-                  {t("tour.noReviews")}
-                </h3>
-                <p className="mb-4 text-sm text-slate-500">
-                  {t("tour.reviewsFromCustomers")}
-                </p>
-              </div>
-            )}
+                )
+              )}
+
+              {/* Điểm neo để Observer theo dõi cuộn */}
+              <div ref={observerTarget} className="h-4 w-full" />
+
+              {/* Loading Indicator */}
+              {isReviewsLoading && (
+                <div className="flex justify-center py-4">
+                  <div className="flex items-center gap-2 text-brand">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span className="text-sm font-medium">{t("tour.loadingReviewsMgr") || "Đang tải thêm..."}</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
         </div>

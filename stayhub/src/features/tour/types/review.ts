@@ -11,7 +11,6 @@ export interface ReadReviewReply {
   updatedAt?: string;
 }
 
-// Map theo ReadReviewDTO
 export interface Review {
   id: number;
   customerId: number;
@@ -42,13 +41,22 @@ export interface UpdateReviewRequest {
   comment: string; // Bắt buộc ở BE (không được null)
 }
 
-
-// (already defined above)
-
 export interface CreateReviewReplyRequest {
   content: string;
 }
 
 export interface UpdateReviewReplyRequest {
   content: string;
+}
+
+export interface PagedReviewResult {
+  totalCount: number;
+  items: Review[];
+}
+
+export interface ReviewFilterParams {
+  page: number;
+  pageSize: number;
+  rating?: number | null;
+  sortByDate?: "desc" | "asc"; // Mới nhất (desc) hoặc Cũ nhất (asc)
 }

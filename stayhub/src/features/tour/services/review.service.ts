@@ -1,6 +1,6 @@
 import axios from "axios";
 import { TOURS_API } from "../../../config/api/tours.api"; // Đổi lại đường dẫn import file TOURS_API của bạn
-import type { Review, CreateReviewRequest, UpdateReviewRequest, CreateReviewReplyRequest, ReadReviewReply, UpdateReviewReplyRequest } from "../types/review";
+import type { Review, CreateReviewRequest, UpdateReviewRequest, CreateReviewReplyRequest, ReadReviewReply, UpdateReviewReplyRequest, PagedReviewResult } from "../types/review";
 import { apiClient } from "../../auth/utils/axiosClient";
 import { withLanguageHeaders } from "../../../utils/httpLanguage";
 
@@ -17,15 +17,17 @@ const getPublicConfig = () => ({ headers: withLanguageHeaders() });
 
 export const reviewService = {
   // 1. Lấy tất cả review của 1 tour (Không cần đăng nhập)
-  getReviewsByTour: async (tourId: number): Promise<Review[]> => {
-    const response = await axios.get(TOURS_API.GET_REVIEWS_BY_TOUR(tourId), getPublicConfig());
+ getReviewsByTour: async (tourId: number, odataQuery: string = ""): Promise<PagedReviewResult> => {
+    // Nếu có odataQuery (VD: "?$top=5&$skip=0"), nối nó vào sau URL
+    const url = `${TOURS_API.GET_REVIEWS_BY_TOUR(tourId)}${odataQuery}`;
+    const response = await axios.get(url, getPublicConfig());
     return response.data;
   },
 
-  getReviewsByTourAdmin: async (tourId: number): Promise<Review[]> => {
-    // Thêm <any> vào đây
-    const response = await apiClient.get<any>(TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId));
-    return response.data;
+ getReviewsByTourAdmin: async (tourId: number, odataQuery: string = ""): Promise<PagedReviewResult> => {
+    const url = `${TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId)}${odataQuery}`;
+    const response = await apiClient.get<PagedReviewResult>(url);
+    return response;  
   },
 
   // 2. Lấy review CỦA TÔI cho 1 tour cụ thể (Cần Auth)

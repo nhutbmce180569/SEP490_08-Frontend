@@ -1,23 +1,31 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ArrowLeft, RefreshCw, Sparkles } from "lucide-react";
-import { ActionButton } from "../../../components/home/ActionButton";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { PATH } from "../../../config/routes/route";
+import { useAiPlanner } from "../../../contexts/AiPlannerContext";
 import { AiTourRecommendationCard } from "../components/AiTourRecommendationCard";
 import { AiModelsNotReadyBanner } from "../components/AiModelsNotReadyBanner";
+import { AiResultsViewTabs, type ResultsViewTab } from "../components/AiResultsViewTabs";
 import { DestinationTipsPanel } from "../components/DestinationTipsPanel";
 import { ScheduleNoticeBanner } from "../components/ScheduleNoticeBanner";
 import { TripContextPanel } from "../components/TripContextPanel";
+import { TripSummaryChips } from "../components/TripSummaryChips";
+import { TourMatchModal } from "../components/TourMatchModal";
 import { RelatedInsightsCarousel } from "../components/RelatedInsightsCarousel";
 import { RecommenderMetaPanel } from "../components/RecommenderMetaPanel";
 import { TipsTabsPanel } from "../components/TipsTabsPanel";
 import { WeatherAdviceCard } from "../components/WeatherAdviceCard";
 import { useRecommendFromProfile } from "../hooks/useRecommendFromProfile";
 import { useLogAiInteraction } from "../hooks/useLogAiInteraction";
-import type { PersonalizedRecommendationResponse } from "../types/tourAssistant";
+import type {
+  PersonalizedRecommendationResponse,
+  TourRecommendationItem,
+} from "../types/tourAssistant";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { normalizeRoles } from "../../../utils/jwt";
+
+type TourFilter = "all" | "exact" | "nearby";
 
 export const AiRecommendationsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -25,6 +33,7 @@ export const AiRecommendationsPage: React.FC = () => {
   const { user } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const { open: openAiPlanner } = useAiPlanner();
   const stateData = location.state as PersonalizedRecommendationResponse | undefined;
   const { data: hookData, modelsNotReady, submit, retryLast, isLoading } =
     useRecommendFromProfile();
@@ -34,6 +43,9 @@ export const AiRecommendationsPage: React.FC = () => {
   const [data, setData] = useState<PersonalizedRecommendationResponse | undefined>(
     stateData ?? hookData ?? undefined,
   );
+  const [viewTab, setViewTab] = useState<ResultsViewTab>("tours");
+  const [tourFilter, setTourFilter] = useState<TourFilter>("all");
+  const [explainTour, setExplainTour] = useState<TourRecommendationItem | null>(null);
   const prevLocaleRef = useRef(locale);
 
   useEffect(() => {
@@ -43,10 +55,8 @@ export const AiRecommendationsPage: React.FC = () => {
   useEffect(() => {
     if (prevLocaleRef.current === locale) return;
     prevLocaleRef.current = locale;
-
     const profile = data?.appliedProfile;
     if (!profile) return;
-
     submit(profile)
       .then((result) => {
         if (result) {
@@ -54,16 +64,17 @@ export const AiRecommendationsPage: React.FC = () => {
           navigate(PATH.PUBLIC.AI_RECOMMENDATIONS, { state: result, replace: true });
         }
       })
-      .catch(() => { /* keep previous results on failure */ });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refetch when user switches language
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [locale]);
 
   useEffect(() => {
     if (!data && !retriedRef.current) {
       retriedRef.current = true;
-      navigate(PATH.PUBLIC.AI_ASSISTANT, { replace: true });
+      openAiPlanner(location.pathname);
+      navigate(PATH.PUBLIC.HOME, { replace: true });
     }
-  }, [data, navigate]);
+  }, [data, navigate, openAiPlanner, location.pathname]);
 
   const handleRetryModels = async () => {
     const profile = stateData?.appliedProfile ?? hookData?.appliedProfile;
@@ -74,18 +85,36 @@ export const AiRecommendationsPage: React.FC = () => {
     } catch { /* noop */ }
   };
 
+  const exactTours = data?.recommendedTours ?? [];
+  const nearbyTours = data?.nearbyScheduleTours ?? [];
+  const schedule = data?.scheduleAvailability;
+  const showExactSection = exactTours.length > 0;
+  const showNearbySection = nearbyTours.length > 0;
+  const totalTours = exactTours.length + nearbyTours.length;
+
+  const displayedTours = useMemo(() => {
+    if (tourFilter === "exact") return exactTours;
+    if (tourFilter === "nearby") return nearbyTours;
+    return [...exactTours, ...nearbyTours];
+  }, [tourFilter, exactTours, nearbyTours]);
+
+  useEffect(() => {
+    if (!showExactSection && showNearbySection) setTourFilter("nearby");
+    else if (showExactSection) setTourFilter("all");
+  }, [showExactSection, showNearbySection]);
+
   if (!data && !modelsNotReady) {
     return (
-      <div className="home-page flex min-h-screen items-center justify-center">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+      <div className="home-page flex min-h-[40vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
       </div>
     );
   }
 
   if (modelsNotReady) {
     return (
-      <div className="home-page min-h-screen px-4 pb-20 pt-10">
-        <div className="mx-auto max-w-4xl">
+      <div className="home-page min-h-screen px-4 pb-16 pt-8">
+        <div className="mx-auto max-w-3xl">
           <AiModelsNotReadyBanner onRetry={handleRetryModels} />
         </div>
       </div>
@@ -94,175 +123,207 @@ export const AiRecommendationsPage: React.FC = () => {
 
   if (!data) return null;
 
-  const exactTours = data.recommendedTours ?? [];
-  const nearbyTours = data.nearbyScheduleTours ?? [];
-  const schedule = data.scheduleAvailability;
-  const showExactSection = exactTours.length > 0;
-  const showNearbySection = nearbyTours.length > 0;
-  const totalTours = exactTours.length + nearbyTours.length;
-  const requestedTop = data.appliedProfile?.top ?? 8;
   const preferredCity = data.appliedProfile?.preferredCity?.trim();
   const tourCities = preferredCity
     ? [preferredCity]
     : [
         ...new Set(
           [...exactTours, ...nearbyTours]
-            .map((t) => t.city?.trim())
+            .map((tour) => tour.city?.trim())
             .filter((c): c is string => Boolean(c)),
         ),
       ];
 
-  return (
-    <div className="home-page min-h-screen pb-24">
-      <div className="mx-auto max-w-7xl px-4 pt-10">
-        <Link
-          to={PATH.PUBLIC.AI_ASSISTANT}
-          className="mb-8 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 !no-underline transition-colors hover:text-brand"
-        >
-          <ArrowLeft size={16} /> {t("ai.redoSurvey")}
-        </Link>
+  const tourFilters: { id: TourFilter; label: string; show: boolean }[] = [
+    {
+      id: "all",
+      label: t("ai.tourTabAll", { count: totalTours }),
+      show: showExactSection && showNearbySection,
+    },
+    {
+      id: "exact",
+      label: t("ai.tourTabExact", { count: exactTours.length }),
+      show: showExactSection,
+    },
+    {
+      id: "nearby",
+      label: t("ai.tourTabNearby", { count: nearbyTours.length }),
+      show: showNearbySection,
+    },
+  ].filter((f) => f.show);
 
-        {/* Summary hero */}
-        <div className="glass-card mb-8 overflow-hidden">
-          <div
-            className="flex items-start gap-4 p-6 md:p-8"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--color-navy) 0%, var(--color-brand-deep) 100%)",
-            }}
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand/30">
-              <Sparkles size={22} className="text-brand-light" />
+  return (
+    <div className="home-page min-h-screen pb-20">
+      <div className="mx-auto max-w-5xl px-4 pt-6">
+        {/* Page intro */}
+        <div className="mb-4">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-light text-brand">
+              <Sparkles size={20} />
             </span>
             <div>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-brand-light">
-                {t("ai.personalisedRecs")}
-              </p>
-              <p className="text-base font-medium leading-relaxed text-white md:text-lg">
-                {data.summary}
+              <h1 className="text-xl font-black text-navy md:text-2xl">
+                {t("ai.resultsPageTitle")}
+              </h1>
+              <p className="text-sm text-slate-500">
+                {totalTours > 0
+                  ? t("ai.resultsPageSubtitle", { count: totalTours })
+                  : t("ai.resultsPageSubtitleEmpty")}
               </p>
             </div>
           </div>
+          <p className="text-sm leading-relaxed text-slate-600">{data.summary}</p>
         </div>
 
-        <TripContextPanel profile={data.appliedProfile} />
+        <div className="mb-5">
+          <TripSummaryChips
+            profile={data.appliedProfile}
+            onEdit={() => openAiPlanner(location.pathname)}
+          />
+        </div>
 
         {schedule && (
-          <ScheduleNoticeBanner
-            schedule={schedule}
-            hasNearbyTours={nearbyTours.length > 0}
-          />
+          <div className="mb-5">
+            <ScheduleNoticeBanner schedule={schedule} hasNearbyTours={nearbyTours.length > 0} />
+          </div>
         )}
 
-        {/* Weather + tips */}
-        <div className="mb-8 grid gap-5 lg:grid-cols-2">
-          {data.weatherAdvice ? (
-            <WeatherAdviceCard weather={data.weatherAdvice} />
-          ) : (
-            <div className="glass-card flex h-full items-center justify-center p-8 text-center text-sm text-slate-500">
-              {t("ai.weatherUnavailable")}
-            </div>
-          )}
-          <TipsTabsPanel
-            generalTips={data.generalTips}
-            foreignVisitorTips={data.foreignVisitorTips}
-            elderlyCompanionTips={data.elderlyCompanionTips}
-            childrenCompanionTips={data.childrenCompanionTips}
-          />
-        </div>
+        <AiResultsViewTabs
+          active={viewTab}
+          onChange={setViewTab}
+          tourCount={totalTours}
+        />
 
-        {/* Tours */}
-        <div className="flex flex-col items-start gap-8 lg:flex-row">
-          <div className="min-w-0 w-full flex-1">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="travel-heading text-xl text-navy">
-                {totalTours === 0
-                  ? t("ai.toursFoundPlural", { count: 0 })
-                  : totalTours === 1
-                    ? t("ai.toursRecommendedTitle", { count: totalTours, requested: requestedTop })
-                    : t("ai.toursRecommendedTitlePlural", { count: totalTours, requested: requestedTop })}
-              </h2>
-              <ActionButton
-                variant="outline"
-                onClick={() => navigate(PATH.PUBLIC.AI_ASSISTANT)}
-                disabled={isLoading}
-                className="!px-4 flex items-center gap-1.5 text-xs"
-              >
-                <RefreshCw size={14} /> {t("ai.newSearch")}
-              </ActionButton>
-            </div>
-            <p className="mb-6 text-sm text-slate-500">{t("ai.matchScoreHelp")}</p>
+        {viewTab === "tours" ? (
+          <div>
+            {tourFilters.length > 1 && (
+              <div className="mb-4 flex flex-wrap gap-2">
+                {tourFilters.map((f) => (
+                  <button
+                    key={f.id}
+                    type="button"
+                    onClick={() => setTourFilter(f.id)}
+                    className={[
+                      "rounded-full px-3.5 py-1.5 text-xs font-bold transition-all",
+                      tourFilter === f.id
+                        ? "bg-brand text-white shadow-sm"
+                        : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-brand/30",
+                    ].join(" ")}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            {totalTours === 0 ? (
-              <div className="glass-card mb-8 rounded-2xl p-12 text-center">
-                <p className="font-medium text-slate-500">{t("ai.noMatchingTours")}</p>
+            {!showExactSection && showNearbySection && tourFilter !== "nearby" && (
+              <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                {t("ai.noExactToursButNearby")}
+              </p>
+            )}
+
+            {displayedTours.length === 0 ? (
+              <div className="glass-card rounded-2xl px-6 py-12 text-center">
+                <p className="mb-4 text-sm font-medium text-slate-600">{t("ai.noMatchingTours")}</p>
+                <button
+                  type="button"
+                  onClick={() => openAiPlanner(location.pathname)}
+                  disabled={isLoading}
+                  className="rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white hover:opacity-90 disabled:opacity-50"
+                >
+                  {t("ai.editTrip")}
+                </button>
               </div>
             ) : (
-              <>
-                {!showExactSection && showNearbySection && (
-                  <div className="glass-card mb-6 rounded-2xl p-6 text-center">
-                    <p className="font-medium text-slate-600">{t("ai.noExactToursButNearby")}</p>
-                  </div>
-                )}
-
-                {showExactSection && (
-                  <section className="mb-10">
-                    <h3 className="travel-heading mb-1 text-lg text-navy">
-                      {exactTours.length === 1
-                        ? t("ai.toursExactMatchTitle", { count: exactTours.length })
-                        : t("ai.toursExactMatchTitlePlural", { count: exactTours.length })}
-                    </h3>
-                    <div className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                      {exactTours.map((tour) => (
-                        <AiTourRecommendationCard
-                          key={tour.tourId}
-                          tour={tour}
-                          variant="exact"
-                          showWhyFit
-                          customerMode={true}
-                          showScoreBreakdown={isAdminView}
-                          onTourClick={(id) => logInteraction(id, "click")}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {showNearbySection && (
-                  <section className="mb-10">
-                    <h3 className="travel-heading mb-1 text-lg text-navy">{t("ai.toursNearbyTitle")}</h3>
-                    <p className="mb-5 text-sm text-slate-500">{t("ai.toursNearbyDesc")}</p>
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                      {nearbyTours.map((tour) => (
-                        <AiTourRecommendationCard
-                          key={`nearby-${tour.tourId}`}
-                          tour={tour}
-                          variant="nearby"
-                          showWhyFit
-                          customerMode={true}
-                          showScoreBreakdown={isAdminView}
-                          onTourClick={(id) => logInteraction(id, "click")}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                )}
-              </>
-            )}
-
-            {tourCities.length > 0 && (
-              <DestinationTipsPanel facts={data.culturalFacts} allowedCities={tourCities} />
-            )}
-
-            {isAdminView && (
-              <>
-                <RelatedInsightsCarousel insights={data.relatedInsights} />
-                <RecommenderMetaPanel meta={data.recommenderMeta} />
-              </>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {displayedTours.map((tour) => (
+                  <AiTourRecommendationCard
+                    key={`${tourFilter}-${tour.tourId}`}
+                    tour={tour}
+                    friendly
+                    variant={
+                      nearbyTours.some((n) => n.tourId === tour.tourId) &&
+                      !exactTours.some((e) => e.tourId === tour.tourId)
+                        ? "nearby"
+                        : "exact"
+                    }
+                    showWhyFit={false}
+                    showCustomerBreakdown={false}
+                    customerMode
+                    showScoreBreakdown={isAdminView}
+                    onExplainClick={setExplainTour}
+                    onTourClick={(id) => logInteraction(id, "click")}
+                  />
+                ))}
+              </div>
             )}
           </div>
-        </div>
+        ) : (
+          <div className="space-y-5">
+            <section className="glass-card rounded-2xl p-5">
+              <h2 className="mb-1 text-base font-black text-navy">{t("ai.yourTripPlan")}</h2>
+              <p className="mb-4 text-sm text-slate-500">{t("ai.yourTripPlanDesc")}</p>
+              <TripContextPanel profile={data.appliedProfile} compact />
+            </section>
+
+            {data.weatherAdvice ? (
+              <section className="glass-card rounded-2xl p-5">
+                <WeatherAdviceCard weather={data.weatherAdvice} />
+              </section>
+            ) : (
+              <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                {t("ai.weatherUnavailable")}
+              </p>
+            )}
+
+            {(data.generalTips.length > 0 ||
+              data.foreignVisitorTips.length > 0 ||
+              data.elderlyCompanionTips.length > 0 ||
+              data.childrenCompanionTips.length > 0) && (
+              <section className="glass-card rounded-2xl p-5">
+                <TipsTabsPanel
+                  generalTips={data.generalTips}
+                  foreignVisitorTips={data.foreignVisitorTips}
+                  elderlyCompanionTips={data.elderlyCompanionTips}
+                  childrenCompanionTips={data.childrenCompanionTips}
+                />
+              </section>
+            )}
+
+            {tourCities.length > 0 && data.culturalFacts.length > 0 && (
+              <section className="glass-card rounded-2xl p-5">
+                <h2 className="mb-1 text-base font-black text-navy">
+                  {t("ai.destinationTipsTitle")}
+                </h2>
+                <p className="mb-4 text-sm text-slate-500">{t("ai.destinationTipsDesc")}</p>
+                <DestinationTipsPanel facts={data.culturalFacts} allowedCities={tourCities} />
+              </section>
+            )}
+          </div>
+        )}
+
+        {isAdminView && viewTab === "tours" && (
+          <div className="mt-8 space-y-4">
+            <RelatedInsightsCarousel insights={data.relatedInsights} />
+            <RecommenderMetaPanel meta={data.recommenderMeta} />
+          </div>
+        )}
       </div>
+
+      {/* Mobile FAB — tìm lại */}
+      <div className="fixed bottom-5 left-1/2 z-40 -translate-x-1/2 sm:hidden">
+        <button
+          type="button"
+          onClick={() => openAiPlanner(location.pathname)}
+          disabled={isLoading}
+          className="flex items-center gap-2 rounded-full bg-navy px-5 py-3 text-sm font-bold text-white shadow-lg"
+        >
+          <Sparkles size={16} />
+          {t("ai.editTrip")}
+        </button>
+      </div>
+
+      <TourMatchModal tour={explainTour} onClose={() => setExplainTour(null)} />
     </div>
   );
 };

@@ -43,6 +43,7 @@ import {
 } from "../features/tour/utils/tourScheduleTicket";
 import { useTranslation } from "../contexts/LocaleContext";
 import { useReview } from "../features/tour/hooks/useReview";
+import { MoneyDisplay } from "../features/currency/MoneyDisplay";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -50,6 +51,7 @@ type PublicTourItinerary = TourItinerary & {
 };
 
 const fmt = (n: number) => n.toLocaleString("vi-VN");
+
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("vi-VN", {
     day: "2-digit",
@@ -68,19 +70,17 @@ const getScheduleLowestPrice = (schedule: TourSchedule) => {
   return prices.length > 0 ? Math.min(...prices) : null;
 };
 
-const getSchedulePriceText = (schedule: TourSchedule) => {
+const getSchedulePriceRange = (schedule: TourSchedule) => {
   const prices = getScheduleTickets(schedule)
     .map((ticket) => getNumberValue(ticket.price))
     .filter((price): price is number => price !== null);
 
-  if (prices.length === 0) return "No price";
+  if (prices.length === 0) return null;
 
   const minPrice = Math.min(...prices);
   const maxPrice = Math.max(...prices);
 
-  return minPrice === maxPrice
-    ? `${fmt(minPrice)} đ`
-    : `${fmt(minPrice)} - ${fmt(maxPrice)} đ`;
+  return { minPrice, maxPrice };
 };
 
 const getScheduleAvailableSeats = (schedule: TourSchedule) =>
@@ -241,9 +241,18 @@ export default function PublicTourDetail() {
   }, [currentTime, sortedSchedules]);
 
   const selectedSchedule = sortedSchedules.find((s) => s.id === selectedScheduleId);
-  const selectedSchedulePrice = selectedSchedule ? getScheduleLowestPrice(selectedSchedule) : null;
-  const selectedScheduleAvailableSeats = selectedSchedule ? getScheduleAvailableSeats(selectedSchedule) : 0;
-  const selectedScheduleTickets = selectedSchedule ? getScheduleTickets(selectedSchedule) : [];
+  const selectedSchedulePrice = selectedSchedule
+    ? getScheduleLowestPrice(selectedSchedule)
+    : null;
+  const selectedScheduleAvailableSeats = selectedSchedule
+    ? getScheduleAvailableSeats(selectedSchedule)
+    : 0;
+  const selectedScheduleTickets = selectedSchedule
+    ? getScheduleTickets(selectedSchedule)
+    : [];
+  const selectedSchedulePriceRange = selectedSchedule
+    ? getSchedulePriceRange(selectedSchedule)
+    : null;
   const selectedCheckoutTickets = selectedScheduleTickets.map((ticket) =>
     enrichTicketWithTypeDetail(ticket, ticketTypeDetails),
   );
@@ -898,13 +907,12 @@ export default function PublicTourDetail() {
                   </span>
                   <div className="flex items-baseline gap-1 mt-1">
                     <span className="text-3xl font-black text-white">
-                      {minPrice !== null ? fmt(minPrice) : t("tour.noPrice")}
+                      {minPrice !== null ? (
+                        <MoneyDisplay amountVnd={minPrice} compact />
+                      ) : (
+                        t("tour.noPrice")
+                      )}
                     </span>
-                    {minPrice !== null && (
-                      <span className="text-blue-200 font-semibold ml-1">
-                        đ
-                      </span>
-                    )}
                     {minPrice !== null && (
                       <span className="text-blue-200 text-sm ml-1">
                         / {t("tour.perPerson")}
@@ -946,7 +954,19 @@ export default function PublicTourDetail() {
                             {t("tour.priceRangeLabel")}
                           </span>
                           <span className="font-bold text-slate-900">
-                            {getSchedulePriceText(selectedSchedule)}
+                            {selectedSchedulePriceRange ? (
+                              selectedSchedulePriceRange.minPrice === selectedSchedulePriceRange.maxPrice ? (
+                                <MoneyDisplay amountVnd={selectedSchedulePriceRange.minPrice} compact />
+                              ) : (
+                                <>
+                                  <MoneyDisplay amountVnd={selectedSchedulePriceRange.minPrice} compact />
+                                  {" - "}
+                                  <MoneyDisplay amountVnd={selectedSchedulePriceRange.maxPrice} compact />
+                                </>
+                              )
+                            ) : (
+                              t("tour.noPrice")
+                            )}
                           </span>
                         </div>
                         {selectedScheduleTickets.length > 0 && (
@@ -972,9 +992,11 @@ export default function PublicTourDetail() {
                                     </div>
                                   </div>
                                   <div className="shrink-0 font-bold text-slate-900">
-                                    {getNumberValue(ticket.price) !== null
-                                      ? `${fmt(getNumberValue(ticket.price) ?? 0)} đ`
-                                      : t("tour.noPrice")}
+                                    {getNumberValue(ticket.price) !== null ? (
+                                      <MoneyDisplay amountVnd={getNumberValue(ticket.price) ?? 0} compact />
+                                    ) : (
+                                      t("tour.noPrice")
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -1110,6 +1132,7 @@ export default function PublicTourDetail() {
                     );
                     const scheduleAvailableSeats = getScheduleAvailableSeats(schedule);
                     const schedulePrice = getScheduleLowestPrice(schedule);
+                    const schedulePriceRange = getSchedulePriceRange(schedule);
                     const scheduleTickets = getScheduleTickets(schedule);
                     const isExpandedTickets = expandedTicketScheduleId === schedule.id;
                     const isExpired = depDate.getTime() < currentTime;
@@ -1195,7 +1218,19 @@ export default function PublicTourDetail() {
                             </span>
 
                             <span className={`min-w-[110px] text-right font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
-                              {getSchedulePriceText(schedule)}
+                              {schedulePriceRange ? (
+                                schedulePriceRange.minPrice === schedulePriceRange.maxPrice ? (
+                                  <MoneyDisplay amountVnd={schedulePriceRange.minPrice} compact />
+                                ) : (
+                                  <>
+                                    <MoneyDisplay amountVnd={schedulePriceRange.minPrice} compact />
+                                    {" - "}
+                                    <MoneyDisplay amountVnd={schedulePriceRange.maxPrice} compact />
+                                  </>
+                                )
+                              ) : (
+                                t("tour.noPrice")
+                              )}
                             </span>
 
                             {scheduleTickets.length > 0 && (
@@ -1260,9 +1295,11 @@ export default function PublicTourDetail() {
                                       {getTicketDisplayName(ticket, ticketTypeDetails)}
                                     </span>
                                     <span className="shrink-0 font-bold text-slate-900">
-                                      {ticketPrice !== null
-                                        ? `${fmt(ticketPrice)} đ`
-                                        : t("tour.noPrice")}
+                                      {ticketPrice !== null ? (
+                                        <MoneyDisplay amountVnd={ticketPrice} compact />
+                                      ) : (
+                                        t("tour.noPrice")
+                                      )}
                                     </span>
                                   </div>
                                   <div className="mt-1 text-xs font-medium text-slate-400">

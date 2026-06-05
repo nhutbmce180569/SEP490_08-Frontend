@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
-import type { CreateVoucherDTO, CreateUserVoucherAssignmentDTO } from '../types/voucher';
+import type { VoucherTargetValue } from '../components/VoucherTargetEditor';
+import type { CreateVoucherDTO } from '../types/voucher';
+import { getAssignedQuantity } from '../utils/voucherTargetHelpers';
 import {
   getApiErrorMessage,
   getApiValidationErrors,
@@ -45,7 +47,7 @@ export const useCreateVoucher = () => {
     const maxDiscountAmount = data.maxDiscountAmount ? Number(data.maxDiscountAmount) : undefined;
     const startDate = toIsoDateTime(data.startDate as string);
     const endDate = toIsoDateTime(data.endDate as string);
-    const customerAssignments = (data.customerAssignments || []) as CreateUserVoucherAssignmentDTO[];
+    const voucherTarget = (data.voucherTarget || { type: 'public', customerAssignments: [], topCustomerAssignment: { top: 10, revenuePeriod: 'Month', quantity: 1 } }) as VoucherTargetValue;
 
     const localErrors: Record<string, string> = {};
     const codeError = validateVoucherCode(String(data.code || ''));
@@ -58,10 +60,25 @@ export const useCreateVoucher = () => {
     if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
     if (dateError) localErrors.endDate = dateError;
 
-    const totalAssigned = customerAssignments.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+    if (voucherTarget.type === 'specific') {
+      const hasInvalidCustomer = voucherTarget.customerAssignments.some(
+        (item) => !item.userId || item.userId <= 0,
+      );
+      if (hasInvalidCustomer) {
+        localErrors.voucherTarget = 'Please select customers by ID before creating the voucher.';
+      }
+    }
+
+    if (voucherTarget.type === 'topRevenue') {
+      if (!voucherTarget.topCustomerAssignment.top || voucherTarget.topCustomerAssignment.top <= 0) {
+        localErrors.voucherTarget = 'Top customer count must be at least 1.';
+      }
+    }
+
+    const totalAssigned = getAssignedQuantity(voucherTarget);
     const availableCount = Number(data.availableCount);
     if (totalAssigned > availableCount) {
-      localErrors.customerAssignments = 'Total assigned quantity cannot exceed available count.';
+      localErrors.voucherTarget = 'Total assigned quantity cannot exceed available count.';
     }
 
     if (Object.keys(localErrors).length > 0) {
@@ -79,7 +96,12 @@ export const useCreateVoucher = () => {
       startDate,
       endDate,
       description: data.description ? String(data.description).trim() : undefined,
-      customerAssignments: customerAssignments.length > 0 ? customerAssignments : undefined,
+      customerAssignments:
+        voucherTarget.type === 'specific' && voucherTarget.customerAssignments.length > 0
+          ? voucherTarget.customerAssignments.map(({ userId, quantity }) => ({ userId, quantity }))
+          : undefined,
+      topCustomerAssignment:
+        voucherTarget.type === 'topRevenue' ? voucherTarget.topCustomerAssignment : undefined,
     });
   };
 

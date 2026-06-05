@@ -1,6 +1,10 @@
 {
-  "speakExpert": "Liên hệ chuyên gia du lịch",
+  "speakExpert": "Liên hệ hệ thống StayHub",
   "followUs": "Theo dõi chúng tôi",
+  "brandDesc": "StayHub giúp khách hàng khám phá tour Việt Nam, nhận gợi ý bằng AI, áp dụng voucher và thanh toán VND qua các cổng quen thuộc.",
+  "trustPayment": "Thanh toán gốc",
+  "trustAi": "Gợi ý tour",
+  "trustCampus": "FPT Cần Thơ",
   "contact": "Liên hệ",
   "company": "Công ty",
   "supportSection": "Hỗ trợ",
@@ -25,8 +29,10 @@
   "helpCenter": "Trung tâm trợ giúp",
   "liveChat": "Chat trực tuyến",
   "howItWorks": "Cách hoạt động",
-  "address": "328 Queensberry Street, North Melbourne VIC3051, Australia.",
-  "email": "hi@stayhub.com",
+  "address": "Trường Đại học FPT Cần Thơ, 600 Nguyễn Văn Cừ nối dài, phường An Bình, TP. Cần Thơ.",
+  "email": "stayhub.fpt@gmail.com",
+  "mapTitle": "Bản đồ Trường Đại học FPT Cần Thơ",
+  "openMap": "Mở trong Google Maps",
   "phone": "1-800-453-6744",
   "copyrightBrand": "StayHub"
 }

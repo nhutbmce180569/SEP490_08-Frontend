@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Map,
   Users,
-  Sparkles,
   Search,
   ShoppingBag,
   Info,
@@ -16,7 +15,6 @@ import {
 
 import { ActionButton } from "../../components/home/ActionButton";
 import dragonLogoVideo from "../../assets/làm_hiệu_ứng_cho_con_rồng_bay-Picsart-BackgroundRemover.mp4";
-import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
@@ -29,13 +27,13 @@ import { useTranslation } from "../../contexts/LocaleContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
+import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
 
 export default function Header() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { success } = useToast();
   const { t } = useTranslation();
-  const { open: openAiPlanner } = useAiPlanner();
   const { user, logout: contextLogout } = useContext(AuthContext);
 
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
@@ -176,16 +174,6 @@ export default function Header() {
             <span>{t("header.aboutUs")}</span>
           </Link>
 
-          <ActionButton
-            variant="ghost"
-            onClick={openAiPlanner}
-            className="hidden gap-1.5 sm:inline-flex"
-            title={t("header.aiGuideTitle")}
-          >
-            <Sparkles className="h-4 w-4 text-brand" />
-            <span className="hidden text-brand md:inline">{t("header.aiGuide")}</span>
-          </ActionButton>
-
           <button
             type="button"
             className="icon-btn hidden sm:inline-flex"
@@ -247,7 +235,7 @@ export default function Header() {
                           {t("header.noNewRequests")}
                         </p>
                       ) : (
-                        (pendingRequests as { id: string; senderId: string; senderName?: string; senderAvatarUrl?: string }[])
+                        (pendingRequests ?? [])
                           .slice(0, 5)
                           .map((req) => (
                             <button
@@ -300,6 +288,7 @@ export default function Header() {
 
               <NotificationBell />
 
+              <CurrencyToggle />
               <LanguageSwitcher />
               <ThemeToggle />
 
@@ -382,6 +371,7 @@ export default function Header() {
             </>
           ) : (
             <>
+              <CurrencyToggle />
               <LanguageSwitcher />
               <ThemeToggle />
 

@@ -11,6 +11,7 @@ export const PUBLIC_ROUTES = {
   TERMS: '/terms',
   PRIVACY: '/privacy',
   ABOUT: '/about',
+  INFO: (slug: string = ':slug') => `/info/${slug}`,
   // AI Tour Assistant (public — no login required)
   AI_ASSISTANT: '/ai-assistant',
   AI_RECOMMENDATIONS: '/ai/recommendations',

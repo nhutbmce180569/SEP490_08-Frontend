@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Sparkles, X } from "lucide-react";
 import { QuestionnaireWizard } from "../components/QuestionnaireWizard";
 import { AiModelsNotReadyBanner } from "../components/AiModelsNotReadyBanner";
@@ -130,23 +130,26 @@ const AiQuestionnaireDialog: React.FC = () => {
   );
 };
 
-/** Route-level shim: opening /ai-assistant just triggers the modal then redirects */
+/**
+ * Legacy route shim: /ai-assistant opens the modal then returns to the page
+ * the user came from (stored in location.state.from or openerPath).
+ */
 export const AiQuestionnairePage: React.FC = () => {
-  const { open, isOpen } = useAiPlanner();
+  const { open, openerPath } = useAiPlanner();
   const navigate = useNavigate();
+  const location = useLocation();
   const openedRef = React.useRef(false);
 
   useEffect(() => {
-    open();
-    openedRef.current = true;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const from =
+      (location.state as { from?: string } | null)?.from ??
+      openerPath ??
+      PATH.PUBLIC.HOME;
 
-  /* After the modal was opened and then closed, go back to home */
-  useEffect(() => {
-    if (openedRef.current && !isOpen) {
-      navigate(PATH.PUBLIC.HOME, { replace: true });
-    }
-  }, [isOpen, navigate]);
+    open(from);
+    openedRef.current = true;
+    navigate(from, { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 };

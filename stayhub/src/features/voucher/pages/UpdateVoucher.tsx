@@ -9,7 +9,7 @@ import {
 import { DynamicForm, type FormField } from '../../../components/dashboard/DynamicForm';
 import { LoadingOverlay } from '../../../components/dashboard/LoadingOverlay';
 import { useTranslation } from '../../../contexts/LocaleContext';
-import { CustomerAssignmentEditor, type CustomerAssignmentRow } from '../components/CustomerAssignmentEditor';
+import { createDefaultVoucherTarget, VoucherTargetEditor, type VoucherTargetValue } from '../components/VoucherTargetEditor';
 import { useUpdateVoucher } from '../hooks/useUpdateVoucher';
 import { useTourOptions } from '../hooks/useTourOptions';
 import { toDateTimeLocal } from '../utils/voucherHelpers';
@@ -115,13 +115,13 @@ export const UpdateVoucher: React.FC = () => {
         colSpan: 2,
       },
       {
-        name: 'customerAssignments',
+        name: 'voucherTarget',
         label: t('voucher.addCustomerAssignments'),
         type: 'custom',
         colSpan: 2,
         render: (value, onChange, error) => (
-          <CustomerAssignmentEditor
-            value={(value as CustomerAssignmentRow[]) || []}
+          <VoucherTargetEditor
+            value={(value as VoucherTargetValue) || createDefaultVoucherTarget()}
             onChange={onChange}
             error={error}
           />
@@ -191,7 +191,7 @@ export const UpdateVoucher: React.FC = () => {
           startDate: toDateTimeLocal(voucher.startDate),
           endDate: toDateTimeLocal(voucher.endDate),
           description: voucher.description || '',
-          customerAssignments: [],
+          voucherTarget: createDefaultVoucherTarget(),
         }}
         onSubmit={handleSubmit}
         serverErrors={serverErrors}

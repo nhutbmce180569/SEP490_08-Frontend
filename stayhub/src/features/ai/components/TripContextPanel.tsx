@@ -7,6 +7,7 @@ import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
 interface Props {
   profile: TourPreferenceQuestionnaire;
+  compact?: boolean;
 }
 
 const companionKey: Record<string, string> = {
@@ -16,7 +17,7 @@ const companionKey: Record<string, string> = {
   group: "ai.companionGroup",
 };
 
-export const TripContextPanel: React.FC<Props> = ({ profile }) => {
+export const TripContextPanel: React.FC<Props> = ({ profile, compact }) => {
   const { t } = useTranslation();
   const { locale } = useLocale();
 
@@ -27,6 +28,22 @@ export const TripContextPanel: React.FC<Props> = ({ profile }) => {
   const interests = (profile.travelInterests ?? [])
     .map((key) => localizeInterestKey(key, locale))
     .join(", ");
+
+  if (compact) {
+    return (
+      <div className="space-y-2 text-xs">
+        <InfoRow label={t("ai.travelDates")} value={`${formatDate(profile.preferredStartDate)} → ${formatDate(endDate)}`} />
+        <InfoRow label={t("ai.travelParty")} value={t(companionKey[profile.companionType] ?? "ai.companionSolo")} />
+        {profile.preferredCity && (
+          <InfoRow label={t("ai.destination")} value={profile.preferredCity} />
+        )}
+        {profile.maxBudgetPerPerson != null && (
+          <InfoRow label={t("ai.budgetPerPerson")} value={formatVnd(profile.maxBudgetPerPerson, locale)} />
+        )}
+        {interests && <InfoRow label={t("ai.yourInterests")} value={interests} />}
+      </div>
+    );
+  }
 
   return (
     <section className="glass-card mb-8 p-5 md:p-6">
@@ -82,6 +99,13 @@ const InfoItem: React.FC<{
       <span className="text-[10px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
     </div>
     <p className="text-sm font-bold text-slate-800">{value}</p>
+  </div>
+);
+
+const InfoRow: React.FC<{ label: string; value: string }> = ({ label, value }) => (
+  <div className="flex gap-2">
+    <span className="w-24 shrink-0 font-bold text-slate-500">{label}</span>
+    <span className="font-medium text-slate-800">{value}</span>
   </div>
 );
 

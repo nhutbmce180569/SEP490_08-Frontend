@@ -31,11 +31,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourScheduleItinerary } from "../../tour/types/tourScheduleItinerary";
-
-const currencyFormatter = new Intl.NumberFormat("vi-VN", {
-  style: "currency",
-  currency: "VND",
-});
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -547,7 +543,7 @@ export const OrderDetailPage: React.FC = () => {
                           </p>
                         </div>
                         <p className="shrink-0 whitespace-nowrap font-bold text-slate-950">
-                          {currencyFormatter.format(detail.totalPrice)}
+                          <MoneyDisplay amountVnd={detail.totalPrice} compact />
                         </p>
                       </div>
                     ))}
@@ -557,10 +553,13 @@ export const OrderDetailPage: React.FC = () => {
                     <span>{t("booking.tickets")}</span>
                     <span className="whitespace-nowrap text-right">
                       {ticketCount} x{" "}
-                      {currencyFormatter.format(
-                        (order.finalAmount + (order.discountValue || 0)) /
-                          Math.max(ticketCount, 1),
-                      )}
+                      <MoneyDisplay
+                        amountVnd={
+                          (order.finalAmount + (order.discountValue || 0)) /
+                          Math.max(ticketCount, 1)
+                        }
+                        compact
+                      />
                     </span>
                   </div>
                 )}
@@ -569,14 +568,14 @@ export const OrderDetailPage: React.FC = () => {
                   <div className="flex justify-between gap-4 text-slate-600">
                     <span>{t("booking.subtotal")}</span>
                     <span className="font-semibold text-slate-950">
-                      {currencyFormatter.format(subtotalAmount)}
+                      <MoneyDisplay amountVnd={subtotalAmount} compact />
                     </span>
                   </div>
                   {order.discountValue && order.discountValue > 0 ? (
                     <div className="flex justify-between gap-4 text-rose-600">
                       <span>{t("booking.discount")}</span>
                       <span>
-                        -{currencyFormatter.format(order.discountValue)}
+                        -<MoneyDisplay amountVnd={order.discountValue} compact />
                       </span>
                     </div>
                   ) : null}
@@ -587,7 +586,11 @@ export const OrderDetailPage: React.FC = () => {
                     {t("booking.totalPaid")}
                   </span>
                   <span className="whitespace-nowrap text-lg font-bold text-brand">
-                    {currencyFormatter.format(order.finalAmount)}
+                    <MoneyDisplay
+                      amountVnd={order.finalAmount}
+                      showVndBacking
+                      subTextClassName="mt-0.5 block text-right text-[11px] font-semibold text-slate-500"
+                    />
                   </span>
                 </div>
               </div>
@@ -687,41 +690,36 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {canCancelByDepartureDate ? (
-                    <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                      <div className="flex justify-between gap-4">
-                        <span className="text-amber-800">
-                          {t("booking.cancellationFee")}
-                        </span>
-                        <span className="font-bold text-amber-900">
-                          {cancellationFeePercent}% (
-                          {currencyFormatter.format(cancellationFeeAmount ?? 0)}
-                          )
-                        </span>
-                      </div>
-                      <div className="flex justify-between gap-4">
-                        <span className="text-amber-800">
-                          {t("booking.estimatedRefund")}
-                        </span>
-                        <span className="font-bold text-emerald-700">
-                          {currencyFormatter.format(estimatedRefundAmount ?? 0)}
-                        </span>
-                      </div>
-                      <p className="text-xs leading-relaxed text-amber-700">
-                        {t("booking.feeRule")}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
-                      <p className="font-semibold text-rose-800">
-                        {t("booking.cannotCancel")}
-                      </p>
-                      <p className="mt-1 text-sm leading-relaxed text-rose-700">
-                        {t("booking.cannotCancelDesc")}
-                      </p>
-                    </div>
-                  )}
+              {canCancelByDepartureDate ? (
+                <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                  <div className="flex justify-between gap-4">
+                    <span className="text-amber-800">{t("booking.cancellationFee")}</span>
+                    <span className="font-bold text-amber-900">
+                      {cancellationFeePercent}% (
+                      <MoneyDisplay amountVnd={cancellationFeeAmount ?? 0} compact />)
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-4">
+                    <span className="text-amber-800">{t("booking.estimatedRefund")}</span>
+                    <span className="font-bold text-emerald-700">
+                      <MoneyDisplay amountVnd={estimatedRefundAmount ?? 0} compact />
+                    </span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-amber-700">
+                    {t("booking.feeRule")}
+                  </p>
                 </div>
+              ) : (
+                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                  <p className="font-semibold text-rose-800">
+                    {t("booking.cannotCancel")}
+                  </p>
+                  <p className="mt-1 text-sm leading-relaxed text-rose-700">
+                    {t("booking.cannotCancelDesc")}
+                  </p>
+                </div>
+              )}
+            </div>
 
                 <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
                   <button

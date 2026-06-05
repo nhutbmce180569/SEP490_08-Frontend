@@ -3,6 +3,7 @@ import { MapPin, Clock, Star, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { PATH } from "../../config/routes/route";
 import { useTranslation } from "../../contexts/LocaleContext";
+import { MoneyDisplay } from "../../features/currency/MoneyDisplay";
 
 export interface TourCardProps {
   id: string | number;
@@ -77,7 +78,7 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
                     {t("home.priceFrom")}
                   </div>
                   <div className="text-lg font-black text-brand">
-                    {tour.price.toLocaleString("vi-VN")}đ
+                    <MoneyDisplay amountVnd={tour.price} compact />
                   </div>
                 </>
               ) : (

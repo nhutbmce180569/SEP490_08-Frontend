@@ -8,6 +8,7 @@ export interface User {
     fullName?: string;
     roles?: string | string[];
     avatarUrl?: string;
+    requirePasswordChange?: boolean;
     [key: string]: any;
 }
 

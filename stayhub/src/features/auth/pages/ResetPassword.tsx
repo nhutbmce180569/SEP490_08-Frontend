@@ -8,6 +8,12 @@ import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import {
+  getOtpCooldownStorageKey,
+  usePersistentCountdown,
+} from "../hooks/usePersistentCountdown";
+
+const OTP_COOLDOWN_SECONDS = 60;
 
 export default function ResetPassword() {
   const { t } = useTranslation();
@@ -23,18 +29,16 @@ export default function ResetPassword() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [countdown, setCountdown] = useState(60);
 
   const { handleResetPasswordSubmit, isSubmitting, serverErrors } = useResetPassword();
   const { handleForgotPasswordSubmit, isSubmitting: isResending } = useForgotPassword();
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [countdown]);
+  const {
+    remainingSeconds: countdown,
+    startCountdown,
+  } = usePersistentCountdown(
+    getOtpCooldownStorageKey(formData.email),
+    OTP_COOLDOWN_SECONDS,
+  );
 
   useEffect(() => {
     if (!prefilledEmail) {
@@ -73,9 +77,11 @@ export default function ResetPassword() {
 
   const handleResendCode = async () => {
     if (formData.email) {
-      const isSuccess = await handleForgotPasswordSubmit({ email: formData.email });
-      if (isSuccess) {
-        setCountdown(60);
+      const result = await handleForgotPasswordSubmit({ email: formData.email });
+      if (result.success) {
+        startCountdown();
+      } else if (result.retryAfterSeconds) {
+        startCountdown(result.retryAfterSeconds);
       }
     }
   };

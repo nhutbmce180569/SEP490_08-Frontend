@@ -13,6 +13,8 @@ export interface UserResponseDTO {
   gender?: string;
   dateOfBirth?: string;
   lastOnline?: string;
+  requirePasswordChange: boolean;
+  roles: string[];
 }
 
 export interface LoginResponseDTO {

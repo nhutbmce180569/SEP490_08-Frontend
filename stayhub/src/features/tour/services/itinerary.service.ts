@@ -32,3 +32,9 @@ export const deleteItinerary = async (id: string | number) => {
   const response = await apiClient.delete(`${ITINERARY_API}/${id}`);
   return response;
 };
+
+export const downloadItineraryImportTemplate = async (): Promise<Blob> => {
+  return await apiClient.get(TOURS_API.ITINERARY_IMPORT_TEMPLATE, {
+    responseType: "blob",
+  });
+};

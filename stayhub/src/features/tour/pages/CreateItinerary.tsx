@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Calendar, Type, FileText, MapPin, Map, Plus, Trash2, Save, X, Clock } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { Calendar, Type, FileText, MapPin, Map, Plus, Trash2, Save, X, Clock, Download, Upload, FileSpreadsheet, CircleCheck, RotateCcw } from "lucide-react";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateItinerary } from "../hooks/useCreateItinerary";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -9,6 +9,10 @@ import { tourismInformationService } from "../../content/services/tourismInforma
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import {
+  downloadItineraryImportTemplate,
+} from "../services/itinerary.service";
+import { parseItineraryExcel } from "../utils/itineraryExcel";
 
 export const CreateItinerary: React.FC = () => {
   const { t } = useTranslation();
@@ -24,11 +28,17 @@ export const CreateItinerary: React.FC = () => {
     missingDayNumbers,
     handleAddDay,
     handleRemoveDay,
+    handleClearDay,
     updateItinerary,
     patchItinerary,
+    addImportedItineraries,
   } = useCreateItinerary();
-  const { error: showError } = useToast();
+  const { success, error: showError } = useToast();
   const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
+  const [isTourismInformationLoading, setIsTourismInformationLoading] = useState(true);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importSummary, setImportSummary] = useState<{ count: number; fileName: string } | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   // --- STATE CHO MAP PICKER ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -38,7 +48,8 @@ export const CreateItinerary: React.FC = () => {
     tourismInformationService
       .getActiveList()
       .then(setTourismInformationList)
-      .catch(() => setTourismInformationList([]));
+      .catch(() => setTourismInformationList([]))
+      .finally(() => setIsTourismInformationLoading(false));
   }, []);
 
   const openMapModal = (index: number) => {
@@ -62,6 +73,7 @@ export const CreateItinerary: React.FC = () => {
   const handleChangeTourismInfo = (index: number, selectedTourismInfo: TourismInformation | null) => {
     patchItinerary(index, {
       tourismInfoId: selectedTourismInfo?.id ?? null,
+      tourismSearchKeyword: "",
       ...(selectedTourismInfo
         ? {
             locationName: selectedTourismInfo.address || selectedTourismInfo.name,
@@ -85,8 +97,28 @@ export const CreateItinerary: React.FC = () => {
         return;
       }
 
-      if (!iti.locationLat || !iti.locationLng) {
+      if (
+        iti.locationLat === undefined ||
+        iti.locationLat === null ||
+        iti.locationLng === undefined ||
+        iti.locationLng === null
+      ) {
         showError(`Day ${assignedDay}: Please pick a location on map.`);
+        return;
+      }
+
+      if (String(iti.title ?? "").trim().length < 3) {
+        showError(`Day ${assignedDay}: Title must contain at least 3 characters.`);
+        return;
+      }
+
+      if (String(iti.description ?? "").trim().length < 10) {
+        showError(`Day ${assignedDay}: Description must contain at least 10 characters.`);
+        return;
+      }
+
+      if (String(iti.locationName ?? "").trim().length < 3) {
+        showError(`Day ${assignedDay}: Location name must contain at least 3 characters.`);
         return;
       }
 
@@ -113,6 +145,49 @@ export const CreateItinerary: React.FC = () => {
     handleSubmitBatch(itineraries);
   };
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await downloadItineraryImportTemplate();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "StayHub_Tour_Itinerary_Template.xlsx";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      showError(error.message || t("tour.downloadTemplateFailed"));
+    }
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !tourId) return;
+
+    if (!file.name.toLowerCase().endsWith(".xlsx")) {
+      showError(t("tour.excelFileRequired"));
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      const importedItineraries = await parseItineraryExcel(
+        file,
+        Number(tourId),
+        tourismInformationList,
+      );
+      addImportedItineraries(importedItineraries);
+      setImportSummary({ count: importedItineraries.length, fileName: file.name });
+      success(t("tour.importPreviewSuccess", { count: importedItineraries.length }));
+    } catch (error: any) {
+      showError(error.message || t("tour.importExcelFailed"));
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   // Hàm lấy lỗi từ BE trả về (Bắt định dạng Itineraries[0].Title của C#)
   const getError = (index: number, field: string) => {
     if (!serverErrors) return null;
@@ -131,6 +206,10 @@ export const CreateItinerary: React.FC = () => {
 
   if (isTourLoading) {
     return <div className="p-10 text-center text-slate-500">{t("tour.loadingTourDetailsMgr")}</div>;
+  }
+
+  if (tour && !tour.canEdit) {
+    return <div className="p-10 text-center text-rose-500">{t("tour.noEditPermission")}</div>;
   }
 
   return (
@@ -155,6 +234,53 @@ export const CreateItinerary: React.FC = () => {
             </ActionButton>
           </div>
         </div>
+        <div className="flex flex-col gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-white p-2.5 text-indigo-600 shadow-sm">
+              <FileSpreadsheet className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900">{t("tour.excelToolsTitle")}</p>
+              <p className="mt-0.5 text-xs leading-5 text-slate-600">{t("tour.excelToolsDescription")}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx"
+              className="hidden"
+              onChange={handleImportFile}
+            />
+            <ActionButton type="button" variant="secondary" onClick={handleDownloadTemplate} className="gap-2 px-4 py-2 shadow-sm">
+              <Download className="h-4 w-4" />
+              {t("tour.downloadExcelTemplate")}
+            </ActionButton>
+            <ActionButton
+              type="button"
+              variant="primary"
+              onClick={() => importInputRef.current?.click()}
+              disabled={isImporting || isTourismInformationLoading}
+              className="gap-2 px-4 py-2 shadow-sm"
+            >
+              <Upload className="h-4 w-4" />
+              {isImporting ? t("tour.importingExcel") : t("tour.importExcel")}
+            </ActionButton>
+          </div>
+        </div>
+        {importSummary && (
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <div>
+              <p className="font-semibold">
+                {t("tour.importPreviewLoaded", { count: importSummary.count })}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-700">
+                {t("tour.importPreviewReview", { fileName: importSummary.fileName })}
+              </p>
+            </div>
+          </div>
+        )}
         {missingDayNumbers && missingDayNumbers.length > 0 && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mt-4">
             <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
@@ -179,11 +305,22 @@ export const CreateItinerary: React.FC = () => {
                     <input type="number" min="1" required value={iti.dayNumber} onChange={(e) => updateItinerary(index, "dayNumber", e.target.value)} className="w-16 rounded-md border border-slate-200 px-2 py-1 text-center font-bold text-slate-900 focus:border-indigo-500 focus:outline-none" />
                   </div>
                 </div>
-                {index > 0 && (
-                  <ActionButton type="button" variant="warning" onClick={() => handleRemoveDay(index)} className="h-8 w-8 !bg-rose-50 !text-rose-500 hover:!bg-rose-100 hover:!text-rose-600 !border-transparent transition-colors">
-                    <Trash2 className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <ActionButton
+                    type="button"
+                    variant="secondary"
+                    onClick={() => handleClearDay(index)}
+                    className="gap-1.5 px-3 py-1.5 text-xs"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    {t("tour.clearForm")}
                   </ActionButton>
-                )}
+                  {index > 0 && (
+                    <ActionButton type="button" variant="warning" onClick={() => handleRemoveDay(index)} className="h-8 w-8 !bg-rose-50 !text-rose-500 hover:!bg-rose-100 hover:!text-rose-600 !border-transparent transition-colors">
+                      <Trash2 className="h-4 w-4" />
+                    </ActionButton>
+                  )}
+                </div>
               </div>
 
               <div className="p-6">
@@ -249,6 +386,7 @@ export const CreateItinerary: React.FC = () => {
                       <TourismInformationSelector
                         items={tourismInformationList}
                         value={iti.tourismInfoId ?? null}
+                        initialKeyword={iti.tourismSearchKeyword ?? ""}
                         onChange={(item) => handleChangeTourismInfo(index, item)}
                         error={getError(index, "tourismInfoId")}
                       />
@@ -283,7 +421,10 @@ export const CreateItinerary: React.FC = () => {
         </div>
       </form>
 
-      <LoadingOverlay isOpen={isSubmitting} message={t("tour.savingAllItineraries")} />
+      <LoadingOverlay
+        isOpen={isSubmitting || isImporting}
+        message={isImporting ? t("tour.importingExcel") : t("tour.savingAllItineraries")}
+      />
 
       <MapPickerModal
         isOpen={isMapModalOpen}

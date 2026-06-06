@@ -290,6 +290,7 @@ const AdminReviewCard: React.FC<{
 // ==========================================
 export const DashboardReviewManager: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
   const [tours, setTours] = useState<any[]>([]);
   const [isToursLoading, setIsToursLoading] = useState(true);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
@@ -318,10 +319,20 @@ export const DashboardReviewManager: React.FC = () => {
       try {
         const res = await getTours(1, 50); 
         const tourList = res.data; 
-        setTours(tourList);
+        const roles = Array.isArray(user?.roles)
+          ? user.roles
+          : user?.roles
+            ? [user.roles]
+            : [];
+        const canUseAssignedTours = roles.includes("Admin") || roles.includes("Staff");
+        const manageableTours = canUseAssignedTours
+          ? tourList
+          : tourList.filter((tour: any) => tour.canEdit);
+
+        setTours(manageableTours);
         
-        if (tourList.length > 0) {
-          setSelectedTourId(tourList[0].id);
+        if (manageableTours.length > 0) {
+          setSelectedTourId(manageableTours[0].id);
         }
       } catch (error) {
         console.error("Failed to fetch tours", error);
@@ -330,7 +341,7 @@ export const DashboardReviewManager: React.FC = () => {
       }
     };
     fetchTours();
-  }, []);
+  }, [user?.roles]);
 
   // 2. Reset Filter và Danh sách Review khi đổi TourId
   useEffect(() => {

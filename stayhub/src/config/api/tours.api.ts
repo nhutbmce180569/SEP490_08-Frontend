@@ -20,8 +20,10 @@ export const TOURS_API = {
   CREATE_ITINERARY: (id: string | number) =>
     `${FULL_API}/tours/${id}/itineraries`,
   BATCH_ITINERARIES: `${FULL_API}/TourItineraries/batch`,
+  ITINERARY_IMPORT_TEMPLATE: `${FULL_API}/TourItineraries/import-template`,
   TOUR_SCHEDULE_ITINERARIES: `${FULL_API}/TourScheduleItineraries`,
   BATCH_SCHEDULE_ITINERARIES: `${FULL_API}/TourScheduleItineraries/batch`,
+  SCHEDULE_ITINERARY_IMPORT_TEMPLATE: `${FULL_API}/TourScheduleItineraries/import-template`,
   GET_SCHEDULE_ITINERARIES_BY_SCHEDULE: (scheduleId: string | number) =>
     `${FULL_API}/TourScheduleItineraries/schedule/${scheduleId}`,
   TOUR_SCHEDULE_STAFFS: `${FULL_API}/TourScheduleStaffs`,

@@ -5,11 +5,13 @@ import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import { useTourSchedule } from "./useTourSchedule";
 import { useTour } from "./useTour";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useCreateScheduleItinerary = () => {
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const navigate = useNavigate();
-  const { success, error: showError } = useToast();
+  const { t } = useTranslation();
+  const { success, warning, error: showError } = useToast();
 
   const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById } = useTourSchedule();
 
@@ -37,8 +39,20 @@ export const useCreateScheduleItinerary = () => {
       locationLat: undefined,
       locationLng: undefined,
       tourismInfoId: null,
+      tourismSearchKeyword: "",
     },
   ]);
+
+  const isBlankItinerary = (itinerary: any) =>
+    !itinerary.title &&
+    !itinerary.description &&
+    !itinerary.startDuration &&
+    !itinerary.endDuration &&
+    !itinerary.locationName &&
+    (itinerary.locationLat === undefined || itinerary.locationLat === null) &&
+    (itinerary.locationLng === undefined || itinerary.locationLng === null) &&
+    !itinerary.tourismInfoId &&
+    !itinerary.tourismSearchKeyword;
 
   const existingDayNumbers = useMemo(() => {
     return schedule?.tourScheduleItineraries?.map((i: any) => Number(i.dayNumber)).sort((a: number, b: number) => a - b) ?? [];
@@ -83,26 +97,80 @@ export const useCreateScheduleItinerary = () => {
     const lastItinerary = itineraries.length > 0 ? itineraries[itineraries.length - 1] : null;
     const lastDayNumber = lastItinerary ? lastItinerary.dayNumber : 1;
     const lastItineraryDate = lastItinerary ? lastItinerary.itineraryDate : "";
-    setItineraries((prev) => [
-      ...prev,
-      {
-        id: Date.now() + Math.random(),
-        dayNumber: Number(lastDayNumber),
-        itineraryDate: lastItineraryDate,
-        title: "",
-        description: "",
-        startDuration: "",
-        endDuration: "",
-        locationName: "",
-        locationLat: undefined,
-        locationLng: undefined,
-        tourismInfoId: null,
-      },
-    ]);
+    const newItinerary = {
+      id: Date.now() + Math.random(),
+      dayNumber: Number(lastDayNumber),
+      itineraryDate: lastItineraryDate,
+      title: "",
+      description: "",
+      startDuration: "",
+      endDuration: "",
+      locationName: "",
+      locationLat: undefined,
+      locationLng: undefined,
+      tourismInfoId: null,
+      tourismSearchKeyword: "",
+    };
+    const replacesBlankDefault =
+      itineraries.length === 1 && isBlankItinerary(itineraries[0]);
+
+    setItineraries((prev) =>
+      replacesBlankDefault ? [newItinerary] : [...prev, newItinerary],
+    );
+    if (replacesBlankDefault) {
+      warning(t("tour.blankFormReplaced"));
+    }
   };
 
   const handleRemoveItinerary = (indexToRemove: number) => {
     setItineraries((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleClearItinerary = (indexToClear: number) => {
+    setItineraries((prev) =>
+      prev.map((itinerary, index) =>
+        index === indexToClear
+          ? {
+              id: Date.now() + Math.random(),
+              dayNumber: itinerary.dayNumber,
+              itineraryDate: itinerary.itineraryDate,
+              title: "",
+              description: "",
+              startDuration: "",
+              endDuration: "",
+              locationName: "",
+              locationLat: undefined,
+              locationLng: undefined,
+              tourismInfoId: null,
+              tourismSearchKeyword: "",
+            }
+          : itinerary,
+      ),
+    );
+    success(t("tour.itineraryFormCleared"));
+  };
+
+  const addImportedItineraries = (imported: any[]) => {
+    const normalized = imported.map((item, index) => ({
+      id: Date.now() + index + Math.random(),
+      dayNumber: Number(item.dayNumber),
+      itineraryDate: item.itineraryDate ?? "",
+      title: item.title ?? "",
+      description: item.description ?? "",
+      startDuration: item.startDuration?.substring(0, 5) ?? "",
+      endDuration: item.endDuration?.substring(0, 5) ?? "",
+      locationName: item.locationName ?? "",
+      locationLat: item.locationLat ?? undefined,
+      locationLng: item.locationLng ?? undefined,
+      tourismInfoId: item.tourismInfoId ?? null,
+      tourismSearchKeyword: item.tourismSearchKeyword ?? "",
+    }));
+
+    setItineraries((current) =>
+      current.length === 1 && isBlankItinerary(current[0])
+        ? normalized
+        : [...current, ...normalized],
+    );
   };
 
   const updateItinerary = (index: number, field: string, value: any) => {
@@ -241,6 +309,7 @@ export const useCreateScheduleItinerary = () => {
           locationLat, 
           locationLng,
           tourismInfoId: tourismInfoId ?? null,
+          tourismSearchKeyword: "",
         };
       });
 
@@ -299,6 +368,7 @@ export const useCreateScheduleItinerary = () => {
         locationLat,
         locationLng,
         tourismInfoId: tourismInfoId ?? null,
+        tourismSearchKeyword: "",
       };
 
       patchItinerary(itemIndex, patchData);
@@ -326,8 +396,8 @@ export const useCreateScheduleItinerary = () => {
           startDuration: iti.startDuration ? (iti.startDuration.length === 5 ? `${iti.startDuration}:00` : iti.startDuration) : null,
           endDuration: iti.endDuration ? (iti.endDuration.length === 5 ? `${iti.endDuration}:00` : iti.endDuration) : null,
           locationName: iti.locationName || null,
-          locationLat: iti.locationLat ? Number(iti.locationLat) : null,
-          locationLng: iti.locationLng ? Number(iti.locationLng) : null,
+          locationLat: iti.locationLat === null || iti.locationLat === undefined ? null : Number(iti.locationLat),
+          locationLng: iti.locationLng === null || iti.locationLng === undefined ? null : Number(iti.locationLng),
           tourismInfoId: iti.tourismInfoId === "" || iti.tourismInfoId === null || iti.tourismInfoId === undefined ? null : Number(iti.tourismInfoId),
         })),
       };
@@ -374,6 +444,8 @@ export const useCreateScheduleItinerary = () => {
     cloneableDayNumbers,
     handleAddItinerary,
     handleRemoveItinerary,
+    handleClearItinerary,
+    addImportedItineraries,
     updateItinerary,
     patchItinerary,
     handleCloneFromTour,

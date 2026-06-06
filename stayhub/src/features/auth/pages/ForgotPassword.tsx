@@ -7,18 +7,34 @@ import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import {
+  getOtpCooldownStorageKey,
+  usePersistentCountdown,
+} from "../hooks/usePersistentCountdown";
+
+const OTP_COOLDOWN_SECONDS = 60;
 
 export default function ForgotPassword() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const { handleForgotPasswordSubmit, isSubmitting } = useForgotPassword();
   const navigate = useNavigate();
+  const {
+    isActive: isCooldownActive,
+    startCountdown,
+  } = usePersistentCountdown(
+    getOtpCooldownStorageKey(email),
+    OTP_COOLDOWN_SECONDS,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isSuccess = await handleForgotPasswordSubmit({ email });
-    if (isSuccess) {
+    const result = await handleForgotPasswordSubmit({ email });
+    if (result.success) {
+      startCountdown();
       navigate(PATH.PUBLIC.RESET_PASSWORD, { state: { email } });
+    } else if (result.retryAfterSeconds) {
+      startCountdown(result.retryAfterSeconds);
     }
   };
 
@@ -54,7 +70,7 @@ export default function ForgotPassword() {
         <ActionButton
           type="submit"
           variant="primary"
-          disabled={isSubmitting || !email}
+          disabled={isSubmitting || !email || isCooldownActive}
           className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
         >
           {isSubmitting ? t("errors.sending") : t("errors.sendResetCode")}

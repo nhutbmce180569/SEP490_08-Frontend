@@ -48,6 +48,10 @@ export const useLogin = () => {
             gender: decodedClaims.Gender || user?.gender,
             dateOfBirth: decodedClaims.DateOfBirth || user?.dateOfBirth,
             avatarUrl: decodedClaims.AvatarUrl || user?.avatarUrl,
+            requirePasswordChange:
+              decodedClaims.RequirePasswordChange === true ||
+              decodedClaims.RequirePasswordChange === "true" ||
+              user?.requirePasswordChange === true,
             jti: decodedClaims.jti,
             rawClaims: decodedClaims 
           };
@@ -62,6 +66,11 @@ export const useLogin = () => {
 
       // Chuẩn hóa roles thành mảng để dễ bề kiểm tra
       const upperRoles = normalizeRoles(user?.roles);
+
+      if (user?.requirePasswordChange) {
+        navigate(PATH.PUBLIC.CHANGE_PASSWORD, { replace: true });
+        return;
+      }
 
       // Chuyển hướng theo mức độ ưu tiên của Role
       if (upperRoles.includes("ADMIN")) {

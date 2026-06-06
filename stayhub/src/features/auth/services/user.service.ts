@@ -1,6 +1,6 @@
 import { apiClient } from "../../../utils/axiosClient";
 import { AUTH_API } from "../../../config/api/auth.api";
-import type { ReadUserDTO, CreateUserDTO, UpdateUserDTO, ChangeUserStatusDTO } from "../types/user";
+import type { ReadUserDTO, CreateUserDTO, UpdateUserDTO, ChangeUserStatusDTO, AdminCreatedUserDTO } from "../types/user";
 import type { PaginationDTO } from "../types/pagination";
 
 export const userService = {
@@ -30,10 +30,9 @@ export const userService = {
     return response.id !== undefined ? response : response.data;
   },
 
-  createUser: async (data: CreateUserDTO): Promise<ReadUserDTO> => {
+  createUser: async (data: CreateUserDTO): Promise<AdminCreatedUserDTO> => {
     const formData = new FormData();
     formData.append("email", data.email);
-    formData.append("password", data.password);
     formData.append("fullName", data.fullName);
     if (data.phoneNumber) formData.append("phoneNumber", data.phoneNumber);
     if (data.gender) formData.append("gender", data.gender);
@@ -51,7 +50,7 @@ export const userService = {
     const response: any = await apiClient.post(AUTH_API.CREATE_USER, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return response.id !== undefined ? response : response.data;
+    return response.temporaryPassword !== undefined ? response : response.data;
   },
 
   updateUser: async (id: number | string, data: UpdateUserDTO): Promise<{ message: string }> => {

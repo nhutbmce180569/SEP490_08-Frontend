@@ -17,41 +17,45 @@ apiClient.interceptors.request.use((config) => {
 
 export const chatService = {
   getChatRooms: async (): Promise<ChatRoom[]> => {
-    const response = await apiClient.get<any>('/api/chat/rooms');
+    const response = await apiClient.get<any>('/chat/rooms');
     return response.data?.data || response.data || [];
   },
 
   getChatMessages: async (roomId: number): Promise<ChatMessage[]> => {
     const response = await apiClient.get<any>(
-      `/api/chat/rooms/${roomId}/messages`
+      `/chat/rooms/${roomId}/messages`
     );
     return response.data?.data || response.data || [];
   },
 
   createChatRoom: async (friendId: number): Promise<any> => {
-    const response = await apiClient.post<any>('/api/chat/rooms', {
+    const response = await apiClient.post<any>('/chat/rooms', {
       friendId,
     });
     return response.data?.data || response.data || response;
   },
 
   pinRoom: async (roomId: number): Promise<void> => {
-    await apiClient.post(`/api/chat/rooms/${roomId}/pin`);
+    await apiClient.post(`/chat/rooms/${roomId}/pin`);
   },
 
   muteRoom: async (roomId: number): Promise<void> => {
-    await apiClient.post(`/api/chat/rooms/${roomId}/mute`);
+    await apiClient.post(`/chat/rooms/${roomId}/mute`);
   },
 
   addMembers: async (roomId: number, userIds: number[]): Promise<ChatRoom> => {
     const response = await apiClient.post<any>(
-      `/api/chat/rooms/${roomId}/members`,
+      `/chat/rooms/${roomId}/members`,
       { userIds }
     );
     return response.data?.data || response.data || response;
   },
 
   leaveGroup: async (roomId: number): Promise<void> => {
-    await apiClient.delete(`/api/chat/rooms/${roomId}/leave`);
+    await apiClient.delete(`/chat/rooms/${roomId}/leave`);
   },
+  getRoomMembers: async (roomId: number): Promise<any[]> => {
+    const response = await apiClient.get<any>(`/chat/rooms/${roomId}/members`);
+    return response.data?.data || response.data || [];
+},
 };

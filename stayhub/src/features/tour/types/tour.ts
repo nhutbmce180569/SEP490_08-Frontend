@@ -25,6 +25,7 @@ export interface Tour {
   tourSchedules?: TourSchedule[];
   reviews? : Review[];
 }
+
 export interface TourBasic {
   id: number;
   name: string;

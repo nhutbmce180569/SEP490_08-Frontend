@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Calendar, Eye, Search } from "lucide-react";
+import { Plus, Eye, Search, X, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
 import { Table, type Column } from "../../../components/dashboard/Table";
@@ -18,54 +18,61 @@ export const TourScheduleList: React.FC = () => {
 
   const {
     schedules,
-    pagination, // 💥 Lấy thông tin phân trang từ API Backend trả về
+    pagination,
     isLoading,
     error,
-    fetchAllSchedules,
+    fetchMySchedules, // ✅ Đổi sang fetchMySchedules
     deleteSchedule,
   } = useTourSchedule();
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<{
     scheduleId: number;
     tourName?: string;
   } | null>(null);
 
-  // 💥 Gọi API lại mỗi khi 'page' thay đổi
+  // Debounce: chờ 400ms sau khi user ngừng gõ mới gọi API
   useEffect(() => {
-    fetchAllSchedules(page, PAGE_SIZE);
-  }, [fetchAllSchedules, page]);
-
-  // Reset trang về 1 khi gõ tìm kiếm
-  useEffect(() => {
-    setPage(1);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
   }, [search]);
 
+  // ✅ Gọi fetchMySchedules thay vì fetchAllSchedules
+  useEffect(() => {
+    fetchMySchedules(page, PAGE_SIZE);
+  }, [fetchMySchedules, page]);
+
   const handleCreate = () => navigate(PATH.MANAGER.CREATE_SCHEDULE());
-  const handleEdit = (id: number) => navigate(PATH.MANAGER.EDIT_SCHEDULE(id));
   const handleView = (id: number) => navigate(PATH.MANAGER.SCHEDULE_DETAIL(id));
+
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
     await deleteSchedule(confirmDelete.scheduleId);
     setConfirmDelete(null);
-    // Reload lại dữ liệu sau khi xóa
-    fetchAllSchedules(page, PAGE_SIZE);
+    fetchMySchedules(page, PAGE_SIZE); // ✅
   };
 
-  // Tìm kiếm cục bộ (Trên dữ liệu của trang hiện tại)
+  const handleClearSearch = () => {
+    setSearch("");
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
+
+  // ✅ Filter cục bộ theo search vì API /my chưa hỗ trợ tourName param
   const filteredSchedules = useMemo(() => {
-    if (!search.trim()) return schedules;
-    const keyword = search.trim().toLowerCase();
-    return schedules.filter((item) => {
-      const tourName = item.tour?.name ?? "";
-      return (
-        tourName.toLowerCase().includes(keyword) ||
-        item.tourId.toString().includes(keyword) ||
-        item.id.toString().includes(keyword)
-      );
-    });
-  }, [schedules, search]);
+    if (!debouncedSearch.trim()) return schedules;
+    const keyword = debouncedSearch.trim().toLowerCase();
+    return schedules.filter((item) =>
+      (item.tour?.name ?? "").toLowerCase().includes(keyword),
+    );
+  }, [schedules, debouncedSearch]);
 
   const sortedSchedules = useMemo(() => {
     return [...filteredSchedules].sort((a, b) => a.tourId - b.tourId);
@@ -75,7 +82,9 @@ export const TourScheduleList: React.FC = () => {
     () => [
       {
         header: t("tour.tourIdCol"),
-        render: (item) => <span className="font-semibold text-slate-800">#{item.tourId}</span>,
+        render: (item) => (
+          <span className="font-semibold text-slate-800">#{item.tourId}</span>
+        ),
         className: "w-[120px]",
       },
       {
@@ -92,56 +101,58 @@ export const TourScheduleList: React.FC = () => {
         render: (item) => (
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Calendar className="h-4 w-4 text-slate-400" />
-            <span className="font-medium">{new Date(item.departureDate).toLocaleDateString("vi-VN")}</span>
+            <span className="font-medium">
+              {new Date(item.departureDate).toLocaleDateString("vi-VN")}
+            </span>
             <span className="text-slate-300"> - </span>
-            <span className="font-medium">{new Date(item.returnDate).toLocaleDateString("vi-VN")}</span>
+            <span className="font-medium">
+              {new Date(item.returnDate).toLocaleDateString("vi-VN")}
+            </span>
           </div>
         ),
       },
       {
         header: t("common.actions"),
         className: "w-[160px]",
-        render: (item) => {
-          // const canEditSchedule = item.canEdit ?? item.tour?.canEdit ?? false;
+        render: (item) => (
+          <div className="flex items-center gap-1.5">
+            <ActionButton
+              variant="secondary"
+              aria-label={t("tour.view")}
+              onClick={() => handleView(item.id)}
+              className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
+              title={t("tour.viewDetail")}
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </ActionButton>
 
-          return (
-            <div className="flex items-center gap-1.5">
-              <ActionButton
-                variant="secondary"
-                aria-label={t("tour.view")}
-                onClick={() => handleView(item.id)}
-                className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
-                title={t("tour.viewDetail")}
-              >
-                <Eye className="h-3.5 w-3.5" />
-              </ActionButton>
+            {/* {canEditSchedule && (
+              <>
+                <ActionButton
+                  variant="secondary"
+                  aria-label={t("tour.edit")}
+                  onClick={() => handleEdit(item.id)}
+                  className="h-8 w-8"
+                  title={t("tour.editSchedule")}
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </ActionButton>
 
-              {/* {canEditSchedule && (
-                <>
-                  <ActionButton
-                    variant="secondary"
-                    aria-label={t("tour.edit")}
-                    onClick={() => handleEdit(item.id)}
-                    className="h-8 w-8"
-                    title={t("tour.editSchedule")}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </ActionButton>
-
-                  <ActionButton
-                    variant="warning"
-                    aria-label={t("tour.delete")}
-                    onClick={() => setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })}
-                    className="h-8 w-8"
-                    title={t("tour.deleteSchedule")}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </ActionButton>
-                </>
-              )} */}
-            </div>
-          );
-        },
+                <ActionButton
+                  variant="warning"
+                  aria-label={t("tour.delete")}
+                  onClick={() =>
+                    setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })
+                  }
+                  className="h-8 w-8"
+                  title={t("tour.deleteSchedule")}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </ActionButton>
+              </>
+            )} */}
+          </div>
+        ),
       },
     ],
     [t],
@@ -156,6 +167,7 @@ export const TourScheduleList: React.FC = () => {
 
   return (
     <div className="rounded-2xl">
+      {/* Header */}
       <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5">
           <div>
@@ -166,6 +178,7 @@ export const TourScheduleList: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          {/* Search input */}
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
@@ -174,6 +187,15 @@ export const TourScheduleList: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+            {search && (
+              <button
+                onClick={handleClearSearch}
+                className="text-slate-400 hover:text-slate-600 transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
           <ActionButton
@@ -187,11 +209,14 @@ export const TourScheduleList: React.FC = () => {
         </div>
       </div>
 
+      {/* Table */}
       {error ? (
-        <div className="flex justify-center p-10 text-rose-500 font-semibold">{error}</div>
+        <div className="flex justify-center p-10 text-rose-500 font-semibold">
+          {error}
+        </div>
       ) : (
         <Table
-          data={sortedSchedules} // 💥 Truyền thẳng sortedSchedules vì Backend đã cắt trang sẵn
+          data={sortedSchedules}
           columns={columns}
           keyExtractor={(item) => item.id}
           emptyMessage={t("tour.noSchedulesFound")}
@@ -200,6 +225,7 @@ export const TourScheduleList: React.FC = () => {
         />
       )}
 
+      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         open={!!confirmDelete}
         onClose={() => setConfirmDelete(null)}
@@ -211,13 +237,13 @@ export const TourScheduleList: React.FC = () => {
         variant="warning"
       />
 
-      {/* 💥 Truyền data từ pagination API vào PaginationButton */}
+      {/* Pagination */}
       <PaginationButton
         currentPage={pagination?.currentPage || 1}
         totalPages={pagination?.totalPages || 1}
         totalItems={pagination?.total || 0}
         pageSize={pagination?.pageSize || PAGE_SIZE}
-        onPageChange={(newPage) => setPage(newPage)}
+        onPageChange={handlePageChange}
       />
     </div>
   );

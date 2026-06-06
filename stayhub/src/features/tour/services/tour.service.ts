@@ -87,6 +87,23 @@ export const getAllToursForAdmin = async (
   });
 };
 
+export const getToursByManager = async (
+  page: number = 1,
+  pageSize: number = 10,
+  searchTerm?: string,
+): Promise<PaginatedResponse<Tour>> => {
+  return await apiClient.get<PaginatedResponse<Tour>>(
+    TOURS_API.GET_BY_MANAGER,
+    {
+      params: {
+        page,
+        pageSize,
+        searchTerm: searchTerm?.trim() || undefined,
+      },
+    }
+  );
+};
+
 export const updateTourStatusByAdmin = async (
   id: string | number,
   status: string,
@@ -94,15 +111,14 @@ export const updateTourStatusByAdmin = async (
   await apiClient.put(TOURS_API.UPDATE_STATUS(id), { status });
 };
 
-// Compatibility wrapper used by some components (CreateEditSchedule expects this)
 export const tourService = {
   getAllTours: async (): Promise<Tour[]> => {
     const res = await apiClient.get<unknown>(TOURS_API.GET_ALL);
     return normalizeTourArray(res);
   },
 
-  getAllToursForDropdown: async (): Promise<Tour[]> => {
-    const res = await apiClient.get<unknown>(TOURS_API.GET_ALL, {
+ getAllToursForDropdown: async (): Promise<Tour[]> => {
+    const res = await apiClient.get<unknown>(TOURS_API.GET_BY_MANAGER, {
       params: { pageSize: 1000, page: 1 },
     });
     return normalizeTourArray(res);

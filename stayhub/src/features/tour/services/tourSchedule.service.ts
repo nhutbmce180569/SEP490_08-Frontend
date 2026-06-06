@@ -9,23 +9,53 @@ import type {
 } from "../types/tourSchedule";
 
 export const tourScheduleService = {
-  
-  getAllSchedules: async (page: number = 1, pageSize: number = 10): Promise<PaginationResponse<TourSchedule>> => {
-    return await apiClient.get<PaginationResponse<TourSchedule>>(TOURS_API.GET_ALL_SCHEDULES, {
-      params: { page, pageSize } 
-    });
+  getAllSchedules: async (
+    page: number = 1,
+    pageSize: number = 10,
+    tourName?: string,
+  ): Promise<PaginationResponse<TourSchedule>> => {
+    return await apiClient.get<PaginationResponse<TourSchedule>>(
+      TOURS_API.GET_ALL_SCHEDULES,
+      {
+        params: {
+          page,
+          pageSize,
+          ...(tourName?.trim() ? { tourName: tourName.trim() } : {}),
+        },
+      },
+    );
+  },
+
+  getMySchedules: async (
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<PaginationResponse<TourSchedule>> => {
+    return await apiClient.get<PaginationResponse<TourSchedule>>(
+      TOURS_API.GET_MY_SCHEDULES,
+      {
+        params: { page, pageSize },
+      },
+    );
   },
 
   getScheduleById: async (id: string | number): Promise<TourSchedule> => {
     return await apiClient.get<TourSchedule>(TOURS_API.GET_SCHEDULE_DETAIL(id));
   },
 
-  createSchedule: async (data: CreateTourScheduleRequest): Promise<TourSchedule> => {
+  createSchedule: async (
+    data: CreateTourScheduleRequest,
+  ): Promise<TourSchedule> => {
     return await apiClient.post<TourSchedule>(TOURS_API.CREATE_SCHEDULE, data);
   },
 
-  updateSchedule: async (id: string | number, data: UpdateTourScheduleRequest): Promise<TourSchedule> => {
-    return await apiClient.put<TourSchedule>(TOURS_API.UPDATE_SCHEDULE(id), data);
+  updateSchedule: async (
+    id: string | number,
+    data: UpdateTourScheduleRequest,
+  ): Promise<TourSchedule> => {
+    return await apiClient.put<TourSchedule>(
+      TOURS_API.UPDATE_SCHEDULE(id),
+      data,
+    );
   },
 
   deleteSchedule: async (id: string | number): Promise<void> => {
@@ -33,14 +63,28 @@ export const tourScheduleService = {
   },
 
   getAssignedSchedules: async (): Promise<AssignedTourSchedule[]> => {
-    return await apiClient.get<AssignedTourSchedule[]>(TOURS_API.GET_ASSIGNED_SCHEDULES);
+    return await apiClient.get<AssignedTourSchedule[]>(
+      TOURS_API.GET_ASSIGNED_SCHEDULES,
+    );
   },
 
-  reserveSeats: async (id: string | number, quantity: number): Promise<{ message: string }> => {
-    return await apiClient.post<{ message: string }>(TOURS_API.RESERVE_SEATS(id), { quantity });
+  reserveSeats: async (
+    id: string | number,
+    quantity: number,
+  ): Promise<{ message: string }> => {
+    return await apiClient.post<{ message: string }>(
+      TOURS_API.RESERVE_SEATS(id),
+      { quantity },
+    );
   },
 
-  releaseSeats: async (id: string | number, quantity: number): Promise<{ message: string }> => {
-    return await apiClient.post<{ message: string }>(TOURS_API.RELEASE_SEATS(id), { quantity });
+  releaseSeats: async (
+    id: string | number,
+    quantity: number,
+  ): Promise<{ message: string }> => {
+    return await apiClient.post<{ message: string }>(
+      TOURS_API.RELEASE_SEATS(id),
+      { quantity },
+    );
   },
 };

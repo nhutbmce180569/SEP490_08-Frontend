@@ -528,6 +528,7 @@ const App: React.FC = () => {
                   {/* UC-53: Customers */}
                   <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={<ScheduleCustomersPage />} />
                   <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={<ScheduleCustomersPage />} />
+
                 </Route>
               </Route>
 

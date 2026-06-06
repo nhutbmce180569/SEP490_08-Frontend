@@ -8,6 +8,7 @@ export const TOURS_API = {
   GET_PUBLIC_DETAIL: (id: string | number) => `${FULL_API}/Tours/public/${id}`,
   GET_ALL: `${FULL_API}/tours`,
   GET_BY_ADMIN: `${FULL_API}/Tours/admin`,
+  GET_BY_MANAGER: `${FULL_API}/Tours/manager`,
   GET_DETAIL: (id: string | number) => `${FULL_API}/tours/${id}`,
   CREATE: `${FULL_API}/tours`,
   UPDATE: (id: string | number) => `${FULL_API}/tours/${id}`,
@@ -40,8 +41,10 @@ export const TOURS_API = {
     `${FULL_API}/TourScheduleTickets/${id}/deactivate`,
   SCHEDULES: `${FULL_API}/TourSchedules`,
   GET_SCHEDULE_BY_OPERATOR: `${FULL_API}/TourSchedules/operator`,
+
   // Schedules
   GET_ALL_SCHEDULES: `${FULL_API}/TourSchedules`,
+  GET_MY_SCHEDULES: `${FULL_API}/TourSchedules/my`,
   GET_SCHEDULE_DETAIL: (id: string | number) =>
     `${FULL_API}/TourSchedules/${id}`,
   CREATE_SCHEDULE: `${FULL_API}/TourSchedules`,
@@ -71,6 +74,8 @@ export const TOURS_API = {
   // Cập nhật vào danh sách API
   GET_REVIEWS_BY_TOUR_ADMIN: (tourId: string | number) =>
     `${FULL_API}/reviews/tour/${tourId}/admin`,
+  GET_REVIEWS_BY_TOUR_MANAGER: (tourId: string | number) =>
+    `${FULL_API}/reviews/manager/tour/${tourId}`,
   GET_MY_REVIEW_BY_TOUR: (tourId: string | number) =>
     `${FULL_API}/reviews/tour/${tourId}/mine`,
   GET_MY_REVIEWS: `${FULL_API}/reviews/mine`,

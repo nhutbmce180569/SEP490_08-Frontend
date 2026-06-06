@@ -1,11 +1,5 @@
 import { useMemo } from "react";
-import {
-  Calendar,
-  MapPin,
-  QrCode,
-  Ticket,
-  Users,
-} from "lucide-react";
+import { Calendar, MapPin, QrCode, Ticket, Users } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
 import { useTranslation } from "../contexts/LocaleContext";

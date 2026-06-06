@@ -17,7 +17,8 @@ import {
   LogOut,
   X,
   Search,
-  SquarePen
+  SquarePen,
+  Users
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
@@ -90,8 +91,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[500] p-4">
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center z-[500] p-4">
+      <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-lg font-bold text-slate-900">
@@ -145,7 +146,7 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
                     onChange={() => handleToggleUser(user.id)}
                     className="w-4 h-4 text-brand rounded cursor-pointer"
                   />
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm shadow-sm">
                     {userAvatar ? (
                       <img src={userAvatar} alt={user.fullName} className="w-full h-full object-cover" />
                     ) : (
@@ -189,6 +190,97 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({
   );
 };
 
+// ============ COMPONENT: Room Members Modal ============
+interface RoomMembersModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  roomId: number | null;
+}
+
+const RoomMembersModal: React.FC<RoomMembersModalProps> = ({
+  isOpen,
+  onClose,
+  roomId,
+}) => {
+  const { t } = useTranslation();
+
+  const { data: membersResponse, isLoading } = useQuery({
+    queryKey: ['roomMembers', roomId],
+    queryFn: () => chatService.getRoomMembers(roomId!),
+    enabled: !!roomId && isOpen,
+  });
+
+  const members = Array.isArray(membersResponse) ? membersResponse : membersResponse?.data || membersResponse?.items || [];
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center z-[500] p-4">
+      <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900">
+            {t('social.roomMembers') || 'Room Members'}
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-slate-100 rounded-lg transition-colors"
+          >
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+
+        {/* Results List */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+          {isLoading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="w-5 h-5 text-brand animate-spin" />
+            </div>
+          ) : members.length > 0 ? (
+            members.map((user: any) => {
+              const userAvatar = user?.avatarUrl || user?.AvatarUrl || null;
+              return (
+                <div
+                  key={user.id || user.userId || Math.random()}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 transition-colors border border-transparent"
+                >
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm shadow-sm">
+                    {userAvatar ? (
+                      <img src={userAvatar} alt={user.fullName} className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{(user.fullName || 'U').charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm text-slate-900 truncate">
+                      {user.fullName || t('common.user') || 'User'}
+                    </h4>
+                    <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-center text-slate-400 py-8 text-sm">
+              {t('social.noMembersFound') || 'No members found'}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-2 p-4 border-t border-slate-200 bg-slate-50">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 transition-colors"
+          >
+            {t('common.close') || 'Close'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ============ MAIN COMPONENT: ChatPage ============
 export const ChatPage: React.FC = () => {
   const { t } = useTranslation();
@@ -197,6 +289,7 @@ export const ChatPage: React.FC = () => {
   const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
+  const [showMembersModal, setShowMembersModal] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -430,11 +523,11 @@ export const ChatPage: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex h-[min(62vh,520px)] min-h-[420px] w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white">
+        <div className="flex h-[min(62vh,520px)] min-h-[420px] w-full overflow-hidden rounded-[32px] border border-slate-100 bg-white shadow-2xl shadow-slate-200/50">
         
         {/* CỘT TRÁI: Danh sách phòng chat */}
-        <div className="w-1/3 border-r border-slate-200 flex flex-col bg-slate-50/50">
-          <div className="p-4 border-b border-slate-200 bg-white flex items-center justify-between">
+        <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50/30">
+          <div className="p-4 border-b border-slate-100/70 bg-white/80 backdrop-blur-md flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
               <MessageSquare className="w-5 h-5 text-brand" />
               <h2 className="text-base font-bold text-slate-800">{t('social.conversations')}</h2>
@@ -453,10 +546,10 @@ export const ChatPage: React.FC = () => {
                 <button
                   key={room.id}
                   onClick={() => setSelectedRoomId(room.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all outline-none relative ${
+                  className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all outline-none relative ${
                     selectedRoomId === room.id
-                      ? 'bg-brand-light border border-brand/20 text-blue-800 shadow-md'
-                      : 'hover:bg-slate-100 text-slate-700'
+                      ? 'bg-brand/10 border border-brand/20 text-blue-900 shadow-sm'
+                      : 'hover:bg-slate-100/70 text-slate-700'
                   }`}
                 >
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden border-2 border-slate-200 text-white font-semibold">
@@ -494,7 +587,7 @@ export const ChatPage: React.FC = () => {
         </div>
 
         {/* CỘT PHẢI: Khung hiển thị tin nhắn */}
-        <div className="w-2/3 flex flex-col bg-white">
+        <div className="w-2/3 flex flex-col bg-slate-50/20 relative">
           {!selectedRoomId ? (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
               <MessageSquare className="w-16 h-16 mb-4 text-slate-200" />
@@ -503,7 +596,7 @@ export const ChatPage: React.FC = () => {
           ) : (
             <>
               {/* Header phòng chat */}
-              <div className="h-16 border-b border-slate-100 bg-white flex items-center px-6 z-10 justify-between">
+              <div className="h-16 border-b border-slate-100/70 bg-white/80 backdrop-blur-md flex items-center px-6 z-20 justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center overflow-hidden border-2 border-slate-200 text-white font-semibold text-sm">
                     {selectedRoom?.avatarUrl ? (
@@ -515,15 +608,18 @@ export const ChatPage: React.FC = () => {
 
                   <div>
                     <h3 className="text-base font-bold text-slate-800">{getRoomDisplayName(selectedRoom)}</h3>
-                    <div className="flex items-center gap-1.5">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-xs text-slate-500">{t('social.activeNow')}</span>
-                    </div>
                   </div>
                 </div>
 
                 {/* Menu tác vụ */}
                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowMembersModal(true)}
+                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-600 hover:text-slate-800"
+                    title={t('social.viewMembers') || 'View members'}
+                  >
+                    <Users className="w-5 h-5" />
+                  </button>
                   <button
                     onClick={() => setShowAddMemberModal(true)}
                     disabled={isAddingMembers}
@@ -581,7 +677,7 @@ export const ChatPage: React.FC = () => {
               {/* Nội dung tin nhắn */}
               <div
                 ref={chatContainerRef}
-                className="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-slate-50 to-white custom-scrollbar"
+                className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 custom-scrollbar z-0 relative"
               >
                 {isLoadingHistory ? (
                   <div className="flex justify-center items-center h-full">
@@ -593,8 +689,27 @@ export const ChatPage: React.FC = () => {
                   </div>
                 ) : (
                   allMessages.map((msg, idx) => {
+                    const isSystemMessage = msg.senderName === 'System';
+
+                    if (isSystemMessage) {
+                      return (
+                        <div
+                          key={`${msg.id}-${idx}`}
+                          className="flex justify-center"
+                        >
+                          <span className="bg-slate-100 text-xs text-slate-500 rounded-full px-4 py-1.5 my-2">
+                            {msg.content}
+                          </span>
+                        </div>
+                      );
+                    }
+
                     const isMe = String(msg.senderId) === String(currentUserId);
-                    const avatarToUse = msg.senderAvatarUrl || (!selectedRoom?.isGroupChat ? selectedRoom?.avatarUrl : null);
+                    
+                    // Xử lý triệt để khác biệt JSON camelCase (API) và PascalCase (SignalR)
+                   const rawAvatar = msg.senderAvatarUrl || (msg as any).SenderAvatarUrl || msg.senderAvatar || (msg as any).SenderAvatar;
+                    const roomAvatar = selectedRoom?.avatarUrl || selectedRoom?.AvatarUrl;
+                    const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? roomAvatar : null);
 
                     return (
                       <div
@@ -611,6 +726,10 @@ export const ChatPage: React.FC = () => {
                                   src={avatarToUse}
                                   alt={msg.senderName}
                                   className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // Nếu ảnh lỗi (vd: SSL error), ẩn ảnh đi để lộ chữ cái fallback ở div cha
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
                                 />
                               ) : (
                                 getInitials(msg.senderName || 'User')
@@ -619,10 +738,10 @@ export const ChatPage: React.FC = () => {
                           )}
 
                           <div
-                            className={`relative max-w-[70%] px-4 py-2.5 rounded-2xl text-[15px] shadow-sm transition-shadow ${
+                            className={`relative max-w-[70%] px-4 py-2.5 rounded-2xl text-[15px] transition-all ${
                               isMe
-                                ? 'bg-brand text-white rounded-br-none'
-                                : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
+                                ? 'bg-brand text-white rounded-br-none shadow-sm shadow-brand/10'
+                                : 'bg-white border border-slate-100 text-slate-800 rounded-bl-none shadow-sm shadow-slate-200/50'
                             }`}
                           >
                             {!isMe && (
@@ -659,19 +778,19 @@ export const ChatPage: React.FC = () => {
               </div>
 
               {/* Khung Input */}
-              <div className="p-4 bg-white border-t border-slate-100">
+              <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100/60 z-20">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3">
                   <input
                     type="text"
                     value={textValue}
                     onChange={(e) => setTextValue(e.target.value)}
                     placeholder={t('social.typeMessage')}
-                    className="flex-1 bg-slate-100 border border-transparent rounded-full px-5 py-3 text-sm focus:outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-800 placeholder-slate-500"
+                    className="flex-1 bg-slate-100/80 backdrop-blur-sm border border-transparent rounded-full px-5 py-3 text-[15px] focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-brand/10 transition-all text-slate-800 placeholder-slate-400 shadow-inner"
                   />
                   <button
                     type="submit"
                     disabled={!textValue.trim() || !isConnected}
-                    className="p-3 bg-brand hover:bg-brand-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-full transition-all flex items-center justify-center shrink-0 shadow-md shadow-brand/20 hover:shadow-lg active:scale-95"
+                    className="p-3.5 bg-brand hover:bg-brand-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-full transition-all flex items-center justify-center shrink-0 shadow-lg shadow-brand/25 hover:shadow-xl active:scale-95"
                   >
                     <Send className="w-5 h-5" />
                   </button>
@@ -699,6 +818,13 @@ export const ChatPage: React.FC = () => {
         onConfirm={handleStartNewChat}
         isLoading={isCreatingNewChat}
         isSingleSelect={true}
+      />
+
+      {/* Room Members Modal */}
+      <RoomMembersModal
+        isOpen={showMembersModal}
+        onClose={() => setShowMembersModal(false)}
+        roomId={selectedRoomId}
       />
     </>
   );

@@ -2,19 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userService } from "../services/user.service";
-import type { CreateUserDTO } from "../types/user";
+import type { AdminCreatedUserDTO, CreateUserDTO } from "../types/user";
 import { PATH } from "../../../config/routes/route";
 
 export const useCreateUser = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
+  const [createdAccount, setCreatedAccount] = useState<AdminCreatedUserDTO | null>(null);
 
   const mutation = useMutation({
     mutationFn: (data: CreateUserDTO) => userService.createUser(data),
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      navigate(PATH.ADMIN.USER_MANAGEMENT);
+      setCreatedAccount(result);
     },
     onError: (error: any) => {
       if (error.response?.data?.errors) {
@@ -28,11 +29,6 @@ export const useCreateUser = () => {
   const handleSubmit = async (data: Record<string, any>) => {
     setServerErrors({});
 
-    if (data.password !== data.confirmPassword) {
-      setServerErrors({ confirmPassword: "Passwords do not match." });
-      return;
-    }
-
     const dto: CreateUserDTO = {
       ...data,
       status: data.status || "Active",
@@ -44,5 +40,11 @@ export const useCreateUser = () => {
 
   const handleCancel = () => navigate(PATH.ADMIN.USER_MANAGEMENT);
 
-  return { handleSubmit, handleCancel, isSubmitting: mutation.isPending, serverErrors };
+  return {
+    handleSubmit,
+    handleCancel,
+    isSubmitting: mutation.isPending,
+    serverErrors,
+    createdAccount,
+  };
 };

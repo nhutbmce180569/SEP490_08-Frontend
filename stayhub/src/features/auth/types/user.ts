@@ -12,11 +12,11 @@ export interface ReadUserDTO {
   roles: string[];
   createdAt?: string | null;
   updatedAt?: string | null;
+  requirePasswordChange: boolean;
 }
 
 export interface CreateUserDTO {
   email: string;
-  password: string;
   fullName: string;
   avatarFile?: File | null;
   phoneNumber?: string;
@@ -24,6 +24,11 @@ export interface CreateUserDTO {
   dateOfBirth?: string;
   status?: string;
   roleIds?: number[];
+}
+
+export interface AdminCreatedUserDTO {
+  user: ReadUserDTO;
+  temporaryPassword: string;
 }
 
 export interface UpdateUserDTO {

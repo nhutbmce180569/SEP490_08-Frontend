@@ -48,7 +48,7 @@ export const TourList: React.FC = () => {
   );
   const hasActiveFilters = search.trim() !== "" || categoryId !== null;
 
-  const getStatusLabel = (status?: string) => {
+  const getStatusLabel = (status?: string | null) => {
     const map: Record<string, string> = {
       Active: t("common.active"),
       Draft: t("tour.draft"),
@@ -153,7 +153,7 @@ export const TourList: React.FC = () => {
             >
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>
-            {tour.status !== "Banned" && (
+            {tour.status !== "Banned" && tour.canEdit && (
               <>
                 <ActionButton
                   variant="secondary"

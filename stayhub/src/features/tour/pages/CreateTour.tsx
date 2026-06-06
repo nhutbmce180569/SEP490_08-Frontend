@@ -45,6 +45,10 @@ export const CreateTour: React.FC = () => {
       placeholder: t("tour.tourNamePlaceholder"),
       colSpan: 2,
       required: true,
+      validate: (value) => {
+        const length = String(value ?? "").trim().length;
+        return length < 5 || length > 200 ? t("tour.nameLengthValidation") : undefined;
+      },
     },
     {
       name: "categoryId",
@@ -82,7 +86,7 @@ export const CreateTour: React.FC = () => {
       type: "custom",
       colSpan: 2,
       required: true,
-      render: (value, onChange, error, setFormData) => (
+      render: (value, _onChange, error, setFormData) => (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -144,12 +148,24 @@ export const CreateTour: React.FC = () => {
       placeholder: t("tour.tourDescriptionPlaceholder"),
       icon: <FileText className="h-4 w-4" />,
       colSpan: 2,
+      required: true,
+      validate: (value) => {
+        const length = String(value ?? "").trim().length;
+        return length < 20 || length > 2000 ? t("tour.descriptionLengthValidation") : undefined;
+      },
     },
     {
       name: "image",
       label: t("tour.tourImage"),
       type: "file",
       colSpan: 2,
+      validate: (value) => {
+        if (!(value instanceof File)) return undefined;
+        if (value.size > 5 * 1024 * 1024) return t("tour.imageSizeValidation");
+        return ["image/jpeg", "image/png", "image/webp"].includes(value.type)
+          ? undefined
+          : t("tour.imageTypeValidation");
+      },
     },
   ];
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -354,7 +354,7 @@ export const TourDetail: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            {tour.status !== "Banned" && (
+            {tour.status !== "Banned" && tour.canEdit && (
               <div className="flex shrink-0 items-start gap-3">
                 <ActionButton
                   variant="primary"
@@ -442,7 +442,7 @@ export const TourDetail: React.FC = () => {
             <div className="mb-4 space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-lg font-bold text-slate-900">{t("tour.itineraries")}</h2>
-                {tour.status !== "Banned" && (
+                {tour.status !== "Banned" && tour.canEdit && (
                   <ActionButton
                     variant="primary"
                     onClick={() => navigate(PATH.MANAGER.CREATE_ITINERARY(tour.id))}
@@ -496,7 +496,7 @@ export const TourDetail: React.FC = () => {
                                   <h4 className="font-semibold text-slate-800">{iti.title}</h4>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                  {tour.status !== "Banned" && (
+                                  {tour.status !== "Banned" && tour.canEdit && (
                                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                                       <ActionButton variant="secondary" onClick={() => navigate(PATH.MANAGER.EDIT_ITINERARY(tour.id, iti.id))} className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover">
                                         <Pencil className="h-3.5 w-3.5" />
@@ -658,7 +658,7 @@ export const TourDetail: React.FC = () => {
                         >
                           <Info className="h-3.5 w-3.5" />
                         </ActionButton>
-                        {tour.status !== "Banned" && (
+                        {tour.status !== "Banned" && tour.canEdit && (
                           <ActionButton
                             variant="secondary"
                             onClick={() =>

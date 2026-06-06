@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Calendar,
   Type,
@@ -12,6 +12,11 @@ import {
   Copy,
   AlertTriangle,
   Clock,
+  Download,
+  Upload,
+  FileSpreadsheet,
+  CircleCheck,
+  RotateCcw,
 } from "lucide-react";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateScheduleItinerary } from "../hooks/useCreateScheduleItinerary";
@@ -22,6 +27,8 @@ import { TourismInformationSelector } from "../../content/components/TourismInfo
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { downloadScheduleItineraryImportTemplate } from "../services/tourScheduleItinerary.service";
+import { parseScheduleItineraryExcel } from "../utils/scheduleItineraryExcel";
 
 export const CreateScheduleItinerary: React.FC = () => {
   const { t } = useTranslation();
@@ -38,6 +45,8 @@ export const CreateScheduleItinerary: React.FC = () => {
     cloneableDayNumbers,
     handleAddItinerary,
     handleRemoveItinerary,
+    handleClearItinerary,
+    addImportedItineraries,
     updateItinerary,
     patchItinerary,
     handleCloneFromTour,
@@ -47,8 +56,12 @@ export const CreateScheduleItinerary: React.FC = () => {
     cloningDayIndex,
     isTourLoading,
   } = useCreateScheduleItinerary();
-  const { error: showError } = useToast();
+  const { success, error: showError } = useToast();
   const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
+  const [isTourismInformationLoading, setIsTourismInformationLoading] = useState(true);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importSummary, setImportSummary] = useState<{ count: number; fileName: string } | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   // --- STATE CHO MAP PICKER ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
@@ -58,7 +71,8 @@ export const CreateScheduleItinerary: React.FC = () => {
     tourismInformationService
       .getActiveList()
       .then(setTourismInformationList)
-      .catch(() => setTourismInformationList([]));
+      .catch(() => setTourismInformationList([]))
+      .finally(() => setIsTourismInformationLoading(false));
   }, []);
 
   const openMapModal = (index: number) => {
@@ -82,6 +96,7 @@ export const CreateScheduleItinerary: React.FC = () => {
   const handleChangeTourismInfo = (index: number, selectedTourismInfo: TourismInformation | null) => {
     patchItinerary(index, {
       tourismInfoId: selectedTourismInfo?.id ?? null,
+      tourismSearchKeyword: "",
       ...(selectedTourismInfo
         ? {
             locationName: selectedTourismInfo.address || selectedTourismInfo.name,
@@ -149,7 +164,12 @@ export const CreateScheduleItinerary: React.FC = () => {
         showError(`Day ${assignedDay} - ${iti.title || 'Item'}: End time must be strictly after start time.`);
         return;
       }
-      if (!iti.locationLat || !iti.locationLng) {
+      if (
+        iti.locationLat === undefined ||
+        iti.locationLat === null ||
+        iti.locationLng === undefined ||
+        iti.locationLng === null
+      ) {
         showError(`Day ${assignedDay}: Please pick a location on map.`);
         return;
       }
@@ -166,6 +186,49 @@ export const CreateScheduleItinerary: React.FC = () => {
     }
 
     handleSubmitBatch(itineraries);
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const blob = await downloadScheduleItineraryImportTemplate();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = "StayHub_Tour_Schedule_Itinerary_Template.xlsx";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      showError(error.message || t("tour.downloadTemplateFailed"));
+    }
+  };
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !scheduleId) return;
+
+    if (!file.name.toLowerCase().endsWith(".xlsx")) {
+      showError(t("tour.excelFileRequired"));
+      return;
+    }
+
+    try {
+      setIsImporting(true);
+      const importedItineraries = await parseScheduleItineraryExcel(
+        file,
+        Number(scheduleId),
+        tourismInformationList,
+      );
+      addImportedItineraries(importedItineraries);
+      setImportSummary({ count: importedItineraries.length, fileName: file.name });
+      success(t("tour.importPreviewSuccess", { count: importedItineraries.length }));
+    } catch (error: any) {
+      showError(error.message || t("tour.importExcelFailed"));
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   const getError = (index: number, field: string) => {
@@ -231,6 +294,53 @@ export const CreateScheduleItinerary: React.FC = () => {
             </ActionButton>
           </div>
         </div>
+        <div className="flex flex-col gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-xl bg-white p-2.5 text-indigo-600 shadow-sm">
+              <FileSpreadsheet className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-900">{t("tour.excelToolsTitle")}</p>
+              <p className="mt-0.5 text-xs leading-5 text-slate-600">{t("tour.excelToolsDescription")}</p>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".xlsx"
+              className="hidden"
+              onChange={handleImportFile}
+            />
+            <ActionButton type="button" variant="secondary" onClick={handleDownloadTemplate} className="gap-2 px-4 py-2 shadow-sm">
+              <Download className="h-4 w-4" />
+              {t("tour.downloadExcelTemplate")}
+            </ActionButton>
+            <ActionButton
+              type="button"
+              variant="primary"
+              onClick={() => importInputRef.current?.click()}
+              disabled={isImporting || isTourismInformationLoading}
+              className="gap-2 px-4 py-2 shadow-sm"
+            >
+              <Upload className="h-4 w-4" />
+              {isImporting ? t("tour.importingExcel") : t("tour.importExcel")}
+            </ActionButton>
+          </div>
+        </div>
+        {importSummary && (
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+            <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <div>
+              <p className="font-semibold">
+                {t("tour.importPreviewLoaded", { count: importSummary.count })}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-700">
+                {t("tour.importPreviewReview", { fileName: importSummary.fileName })}
+              </p>
+            </div>
+          </div>
+        )}
         {missingDayNumbers.length > 0 && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mt-4">
             <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
@@ -312,16 +422,27 @@ export const CreateScheduleItinerary: React.FC = () => {
                     </ActionButton>
                   )}
                 </div>
-                {itineraries.length > 1 && (
+                <div className="flex items-center gap-2">
                   <ActionButton
                     type="button"
-                    variant="warning"
-                    onClick={() => handleRemoveItinerary(index)}
-                    className="h-8 w-8 !bg-rose-50 !text-rose-500 hover:!bg-rose-100 hover:!text-rose-600 !border-transparent transition-colors"
+                    variant="secondary"
+                    onClick={() => handleClearItinerary(index)}
+                    className="gap-1.5 px-3 py-1.5 text-xs"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    {t("tour.clearForm")}
                   </ActionButton>
-                )}
+                  {itineraries.length > 1 && (
+                    <ActionButton
+                      type="button"
+                      variant="warning"
+                      onClick={() => handleRemoveItinerary(index)}
+                      className="h-8 w-8 !bg-rose-50 !text-rose-500 hover:!bg-rose-100 hover:!text-rose-600 !border-transparent transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </ActionButton>
+                  )}
+                </div>
               </div>
 
               <div className="p-6">
@@ -473,6 +594,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                       <TourismInformationSelector
                         items={tourismInformationList}
                         value={iti.tourismInfoId ?? null}
+                        initialKeyword={iti.tourismSearchKeyword ?? ""}
                         onChange={(item) => handleChangeTourismInfo(index, item)}
                         error={getError(index, "tourismInfoId")}
                       />
@@ -522,8 +644,8 @@ export const CreateScheduleItinerary: React.FC = () => {
       </form>
 
       <LoadingOverlay
-        isOpen={isSubmitting}
-        message={t("tour.savingAllItineraries")}
+        isOpen={isSubmitting || isImporting}
+        message={isImporting ? t("tour.importingExcel") : t("tour.savingAllItineraries")}
       />
       <LoadingOverlay
         isOpen={isCloning}

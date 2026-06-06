@@ -101,39 +101,47 @@ export const TourScheduleList: React.FC = () => {
       {
         header: t("common.actions"),
         className: "w-[160px]",
-        render: (item) => (
-          <div className="flex items-center gap-1.5">
-            <ActionButton
-              variant="secondary"
-              aria-label={t("tour.view")}
-              onClick={() => handleView(item.id)}
-              className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
-              title={t("tour.viewDetail")}
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </ActionButton>
+        render: (item) => {
+          // const canEditSchedule = item.canEdit ?? item.tour?.canEdit ?? false;
 
-            <ActionButton
-              variant="secondary"
-              aria-label={t("tour.edit")}
-              onClick={() => handleEdit(item.id)}
-              className="h-8 w-8"
-              title={t("tour.editSchedule")}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </ActionButton>
+          return (
+            <div className="flex items-center gap-1.5">
+              <ActionButton
+                variant="secondary"
+                aria-label={t("tour.view")}
+                onClick={() => handleView(item.id)}
+                className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
+                title={t("tour.viewDetail")}
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </ActionButton>
 
-            <ActionButton
-              variant="warning"
-              aria-label={t("tour.delete")}
-              onClick={() => setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })}
-              className="h-8 w-8"
-              title={t("tour.deleteSchedule")}
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </ActionButton>
-          </div>
-        ),
+              {/* {canEditSchedule && (
+                <>
+                  <ActionButton
+                    variant="secondary"
+                    aria-label={t("tour.edit")}
+                    onClick={() => handleEdit(item.id)}
+                    className="h-8 w-8"
+                    title={t("tour.editSchedule")}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </ActionButton>
+
+                  <ActionButton
+                    variant="warning"
+                    aria-label={t("tour.delete")}
+                    onClick={() => setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })}
+                    className="h-8 w-8"
+                    title={t("tour.deleteSchedule")}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </ActionButton>
+                </>
+              )} */}
+            </div>
+          );
+        },
       },
     ],
     [t],

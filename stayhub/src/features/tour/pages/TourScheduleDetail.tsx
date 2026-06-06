@@ -17,7 +17,6 @@ import {
   PowerOff,
   Ticket,
   Trash2,
-  Users,
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
@@ -315,25 +314,27 @@ export const TourScheduleDetail: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex shrink-0 items-center gap-3">
-              <ActionButton
-                variant="secondary"
-                onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Pencil className="h-4 w-4" />
-                {t("tour.edit")}
-              </ActionButton>
-              <ActionButton
-                type="button"
-                variant="warning"
-                onClick={() => setConfirmAction({ type: "deleteSchedule" })}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Trash2 className="h-4 w-4" />
-                {t("tour.delete")}
-              </ActionButton>
-            </div>
+            {schedule.canEdit && (
+              <div className="flex shrink-0 items-center gap-3">
+                <ActionButton
+                  variant="secondary"
+                  onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE(schedule.id))}
+                  className="gap-2 px-4 py-2 text-sm"
+                >
+                  <Pencil className="h-4 w-4" />
+                  {t("tour.edit")}
+                </ActionButton>
+                <ActionButton
+                  type="button"
+                  variant="warning"
+                  onClick={() => setConfirmAction({ type: "deleteSchedule" })}
+                  className="gap-2 px-4 py-2 text-sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t("tour.delete")}
+                </ActionButton>
+              </div>
+            )}
           </div>
 
           <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -387,14 +388,16 @@ export const TourScheduleDetail: React.FC = () => {
                     : t("tour.noTicketSetupSchedule")}
                 </p>
               </div>
-              <ActionButton
-                variant="primary"
-                onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
-                className="gap-2 px-4 py-2 text-sm"
-              >
-                <Plus className="h-4 w-4" />
-                {t("tour.addTicket")}
-              </ActionButton>
+              {schedule.canEdit && (
+                <ActionButton
+                  variant="primary"
+                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
+                  className="gap-2 px-4 py-2 text-sm"
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("tour.addTicket")}
+                </ActionButton>
+              )}
             </div>
 
             {isTicketsLoading ? (
@@ -418,9 +421,11 @@ export const TourScheduleDetail: React.FC = () => {
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("common.status")}
                       </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {t("common.actions")}
-                      </th>
+                      {schedule.canEdit && (
+                        <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {t("common.actions")}
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -479,47 +484,49 @@ export const TourScheduleDetail: React.FC = () => {
                               {isActive ? t("common.active") : t("common.inactive")}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-1.5">
-                              <ActionButton
-                                variant="secondary"
-                                onClick={() =>
-                                  navigate(
-                                    PATH.MANAGER.EDIT_SCHEDULE_TICKET(
-                                      schedule.id,
-                                      ticket.id,
-                                    ),
-                                  )
-                                }
-                                className="h-8 w-8"
-                                title={t("tour.editTicket")}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </ActionButton>
-                              <ActionButton
-                                variant={isActive ? "warning" : "secondary"}
-                                onClick={() =>
-                                  setConfirmAction({
-                                    type: isActive ? "deactivateTicket" : "activateTicket",
-                                    ticket,
-                                  })
-                                }
-                                disabled={updatingTicketId === ticket.id}
-                                className={`h-8 w-8 ${
-                                  !isActive
-                                    ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-                                    : ""
-                                }`}
-                                title={isActive ? t("tour.deactivateTicketAction") : t("tour.activateTicketAction")}
-                              >
-                                {isActive ? (
-                                  <PowerOff className="h-3.5 w-3.5" />
-                                ) : (
-                                  <Power className="h-3.5 w-3.5" />
-                                )}
-                              </ActionButton>
-                            </div>
-                          </td>
+                          {schedule.canEdit && (
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-1.5">
+                                <ActionButton
+                                  variant="secondary"
+                                  onClick={() =>
+                                    navigate(
+                                      PATH.MANAGER.EDIT_SCHEDULE_TICKET(
+                                        schedule.id,
+                                        ticket.id,
+                                      ),
+                                    )
+                                  }
+                                  className="h-8 w-8"
+                                  title={t("tour.editTicket")}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </ActionButton>
+                                <ActionButton
+                                  variant={isActive ? "warning" : "secondary"}
+                                  onClick={() =>
+                                    setConfirmAction({
+                                      type: isActive ? "deactivateTicket" : "activateTicket",
+                                      ticket,
+                                    })
+                                  }
+                                  disabled={updatingTicketId === ticket.id}
+                                  className={`h-8 w-8 ${
+                                    !isActive
+                                      ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                                      : ""
+                                  }`}
+                                  title={isActive ? t("tour.deactivateTicketAction") : t("tour.activateTicketAction")}
+                                >
+                                  {isActive ? (
+                                    <PowerOff className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Power className="h-3.5 w-3.5" />
+                                  )}
+                                </ActionButton>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       );
                     })}
@@ -535,14 +542,16 @@ export const TourScheduleDetail: React.FC = () => {
                 <p className="mb-4 text-xs text-slate-500">
                   {t("tour.addTicketHint")}
                 </p>
-                <ActionButton
-                  variant="primary"
-                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("tour.addTicket")}
-                </ActionButton>
+                {/* {schedule.canEdit && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
+                    className="gap-2 px-4 py-2 text-sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("tour.addTicket")}
+                  </ActionButton>
+                )} */}
               </div>
             )}
           </div>
@@ -553,14 +562,16 @@ export const TourScheduleDetail: React.FC = () => {
                 <h2 className="text-base font-bold text-slate-900">
                   {t("tour.scheduleItinerarySection")}
                 </h2>
-                <ActionButton
-                  variant="primary"
-                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("tour.addItineraries")}
-                </ActionButton>
+                {schedule.canEdit && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
+                    className="gap-2 px-4 py-2 text-sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("tour.addItineraries")}
+                  </ActionButton>
+                )}
               </div>
               {missingItineraryDays.length > 0 && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -630,39 +641,41 @@ export const TourScheduleDetail: React.FC = () => {
                                     </h4>
                                   </div>
                                   <div className="flex items-center gap-4">
-                                    <div
-                                      className="flex gap-2"
-                                      onClick={(event) => event.stopPropagation()}
-                                    >
-                                      <ActionButton
-                                        variant="secondary"
-                                        onClick={() =>
-                                          navigate(
-                                            PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(
-                                              schedule.id,
-                                              iti.id,
-                                            ),
-                                          )
-                                        }
-                                        className="h-8 w-8 text-brand hover:bg-brand-light"
+                                    {schedule.canEdit && (
+                                      <div
+                                        className="flex gap-2"
+                                        onClick={(event) => event.stopPropagation()}
                                       >
-                                        <Pencil className="h-3.5 w-3.5" />
-                                      </ActionButton>
-                                      <ActionButton
-                                        variant="warning"
-                                        onClick={() =>
-                                          navigate(
-                                            PATH.MANAGER.DELETE_SCHEDULE_ITINERARY(
-                                              schedule.id,
-                                              iti.id,
-                                            ),
-                                          )
-                                        }
-                                        className="h-8 w-8"
-                                      >
-                                        <Trash2 className="h-3.5 w-3.5" />
-                                      </ActionButton>
-                                    </div>
+                                        <ActionButton
+                                          variant="secondary"
+                                          onClick={() =>
+                                            navigate(
+                                              PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(
+                                                schedule.id,
+                                                iti.id,
+                                              ),
+                                            )
+                                          }
+                                          className="h-8 w-8 text-brand hover:bg-brand-light"
+                                        >
+                                          <Pencil className="h-3.5 w-3.5" />
+                                        </ActionButton>
+                                        <ActionButton
+                                          variant="warning"
+                                          onClick={() =>
+                                            navigate(
+                                              PATH.MANAGER.DELETE_SCHEDULE_ITINERARY(
+                                                schedule.id,
+                                                iti.id,
+                                              ),
+                                            )
+                                          }
+                                          className="h-8 w-8"
+                                        >
+                                          <Trash2 className="h-3.5 w-3.5" />
+                                        </ActionButton>
+                                      </div>
+                                    )}
                                     <div className="text-slate-400">
                                       {isExpanded ? (
                                         <ChevronUp className="h-5 w-5" />
@@ -779,7 +792,10 @@ export const TourScheduleDetail: React.FC = () => {
 
       {/* SECTION: Quản lý Nhân sự */}
       <div className="mt-8">
-        <TourScheduleStaffManagement scheduleId={Number(id)} />
+        <TourScheduleStaffManagement
+          scheduleId={Number(id)}
+          isReadOnly={!schedule.canEdit}
+        />
       </div>
 
       <ConfirmDialog
@@ -802,4 +818,4 @@ export const TourScheduleDetail: React.FC = () => {
       />
     </div>
   );
-};  
+};

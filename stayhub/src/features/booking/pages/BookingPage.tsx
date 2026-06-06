@@ -5,11 +5,14 @@ import {
   ArrowLeft,
   Calendar,
   CreditCard,
+  Download,
+  FileSpreadsheet,
   Minus,
   Plus,
   ShieldCheck,
   Smartphone,
   Ticket,
+  Upload,
   Users,
   X,
 } from "lucide-react";
@@ -32,6 +35,10 @@ import {
   getScheduleTicketTypeId,
 } from "../../tour/utils/tourScheduleTicket";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import {
+  downloadBookingPassengerExcel,
+  parseBookingPassengerExcel,
+} from "../utils/bookingPassengerExcel";
 
 type CheckoutSchedule = TourSchedule & {
   price?: number | string | null;
@@ -103,7 +110,7 @@ export const BookingPage: React.FC = () => {
     handleApplySavedVoucher,
     clearAppliedVoucher,
   } = useBookingCheckout();
-  const { error: showError } = useToast();
+  const { success, error: showError } = useToast();
 
   const [note, setNote] = useState("");
   const [tickets, setTickets] = useState<PassengerTicket[]>([]);
@@ -112,9 +119,12 @@ export const BookingPage: React.FC = () => {
   const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
   const [currentTime] = useState(() => Date.now());
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("vnpay");
+  const [isExcelProcessing, setIsExcelProcessing] = useState(false);
+  const [excelImportCount, setExcelImportCount] = useState<number | null>(null);
 
   const errorHandledRef = useRef(false);
   const passengerSequenceRef = useRef(0);
+  const passengerExcelInputRef = useRef<HTMLInputElement>(null);
   const maxDate = new Date(currentTime).toISOString().split("T")[0];
 
   const scheduleTicketOptions = useMemo(
@@ -228,6 +238,8 @@ export const BookingPage: React.FC = () => {
   };
 
   const handleAddTicket = (ticketOption: TourScheduleTicket) => {
+    if (isExcelProcessing) return;
+
     const price = getTicketPrice(ticketOption);
     const available = getTicketAvailable(ticketOption);
     const quantity = ticketQuantities[ticketOption.id] ?? 0;
@@ -247,6 +259,7 @@ export const BookingPage: React.FC = () => {
       return;
     }
 
+    setExcelImportCount(null);
     setTickets((currentTickets) => [
       ...currentTickets,
       createPassengerTicket(ticketOption),
@@ -254,6 +267,9 @@ export const BookingPage: React.FC = () => {
   };
 
   const handleRemoveTicket = (ticketOption: TourScheduleTicket) => {
+    if (isExcelProcessing) return;
+
+    setExcelImportCount(null);
     setTickets((currentTickets) => {
       for (let index = currentTickets.length - 1; index >= 0; index -= 1) {
         if (currentTickets[index].tourScheduleTicketId === ticketOption.id) {
@@ -263,6 +279,73 @@ export const BookingPage: React.FC = () => {
 
       return currentTickets;
     });
+  };
+
+  const getPassengerExcelRecords = () =>
+    tickets.map((ticket) => ({
+      ticketTypeName: ticket.ticketTypeName,
+      attendeeName: ticket.attendeeName,
+      idCard: ticket.idCard,
+      dateOfBirth: ticket.dateOfBirth,
+      gender: ticket.gender,
+      nationality: ticket.nationality,
+    }));
+
+  const handleDownloadPassengerExcel = async () => {
+    if (tickets.length === 0) {
+      showError(t("booking.passengerExcelSelectTickets"));
+      return;
+    }
+
+    try {
+      setIsExcelProcessing(true);
+      await downloadBookingPassengerExcel(getPassengerExcelRecords());
+      success(t("booking.passengerExcelDownloaded", { count: tickets.length }));
+    } catch (error: any) {
+      showError(error.message || t("booking.passengerExcelDownloadFailed"));
+    } finally {
+      setIsExcelProcessing(false);
+    }
+  };
+
+  const handleImportPassengerExcel = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+
+    try {
+      setIsExcelProcessing(true);
+      const importedRecords = await parseBookingPassengerExcel(
+        file,
+        getPassengerExcelRecords(),
+      );
+
+      setTickets((currentTickets) =>
+        currentTickets.map((ticket, index) => ({
+          ...ticket,
+          attendeeName: importedRecords[index].attendeeName,
+          idCard: importedRecords[index].idCard,
+          dateOfBirth: importedRecords[index].dateOfBirth,
+          gender: importedRecords[index].gender,
+          nationality: importedRecords[index].nationality,
+        })),
+      );
+      setHasAttemptedSubmit(false);
+      setTicketErrors({});
+      setEditingTicketIndex(null);
+      setExcelImportCount(importedRecords.length);
+      success(
+        t("booking.passengerExcelImported", {
+          count: importedRecords.length,
+        }),
+      );
+    } catch (error: any) {
+      showError(error.message || t("booking.passengerExcelImportFailed"));
+    } finally {
+      setIsExcelProcessing(false);
+    }
   };
 
   const handleTicketFieldChange = (
@@ -477,7 +560,7 @@ export const BookingPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveTicket(ticketOption)}
-                            disabled={quantity <= 0}
+                            disabled={quantity <= 0 || isExcelProcessing}
                             className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Minus className="h-4 w-4" />
@@ -488,7 +571,7 @@ export const BookingPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleAddTicket(ticketOption)}
-                            disabled={isUnavailable || quantity >= available}
+                            disabled={isUnavailable || quantity >= available || isExcelProcessing}
                             className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-white transition-colors hover:bg-brand disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             <Plus className="h-4 w-4" />
@@ -529,6 +612,59 @@ export const BookingPage: React.FC = () => {
               <p className="mb-6 border-b border-slate-100 pb-4 text-sm text-slate-500">
                 {t("booking.passengersInfoDesc")}
               </p>
+
+              <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-white p-2.5 text-indigo-600 shadow-sm">
+                    <FileSpreadsheet className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">
+                      {t("booking.passengerExcelTitle")}
+                    </p>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-600">
+                      {t("booking.passengerExcelDescription", {
+                        count: ticketCount,
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  <input
+                    ref={passengerExcelInputRef}
+                    type="file"
+                    accept=".xlsx"
+                    className="hidden"
+                    onChange={handleImportPassengerExcel}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleDownloadPassengerExcel}
+                    disabled={ticketCount === 0 || isExcelProcessing}
+                    className="inline-flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-xs font-bold text-indigo-700 shadow-sm transition-colors hover:bg-indigo-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Download className="h-4 w-4" />
+                    {t("booking.passengerExcelDownload")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => passengerExcelInputRef.current?.click()}
+                    disabled={ticketCount === 0 || isExcelProcessing}
+                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {t("booking.passengerExcelImport")}
+                  </button>
+                </div>
+              </div>
+
+              {excelImportCount !== null && (
+                <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+                  {t("booking.passengerExcelReview", {
+                    count: excelImportCount,
+                  })}
+                </div>
+              )}
 
               {tickets.length > 0 ? (
                 <div className="space-y-3">
@@ -771,8 +907,12 @@ export const BookingPage: React.FC = () => {
         </div>
       </div>
       <LoadingOverlay
-        isOpen={isSubmitting}
-        message={t("booking.creatingOrderRedirect", { provider: paymentProviderLabel })}
+        isOpen={isSubmitting || isExcelProcessing}
+        message={
+          isExcelProcessing
+            ? t("booking.passengerExcelProcessing")
+            : t("booking.creatingOrderRedirect", { provider: paymentProviderLabel })
+        }
       />
 
       {editingTicketIndex !== null &&

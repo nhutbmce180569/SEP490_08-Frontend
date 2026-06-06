@@ -6,6 +6,7 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 interface TourismInformationSelectorProps {
   items: TourismInformation[];
   value?: number | null;
+  initialKeyword?: string;
   error?: string | null;
   onChange: (item: TourismInformation | null) => void;
 }
@@ -16,14 +17,21 @@ const getAddressText = (item: TourismInformation) =>
 export const TourismInformationSelector: React.FC<TourismInformationSelectorProps> = ({
   items,
   value,
+  initialKeyword = "",
   error,
   onChange,
 }) => {
   const { t } = useTranslation();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [keyword, setKeyword] = useState("");
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [isOpen, setIsOpen] = useState(false);
   const selectedItem = items.find((item) => item.id === value) ?? null;
+
+  useEffect(() => {
+    if (!selectedItem) {
+      setKeyword(initialKeyword);
+    }
+  }, [initialKeyword, selectedItem]);
 
   const filteredItems = useMemo(() => {
     const normalizedKeyword = keyword.trim().toLowerCase();

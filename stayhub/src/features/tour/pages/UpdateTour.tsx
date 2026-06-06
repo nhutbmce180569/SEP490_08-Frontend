@@ -55,6 +55,12 @@ export const UpdateTour: React.FC = () => {
         {t("tour.tourNotFound")}
       </div>
     );
+  if (!tour.canEdit)
+    return (
+      <div className="flex justify-center p-10 text-rose-500">
+        {t("tour.noEditPermission")}
+      </div>
+    );
 
   const tourFields: FormField[] = [
     {
@@ -63,6 +69,10 @@ export const UpdateTour: React.FC = () => {
       type: "text",
       colSpan: 2,
       required: true,
+      validate: (value) => {
+        const length = String(value ?? "").trim().length;
+        return length < 5 || length > 200 ? t("tour.nameLengthValidation") : undefined;
+      },
     },
     {
       name: "categoryId",
@@ -88,7 +98,7 @@ export const UpdateTour: React.FC = () => {
       type: "custom",
       colSpan: 2,
       required: true,
-      render: (value, onChange, error, setFormData) => (
+      render: (value, _onChange, error, setFormData) => (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -147,12 +157,24 @@ export const UpdateTour: React.FC = () => {
       type: "textarea",
       icon: <FileText className="h-4 w-4" />,
       colSpan: 2,
+      required: true,
+      validate: (value) => {
+        const length = String(value ?? "").trim().length;
+        return length < 20 || length > 2000 ? t("tour.descriptionLengthValidation") : undefined;
+      },
     },
     {
       name: "image",
       label: t("tour.tourImage"),
       type: "file",
       colSpan: 2,
+      validate: (value) => {
+        if (!(value instanceof File)) return undefined;
+        if (value.size > 5 * 1024 * 1024) return t("tour.imageSizeValidation");
+        return ["image/jpeg", "image/png", "image/webp"].includes(value.type)
+          ? undefined
+          : t("tour.imageTypeValidation");
+      },
     },
   ];
 
@@ -165,7 +187,7 @@ export const UpdateTour: React.FC = () => {
     <>
       <DynamicForm
         title={t("tour.updateTourTitle")}
-        description={t("tour.editTourDetails", { id })}
+        description={t("tour.editTourDetails", { id: id ?? "" })}
         fields={tourFields}
         initialValues={initialFormValues}
         onSubmit={handleSubmit}

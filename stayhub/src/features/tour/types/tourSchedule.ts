@@ -9,6 +9,7 @@ export interface TourSchedule {
   departureDate: string;
   returnDate: string;
   note?: string | null;
+  canEdit?: boolean;
   tour?: TourBasic; 
   tourScheduleStaffs?: TourScheduleStaff[];
   tourScheduleItineraries?: TourScheduleItinerary[];

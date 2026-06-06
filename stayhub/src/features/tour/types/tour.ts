@@ -14,6 +14,7 @@ export interface Tour {
   city?: string | null;
   address?: string | null;
   averageStar? : number | null;
+  canEdit?: boolean;
   createdBy: number;
   createdByName?: string | null;
   updatedBy?: number | null;

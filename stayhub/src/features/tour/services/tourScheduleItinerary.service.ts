@@ -35,6 +35,12 @@ export const createScheduleItineraryBatch = async (
   return await apiClient.post<void>(TOURS_API.BATCH_SCHEDULE_ITINERARIES, data);
 };
 
+export const downloadScheduleItineraryImportTemplate = async (): Promise<Blob> => {
+  return await apiClient.get(TOURS_API.SCHEDULE_ITINERARY_IMPORT_TEMPLATE, {
+    responseType: "blob",
+  });
+};
+
 export const updateScheduleItinerary = async (
   id: string | number,
   data: UpdateTourScheduleItineraryRequest,

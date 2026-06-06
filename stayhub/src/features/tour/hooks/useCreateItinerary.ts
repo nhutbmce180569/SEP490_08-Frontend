@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useTour } from "./useTour";
 import { createItineraryBatch } from "../services/itinerary.service";
 
@@ -9,7 +10,8 @@ export const useCreateItinerary = () => {
   // Lấy tourId từ Dynamic Route (VD: /partner/tours/123/itineraries/create)
   const { tourId } = useParams<{ tourId: string }>();
   const navigate = useNavigate();
-  const { success, error: showError } = useToast();
+  const { t } = useTranslation();
+  const { success, warning, error: showError } = useToast();
   
   const { tour, isLoading: isTourLoading } = useTour(tourId);
 
@@ -42,27 +44,68 @@ export const useCreateItinerary = () => {
     tourismInfoId: null,
   }] );
 
+  const isBlankItinerary = (itinerary: any) =>
+    !itinerary.title &&
+    !itinerary.description &&
+    !itinerary.startDuration &&
+    !itinerary.endDuration &&
+    !itinerary.locationName &&
+    (itinerary.locationLat === undefined || itinerary.locationLat === null) &&
+    (itinerary.locationLng === undefined || itinerary.locationLng === null) &&
+    !itinerary.tourismInfoId &&
+    !itinerary.tourismSearchKeyword;
+
   const handleAddDay = () => {
     const lastDayNumber = itineraries.length > 0 ? itineraries[itineraries.length - 1].dayNumber : 1;
-    setItineraries((prev) => [
-      ...prev,
-      { 
-        id: Date.now() + Math.random(),
-        dayNumber: Number(lastDayNumber),
-        title: "", 
-        description: "", 
-        startDuration: "",
-        endDuration: "",
-        locationName: "", 
-        locationLat: undefined, 
-        locationLng: undefined,
-        tourismInfoId: null,
-      }
-    ]);
+    const newItinerary = {
+      id: Date.now() + Math.random(),
+      dayNumber: Number(lastDayNumber),
+      title: "",
+      description: "",
+      startDuration: "",
+      endDuration: "",
+      locationName: "",
+      locationLat: undefined,
+      locationLng: undefined,
+      tourismInfoId: null,
+      tourismSearchKeyword: "",
+    };
+    const replacesBlankDefault =
+      itineraries.length === 1 && isBlankItinerary(itineraries[0]);
+
+    setItineraries((prev) =>
+      replacesBlankDefault ? [newItinerary] : [...prev, newItinerary],
+    );
+    if (replacesBlankDefault) {
+      warning(t("tour.blankFormReplaced"));
+    }
   };
 
   const handleRemoveDay = (indexToRemove: number) => {
     setItineraries((prev) => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  const handleClearDay = (indexToClear: number) => {
+    setItineraries((prev) =>
+      prev.map((itinerary, index) =>
+        index === indexToClear
+          ? {
+              id: Date.now() + Math.random(),
+              dayNumber: itinerary.dayNumber,
+              title: "",
+              description: "",
+              startDuration: "",
+              endDuration: "",
+              locationName: "",
+              locationLat: undefined,
+              locationLng: undefined,
+              tourismInfoId: null,
+              tourismSearchKeyword: "",
+            }
+          : itinerary,
+      ),
+    );
+    success(t("tour.itineraryFormCleared"));
   };
 
   const updateItinerary = (index: number, field: string, value: any) => {
@@ -89,6 +132,34 @@ export const useCreateItinerary = () => {
     });
   };
 
+  const addImportedItineraries = (imported: any[]) => {
+    const normalized = imported.map((item, index) => ({
+      id: Date.now() + index + Math.random(),
+      dayNumber: Number(item.dayNumber),
+      title: item.title ?? "",
+      description: item.description ?? "",
+      startDuration: item.startDuration?.substring(0, 5) ?? "",
+      endDuration: item.endDuration?.substring(0, 5) ?? "",
+      locationName: item.locationName ?? "",
+      locationLat: item.locationLat ?? undefined,
+      locationLng: item.locationLng ?? undefined,
+      tourismInfoId: item.tourismInfoId ?? null,
+      tourismSearchKeyword: item.tourismSearchKeyword ?? "",
+    }));
+
+    setItineraries((current) => {
+      const hasOnlyBlankDefault =
+        current.length === 1 &&
+        !current[0].title &&
+        !current[0].description &&
+        !current[0].startDuration &&
+        !current[0].endDuration &&
+        !current[0].locationName;
+
+      return hasOnlyBlankDefault ? normalized : [...current, ...normalized];
+    });
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, any>>({});
 
@@ -107,8 +178,8 @@ export const useCreateItinerary = () => {
           startDuration: iti.startDuration ? (iti.startDuration.length === 5 ? `${iti.startDuration}:00` : iti.startDuration) : null,
           endDuration: iti.endDuration ? (iti.endDuration.length === 5 ? `${iti.endDuration}:00` : iti.endDuration) : null,
           locationName: iti.locationName || null,
-          locationLat: iti.locationLat ? Number(iti.locationLat) : null,
-          locationLng: iti.locationLng ? Number(iti.locationLng) : null,
+          locationLat: iti.locationLat === null || iti.locationLat === undefined ? null : Number(iti.locationLat),
+          locationLng: iti.locationLng === null || iti.locationLng === undefined ? null : Number(iti.locationLng),
           tourismInfoId: iti.tourismInfoId === "" || iti.tourismInfoId === null || iti.tourismInfoId === undefined ? null : Number(iti.tourismInfoId),
         }))
       };
@@ -142,7 +213,9 @@ export const useCreateItinerary = () => {
     missingDayNumbers,
     handleAddDay,
     handleRemoveDay,
+    handleClearDay,
     updateItinerary,
     patchItinerary,
+    addImportedItineraries,
   };
 };

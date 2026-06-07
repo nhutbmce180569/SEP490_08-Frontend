@@ -53,7 +53,7 @@ export const ToastProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     <ToastContext.Provider value={{ success, warning, error, info }}>
       {children}
       {/* Vùng hiển thị toàn bộ Toasts */}
-      <div className="fixed right-6 top-6 z-[9999] flex flex-col gap-3">
+     <div className="fixed right-6 top-6 z-[999999] flex flex-col gap-3">
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
         ))}

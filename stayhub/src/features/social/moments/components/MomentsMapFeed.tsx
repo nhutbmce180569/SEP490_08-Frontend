@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
-import { GoogleMap, OverlayView, useJsApiLoader, Polygon } from "@react-google-maps/api";
+import { GoogleMap, OverlayView, LoadScriptNext, Polygon } from "@react-google-maps/api";
 import useSupercluster from "use-supercluster";
 import { Users, X, Camera, Layers, Navigation } from "lucide-react";
 import type { Moment } from "../types/moment.type";
@@ -18,6 +18,7 @@ interface MomentsMapFeedProps {
 }
 
 const defaultCenter = { lat: 10.0451, lng: 105.7468 };
+const MAP_LIBRARIES: ("drawing" | "geometry" | "places")[] = ["drawing", "geometry"];
 
 export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   scheduleId,
@@ -31,11 +32,6 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     console.error("VITE_GOOGLE_MAPS_API_KEY is missing in .env file. Please check your .env configuration.");
   }
 
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: apiKey || "",
-  });
-
   const { data: moments } = useGetMomentFeed(scheduleId);
   
   // ✨ Lấy dữ liệu dấu chân cào map từ API
@@ -48,80 +44,84 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   // Giai đoạn 2: State quản lý Lớp (Layers) và Menu
   const [showMoments, setShowMoments] = useState(true);
-  const [showLiveLocations, setShowLiveLocations] = useState(true); // State được thêm theo yêu cầu, nhưng chưa có nguồn dữ liệu riêng cho "Vị trí live"
+  const [showLiveLocations, setShowLiveLocations] = useState(true); 
   const [showFootprints, setShowFootprints] = useState(false);
   const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
   const [friendLocations, setFriendLocations] = useState<any[]>([]);
   const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
 
+  // Thêm một state để theo dõi xem Map instance đã thực sự sẵn sàng trong DOM chưa
+  const [isMapReady, setIsMapReady] = useState(false);
+
   // Hook 1: Initial Load & SignalR Real-time
-  useEffect(() => {
-    if (!showLiveLocations) return;
+  // useEffect(() => {
+  //   if (!showLiveLocations) return;
 
-    let connection: signalR.HubConnection;
+  //   let connection: signalR.HubConnection;
 
-    const initLocationService = async () => {
-      try {
-        const initialFriends = await locationService.getLiveFriends();
-        setFriendLocations(initialFriends?.data || initialFriends || []);
-      } catch (err) {
-        console.error("Lỗi lấy danh sách bạn bè live:", err);
-      }
+  //   const initLocationService = async () => {
+  //     try {
+  //       const initialFriends = await locationService.getLiveFriends();
+  //       setFriendLocations(initialFriends?.data || initialFriends || []);
+  //     } catch (err) {
+  //       console.error("Lỗi lấy danh sách bạn bè live:", err);
+  //     }
 
-      const token = localStorage.getItem("accessToken");
-      if (!token) return;
+  //     const token = localStorage.getItem("accessToken");
+  //     if (!token) return;
 
-      connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${SIGNALR_HUB_BASE}/friendship`, {
-          accessTokenFactory: () => token,
-        })
-        .withAutomaticReconnect()
-        .build();
+  //     connection = new signalR.HubConnectionBuilder()
+  //       .withUrl(`${SIGNALR_HUB_BASE}/friendship`, {
+  //         accessTokenFactory: () => token,
+  //       })
+  //       .withAutomaticReconnect()
+  //       .build();
 
-      connection
-        .start()
-        .then(() => {
-          connection.on("ReceiveFriendLocation", (data: any) => {
-            setFriendLocations((prev) => {
-              const index = prev.findIndex((f) => f.userId === data.userId);
-              if (index !== -1) {
-                const newFriends = [...prev];
-                newFriends[index] = { ...newFriends[index], lat: data.lat, lng: data.lng, lastUpdated: data.lastUpdated };
-                return newFriends;
-              }
-              return [...prev, data];
-            });
-          });
-        })
-        .catch((err) => console.error("Error connecting to SignalR:", err));
-    };
+  //     connection
+  //       .start()
+  //       .then(() => {
+  //         connection.on("ReceiveFriendLocation", (data: any) => {
+  //           setFriendLocations((prev) => {
+  //             const index = prev.findIndex((f) => f.userId === data.userId);
+  //             if (index !== -1) {
+  //               const newFriends = [...prev];
+  //               newFriends[index] = { ...newFriends[index], lat: data.lat, lng: data.lng, lastUpdated: data.lastUpdated };
+  //               return newFriends;
+  //             }
+  //             return [...prev, data];
+  //           });
+  //         });
+  //       })
+  //       .catch((err) => console.error("Error connecting to SignalR:", err));
+  //   };
 
-    initLocationService();
+  //   initLocationService();
 
-    return () => {
-      if (connection) connection.stop();
-    };
-  }, [showLiveLocations]);
+  //   return () => {
+  //     if (connection) connection.stop();
+  //   };
+  // }, [showLiveLocations]);
 
-  // Hook 2: Ping GPS của chính mình lên Server
-  useEffect(() => {
-    if ("geolocation" in navigator) {
-      const watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          locationService.pingLocation(latitude, longitude, scheduleId)
-            .then(() => setLastPingTime(new Date()))
-            .catch((err) => console.error("Lỗi ping vị trí:", err));
-        },
-        (err) => console.warn("Lỗi lấy vị trí GPS:", err),
-        { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-      );
-      return () => navigator.geolocation.clearWatch(watchId);
-    }
-  }, [scheduleId]);
+  // // Hook 2: Ping GPS của chính mình lên Server
+  // useEffect(() => {
+  //   if ("geolocation" in navigator) {
+  //     const watchId = navigator.geolocation.watchPosition(
+  //       (pos) => {
+  //         const { latitude, longitude } = pos.coords;
+  //         locationService.pingLocation(latitude, longitude, scheduleId)
+  //           .then(() => setLastPingTime(new Date()))
+  //           .catch((err) => console.error("Lỗi ping vị trí:", err));
+  //       },
+  //       (err) => console.warn("Lỗi lấy vị trí GPS:", err),
+  //       { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+  //     );
+  //     return () => navigator.geolocation.clearWatch(watchId);
+  //   }
+  // }, [scheduleId]);
 
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    setIsMapReady(true); // 💡 ĐÃ BỔ SUNG: Xác nhận map đã dựng xong cấu trúc DOM
   }, []);
 
   const handleMapClick = () => {
@@ -143,76 +143,76 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     }
   }, []);
 
-
-// --- ✨ THUẬT TOÁN FOG OF WAR (CÀO MAP CHUẨN XÁC 100%) ---
   const fogPaths = useMemo(() => {
-    // 1. TẤM BẠT CHE THẾ GIỚI (Vẽ XUÔI chiều kim đồng hồ)
-    // Phải có các điểm neo (-90, 0, 90) để Google Maps không bị lỗi "Đi tắt"
     const worldBounds = [
-      // Cạnh trên (Chạy từ Tây sang Đông)
       { lat: 85, lng: -180 },
       { lat: 85, lng: -90 },
       { lat: 85, lng: 0 },
       { lat: 85, lng: 90 },
       { lat: 85, lng: 180 },
-      // Cạnh phải đi xuống
       { lat: -85, lng: 180 },
-      // Cạnh dưới (Chạy từ Đông về Tây)
       { lat: -85, lng: 90 },
       { lat: -85, lng: 0 },
       { lat: -85, lng: -90 },
       { lat: -85, lng: -180 },
-      // Tự động nối khép kín lên góc trên trái
     ];
 
-    if (!footprints || footprints.length === 0) return [worldBounds];
+    if (!footprints || !Array.isArray(footprints) || footprints.length === 0) {
+      return [worldBounds];
+    }
 
-    // 2. TẠO LỖ THỦNG LỤC GIÁC (Bắt buộc vẽ NGƯỢC chiều kim đồng hồ)
-    const hexagonHoles = footprints.map((fp: any) => {
-      const path = [];
-      const earthRadius = 6371000;
-      const lat = (fp.lat * Math.PI) / 180;
-      const lng = (fp.lng * Math.PI) / 180;
-      const d = 300 / earthRadius; // Bán kính lỗ thủng (Đang set 300 mét cho dễ nhìn)
+    const hexagonHoles = footprints
+      .filter((fp: any) => {
+        if (!fp) return false;
+        const latVal = fp.lat ?? fp.Lat;
+        const lngVal = fp.lng ?? fp.Lng;
+        return latVal != null && lngVal != null && !isNaN(Number(latVal)) && !isNaN(Number(lngVal));
+      })
+      .map((fp: any) => {
+        const path = [];
+        const earthRadius = 6371000;
+        const rawLat = fp.lat ?? fp.Lat;
+        const rawLng = fp.lng ?? fp.Lng;
 
-      // Vòng lặp chạy lùi (360 -> 0) để tạo hướng Ngược chiều kim đồng hồ -> Tạo ra Lỗ
-      for (let i = 360; i >= 0; i -= 60) {
-        const brng = (i * Math.PI) / 180;
-        const pLat = Math.asin(Math.sin(lat) * Math.cos(d) + Math.cos(lat) * Math.sin(d) * Math.cos(brng));
-        const pLng = lng + Math.atan2(Math.sin(brng) * Math.sin(d) * Math.cos(lat), Math.cos(d) - Math.sin(lat) * Math.sin(pLat));
-        path.push({ lat: (pLat * 180) / Math.PI, lng: (pLng * 180) / Math.PI });
-      }
-      return path;
-    });
+        const lat = (Number(rawLat) * Math.PI) / 180;
+        const lng = (Number(rawLng) * Math.PI) / 180;
+        const d = 300 / earthRadius;
 
-    // Gom Tấm bạt và Các lỗ thủng lại
+        for (let i = 360; i >= 0; i -= 60) {
+          const brng = (i * Math.PI) / 180;
+          const pLat = Math.asin(Math.sin(lat) * Math.cos(d) + Math.cos(lat) * Math.sin(d) * Math.cos(brng));
+          const pLng = lng + Math.atan2(Math.sin(brng) * Math.sin(d) * Math.cos(lat), Math.cos(d) - Math.sin(lat) * Math.sin(pLat));
+          
+          const finalLat = (pLat * 180) / Math.PI;
+          const finalLng = (pLng * 180) / Math.PI;
+
+          if (!isNaN(finalLat) && !isNaN(finalLng)) {
+            path.push({ lat: finalLat, lng: finalLng });
+          }
+        }
+        return path;
+      })
+      .filter(path => path.length > 0);
+
     return [worldBounds, ...hexagonHoles];
   }, [footprints]);
-
 
   const points = useMemo(() => {
     if (!moments) return [];
     
-    // 1. Trích xuất mảng dữ liệu (Hỗ trợ đủ loại cấu trúc response từ BE)
     const momentsArray = Array.isArray(moments) 
       ? moments 
       : ((moments as any).pages?.flat() || (moments as any).data || (moments as any).value || []);
 
-    // 💥 DÒNG LOG CỰC QUAN TRỌNG ĐỂ BẮT BỆNH:
-    // console.log("🔥 [DEBUG 1] Mảng Moments nhận được từ BE:", momentsArray);
-
     const validPoints = momentsArray
       .filter((m: any) => {
-        // Bao phủ mọi trường hợp đặt tên của Backend (lat, Lat, latitude, Latitude)
         const latitude = m.lat ?? m.Lat ?? m.latitude ?? m.Latitude;
         const longitude = m.lng ?? m.Lng ?? m.longitude ?? m.Longitude;
-        return latitude != null && longitude != null;
+        return latitude != null && longitude != null && !isNaN(Number(latitude)) && !isNaN(Number(longitude));
       })
       .map((m: any) => {
         const latitude = m.lat ?? m.Lat ?? m.latitude ?? m.Latitude;
         const longitude = m.lng ?? m.Lng ?? m.longitude ?? m.Longitude;
-        
-        // Đảm bảo không bị lỗi nếu BE không trả về object User
         const userObj = m.user || m.User || {};
 
         return {
@@ -227,14 +227,10 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           },
           geometry: {
             type: "Point" as const,
-            // Ép kiểu ép buộc về Number đề phòng BE trả về chuỗi "9.940..."
             coordinates: [Number(longitude), Number(latitude)], 
           },
         };
       });
-
-    // 💥 LOG KIỂM TRA ĐẦU RA:
-    // console.log("🔥 [DEBUG 2] Số lượng Marker được vẽ lên Map:", validPoints.length);
     
     return validPoints;
   }, [moments]);
@@ -246,16 +242,12 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       const firstPoint = points[0].geometry.coordinates;
       const targetCenter = { lat: firstPoint[1], lng: firstPoint[0] };
       
-      // Di chuyển camera trực tiếp qua instance của map
       mapRef.current.panTo(targetCenter);
       mapRef.current.setZoom(13);
-      
-      // Đánh dấu đã định vị thành công chuyến đi, không tự động giật camera nữa
       hasCenteredRef.current = true; 
     }
-  }, [points, isLoaded]); // Chỉ chạy khi points thực sự thay đổi hoặc Map tải xong
+  }, [points, isMapReady]); // 💡 ĐÃ SỬA: Đồng bộ hóa theo cờ isMapReady để tránh giật khung hình
 
-  // Reset lại cờ hiệu khi scheduleId thay đổi (khi người dùng chuyển tour)
   useEffect(() => {
     hasCenteredRef.current = false;
   }, [scheduleId]);
@@ -267,140 +259,149 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     options: { radius: 80, maxZoom: 19 },
   });
 
-  if (!isLoaded) {
-    return (
-      <div className="w-full h-[80vh] flex items-center justify-center bg-slate-100 rounded-3xl">
-        <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
-
   function handleJumpToNewest(event: React.MouseEvent<HTMLButtonElement>): void {
     event.stopPropagation();
     if (points.length > 0 && mapRef.current) {
       const [longitude, latitude] = points[0].geometry.coordinates;
-      const newCenter = {
-        lat: latitude,
-        lng: longitude,
-      };
-      mapRef.current.panTo(newCenter);
+      mapRef.current.panTo({ lat: latitude, lng: longitude });
       mapRef.current.setZoom(16);
     }
   }
 
   return (
     <div className="relative w-full h-[80vh] overflow-hidden rounded-3xl shadow-xl border border-slate-200 bg-slate-100">
-      <GoogleMap
-        mapContainerClassName="w-full h-full"
-        center={defaultCenter}
-        zoom={zoom}
-        onLoad={onMapLoad}
-        onIdle={onMapIdle}
-        options={{
-          disableDefaultUI: true,
-          zoomControl: true,
-          clickableIcons: false,
-        }}
-        onClick={handleMapClick}
+      <LoadScriptNext
+        googleMapsApiKey={apiKey}
+        libraries={MAP_LIBRARIES}
+        loadingElement={
+          <div className="w-full h-full flex items-center justify-center bg-slate-100 rounded-3xl">
+            <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full"></div>
+          </div>
+        }
       >
-        {/* Lớp "Dấu chân" (Fog of War) - Render có điều kiện */}
-        {showFootprints && (
-          <Polygon
-            paths={fogPaths}
-            options={{
-              fillColor: "#a3b1c6", // Màu xám sương mù
-              fillOpacity: 0.35,    // Độ che phủ 35%
-              strokeOpacity: 0,     // Ẩn đường viền
-              clickable: false,
-            }}
-          />
-        )}
-
-        {/* Lớp "Khoảnh khắc" & "Vị trí" (Markers & Clusters) - Render có điều kiện */}
-        {/* Hiện tại, cả "Khoảnh khắc" và "Vị trí bạn bè" đều dùng chung nguồn dữ liệu `moments`.
-            Logic render sẽ dựa vào `showMoments` để tránh xung đột. `showLiveLocations` đã có sẵn để tích hợp trong tương lai. */}
-        {showMoments && clusters.map((cluster) => {
-          const [longitude, latitude] = cluster.geometry.coordinates;
-          const { cluster: isCluster, point_count: pointCount, momentId, avatarUrl, userFullName } = cluster.properties;
-
-          if (isCluster) {
-            const leaves = supercluster ? supercluster.getLeaves(cluster.id as number, Infinity) : [];
-            const userIds = new Set(leaves.map((l: any) => String(l.properties.userId)));
-            const isSingleUserCluster = userIds.size === 1;
-
-            const handleClusterClick = () => {
-              if (!supercluster) return;
-              const extractedMoments = leaves.map((leaf: any) => leaf.properties.rawMoment);
-              setActiveClusterMoments(extractedMoments);
-              mapRef.current?.panTo({ lat: latitude, lng: longitude });
-            };
-
-            if (isSingleUserCluster) {
-              const firstLeaf = leaves[0];
-              const cAvatarUrl = firstLeaf?.properties.avatarUrl;
-              const cUserFullName = firstLeaf?.properties.userFullName;
-              const userInitial = cUserFullName ? cUserFullName.charAt(0).toUpperCase() : "?";
-
-              return (
-                <OverlayView key={`cluster-${cluster.id}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -h })}>
-                  <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={handleClusterClick}>
-                <div className="relative z-10 flex items-center justify-center w-14 h-14 !rounded-full border-4 border-white bg-white shadow-[0_8px_16px_rgba(0,0,0,0.15)] overflow-hidden">
-                      {cAvatarUrl ? <img src={cAvatarUrl} alt="Moment" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{userInitial}</div>}
-                  <div className="absolute inset-0 !rounded-full border-[3px] border-brand opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+        <GoogleMap
+          mapContainerClassName="w-full h-full"
+          center={defaultCenter}
+          zoom={zoom}
+          onLoad={onMapLoad}
+          onIdle={onMapIdle}
+          options={{
+            disableDefaultUI: true,
+            zoomControl: true,
+            clickableIcons: false,
+          }}
+          onClick={handleMapClick}
+        >
+          {/* 💡 BẢO VỆ TUYỆT ĐỐI CHỐNG LỖI OOPS: Chỉ cho phép render phần tử con khi thực thể Map thực sự khớp trong DOM */}
+          {isMapReady && mapRef.current && (
+            <>
+              {/* Lớp "Dấu chân" (Fog of War) */}
+              {showFootprints && fogPaths && fogPaths.length > 0 && (
+                <Polygon
+                  paths={fogPaths}
+                  options={{
+                    fillColor: "#a3b1c6", 
+                    fillOpacity: 0.35,    
+                    strokeOpacity: 0,     
+                    clickable: false,
+                  }}
+                />
+              )}
+  
+              {/* Lớp "Khoảnh khắc" & "Vị trí" (Markers & Clusters) */}
+              {showMoments && clusters && clusters.length > 0 && clusters.map((cluster) => {
+                const [longitude, latitude] = cluster.geometry.coordinates;
+                if (isNaN(latitude) || isNaN(longitude)) return null;
+  
+                const { cluster: isCluster, point_count: pointCount, momentId, avatarUrl, userFullName } = cluster.properties;
+  
+                if (isCluster) {
+                  const leaves = supercluster ? supercluster.getLeaves(cluster.id as number, Infinity) : [];
+                  const userIds = new Set(leaves.map((l: any) => String(l.properties.userId)));
+                  const isSingleUserCluster = userIds.size === 1;
+  
+                  const handleClusterClick = () => {
+                    if (!supercluster) return;
+                    const extractedMoments = leaves.map((leaf: any) => leaf.properties.rawMoment);
+                    setActiveClusterMoments(extractedMoments);
+                    mapRef.current?.panTo({ lat: latitude, lng: longitude });
+                  };
+  
+                  if (isSingleUserCluster) {
+                    const firstLeaf = leaves[0];
+                    const cAvatarUrl = firstLeaf?.properties.avatarUrl;
+                    const cUserFullName = firstLeaf?.properties.userFullName;
+                    const userInitial = cUserFullName ? cUserFullName.charAt(0).toUpperCase() : "?";
+  
+                    return (
+                      <OverlayView key={`cluster-${cluster.id}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -h })}>
+                        <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={handleClusterClick}>
+                          <div className="relative z-10 flex items-center justify-center w-14 h-14 !rounded-full border-4 border-white bg-white shadow-[0_8px_16px_rgba(0,0,0,0.15)] overflow-hidden">
+                            {cAvatarUrl ? <img src={cAvatarUrl} alt="Moment" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{userInitial}</div>}
+                            <div className="absolute inset-0 !rounded-full border-[3px] border-brand opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                          </div>
+                          <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
+                          <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[4px] border-b-[4px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
+                          <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
+                        </div>
+                      </OverlayView>
+                    );
+                  } else {
+                    return (
+                      <OverlayView key={`cluster-${cluster.id}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
+                        <div className="group relative flex items-center justify-center w-14 h-14 !rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.2)] border-4 border-white cursor-pointer transform transition-all duration-300 hover:scale-110 bg-gradient-to-tr from-blue-600 to-brand" onClick={handleClusterClick}>
+                          <Users className="w-6 h-6 text-white" />
+                          <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
+                          <div className="absolute inset-0 !rounded-full border-[3px] border-blue-400 animate-ping opacity-20 group-hover:opacity-60 pointer-events-none"></div>
+                        </div>
+                      </OverlayView>
+                    );
+                  }
+                }
+  
+                const userInitial = userFullName ? userFullName.charAt(0).toUpperCase() : "?";
+  
+                return (
+                  <OverlayView key={`moment-${momentId}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -h })}>
+                    <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={() => onMarkerClick(momentId)}>
+                      <div className="relative z-10 flex items-center justify-center w-14 h-14 !rounded-full border-4 border-white bg-white shadow-[0_8px_16px_rgba(0,0,0,0.15)] overflow-hidden">
+                        {avatarUrl ? <img src={avatarUrl} alt="Moment" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{userInitial}</div>}
+                        <div className="absolute inset-0 !rounded-full border-[3px] border-brand opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                      </div>
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[4px] border-b-[4px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
                     </div>
-                <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[4px] border-b-[4px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
-                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
-                  </div>
-                </OverlayView>
-              );
-            } else {
-              return (
-                <OverlayView key={`cluster-${cluster.id}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
-              <div className="group relative flex items-center justify-center w-14 h-14 !rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.2)] border-4 border-white cursor-pointer transform transition-all duration-300 hover:scale-110 bg-gradient-to-tr from-blue-600 to-brand" onClick={handleClusterClick}>
-                    <Users className="w-6 h-6 text-white" />
-                <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
-                <div className="absolute inset-0 !rounded-full border-[3px] border-blue-400 animate-ping opacity-20 group-hover:opacity-60 pointer-events-none"></div>
-                  </div>
-                </OverlayView>
-              );
-            }
-          }
-
-          const userInitial = userFullName ? userFullName.charAt(0).toUpperCase() : "?";
-
-          return (
-            <OverlayView key={`moment-${momentId}`} position={{ lat: latitude, lng: longitude }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -h })}>
-              <div className="relative group cursor-pointer transform transition-all duration-300 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={() => onMarkerClick(momentId)}>
-            <div className="relative z-10 flex items-center justify-center w-14 h-14 !rounded-full border-4 border-white bg-white shadow-[0_8px_16px_rgba(0,0,0,0.15)] overflow-hidden">
-                  {avatarUrl ? <img src={avatarUrl} alt="Moment" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400">{userInitial}</div>}
-              <div className="absolute inset-0 !rounded-full border-[3px] border-brand opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                </div>
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[4px] border-b-[4px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
-                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3 h-1.5 bg-black/20 rounded-full blur-[2px]"></div>
-              </div>
-            </OverlayView>
-          );
-        })}
-
-        {/* Lớp Marker Avatar Bạn bè (Real-time Location) */}
-        {showLiveLocations && friendLocations.map((friend: any) => (
-          <OverlayView key={`friend-${friend.userId}`} position={{ lat: friend.lat, lng: friend.lng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
-            <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
-              <div className="w-12 h-12 rounded-full border-4 border-brand overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
-                {friend.avatarUrl ? (
-                  <img src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover rounded-full" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-brand font-bold text-lg">{friend.fullName?.charAt(0)}</div>
-                )}
-              </div>
-              <span className="absolute top-full mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
-                {friend.fullName}
-              </span>
-            </div>
-          </OverlayView>
-        ))}
-      </GoogleMap>
+                  </OverlayView>
+                );
+              })}
+  
+              {/* Lớp Marker Avatar Bạn bè (Real-time Location) */}
+              {showLiveLocations && friendLocations && friendLocations.length > 0 && friendLocations.map((friend: any) => {
+                const fLat = Number(friend.lat ?? friend.Lat);
+                const fLng = Number(friend.lng ?? friend.Lng);
+                if (isNaN(fLat) || isNaN(fLng)) return null;
+  
+                return (
+                  <OverlayView key={`friend-${friend.userId}`} position={{ lat: fLat, lng: fLng }} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h / 2) })}>
+                    <div className="relative flex flex-col items-center justify-center transition-all duration-700 ease-in-out pointer-events-none">
+                      <div className="w-12 h-12 rounded-full border-4 border-brand overflow-hidden bg-white shadow-lg relative z-10 pointer-events-auto cursor-pointer hover:scale-110 transition-transform">
+                        {friend.avatarUrl ? (
+                          <img src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover rounded-full" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-slate-200 text-brand font-bold text-lg">{friend.fullName?.charAt(0)}</div>
+                        )}
+                      </div>
+                      <span className="absolute top-full mt-1 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
+                        {friend.fullName}
+                      </span>
+                    </div>
+                  </OverlayView>
+                );
+              })}
+            </>
+          )}
+        </GoogleMap>
+      </LoadScriptNext>
 
       {/* Giai đoạn 2: Nút chia sẻ vị trí */}
       <div className="absolute top-4 left-4 z-20">

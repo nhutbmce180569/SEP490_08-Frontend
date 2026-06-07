@@ -25,9 +25,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 }) => {
   const { t } = useTranslation();
   const locale = getStoredLocale();
+
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string;
+  if (!apiKey) {
+    console.error("VITE_GOOGLE_MAPS_API_KEY is missing in .env file. Please check your .env configuration.");
+  }
+
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string
+    googleMapsApiKey: apiKey || "",
   });
 
   const { data: moments } = useGetMomentFeed(scheduleId);
@@ -38,7 +44,6 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const mapRef = useRef<google.maps.Map | null>(null);
   const [zoom, setZoom] = useState<number>(12);
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
-  const [center, setCenter] = useState(defaultCenter);
   const [activeClusterMoments, setActiveClusterMoments] = useState<Moment[] | null>(null);
 
   // Giai đoạn 2: State quản lý Lớp (Layers) và Menu
@@ -194,7 +199,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       : ((moments as any).pages?.flat() || (moments as any).data || (moments as any).value || []);
 
     // 💥 DÒNG LOG CỰC QUAN TRỌNG ĐỂ BẮT BỆNH:
-    console.log("🔥 [DEBUG 1] Mảng Moments nhận được từ BE:", momentsArray);
+    // console.log("🔥 [DEBUG 1] Mảng Moments nhận được từ BE:", momentsArray);
 
     const validPoints = momentsArray
       .filter((m: any) => {
@@ -229,16 +234,31 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       });
 
     // 💥 LOG KIỂM TRA ĐẦU RA:
-    console.log("🔥 [DEBUG 2] Số lượng Marker được vẽ lên Map:", validPoints.length);
+    // console.log("🔥 [DEBUG 2] Số lượng Marker được vẽ lên Map:", validPoints.length);
     
     return validPoints;
   }, [moments]);
+
+  const hasCenteredRef = useRef(false);
+
   useEffect(() => {
-    if (points.length > 0 && mapRef.current && center === defaultCenter) {
+    if (points && points.length > 0 && mapRef.current && !hasCenteredRef.current) {
       const firstPoint = points[0].geometry.coordinates;
-      setCenter({ lat: firstPoint[1], lng: firstPoint[0] });
+      const targetCenter = { lat: firstPoint[1], lng: firstPoint[0] };
+      
+      // Di chuyển camera trực tiếp qua instance của map
+      mapRef.current.panTo(targetCenter);
+      mapRef.current.setZoom(13);
+      
+      // Đánh dấu đã định vị thành công chuyến đi, không tự động giật camera nữa
+      hasCenteredRef.current = true; 
     }
-  }, [points, center]);
+  }, [points, isLoaded]); // Chỉ chạy khi points thực sự thay đổi hoặc Map tải xong
+
+  // Reset lại cờ hiệu khi scheduleId thay đổi (khi người dùng chuyển tour)
+  useEffect(() => {
+    hasCenteredRef.current = false;
+  }, [scheduleId]);
 
   const { clusters, supercluster } = useSupercluster({
     points,
@@ -263,7 +283,6 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         lat: latitude,
         lng: longitude,
       };
-      setCenter(newCenter);
       mapRef.current.panTo(newCenter);
       mapRef.current.setZoom(16);
     }
@@ -273,7 +292,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     <div className="relative w-full h-[80vh] overflow-hidden rounded-3xl shadow-xl border border-slate-200 bg-slate-100">
       <GoogleMap
         mapContainerClassName="w-full h-full"
-        center={center}
+        center={defaultCenter}
         zoom={zoom}
         onLoad={onMapLoad}
         onIdle={onMapIdle}
@@ -404,7 +423,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           
           {isLayerMenuOpen && (
             <div 
-              className="absolute top-full right-0 mt-2 w-56 origin-top-right rounded-xl bg-white/90 backdrop-blur-md p-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none animate-fade-in-down"
+              className="absolute top-full right-0 mt-2 w-56 origin-top-right rounded-[24px] bg-white/90 backdrop-blur-md p-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none animate-fade-in-down"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="py-1">
@@ -453,7 +472,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       </div>
 
       {activeClusterMoments && (
-        <div className="absolute inset-0 z-30 h-full w-full bg-white/5 backdrop-blur-sm flex flex-col animate-slide-up">
+        <div className="absolute inset-0 z-30 h-full w-full bg-white/5 backdrop-blur-sm flex flex-col animate-slide-up rounded-3xl">
           <button onClick={() => setActiveClusterMoments(null)} className="absolute top-6 right-6 z-50 p-2.5 rounded-full bg-black/10 text-slate-800 hover:bg-black/20 backdrop-blur-md transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>

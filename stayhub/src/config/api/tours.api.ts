@@ -50,7 +50,7 @@ export const TOURS_API = {
   CREATE_SCHEDULE: `${FULL_API}/TourSchedules`,
   UPDATE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
   DELETE_SCHEDULE: (id: string | number) => `${FULL_API}/TourSchedules/${id}`,
-  GET_ASSIGNED_SCHEDULES: `${FULL_API}/TourSchedules/assigned`,
+  GET_ASSIGNED_SCHEDULES: `${FULL_API}/TourScheduleStaffs/assigned`,
 
   // Gọi từ Booking API / Luồng đặt vé qua Gateway
   RESERVE_SEATS: (id: string | number) =>
@@ -90,4 +90,13 @@ export const TOURS_API = {
     `${FULL_API}/reviews/replies/${replyId}`,
   HIDE_REVIEW: (reviewId: string | number, hidden: boolean) =>
     `${FULL_API}/reviews/${reviewId}/hide?hidden=${hidden}`,
+
+  // Staff Assignment
+  GET_STAFF_BY_SCHEDULE: (scheduleId: string | number) =>
+    `${FULL_API}/TourScheduleStaffs/schedule/${scheduleId}`,
+
+  ASSIGN_STAFF: `${FULL_API}/TourScheduleStaffs`,
+
+  REMOVE_STAFF: (scheduleId: string | number, staffId: string | number) =>
+    `${FULL_API}/TourScheduleStaffs/schedule/${scheduleId}/staff/${staffId}`,
 };

@@ -31,8 +31,8 @@ export const UpdateItinerary: React.FC = () => {
       currentSetFormData((prev) => ({
         ...prev,
         locationName: locationData.locationName || locationData.address || prev.locationName,
-        locationLat: locationData.lat || prev.locationLat,
-        locationLng: locationData.lng || prev.locationLng,
+        locationLat: locationData.lat ?? prev.locationLat,
+        locationLng: locationData.lng ?? prev.locationLng,
       }));
     }
   };
@@ -59,6 +59,7 @@ export const UpdateItinerary: React.FC = () => {
         type: "text",
         placeholder: t("tour.itineraryTitlePlaceholderTour"),
         icon: <Type className="h-4 w-4" />,
+        colSpan: 2,
       },
       {
         name: "description",
@@ -150,18 +151,25 @@ export const UpdateItinerary: React.FC = () => {
         label: t("tour.locationName"),
         type: "custom",
         colSpan: 2,
-        validate: (_value, formData) => {
-          if (!formData.locationLat || !formData.locationLng) return t("tour.pickLocationFromMap");
-          return undefined;
-        },
-        render: (value, onChange, error, _setFormData, _formData) => (
+        render: (value, onChange, error, setFormData) => (
           <div className="flex flex-col gap-1.5">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
                 <input
                   type="text"
-                  onChange={(e) => onChange(e.target.value)}
+                  onChange={(e) => {
+                    const locationName = e.target.value;
+                    onChange(locationName);
+                    if (!locationName.trim() && setFormData) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        locationName: null,
+                        locationLat: null,
+                        locationLng: null,
+                      }));
+                    }
+                  }}
                   className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
                   placeholder={t("tour.typeNameOrPickMap")}
                   value={value || ""}

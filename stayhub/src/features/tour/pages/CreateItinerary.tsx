@@ -97,16 +97,6 @@ export const CreateItinerary: React.FC = () => {
         return;
       }
 
-      if (
-        iti.locationLat === undefined ||
-        iti.locationLat === null ||
-        iti.locationLng === undefined ||
-        iti.locationLng === null
-      ) {
-        showError(`Day ${assignedDay}: Please pick a location on map.`);
-        return;
-      }
-
       if (String(iti.title ?? "").trim().length < 3) {
         showError(`Day ${assignedDay}: Title must contain at least 3 characters.`);
         return;
@@ -114,11 +104,6 @@ export const CreateItinerary: React.FC = () => {
 
       if (String(iti.description ?? "").trim().length < 10) {
         showError(`Day ${assignedDay}: Description must contain at least 10 characters.`);
-        return;
-      }
-
-      if (String(iti.locationName ?? "").trim().length < 3) {
-        showError(`Day ${assignedDay}: Location name must contain at least 3 characters.`);
         return;
       }
 
@@ -397,7 +382,21 @@ export const CreateItinerary: React.FC = () => {
                         <MapPin className="h-4 w-4 text-emerald-500" /> {t("tour.locationName")}
                       </label>
                       <div className="flex gap-2">
-                        <input type="text" value={iti.locationName} onChange={(e) => updateItinerary(index, "locationName", e.target.value)} placeholder={t("tour.typeNameOrPickMap")} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
+                        <input
+                          type="text"
+                          value={iti.locationName ?? ""}
+                          onChange={(e) => {
+                            const locationName = e.target.value;
+                            patchItinerary(index, {
+                              locationName,
+                              ...(locationName.trim()
+                                ? {}
+                                : { locationLat: null, locationLng: null }),
+                            });
+                          }}
+                          placeholder={t("tour.typeNameOrPickMap")}
+                          className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
+                        />
                       </div>
                       {getError(index, "locationName") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "locationName")}</span>}
                     </div>

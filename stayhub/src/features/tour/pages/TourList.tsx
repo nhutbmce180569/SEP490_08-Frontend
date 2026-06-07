@@ -27,6 +27,8 @@ export const TourList: React.FC = () => {
     setSearch,
     categoryId,
     setCategoryId,
+    createdByMe,
+    setCreatedByMe,
     clearFilters,
     categories,
     isCategoryLoading,
@@ -46,7 +48,8 @@ export const TourList: React.FC = () => {
     () => new Map(categories.map((category) => [category.id, category.name])),
     [categories],
   );
-  const hasActiveFilters = search.trim() !== "" || categoryId !== null;
+  const hasActiveFilters =
+    search.trim() !== "" || categoryId !== null || createdByMe;
 
   const getStatusLabel = (status?: string | null) => {
     const map: Record<string, string> = {
@@ -248,6 +251,16 @@ export const TourList: React.FC = () => {
               ))}
             </select>
           </div>
+
+          <label className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-white">
+            <input
+              type="checkbox"
+              checked={createdByMe}
+              onChange={(e) => setCreatedByMe(e.target.checked)}
+              className="h-4 w-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand"
+            />
+            {t("tour.createdByMe")}
+          </label>
 
           <ActionButton
             variant="secondary"

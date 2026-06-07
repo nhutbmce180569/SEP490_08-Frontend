@@ -51,9 +51,10 @@ export const aboutContentVi: AboutContent = {
       {
         id: "bui-minh-nhut",
         name: "Bùi Minh Nhựt",
-        role: "Full-stack Developer",
-        summary: "Thiết kế API, luồng nghiệp vụ và các trang quản trị React.",
-        highlights: ["Backend API", "React / TS"],
+        role: "Project Leader / Full-stack Developer",
+        summary:
+          "Dẫn dắt quá trình triển khai kỹ thuật của StayHub và trực tiếp phụ trách quản lý tour, lịch trình và booking.",
+        highlights: ["Project Leader", "Tour", "Lịch trình", "Booking"],
       },
       {
         id: "ly-thi-kieu-thy",
@@ -102,5 +103,6 @@ export const aboutContentVi: AboutContent = {
   },
   card: {
     addPhoto: "Thêm ảnh",
+    viewPortfolio: "Xem portfolio",
   },
 };

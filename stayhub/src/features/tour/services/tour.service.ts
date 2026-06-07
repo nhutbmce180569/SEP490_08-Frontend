@@ -28,6 +28,7 @@ export const getTours = async (
   pageSize: number = 5,
   searchTerm?: string,
   categoryId?: number | null,
+  createdByMe: boolean = false,
 ): Promise<PaginatedResponse<Tour>> => {
   return await apiClient.get<PaginatedResponse<Tour>>(TOURS_API.GET_ALL, {
     params: {
@@ -35,6 +36,7 @@ export const getTours = async (
       pageSize,
       searchTerm: searchTerm?.trim() || undefined,
       categoryId: categoryId || undefined,
+      createdByMe: createdByMe || undefined,
     },
   });
 };

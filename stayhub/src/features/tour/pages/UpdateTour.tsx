@@ -98,21 +98,16 @@ export const UpdateTour: React.FC = () => {
       type: "custom",
       colSpan: 2,
       required: true,
-      render: (value, _onChange, error, setFormData) => (
+      render: (value, onChange, error, setFormData, formData) => (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <div className="relative flex-1">
               <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
-                readOnly
-                onClick={() => {
-                  setCurrentSetFormData(() => setFormData);
-                  setMapInitialData({ single: { address: value || "" } });
-                  setIsMapModalOpen(true);
-                }}
-                className={`w-full cursor-pointer rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
-                placeholder={t("tour.clickPickOnMap")}
+                onChange={(event) => onChange(event.target.value)}
+                className={`w-full rounded-xl border bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10 ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+                placeholder={t("tour.fullAddress")}
                 value={value || ""}
               />
             </div>
@@ -121,7 +116,13 @@ export const UpdateTour: React.FC = () => {
               variant="secondary"
               onClick={() => {
                 setCurrentSetFormData(() => setFormData);
-                setMapInitialData({ single: { address: value || "" } });
+                setMapInitialData({
+                  single: {
+                    address: [value, formData?.city, formData?.country]
+                      .filter(Boolean)
+                      .join(", "),
+                  },
+                });
                 setIsMapModalOpen(true);
               }}
               className="gap-2 px-3 py-2 text-sm font-semibold text-indigo-600 border-indigo-100 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-200 hover:text-indigo-700"
@@ -137,19 +138,17 @@ export const UpdateTour: React.FC = () => {
       name: "city",
       label: t("tour.city"),
       type: "text",
-      placeholder: t("tour.autoFilledFromMap"),
+      placeholder: t("tour.city"),
       icon: <MapPin className="h-4 w-4" />,
       required: true,
-      readOnly: true,
     },
     {
       name: "country",
       label: t("tour.country"),
       type: "text",
-      placeholder: t("tour.autoFilledFromMap"),
+      placeholder: t("tour.country"),
       icon: <MapPin className="h-4 w-4" />,
       required: true,
-      readOnly: true,
     },
     {
       name: "description",

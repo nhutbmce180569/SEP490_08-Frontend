@@ -23,6 +23,7 @@ export const useTours = (initialPageSize: number = 5) => {
   const [page, setPage] = useState(1);
   const [search, setSearchState] = useState("");
   const [categoryId, setCategoryIdState] = useState<number | null>(null);
+  const [createdByMe, setCreatedByMeState] = useState(false);
   const [categories, setCategories] = useState<ReadCategoryDTO[]>([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [data, setData] = useState<PaginatedResponse<Tour> | null>(null);
@@ -36,7 +37,13 @@ export const useTours = (initialPageSize: number = 5) => {
   const fetchTours = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await getTours(page, initialPageSize, search, categoryId);
+      const res = await getTours(
+        page,
+        initialPageSize,
+        search,
+        categoryId,
+        createdByMe,
+      );
       setData(res);
       setError(null);
     } catch (err: unknown) {
@@ -44,7 +51,7 @@ export const useTours = (initialPageSize: number = 5) => {
     } finally {
       setIsLoading(false);
     }
-  }, [categoryId, initialPageSize, page, search]);
+  }, [categoryId, createdByMe, initialPageSize, page, search]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -109,9 +116,15 @@ export const useTours = (initialPageSize: number = 5) => {
     setPage(1);
   };
 
+  const setCreatedByMe = (value: boolean) => {
+    setCreatedByMeState(value);
+    setPage(1);
+  };
+
   const clearFilters = () => {
     setSearchState("");
     setCategoryIdState(null);
+    setCreatedByMeState(false);
     setPage(1);
   };
 
@@ -145,6 +158,8 @@ export const useTours = (initialPageSize: number = 5) => {
     setSearch,
     categoryId,
     setCategoryId,
+    createdByMe,
+    setCreatedByMe,
     clearFilters,
     categories,
     isCategoryLoading,

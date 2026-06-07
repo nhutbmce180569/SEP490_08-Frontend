@@ -51,9 +51,10 @@ export const aboutContentEn: AboutContent = {
       {
         id: "bui-minh-nhut",
         name: "Bui Minh Nhut",
-        role: "Full-stack Developer",
-        summary: "API design, business flows, and React admin pages.",
-        highlights: ["Backend API", "React / TS"],
+        role: "Project Leader / Full-stack Developer",
+        summary:
+          "Leads StayHub's technical execution and directly owns tour management, itinerary, and booking domains.",
+        highlights: ["Project Leader", "Tour", "Itinerary", "Booking"],
       },
       {
         id: "ly-thi-kieu-thy",
@@ -102,5 +103,6 @@ export const aboutContentEn: AboutContent = {
   },
   card: {
     addPhoto: "Add photo",
+    viewPortfolio: "View portfolio",
   },
 };

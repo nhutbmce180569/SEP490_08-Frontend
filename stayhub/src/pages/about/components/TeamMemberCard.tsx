@@ -1,4 +1,5 @@
-import { ImageIcon, Sparkles } from "lucide-react";
+import { ArrowUpRight, ImageIcon, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { AboutContent, TeamMember } from "../types";
 
 type TeamMemberCardProps = {
@@ -6,6 +7,7 @@ type TeamMemberCardProps = {
   variant?: "mentor" | "member";
   mentorBadge?: string;
   cardLabels: AboutContent["card"];
+  detailHref?: string;
 };
 
 export function TeamMemberCard({
@@ -13,6 +15,7 @@ export function TeamMemberCard({
   variant = "member",
   mentorBadge,
   cardLabels,
+  detailHref,
 }: TeamMemberCardProps) {
   const isMentor = variant === "mentor";
 
@@ -80,6 +83,16 @@ export function TeamMemberCard({
             </span>
           ))}
         </div>
+
+        {detailHref && (
+          <Link
+            to={detailHref}
+            className="mt-4 inline-flex w-fit items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-xs font-bold text-white !no-underline transition hover:-translate-y-0.5 hover:bg-brand-hover"
+          >
+            {cardLabels.viewPortfolio}
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </Link>
+        )}
       </div>
     </article>
   );

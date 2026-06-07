@@ -25,7 +25,6 @@ export default function AboutPage() {
 
   return (
     <div className="about-page pb-12 md:pb-16">
-      {/* Hero — compact */}
       <section className="relative overflow-hidden bg-[#05073C]">
         <div
           className="absolute inset-0 opacity-35"
@@ -68,7 +67,6 @@ export default function AboutPage() {
       </section>
 
       <div className="page-container -mt-6 space-y-8 pt-2 md:space-y-10">
-        {/* Intro + Features — one card */}
         <section className="glass-card overflow-hidden">
           <div className="border-b border-slate-100 p-5 md:p-6">
             <p className="text-sm leading-relaxed text-slate-600">{content.system.summary}</p>
@@ -102,7 +100,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Mentor */}
         <section
           id="mentor"
           className="overflow-hidden rounded-2xl border-2 border-brand/20 bg-gradient-to-br from-brand-light/50 via-white to-brand-light/20 p-5 md:p-6"
@@ -132,7 +129,6 @@ export default function AboutPage() {
           />
         </section>
 
-        {/* Development team */}
         <section
           id="team"
           className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 md:p-6"
@@ -154,12 +150,21 @@ export default function AboutPage() {
 
           <div className="flex flex-col gap-3">
             {content.people.teamSection.members.map((dev) => (
-              <TeamMemberCard key={dev.id} member={dev} variant="member" cardLabels={content.card} />
+              <TeamMemberCard
+                key={dev.id}
+                member={dev}
+                variant="member"
+                cardLabels={content.card}
+                detailHref={
+                  dev.id === "bui-minh-nhut"
+                    ? PATH.PUBLIC.NHUT_PORTFOLIO
+                    : undefined
+                }
+              />
             ))}
           </div>
         </section>
 
-        {/* Tech — compact chips */}
         <section className="glass-card p-5 md:p-6">
           <h2 className="mb-4 text-sm font-bold uppercase tracking-wide text-brand">
             {content.tech.title}
@@ -183,7 +188,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* CTA — slim */}
         <section className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-brand-gradient px-5 py-6 sm:flex-row md:px-8">
           <p className="text-lg font-bold text-white">{content.cta.title}</p>
           <div className="flex shrink-0 flex-wrap gap-2">

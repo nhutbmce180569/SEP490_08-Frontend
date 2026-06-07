@@ -80,8 +80,8 @@ export const useUpdateScheduleItinerary = () => {
         startDuration: values.startDuration ? (values.startDuration.length === 5 ? `${values.startDuration}:00` : values.startDuration) : null,
         endDuration: values.endDuration ? (values.endDuration.length === 5 ? `${values.endDuration}:00` : values.endDuration) : null,
         locationName: values.locationName || null,
-        locationLat: values.locationLat ? Number(values.locationLat) : null,
-        locationLng: values.locationLng ? Number(values.locationLng) : null,
+        locationLat: values.locationLat === null || values.locationLat === undefined || values.locationLat === "" ? null : Number(values.locationLat),
+        locationLng: values.locationLng === null || values.locationLng === undefined || values.locationLng === "" ? null : Number(values.locationLng),
         tourismInfoId: values.tourismInfoId === "" || values.tourismInfoId === null || values.tourismInfoId === undefined ? null : Number(values.tourismInfoId),
       };
 

@@ -164,15 +164,6 @@ export const CreateScheduleItinerary: React.FC = () => {
         showError(`Day ${assignedDay} - ${iti.title || 'Item'}: End time must be strictly after start time.`);
         return;
       }
-      if (
-        iti.locationLat === undefined ||
-        iti.locationLat === null ||
-        iti.locationLng === undefined ||
-        iti.locationLng === null
-      ) {
-        showError(`Day ${assignedDay}: Please pick a location on map.`);
-        return;
-      }
     }
 
     const dayTimeSet = new Set<string>();
@@ -606,14 +597,16 @@ export const CreateScheduleItinerary: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        value={iti.locationName}
-                        onChange={(e) =>
-                          updateItinerary(
-                            index,
-                            "locationName",
-                            e.target.value,
-                          )
-                        }
+                        value={iti.locationName ?? ""}
+                        onChange={(e) => {
+                          const locationName = e.target.value;
+                          patchItinerary(index, {
+                            locationName,
+                            ...(locationName.trim()
+                              ? {}
+                              : { locationLat: null, locationLng: null }),
+                          });
+                        }}
                         placeholder={t("tour.typeNameOrPickMap")}
                         className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
                       />

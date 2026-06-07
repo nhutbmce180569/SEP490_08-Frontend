@@ -48,5 +48,6 @@ export type AboutContent = {
   };
   card: {
     addPhoto: string;
+    viewPortfolio: string;
   };
 };

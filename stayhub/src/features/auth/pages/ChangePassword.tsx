@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import { Lock, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
@@ -7,9 +7,11 @@ import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function ChangePassword() {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     oldPassword: "",
     newPassword: "",
@@ -18,7 +20,7 @@ export default function ChangePassword() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { handleChangePasswordSubmit, isSubmitting } = useChangePassword();
+  const { handleChangePasswordSubmit, isSubmitting, serverError } = useChangePassword();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -36,8 +38,10 @@ export default function ChangePassword() {
       return;
     }
 
-    const { confirmPassword, ...payload } = formData;
-    const isSuccess = await handleChangePasswordSubmit(payload);
+    const isSuccess = await handleChangePasswordSubmit({
+      oldPassword: formData.oldPassword,
+      newPassword: formData.newPassword,
+    });
 
     if (isSuccess) {
       setFormData({ oldPassword: "", newPassword: "", confirmPassword: "" });
@@ -52,17 +56,29 @@ export default function ChangePassword() {
       heroSubtitle={t("auth.changePasswordHeroDesc")}
       imageSeed="stayhub-security"
       footer={
-        <div className="mt-8 text-center">
-          <Link
-            to={PATH.PUBLIC.HOME}
-            className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
-          >
-            &larr; {t("auth.backToHome")}
-          </Link>
-        </div>
+        user?.requirePasswordChange ? undefined : (
+          <div className="mt-8 text-center">
+            <Link
+              to={PATH.PUBLIC.HOME}
+              className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
+            >
+              &larr; {t("auth.backToHome")}
+            </Link>
+          </div>
+        )
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
+        {user?.requirePasswordChange && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800">
+            {t("auth.passwordChangeRequired")}
+          </div>
+        )}
+        {serverError && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-600">
+            {serverError}
+          </div>
+        )}
         <AuthFormField
           label={t("auth.oldPassword")}
           name="oldPassword"

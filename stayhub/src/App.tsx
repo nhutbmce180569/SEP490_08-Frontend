@@ -6,6 +6,7 @@ import {
   Routes,
   Navigate,
   Outlet,
+  useLocation,
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -106,6 +107,7 @@ import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
 import AboutPage from "./pages/about/AboutPage";
+import NhutPortfolioPage from "./pages/about/NhutPortfolioPage";
 import PublicInfoPage from "./pages/info/PublicInfoPage";
 import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
@@ -164,6 +166,36 @@ const childPath = (path: string) =>
     .replace(`${PATH.STAFF.DASHBOARD}/`, "");
 
 // Component bảo vệ các tuyến đường yêu cầu đăng nhập và phân quyền (RBAC)
+const PasswordChangeEnforcer: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { user } = useContext(AuthContext);
+  const location = useLocation();
+
+  if (
+    user?.requirePasswordChange &&
+    location.pathname !== PATH.PUBLIC.CHANGE_PASSWORD
+  ) {
+    return <Navigate to={PATH.PUBLIC.CHANGE_PASSWORD} replace />;
+  }
+
+  return children;
+};
+
+const AuthenticatedRoute: React.FC = () => {
+  const { user, loading } = useContext(AuthContext);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  return user ? <Outlet /> : <Navigate to={PATH.PUBLIC.LOGIN} replace />;
+};
+
 const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
   allowedRoles,
 }) => {
@@ -179,6 +211,10 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 
   if (!user) {
     return <Navigate to={PATH.PUBLIC.LOGIN} replace />;
+  }
+
+  if (user.requirePasswordChange) {
+    return <Navigate to={PATH.PUBLIC.CHANGE_PASSWORD} replace />;
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
@@ -255,7 +291,8 @@ const App: React.FC = () => {
             <CustomBrandCursor />
             <AiPlannerModal />
             <ScrollToTop />
-            <Routes>
+            <PasswordChangeEnforcer>
+              <Routes>
               <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
               <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
               <Route path="/track/:token" element={<PublicTrackingPage />} />
@@ -267,10 +304,12 @@ const App: React.FC = () => {
                 path={PATH.PUBLIC.RESET_PASSWORD}
                 element={<ResetPassword />}
               />
-              <Route
-                path={PATH.PUBLIC.CHANGE_PASSWORD}
-                element={<ChangePassword />}
-              />
+              <Route element={<AuthenticatedRoute />}>
+                <Route
+                  path={PATH.PUBLIC.CHANGE_PASSWORD}
+                  element={<ChangePassword />}
+                />
+              </Route>
               <Route
                 path={PATH.PUBLIC.UNAUTHORIZED}
                 element={<Unauthorized />}
@@ -298,6 +337,10 @@ const App: React.FC = () => {
                 <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
                 <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
                 <Route path={PATH.PUBLIC.ABOUT} element={<AboutPage />} />
+                <Route
+                  path={PATH.PUBLIC.NHUT_PORTFOLIO}
+                  element={<NhutPortfolioPage />}
+                />
                 <Route path={PATH.PUBLIC.INFO()} element={<PublicInfoPage />} />
                 <Route
                   path={PATH.CUSTOMER.CHECKOUT()}
@@ -522,6 +565,7 @@ const App: React.FC = () => {
                   {/* UC-53: Customers */}
                   <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={<ScheduleCustomersPage />} />
                   <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={<ScheduleCustomersPage />} />
+
                 </Route>
               </Route>
 
@@ -625,7 +669,8 @@ const App: React.FC = () => {
                 path="*"
                 element={mock("app.titles.notFound", "app.mock404", "app.sectionSystem")}
               />
-            </Routes>
+              </Routes>
+            </PasswordChangeEnforcer>
           </Router>
           </AiPlannerProvider>
         </AuthProvider>

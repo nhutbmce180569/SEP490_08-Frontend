@@ -9,7 +9,9 @@ import type {
 
 export const useTourSchedule = () => {
   const [schedules, setSchedules] = useState<TourSchedule[]>([]);
-  const [currentSchedule, setCurrentSchedule] = useState<TourSchedule | null>(null);
+  const [currentSchedule, setCurrentSchedule] = useState<TourSchedule | null>(
+    null,
+  );
 
   const [pagination, setPagination] = useState({
     total: 0,
@@ -26,13 +28,42 @@ export const useTourSchedule = () => {
 
   // --- QUERIES ---
 
-  // 💥 Sửa lại hàm này để nhận param phân trang
-  const fetchAllSchedules = useCallback(async (page: number = 1, pageSize: number = 10) => {
+  const fetchAllSchedules = useCallback(
+    async (page: number = 1, pageSize: number = 10, tourName?: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await tourScheduleService.getAllSchedules(
+          page,
+          pageSize,
+          tourName,
+        );
+        setSchedules(response.data || []);
+        setPagination({
+          total: response.total || 0,
+          totalPages: response.totalPages || 0,
+          currentPage: response.currentPage || page,
+          pageSize: response.pageSize || pageSize,
+        });
+      } catch (err: any) {
+        setError(
+          err?.response?.data?.message ||
+            err.message ||
+            "Failed to fetch schedules.",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  const fetchMySchedules = useCallback(
+  async (page: number = 1, pageSize: number = 10) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await tourScheduleService.getAllSchedules(page, pageSize);
-      // Backend C# sẽ tự động parse "Data" thành "data", "TotalPages" thành "totalPages" (camelCase)
+      const response = await tourScheduleService.getMySchedules(page, pageSize);
       setSchedules(response.data || []);
       setPagination({
         total: response.total || 0,
@@ -41,11 +72,17 @@ export const useTourSchedule = () => {
         pageSize: response.pageSize || pageSize,
       });
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Failed to fetch schedules.");
+      setError(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to fetch my schedules.",
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  },
+  [],
+);
 
   // Lấy chi tiết lịch trình
   const fetchScheduleById = useCallback(async (id: string | number) => {
@@ -56,7 +93,11 @@ export const useTourSchedule = () => {
       setCurrentSchedule(data);
       return data;
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || "Failed to fetch schedule detail.");
+      setError(
+        err?.response?.data?.message ||
+          err.message ||
+          "Failed to fetch schedule detail.",
+      );
       return null;
     } finally {
       setIsLoading(false);
@@ -81,7 +122,10 @@ export const useTourSchedule = () => {
   };
 
   // Cập nhật lịch trình
-  const updateSchedule = async (id: string | number, data: UpdateTourScheduleRequest) => {
+  const updateSchedule = async (
+    id: string | number,
+    data: UpdateTourScheduleRequest,
+  ) => {
     setIsSubmitting(true);
     try {
       const updated = await tourScheduleService.updateSchedule(id, data);
@@ -138,11 +182,12 @@ export const useTourSchedule = () => {
   return {
     schedules,
     currentSchedule,
-    pagination, // 💥 Export thêm biến này để dùng ở UI
+    pagination,
     isLoading,
     isSubmitting,
     error,
     fetchAllSchedules,
+    fetchMySchedules,
     fetchScheduleById,
     createSchedule,
     updateSchedule,

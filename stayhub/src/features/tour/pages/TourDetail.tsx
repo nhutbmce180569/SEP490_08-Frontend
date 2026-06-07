@@ -617,7 +617,7 @@ export const TourDetail: React.FC = () => {
           <div className="mt-8 border-t border-slate-100 pt-8">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-900">{t("tour.schedules")}</h2>
-              {tour.status !== "Banned" && (
+              {tour.status !== "Banned" && tour.canEdit && (
                 <ActionButton
                   variant="primary"
                   onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE(tour.id))}

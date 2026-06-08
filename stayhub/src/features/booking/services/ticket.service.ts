@@ -20,7 +20,21 @@ export const ticketService = {
     return await apiClient.get<ReadTicketDTO[]>(TICKETS_API.MY_TICKETS);
   },
 
-  getByScheduleId: async (scheduleId: number): Promise<ReadTicketDTO[]> => {
-    return await apiClient.get<ReadTicketDTO[]>(TICKETS_API.GET_BY_SCHEDULE(scheduleId));
+  getByScheduleId: async (
+    scheduleId: number,
+    attendeeName?: string,
+    checkInStatus?: string,
+  ): Promise<ReadTicketDTO[]> => {
+    const response: any = await apiClient.get<ReadTicketDTO[]>(
+      TICKETS_API.GET_BY_SCHEDULE(scheduleId),
+      {
+        params: {
+          ...(attendeeName?.trim() ? { attendeeName: attendeeName.trim() } : {}),
+          ...(checkInStatus && checkInStatus !== "all" ? { checkInStatus } : {}),
+        },
+      },
+    );
+    
+    return response.data !== undefined ? response.data : (Array.isArray(response) ? response : []);
   },
 };

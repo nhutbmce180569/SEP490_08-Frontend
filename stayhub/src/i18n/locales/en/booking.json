@@ -250,6 +250,7 @@
   "viewSchedule": "View Schedule",
   "noCustomersForSchedule": "No customers were found for this schedule.",
   "noIdCard": "No ID card",
+  "phoneNumberLabel": "Phone number",
   "loadingCustomers": "Loading customers...",
   "invalidScheduleId": "Please enter a valid schedule ID.",
   "unableLoadCustomers": "Unable to load schedule customers.",

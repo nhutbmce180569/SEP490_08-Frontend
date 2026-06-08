@@ -250,6 +250,7 @@
   "viewSchedule": "Xem lịch",
   "noCustomersForSchedule": "Không tìm thấy khách cho lịch này.",
   "noIdCard": "Chưa có CMND",
+  "phoneNumberLabel": "Số điện thoại",
   "loadingCustomers": "Đang tải khách...",
   "invalidScheduleId": "Vui lòng nhập mã lịch hợp lệ.",
   "unableLoadCustomers": "Không thể tải khách theo lịch.",

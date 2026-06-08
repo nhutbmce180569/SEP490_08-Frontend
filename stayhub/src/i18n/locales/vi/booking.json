@@ -276,6 +276,7 @@
   "nationalityCol": "Quốc tịch",
   "detailsCol": "Chi tiết",
   "orderNumberShort": "Đơn #{{id}}",
+  "orderDetailNumberShort": "Chi tiết đơn #{{id}}",
   "unableLoadTickets": "Không thể tải vé cho lịch đã chọn.",
   "variousLocations": "Nhiều địa điểm",
   "itinerary": "Lịch trình",

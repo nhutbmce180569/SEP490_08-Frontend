@@ -20,7 +20,6 @@ export interface CreateOrderRequest {
 }
 
 export interface UpdateTicketDTO {
-  orderId?: number;
   userId?: number;
   ticketTypeId?: number | null;
   attendeeName: string;
@@ -57,9 +56,9 @@ export interface ReadOrderDTO {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
-    tickets: ReadTicketDTO[];
+    tickets?: ReadTicketDTO[] | null;
   }[];
-  tickets: ReadTicketDTO[];
+  tickets?: ReadTicketDTO[] | null;
   review?: {
     id: number;
     rating: number;

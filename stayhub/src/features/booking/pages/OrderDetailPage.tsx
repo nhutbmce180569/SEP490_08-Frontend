@@ -125,6 +125,21 @@ export const OrderDetailPage: React.FC = () => {
     enabled: tourismInfoIds.length > 0,
   });
 
+  const normalizedTickets = useMemo(() => {
+    if (!order) return [];
+
+    const detailTickets = (order.orderDetails ?? []).flatMap((detail) =>
+      (detail.tickets ?? []).map((ticket) => ({
+        ...ticket,
+        orderId: ticket.orderId ?? detail.orderId,
+        orderDetailId: ticket.orderDetailId ?? detail.id,
+        ticketTypeId: ticket.ticketTypeId ?? detail.ticketTypeId,
+      })),
+    );
+
+    return detailTickets.length > 0 ? detailTickets : (order.tickets ?? []);
+  }, [order]);
+
   const ticketTypeIds = useMemo(() => {
     if (!order) return [];
 
@@ -132,13 +147,13 @@ export const OrderDetailPage: React.FC = () => {
       new Set(
         [
           ...(order.orderDetails ?? []).map((detail) => detail.ticketTypeId),
-          ...(order.tickets ?? []).map((ticket) => ticket.ticketTypeId),
+          ...normalizedTickets.map((ticket) => ticket.ticketTypeId),
         ].filter((ticketTypeId): ticketTypeId is number =>
           Number.isFinite(ticketTypeId),
         ),
       ),
     );
-  }, [order]);
+  }, [order, normalizedTickets]);
 
   const { data: ticketTypeNames = {} } = useQuery({
     queryKey: ["order-ticket-types", ticketTypeIds, t],
@@ -193,12 +208,15 @@ export const OrderDetailPage: React.FC = () => {
   const canReview = true;
 
   const orderDetails = order.orderDetails ?? [];
-  const tickets = order.tickets ?? [];
+  const tickets = normalizedTickets;
+  const detailTicketCount = orderDetails.reduce(
+    (sum, detail) => sum + detail.quantity,
+    0,
+  );
   const ticketCount =
     order.ticketCount ??
-    tickets.length ??
     order.totalQuantity ??
-    orderDetails.reduce((sum, detail) => sum + detail.quantity, 0);
+    (tickets.length > 0 ? tickets.length : detailTicketCount);
   const bookedDate = toValidDate(order.orderedAt);
   const departureDate = toValidDate(order.schedule?.departureDate);
   const returnDate = toValidDate(order.schedule?.returnDate);
@@ -1048,7 +1066,7 @@ export const OrderDetailPage: React.FC = () => {
                       </h3>
                       <p className="text-xs font-medium text-slate-500">
                         {t("booking.passengerBooked", {
-                          count: order.ticketCount,
+                          count: ticketCount,
                         })}
                       </p>
                     </div>

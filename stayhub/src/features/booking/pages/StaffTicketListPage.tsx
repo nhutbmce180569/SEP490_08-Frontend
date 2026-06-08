@@ -99,7 +99,8 @@ export const StaffTicketListPage: React.FC = () => {
         ticket.idCard.toLowerCase().includes(keyword) ||
         ticket.checkInStatus?.toLowerCase().includes(keyword) ||
         ticket.id.toString().includes(keyword) ||
-        ticket.orderId.toString().includes(keyword)
+        ticket.orderId?.toString().includes(keyword) ||
+        ticket.orderDetailId.toString().includes(keyword)
       );
     });
   }, [tickets, search]);
@@ -116,7 +117,13 @@ export const StaffTicketListPage: React.FC = () => {
         render: (ticket) => (
           <div className="min-w-[200px]">
             <div className="font-semibold text-slate-900">{ticket.attendeeName}</div>
-            <div className="text-xs text-slate-500">{t("booking.orderNumberShort", { id: ticket.orderId })}</div>
+            <div className="text-xs text-slate-500">
+              {ticket.orderId
+                ? t("booking.orderNumberShort", { id: ticket.orderId })
+                : t("booking.orderDetailNumberShort", {
+                    id: ticket.orderDetailId,
+                  })}
+            </div>
           </div>
         ),
       },
@@ -252,7 +259,11 @@ export const StaffTicketListPage: React.FC = () => {
                 <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
                   <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
                   {t("booking.checkedCount", {
-                    count: tickets.filter((ticket) => ticket.checkInStatus === "Checked").length,
+                    count: tickets.filter(
+                      (ticket) =>
+                        ticket.checkInStatus === "Checked" ||
+                        ticket.checkInStatus === "CheckedIn",
+                    ).length,
                   })}
                 </div>
               </div>

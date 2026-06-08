@@ -4,6 +4,7 @@ export interface ReadTicketDTO {
   orderDetailId: number;
   userId?: number;
   ticketTypeId: number;
+  ticketTypeName?: string;
   attendeeName: string;
   idCard: string;
   dateOfBirth?: string;

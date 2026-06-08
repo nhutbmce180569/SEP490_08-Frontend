@@ -56,8 +56,16 @@ export const getOrdersByScheduleId = async (scheduleId: number) => {
   return unwrapApiResponse(response);
 };
 
-export const getScheduleCustomersByScheduleId = async (scheduleId: number) => {
-  const response: unknown = await apiClient.get(BOOKINGS_API.GET_SCHEDULE_CUSTOMERS(scheduleId));
+export const getScheduleCustomersByScheduleId = async (
+  scheduleId: number,
+  params?: {
+    attendeeName?: string;
+  }
+) => {
+  const response: unknown = await apiClient.get(
+    BOOKINGS_API.GET_SCHEDULE_CUSTOMERS(scheduleId),
+    { params }
+  );
   return unwrapApiResponse(response);
 };
 

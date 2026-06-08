@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Search,
   Ticket,
+  ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  ChevronDown,
 } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -120,6 +120,21 @@ export const StaffTicketListPage: React.FC = () => {
     [schedules, selectedScheduleId],
   );
 
+  const filteredTickets = useMemo(() => {
+    if (!search.trim()) return tickets;
+    const keyword = search.trim().toLowerCase();
+
+    return tickets.filter(
+      (ticket) =>
+        ticket.attendeeName.toLowerCase().includes(keyword) ||
+        ticket.idCard.toLowerCase().includes(keyword) ||
+        ticket.checkInStatus?.toLowerCase().includes(keyword) ||
+        ticket.id.toString().includes(keyword) ||
+        ticket.orderId?.toString().includes(keyword) ||
+        ticket.orderDetailId.toString().includes(keyword),
+    );
+  }, [tickets, search]);
+
   const columns: Column<ReadTicketDTO>[] = useMemo(
     () => [
       {
@@ -135,7 +150,11 @@ export const StaffTicketListPage: React.FC = () => {
               {ticket.attendeeName}
             </div>
             <div className="text-xs text-slate-500">
-              {t("booking.orderNumberShort", { id: ticket.orderId })}
+              {ticket.orderId
+                ? t("booking.orderNumberShort", { id: ticket.orderId })
+                : t("booking.orderDetailNumberShort", {
+                    id: ticket.orderDetailId,
+                  })}
             </div>
           </div>
         ),
@@ -311,12 +330,43 @@ export const StaffTicketListPage: React.FC = () => {
           </div>
 
           <div className="space-y-4 min-w-0">
-            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-              <Table
-                data={tickets}
-                columns={columns}
-                isLoading={ticketsLoading}
-              />
+            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm min-w-0">
+              <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {t("booking.ticketListTitle")}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {selectedSchedule
+                      ? t("booking.showingTicketsFor", {
+                          id: selectedSchedule.scheduleId,
+                        })
+                      : t("booking.selectScheduleToView")}
+                  </p>
+                </div>
+                <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                  {t("booking.checkedCount", {
+                    count: tickets.filter(
+                      (ticket) =>
+                        ticket.checkInStatus === "Checked" ||
+                        ticket.checkInStatus === "CheckedIn",
+                    ).length,
+                  })}
+                </div>
+              </div>
+              <div className="overflow-x-auto min-w-0">
+                <Table
+                  data={filteredTickets}
+                  columns={columns}
+                  isLoading={ticketsLoading}
+                  emptyMessage={
+                    selectedSchedule
+                      ? t("booking.noTicketsForDeparture")
+                      : t("booking.chooseScheduleToView")
+                  }
+                />
+              </div>
             </div>
           </div>
         </div>

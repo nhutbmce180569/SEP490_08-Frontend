@@ -1,0 +1,800 @@
+Folder PATH listing for volume Data
+Volume serial number is 00000070 ECD7:EE47
+E:.
+|   App.css
+|   App.tsx
+|   folder-structure.txt
+|   index.css
+|   main.tsx
+|   
++---assets
+|   |   .gitkeep
+|   |   hero.png
+|   |   icon.jpg
+|   |   logo_blue.png
+|   |   làm_hi?u_?ng_cho_con_r?ng_bay-Picsart-BackgroundRemover.mp4
+|   |   react.svg
+|   |   stayhub_icon_transparent.png
+|   |   vite.svg
+|   |   
+|   +---about
+|   |       .gitkeep
+|   |       
+|   \---team
+|           .gitkeep
+|           kieuthy.png
+|           mentor.jpg
+|           minhnhut.png
+|           phuongtuong.png
+|           thanhnguyen.png
+|           thanhtu.png
+|           
++---components
+|   |   .gitkeep
+|   |   ScrollToTop.tsx
+|   |   
+|   +---brand
+|   |       StayHubLogo.tsx
+|   |       
+|   +---dashboard
+|   |       ActionButton.tsx
+|   |       ConfirmDialog.tsx
+|   |       DynamicForm.tsx
+|   |       LoadingOverlay.tsx
+|   |       MultiSelectDropdown.tsx
+|   |       PaginationButton.tsx
+|   |       Table.tsx
+|   |       
+|   +---home
+|   |   |   ActionButton.tsx
+|   |   |   LoadingOverlay.tsx
+|   |   |   TourCard.tsx
+|   |   |   
+|   |   \---sections
+|   |           HomeCTA.tsx
+|   |           HomeDestinations.tsx
+|   |           HomeExploreStrip.tsx
+|   |           HomeFeaturedTours.tsx
+|   |           HomeHero.tsx
+|   |           HomePopularTours.tsx
+|   |           HomeSection.tsx
+|   |           HomeWhyUs.tsx
+|   |           SectionHeader.tsx
+|   |           shared.ts
+|   |           
+|   \---ui
+|           CustomBrandCursor.tsx
+|           GlassCard.tsx
+|           LanguageSwitcher.tsx
+|           PageHeader.tsx
+|           PageShell.tsx
+|           ThemeToggle.tsx
+|           UserAvatar.tsx
+|           
++---config
+|   +---api
+|   |       admin.api.ts
+|   |       ai.api.ts
+|   |       api.ts
+|   |       auth.api.ts
+|   |       bookings.api.ts
+|   |       content.api.ts
+|   |       customer-analytics.api.ts
+|   |       finance.api.ts
+|   |       index.ts
+|   |       payments.api.ts
+|   |       platform-analytics.api.ts
+|   |       social.api.ts
+|   |       system.api.ts
+|   |       tickets.api.ts
+|   |       tours.api.ts
+|   |       voucher.api.ts
+|   |       
+|   \---routes
+|           admin.routes.ts
+|           customer.routes.ts
+|           manager.routes.ts
+|           public.routes.ts
+|           route.ts
+|           staff.routes.ts
+|           
++---constants
+|       .gitkeep
+|       brand.ts
+|       
++---contexts
+|       .gitkeep
+|       AiPlannerContext.tsx
+|       Api.ts
+|       AuthContext.tsx
+|       LocaleContext.tsx
+|       ProtectedRoute.tsx
+|       ThemeContext.tsx
+|       ToastContext.tsx
+|       
++---features
+|   |   .gitkeep
+|   |   
+|   +---ai
+|   |   +---components
+|   |   |   |   AiGuideFloatingButton.tsx
+|   |   |   |   AiModelsNotReadyBanner.tsx
+|   |   |   |   AiResultsViewTabs.tsx
+|   |   |   |   AiSemanticSearchBar.tsx
+|   |   |   |   AiTourRecommendationCard.tsx
+|   |   |   |   CollapsibleSection.tsx
+|   |   |   |   CulturalFactsSidebar.tsx
+|   |   |   |   CustomerScoreBreakdownPanel.tsx
+|   |   |   |   DestinationTipsPanel.tsx
+|   |   |   |   QuestionnaireFieldInput.tsx
+|   |   |   |   QuestionnaireWizard.tsx
+|   |   |   |   RecommenderMetaPanel.tsx
+|   |   |   |   RelatedInsightsCarousel.tsx
+|   |   |   |   ScheduleNoticeBanner.tsx
+|   |   |   |   ScoreBreakdownPanel.tsx
+|   |   |   |   SimilarToursSection.tsx
+|   |   |   |   SystemFaqBrowser.tsx
+|   |   |   |   TipsTabsPanel.tsx
+|   |   |   |   TourAssistantChatWidget.tsx
+|   |   |   |   TourMatchModal.tsx
+|   |   |   |   TourWhyFitPanel.tsx
+|   |   |   |   TripContextPanel.tsx
+|   |   |   |   TripSummaryChips.tsx
+|   |   |   |   WeatherAdviceCard.tsx
+|   |   |   |   
+|   |   |   \---admin
+|   |   |           AdminAiChatPanel.tsx
+|   |   |           AdminJsonPanel.tsx
+|   |   |           
+|   |   +---config
+|   |   |       systemFaqCatalog.ts
+|   |   |       
+|   |   +---hooks
+|   |   |       useAiHealth.ts
+|   |   |       useAiSemanticSearch.ts
+|   |   |       useLogAiInteraction.ts
+|   |   |       useQuestionnaire.ts
+|   |   |       useRecommendFromProfile.ts
+|   |   |       useSimilarTours.ts
+|   |   |       useTourAssistantChat.ts
+|   |   |       
+|   |   +---pages
+|   |   |       AdminAiConsolePage.tsx
+|   |   |       AiAssistantPage.tsx
+|   |   |       AiQuestionnairePage.tsx
+|   |   |       AiRecommendationsPage.tsx
+|   |   |       
+|   |   +---services
+|   |   |       aiAdmin.service.ts
+|   |   |       tourAssistant.service.ts
+|   |   |       
+|   |   +---types
+|   |   |       aiAdmin.ts
+|   |   |       tourAssistant.ts
+|   |   |       
+|   |   \---utils
+|   |           catalogTourId.ts
+|   |           customerMatchReasons.ts
+|   |           destinationFactFormat.ts
+|   |           formatters.ts
+|   |           localizeAiContent.ts
+|   |           questionnaireDraft.ts
+|   |           questionnaireValidation.ts
+|   |           sessionId.ts
+|   |           weatherHelpers.ts
+|   |           
+|   +---auth
+|   |   +---components
+|   |   |       AuthFormField.tsx
+|   |   |       AuthLayout.tsx
+|   |   |       FacebookLoginButton.tsx
+|   |   |       GoogleLoginButton.tsx
+|   |   |       SocialAuthButtons.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       useChangePassword.ts
+|   |   |       useChangeUserStatus.ts
+|   |   |       useCreateUser.ts
+|   |   |       useDeleteUser.ts
+|   |   |       useFacebookLogin.ts
+|   |   |       useForgotPassword.ts
+|   |   |       useGoogleLogin.ts
+|   |   |       useLogin.ts
+|   |   |       usePersistentCountdown.ts
+|   |   |       useProfile.ts
+|   |   |       useRegister.ts
+|   |   |       useResetPassword.ts
+|   |   |       useRoles.ts
+|   |   |       useUpdateUser.ts
+|   |   |       useUsers.ts
+|   |   |       
+|   |   +---pages
+|   |   |       ChangePassword.tsx
+|   |   |       CreateUser.tsx
+|   |   |       DeleteUser.tsx
+|   |   |       ForgotPassword.tsx
+|   |   |       Login.tsx
+|   |   |       Profile.tsx
+|   |   |       Register.tsx
+|   |   |       ResetPassword.tsx
+|   |   |       UpdateUser.tsx
+|   |   |       UserList.tsx
+|   |   |       
+|   |   +---services
+|   |   |       auth.service.ts
+|   |   |       role.service.ts
+|   |   |       user.service.ts
+|   |   |       
+|   |   +---store
+|   |   |       .gitkeep
+|   |   |       
+|   |   +---types
+|   |   |       auth.ts
+|   |   |       pagination.ts
+|   |   |       role.ts
+|   |   |       user.ts
+|   |   |       
+|   |   \---utils
+|   |           axiosClient.ts
+|   |           jwt.ts
+|   |           
+|   +---booking
+|   |   +---components
+|   |   |       .gitkeep
+|   |   |       
+|   |   +---hooks
+|   |   |       useBookingCheckout.ts
+|   |   |       useBookingStatistics.ts
+|   |   |       useCancellationDetails.ts
+|   |   |       useCancellationRequests.ts
+|   |   |       useCreateBooking.ts
+|   |   |       useCreateCancellation.ts
+|   |   |       useCustomerOrders.ts
+|   |   |       useOrderDetail.ts
+|   |   |       useProcessCancellation.ts
+|   |   |       useScheduleTickets.ts
+|   |   |       useTicketCheckin.ts
+|   |   |       
+|   |   +---pages
+|   |   |       BookingPage.tsx
+|   |   |       BookingStatisticsPage.tsx
+|   |   |       CancellationListPage.tsx
+|   |   |       CreateCancellationRequestPage.tsx
+|   |   |       MyBookingsPage.tsx
+|   |   |       OrderDetailPage.tsx
+|   |   |       ProcessCancellationPage.tsx
+|   |   |       QRCheckinPage.tsx
+|   |   |       ScheduleCustomersPage.tsx
+|   |   |       StaffTicketListPage.tsx
+|   |   |       
+|   |   +---services
+|   |   |       booking.service.ts
+|   |   |       bookingStatistics.service.ts
+|   |   |       cancellation.service.ts
+|   |   |       payment.service.ts
+|   |   |       ticket.service.ts
+|   |   |       
+|   |   +---store
+|   |   |       .gitkeep
+|   |   |       
+|   |   +---types
+|   |   |       booking.ts
+|   |   |       bookingStatistics.types.ts
+|   |   |       cancellation.ts
+|   |   |       ticket.ts
+|   |   |       
+|   |   \---utils
+|   |           .gitkeep
+|   |           bookingPassengerExcel.ts
+|   |           
+|   +---content
+|   |   +---components
+|   |   |       TourismInformationForm.tsx
+|   |   |       TourismInformationSelector.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       useActiveBanners.ts
+|   |   |       useBanners.ts
+|   |   |       useCategories.ts
+|   |   |       useChangeBannerStatus.ts
+|   |   |       useChangeCategoryStatus.ts
+|   |   |       useChangeTicketTypeStatus.ts
+|   |   |       useChangeTourismInformationStatus.ts
+|   |   |       useCreateBanner.ts
+|   |   |       useCreateCategory.ts
+|   |   |       useCreateTicketType.ts
+|   |   |       useCreateTourismInformation.ts
+|   |   |       useDeleteBanner.ts
+|   |   |       useDeleteCategory.ts
+|   |   |       useTicketTypes.ts
+|   |   |       useTourismInformation.ts
+|   |   |       useTourismInformationDetail.ts
+|   |   |       useUpdateBanner.ts
+|   |   |       useUpdateCategory.ts
+|   |   |       useUpdateTicketType.ts
+|   |   |       useUpdateTourismInformation.ts
+|   |   |       
+|   |   +---pages
+|   |   |       BannerList.tsx
+|   |   |       CategoryList.tsx
+|   |   |       CreateBanner.tsx
+|   |   |       CreateCategory.tsx
+|   |   |       CreateTicketType.tsx
+|   |   |       CreateTourismInformation.tsx
+|   |   |       DeleteBanner.tsx
+|   |   |       DeleteCategory.tsx
+|   |   |       TicketTypeList.tsx
+|   |   |       TourismInformationDetail.tsx
+|   |   |       TourismInformationList.tsx
+|   |   |       UpdateBanner.tsx
+|   |   |       UpdateCategory.tsx
+|   |   |       UpdateTicketType.tsx
+|   |   |       UpdateTourismInformation.tsx
+|   |   |       
+|   |   +---services
+|   |   |       banner.service.ts
+|   |   |       category.service.ts
+|   |   |       ticketType.service.ts
+|   |   |       tourismInformation.service.ts
+|   |   |       
+|   |   +---types
+|   |   |       banner.ts
+|   |   |       category.ts
+|   |   |       pagination.ts
+|   |   |       ticketType.ts
+|   |   |       tourismInformation.ts
+|   |   |       
+|   |   \---utils
+|   |           apiError.ts
+|   |           tourismInformationValidation.ts
+|   |           
+|   +---currency
+|   |       CurrencyContext.tsx
+|   |       CurrencyToggle.tsx
+|   |       MoneyDisplay.tsx
+|   |       
+|   +---customer-analytics
+|   |   +---components
+|   |   |       CustomerDetailDrawer.tsx
+|   |   |       CustomerListPanel.tsx
+|   |   |       DateRangeFilter.tsx
+|   |   |       DistributionChart.tsx
+|   |   |       EngagementPanel.tsx
+|   |   |       StatCard.tsx
+|   |   |       TopCustomersTable.tsx
+|   |   |       TrendLineChart.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       useCustomerAnalytics.ts
+|   |   |       
+|   |   +---pages
+|   |   |       CustomerAnalyticsPage.tsx
+|   |   |       
+|   |   +---services
+|   |   |       customerAnalytics.service.ts
+|   |   |       
+|   |   +---types
+|   |   |       customerAnalytics.types.ts
+|   |   |       
+|   |   \---utils
+|   |           analyticsHelpers.ts
+|   |           
+|   +---platform-analytics
+|   |   +---components
+|   |   |       AnalyticsLayout.tsx
+|   |   |       HealthPanel.tsx
+|   |   |       TopToursTable.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       usePlatformAnalytics.ts
+|   |   |       
+|   |   +---pages
+|   |   |       PlatformAnalyticsPage.tsx
+|   |   |       
+|   |   +---services
+|   |   |       platformAnalytics.service.ts
+|   |   |       
+|   |   +---types
+|   |   |       platformAnalytics.types.ts
+|   |   |       
+|   |   \---utils
+|   |           platformHelpers.ts
+|   |           
+|   +---social
+|   |   +---chat
+|   |   |   +---component
+|   |   |   |       ChatInterface.tsx
+|   |   |   |       
+|   |   |   +---hooks
+|   |   |   |       useChatSignalR.ts
+|   |   |   |       
+|   |   |   +---pages
+|   |   |   |       ChatPage.tsx
+|   |   |   |       
+|   |   |   +---services
+|   |   |   |       chatService.ts
+|   |   |   |       
+|   |   |   \---types
+|   |   |           chat.type.ts
+|   |   |           
+|   |   +---friends
+|   |   |   +---hooks
+|   |   |   |       useFriends.ts
+|   |   |   |       
+|   |   |   +---pages
+|   |   |   |       FriendsManagement.tsx
+|   |   |   |       
+|   |   |   +---services
+|   |   |   |       friendService.ts
+|   |   |   |       
+|   |   |   \---types
+|   |   |           friend.type.ts
+|   |   |           
+|   |   +---locations
+|   |   |   \---services
+|   |   |           locationService.ts
+|   |   |           
+|   |   +---moments
+|   |   |   +---components
+|   |   |   |       CommentSection.tsx
+|   |   |   |       CreateMomentForm.tsx
+|   |   |   |       MomentCard.tsx
+|   |   |   |       MomentModal.tsx
+|   |   |   |       MomentsFeed.tsx
+|   |   |   |       MomentsMapFeed.tsx
+|   |   |   |       
+|   |   |   +---hooks
+|   |   |   |       useEligibleSchedules.ts
+|   |   |   |       useMoments.ts
+|   |   |   |       
+|   |   |   +---services
+|   |   |   |       moment.type.ts
+|   |   |   |       momentService.ts
+|   |   |   |       
+|   |   |   \---types
+|   |   |           moment.type.ts
+|   |   |           
+|   |   +---profile
+|   |   |   +---hooks
+|   |   |   |       useProfile.ts
+|   |   |   |       
+|   |   |   +---pages
+|   |   |   |       SocialProfile.tsx
+|   |   |   |       
+|   |   |   +---services
+|   |   |   |       profileService.ts
+|   |   |   |       
+|   |   |   \---types
+|   |   |           profile.type.ts
+|   |   |           
+|   |   +---tours
+|   |   |   +---components
+|   |   |   |       TourItineraryMap.tsx
+|   |   |   |       
+|   |   |   +---hooks
+|   |   |   |       useTourItineraries.ts
+|   |   |   |       
+|   |   |   \---services
+|   |   |           tourItineraryService.ts
+|   |   |           
+|   |   \---tracking
+|   |       +---components
+|   |       |       ShareLocationButton.tsx
+|   |       |       
+|   |       +---hooks
+|   |       |       useLocationTracking.ts
+|   |       |       useScheduleTracking.ts
+|   |       |       useTracking.ts
+|   |       |       
+|   |       +---pages
+|   |       |       LocationTrackingPage.tsx
+|   |       |       PublicTrackingPage.tsx
+|   |       |       ScheduleTrackingPage.tsx
+|   |       |       
+|   |       \---services
+|   |               locationTrackingService.ts
+|   |               scheduleTrackingService.ts
+|   |               trackingService.ts
+|   |               
+|   +---system
+|   |   +---components
+|   |   |       NotificationBell.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       useNotificationHub.ts
+|   |   |       useNotifications.ts
+|   |   |       
+|   |   +---services
+|   |   |       notification.service.ts
+|   |   |       
+|   |   \---types
+|   |           notification.ts
+|   |           
+|   +---tour
+|   |   +---components
+|   |   |       MapPickerModal.tsx
+|   |   |       TourScheduleStaffManagement.tsx
+|   |   |       
+|   |   +---hooks
+|   |   |       useCreateItinerary.ts
+|   |   |       useCreateScheduleItinerary.ts
+|   |   |       useCreateTour.ts
+|   |   |       useDeleteItinerary.ts
+|   |   |       useDeleteScheduleItinerary.ts
+|   |   |       useDeleteTour.ts
+|   |   |       useGroupedItineraries.ts
+|   |   |       useManagerReviewPage.ts
+|   |   |       useMapPicker.ts
+|   |   |       useReview.ts
+|   |   |       useTour.ts
+|   |   |       useTours.ts
+|   |   |       useTourSchedule.ts
+|   |   |       useUpdateItinerary.ts
+|   |   |       useUpdateScheduleItinerary.ts
+|   |   |       useUpdateTour.ts
+|   |   |       
+|   |   +---pages
+|   |   |       AssignedSchedulesPage.tsx
+|   |   |       CreateEditSchedule.tsx
+|   |   |       CreateItinerary.tsx
+|   |   |       CreateScheduleItinerary.tsx
+|   |   |       CreateScheduleTicket.tsx
+|   |   |       CreateTour.tsx
+|   |   |       DashboardReviewManager.tsx
+|   |   |       DeleteItinerary.tsx
+|   |   |       DeleteScheduleItinerary.tsx
+|   |   |       DeleteScheduleTicket.tsx
+|   |   |       DeleteTour.tsx
+|   |   |       MyReviewsPage.tsx
+|   |   |       ReviewForm.tsx
+|   |   |       ScheduleDetail.tsx
+|   |   |       StaffTourScheduleDetail.tsx
+|   |   |       TourDetail.tsx
+|   |   |       TourList.tsx
+|   |   |       TourScheduleDetail.tsx
+|   |   |       TourScheduleList.tsx
+|   |   |       UpdateItinerary.tsx
+|   |   |       UpdateScheduleItinerary.tsx
+|   |   |       UpdateScheduleTicket.tsx
+|   |   |       UpdateTour.tsx
+|   |   |       
+|   |   +---services
+|   |   |       itinerary.service.ts
+|   |   |       mapGeocoding.service.ts
+|   |   |       review.service.ts
+|   |   |       tour.service.ts
+|   |   |       tourSchedule.service.ts
+|   |   |       tourScheduleItinerary.service.ts
+|   |   |       tourScheduleStaffService.ts
+|   |   |       tourScheduleTicket.service.ts
+|   |   |       
+|   |   +---store
+|   |   |       .gitkeep
+|   |   |       
+|   |   +---types
+|   |   |       paginatedReponse.ts
+|   |   |       review.ts
+|   |   |       tour.ts
+|   |   |       tourItinerary.ts
+|   |   |       tourSchedule.ts
+|   |   |       tourScheduleItinerary.ts
+|   |   |       tourScheduleStaff.ts
+|   |   |       tourScheduleTicket.ts
+|   |   |       
+|   |   \---utils
+|   |           .gitkeep
+|   |           itineraryExcel.ts
+|   |           scheduleItineraryExcel.ts
+|   |           tourScheduleTicket.ts
+|   |           
+|   +---users
+|   |   +---hooks
+|   |   |       useUsers.ts
+|   |   |       
+|   |   +---services
+|   |   |       userService.ts
+|   |   |       
+|   |   \---types
+|   |           user.type.ts
+|   |           
+|   +---voucher
+|   |   +---components
+|   |   |       .gitkeep
+|   |   |       CustomerAssignmentEditor.tsx
+|   |   |       VoucherTargetEditor.tsx
+|   |   |       
+|   |   +---customer
+|   |   |   +---components
+|   |   |   |       SaveVoucherInput.tsx
+|   |   |   |       VoucherCheckoutPanel.tsx
+|   |   |   |       VoucherWalletCard.tsx
+|   |   |   |       
+|   |   |   +---hooks
+|   |   |   |       useApplyVoucher.ts
+|   |   |   |       useMyVouchers.ts
+|   |   |   |       useSaveVoucher.ts
+|   |   |   |       
+|   |   |   +---pages
+|   |   |   |       MyVouchersPage.tsx
+|   |   |   |       
+|   |   |   +---services
+|   |   |   |       customerVoucher.service.ts
+|   |   |   |       
+|   |   |   \---types
+|   |   |           customerVoucher.ts
+|   |   |           
+|   |   +---hooks
+|   |   |       .gitkeep
+|   |   |       useChangeVoucherStatus.ts
+|   |   |       useCreateVoucher.ts
+|   |   |       useTourOptions.ts
+|   |   |       useUpdateVoucher.ts
+|   |   |       useVoucherDetail.ts
+|   |   |       useVouchers.ts
+|   |   |       
+|   |   +---pages
+|   |   |       .gitkeep
+|   |   |       CreateVoucher.tsx
+|   |   |       UpdateVoucher.tsx
+|   |   |       VoucherDetail.tsx
+|   |   |       VoucherList.tsx
+|   |   |       
+|   |   +---services
+|   |   |       .gitkeep
+|   |   |       voucher.service.ts
+|   |   |       
+|   |   +---store
+|   |   |       .gitkeep
+|   |   |       
+|   |   +---types
+|   |   |       .gitkeep
+|   |   |       pagination.ts
+|   |   |       voucher.ts
+|   |   |       
+|   |   \---utils
+|   |           .gitkeep
+|   |           voucherHelpers.ts
+|   |           voucherTargetHelpers.ts
+|   |           
+|   \---wishlist
+|       +---customer
+|       |   +---components
+|       |   |       WishlistHeaderButton.tsx
+|       |   |       WishlistSearchInput.tsx
+|       |   |       WishlistToggleButton.tsx
+|       |   |       WishlistTourCard.tsx
+|       |   |       
+|       |   +---hooks
+|       |   |       useMyWishlist.ts
+|       |   |       useRemoveFromWishlist.ts
+|       |   |       useWishlistToggle.ts
+|       |   |       
+|       |   +---pages
+|       |   |       MyWishlistPage.tsx
+|       |   |       
+|       |   +---services
+|       |   |       customerWishlist.service.ts
+|       |   |       
+|       |   +---types
+|       |   |       customerWishlist.ts
+|       |   |       
+|       |   \---utils
+|       |           wishlistHelpers.ts
+|       |           
+|       \---hooks
+|               useWishlist.ts
+|               
++---hooks
+|       usePublicTour.ts
+|       usePublicTours.ts
+|       useSearchTours.ts
+|       
++---i18n
+|   |   index.ts
+|   |   mergeLocales.ts
+|   |   tStored.ts
+|   |   
+|   \---locales
+|       |   en.json
+|       |   vi.json
+|       |   
+|       +---en
+|       |       admin.json
+|       |       ai.json
+|       |       analytics.json
+|       |       app.json
+|       |       booking.json
+|       |       common.json
+|       |       content.json
+|       |       dashboard.json
+|       |       errors.json
+|       |       footer.json
+|       |       home.json
+|       |       legal.json
+|       |       manager.json
+|       |       social.json
+|       |       staff.json
+|       |       tour.json
+|       |       voucher.json
+|       |       
+|       \---vi
+|               admin.json
+|               ai.json
+|               analytics.json
+|               app.json
+|               booking.json
+|               common.json
+|               content.json
+|               dashboard.json
+|               errors.json
+|               footer.json
+|               home.json
+|               legal.json
+|               manager.json
+|               social.json
+|               staff.json
+|               tour.json
+|               voucher.json
+|               
++---layouts
+|   |   AdminLayout.tsx
+|   |   DashboardLayout.tsx
+|   |   MainLayout.tsx
+|   |   ProfileLayout.tsx
+|   |   Sidebar.tsx
+|   |   StaffLayout.tsx
+|   |   
+|   +---home
+|   |       Footer.tsx
+|   |       Header.tsx
+|   |       
+|   \---shared
+|           DashboardShell.tsx
+|           DashboardTopBar.tsx
+|           
++---lib
+|       design-tokens.ts
+|       
++---pages
+|   |   .gitkeep
+|   |   Home.tsx
+|   |   PartnerDashboard.tsx
+|   |   TourDetail.tsx
+|   |   TourSearch.tsx
+|   |   Unauthorized.tsx
+|   |   
+|   +---about
+|   |   |   aboutContentEn.ts
+|   |   |   aboutContentVi.ts
+|   |   |   AboutPage.tsx
+|   |   |   getAboutContent.ts
+|   |   |   NhutPortfolioPage.tsx
+|   |   |   types.ts
+|   |   |   
+|   |   \---components
+|   |           TeamMemberCard.tsx
+|   |           
+|   +---info
+|   |       PublicInfoPage.tsx
+|   |       
+|   \---legal
+|           LegalDocumentLayout.tsx
+|           legalNav.ts
+|           privacyContent.ts
+|           privacyContentVi.ts
+|           PrivacyPolicyPage.tsx
+|           termsContent.ts
+|           termsContentVi.ts
+|           TermsOfServicePage.tsx
+|           
++---router
+|       .gitkeep
+|       
++---store
+|       .gitkeep
+|       
+\---utils
+        axiosClient.ts
+        httpLanguage.ts
+        jwt.ts
+        

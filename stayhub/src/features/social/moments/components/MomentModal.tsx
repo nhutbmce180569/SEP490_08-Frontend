@@ -6,6 +6,14 @@ import { useAddComment, useUpdateComment, useDeleteComment } from '../hooks/useM
 import type { Moment } from '../types/moment.type';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 
+const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
+  const [hasError, setHasError] = useState(false);
+  if (hasError || !src) {
+    return <div className={fallbackClassName}>{fallbackText}</div>;
+  }
+  return <img src={src} alt={alt} className={className} onError={() => setHasError(true)} loading="lazy" decoding="async" />;
+};
+
 interface MomentModalProps {
   moment: Moment;
   isOpen: boolean;
@@ -124,11 +132,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
         <div className="w-full md:w-[400px] flex flex-col h-full bg-white">
           <div className="flex items-center gap-3 p-4 border-b border-slate-100 shrink-0">
             <div className="h-8 w-8 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-              {displayAvatar ? (
-                <img src={displayAvatar} alt="Avatar" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center font-bold text-xs">{userFullName.charAt(0)}</div>
-              )}
+              <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs" fallbackText={userFullName.charAt(0)} />
             </div>
             <span className="text-sm font-bold text-slate-900">{userFullName}</span>
           </div>
@@ -141,7 +145,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
             {moment.caption && (
                <div className="flex gap-3 mb-4 text-sm">
                <div className="h-8 w-8 shrink-0 !rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-                   {displayAvatar ? <img src={displayAvatar} alt="Avatar" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : null}
+                   <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs" fallbackText={userFullName.charAt(0)} />
                  </div>
                  <div className="leading-relaxed">
                    <span className="font-bold mr-2">{userFullName}</span>
@@ -158,7 +162,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                 return (
                   <div key={c.id} className="flex gap-3 text-sm">
                     <div className="h-8 w-8 shrink-0 !rounded-full bg-slate-100 overflow-hidden border border-slate-200">
-                      {cAvatar ? <img src={cAvatar} alt="Avatar" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : <div className="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200">{(c.user?.fullName || "A").charAt(0)}</div>}
+                      <SafeImage src={cAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200" fallbackText={(c.user?.fullName || "A").charAt(0)} />
                     </div>
                     <div className="flex-1 leading-relaxed">
                       <span className="font-bold mr-2">{c.user?.fullName || t("tour.anonymousCustomer")}</span>

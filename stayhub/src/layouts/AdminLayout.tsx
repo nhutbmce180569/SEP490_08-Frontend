@@ -41,11 +41,6 @@ export const AdminLayout = () => {
             to: PATH.ADMIN.CUSTOMER_ANALYTICS,
             icon: <BarChart3 className={iconClass} />,
           },
-          {
-            label: t("admin.systemReports"),
-            to: "/admin/reports-export",
-            icon: <Download className={iconClass} />,
-          },
         ],
       },
       {
@@ -56,21 +51,11 @@ export const AdminLayout = () => {
             to: PATH.ADMIN.USER_MANAGEMENT,
             icon: <Users className={iconClass} />,
           },
-          {
-            label: t("admin.partnerApprovals"),
-            to: PATH.ADMIN.PARTNER_APPROVAL,
-            icon: <Building className={iconClass} />,
-          },
         ],
       },
       {
         title: t("admin.tourContent"),
         items: [
-          {
-            label: t("admin.tourModeration"),
-            to: PATH.ADMIN.TOUR_MODERATION,
-            icon: <Map className={iconClass} />,
-          },
           {
             label: t("admin.banners"),
             to: PATH.ADMIN.BANNER_MANAGEMENT,
@@ -103,31 +88,7 @@ export const AdminLayout = () => {
           },
         ],
       },
-      {
-        title: t("admin.operations"),
-        items: [
-          {
-            label: t("admin.violationReports"),
-            to: PATH.ADMIN.REPORT_MODERATION,
-            icon: <ShieldAlert className={iconClass} />,
-          },
-          {
-            label: t("admin.withdrawalRequests"),
-            to: PATH.ADMIN.WITHDRAWALS,
-            icon: <CreditCard className={iconClass} />,
-          },
-          {
-            label: t("admin.systemVouchers"),
-            to: PATH.ADMIN.SYSTEM_VOUCHERS,
-            icon: <Ticket className={iconClass} />,
-          },
-          {
-            label: t("admin.globalSettings"),
-            to: PATH.ADMIN.SYSTEM_SETTINGS,
-            icon: <Settings className={iconClass} />,
-          },
-        ],
-      },
+
     ],
     [t],
   );

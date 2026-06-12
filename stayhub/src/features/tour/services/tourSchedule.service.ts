@@ -4,9 +4,9 @@ import type {
   TourSchedule,
   CreateTourScheduleRequest,
   UpdateTourScheduleRequest,
-  AssignedTourSchedule,
   PaginationResponse,
 } from "../types/tourSchedule";
+import type { AssignedTourSchedule } from "../types/tourScheduleStaff";
 
 export const tourScheduleService = {
   getAllSchedules: async (
@@ -60,12 +60,6 @@ export const tourScheduleService = {
 
   deleteSchedule: async (id: string | number): Promise<void> => {
     return await apiClient.delete<void>(TOURS_API.DELETE_SCHEDULE(id));
-  },
-
-  getAssignedSchedules: async (): Promise<AssignedTourSchedule[]> => {
-    return await apiClient.get<AssignedTourSchedule[]>(
-      TOURS_API.GET_ASSIGNED_SCHEDULES,
-    );
   },
 
   reserveSeats: async (

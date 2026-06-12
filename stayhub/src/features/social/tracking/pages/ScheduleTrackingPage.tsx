@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation, Compass } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
-import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
+import { useGetScheduleLiveLocations, useGetTourRouteData } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
+import type { TourWaypoint } from "../services/scheduleTrackingService";
 
 interface LiveLocation {
   userId: number;
@@ -16,74 +18,63 @@ interface LiveLocation {
   lastUpdated: string;
 }
 
+
 const defaultCenter = { lat: 16.047079, lng: 108.206230 };
 
 export const ScheduleTrackingPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
+  
+  
   const { data, isLoading, isError } = useGetScheduleLiveLocations(scheduleIdNumber);
+  const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleIdNumber);
+
   const [locations, setLocations] = useState<LiveLocation[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
+  
+  const tourStops = useMemo(() => routeData?.waypoints || [], [routeData]);
+  const routeCoordinates = useMemo(() => routeData?.geometryCoordinates || [], [routeData]);
+
+  const mapRef = useRef<MapRef | null>(null);
   const connectionRef = useRef<signalR.HubConnection | null>(null);
   const isMountedRef = useRef<boolean>(true);
 
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
-  });
+  const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
+  // 3. Quản lý đồng bộ dữ liệu Realtime của các thành viên qua SignalR
   useEffect(() => {
-    if (data && isMountedRef.current) {
-      setLocations(data);
-    }
+    if (data && isMountedRef.current) setLocations(data);
   }, [data]);
 
   useEffect(() => {
     isMountedRef.current = true;
-
-    return () => {
-      isMountedRef.current = false;
-    };
+    return () => { isMountedRef.current = false; };
   }, []);
 
   useEffect(() => {
     if (scheduleIdNumber <= 0) {
-      if (isMountedRef.current) {
-        setErrorMessage(t("social.trackingScheduleInvalid"));
-      }
+      if (isMountedRef.current) setErrorMessage(t("social.trackingScheduleInvalid"));
+      if (isMountedRef.current) setErrorMessage(t("social.trackingScheduleInvalid"));
       return;
     }
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      if (isMountedRef.current) {
-        setErrorMessage(t("social.trackingLoginRequired"));
-      }
+      if (isMountedRef.current) setErrorMessage(t("social.trackingLoginRequired"));
+      if (isMountedRef.current) setErrorMessage(t("social.trackingLoginRequired"));
       return;
     }
 
-    // Stop existing connection if any
-    if (connectionRef.current) {
-      connectionRef.current.stop().catch(() => {});
-    }
+    if (connectionRef.current) connectionRef.current.stop().catch(() => {});
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${SIGNALR_HUB_BASE}/tracking`, {
-        accessTokenFactory: () => token,
-      })
+      .withUrl(`${SIGNALR_HUB_BASE}/tracking`, { accessTokenFactory: () => token })
       .withAutomaticReconnect([0, 0, 1000, 3000, 5000, 10000])
       .build();
 
     connectionRef.current = connection;
-
-    // Set up error handler before starting
-    connection.onclose(async () => {
-      if (isMountedRef.current) {
-        setErrorMessage(t("social.trackingReconnecting"));
-      }
-    });
 
     connection.on("ReceiveTourLocationUpdate", (update: LiveLocation) => {
       if (isMountedRef.current) {
@@ -99,50 +90,53 @@ export const ScheduleTrackingPage: React.FC = () => {
       }
     });
 
-    connection
-      .start()
-      .then(async () => {
-        if (!isMountedRef.current) return;
-        try {
-          await connection.invoke("JoinTourTrackingGroup", scheduleIdNumber);
-          if (isMountedRef.current) {
-            setErrorMessage(null);
-          }
-        } catch (err) {
-          console.error("Failed to join tour tracking group:", err);
-          if (isMountedRef.current) {
-            setErrorMessage(t("social.trackingJoinFailed"));
-          }
-        }
-      })
-      .catch((err) => {
-        console.error("SignalR connection failed:", err);
-        if (isMountedRef.current) {
-          setErrorMessage(t("social.trackingRealtimeFailed"));
-        }
-      });
-
-    return () => {
-      if (connectionRef.current) {
-        connectionRef.current.stop().catch(() => {});
+    connection.start().then(async () => {
+      if (!isMountedRef.current) return;
+      try {
+        await connection.invoke("JoinTourTrackingGroup", scheduleIdNumber);
+      } catch (err) {
+        if (isMountedRef.current) setErrorMessage(t("social.trackingJoinFailed"));
       }
-    };
-  }, [scheduleIdNumber]);
+    }).catch(() => {
+      if (isMountedRef.current) setErrorMessage(t("social.trackingRealtimeFailed"));
+    });
 
+    return () => { if (connectionRef.current) connectionRef.current.stop().catch(() => {}); };
+  }, [scheduleIdNumber, t]);
+
+  // Tự động căn chỉnh màn hình (Fit Bounds) bao phủ toàn bộ các điểm dừng của Tour
   useEffect(() => {
-    if (mapRef.current && locations.length > 0) {
-      const bounds = new window.google.maps.LatLngBounds();
-      locations.forEach((loc) => bounds.extend({ lat: loc.lat, lng: loc.lng }));
-      mapRef.current.fitBounds(bounds);
+    if (mapRef.current && tourStops.length > 0) {
+      const lngs = tourStops.map((l) => l.lng);
+      const lats = tourStops.map((l) => l.lat);
+      mapRef.current.fitBounds(
+        [
+          [Math.min(...lngs), Math.min(...lats)],
+          [Math.max(...lngs), Math.max(...lats)],
+        ],
+        { padding: 100, duration: 1200 }
+      );
     }
-  }, [locations]);
+  }, [tourStops]);
 
-  const activeMarker = useMemo(() => {
-    if (!locations.length) return null;
-    return locations[0];
-  }, [locations]);
+  // Hàm kích hoạt tính năng Dẫn đường (Navigation) thông qua Google Maps bên thứ ba
+  const handleOpenNavigation = (stop: TourWaypoint) => {
+    const navUrl = `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}&travelmode=driving`;
+    window.open(navUrl, "_blank");
+  };
 
-  if (isLoading || !isLoaded) {
+  const routeGeoJSON = useMemo(() => {
+    return {
+      type: "Feature" as const,
+      properties: {},
+      geometry: {
+        type: "LineString" as const,
+        coordinates: routeCoordinates,
+      },
+    };
+  }, [routeCoordinates]);
+
+  if (isLoading || isRouteLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0068E0] border-t-transparent"></div>
@@ -150,63 +144,91 @@ export const ScheduleTrackingPage: React.FC = () => {
     );
   }
 
-  if (isError || errorMessage) {
-    return (
-      <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 p-4 text-center">
-        <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-rose-100">
-          <MapPin className="h-12 w-12 text-rose-500" />
-        </div>
-        <h2 className="mb-2 text-2xl font-black text-slate-800">{t("social.trackingMapErrorTitle")}</h2>
-        <p className="max-w-md text-slate-500">{errorMessage || t("social.trackingMapErrorDefault")}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="relative h-screen w-full bg-slate-100">
-      <div className="absolute left-1/2 top-6 z-10 w-max max-w-[90%] -translate-x-1/2 rounded-full border border-white/20 bg-black/60 px-6 py-3 shadow-2xl backdrop-blur-md">
-        <div className="flex flex-col gap-2 text-center text-white sm:flex-row sm:items-center sm:gap-4">
-          <div>
-            <p className="text-sm font-medium">{t("social.trackingScheduleMapTitle", { id: scheduleIdNumber })}</p>
-            <p className="text-xs text-slate-300">{t("social.trackingScheduleMapDesc")}</p>
-          </div>
-          <div className="rounded-full border border-emerald-300/30 bg-emerald-300/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-200">
-            {t("social.trackingRealtimeBadge")}
-          </div>
-        </div>
-      </div>
-
-      <GoogleMap
-        mapContainerClassName="h-full w-full"
-        center={activeMarker ? { lat: activeMarker.lat, lng: activeMarker.lng } : defaultCenter}
-        zoom={15}
-        onLoad={(map) => {
-          mapRef.current = map;
-        }}
-        options={{ disableDefaultUI: true, zoomControl: true, clickableIcons: false }}
+      <Map
+        ref={mapRef}
+        initialViewState={{ latitude: 20.9525, longitude: 107.0315, zoom: 14 }}
+        mapboxAccessToken={apiKey}
+        mapStyle="mapbox://styles/mapbox/streets-v12"
+        style={{ width: "100%", height: "100%" }}
+        attributionControl={false}
       >
-        {locations.map((location) => (
-          <Marker
-            key={location.userId}
-            position={{ lat: location.lat, lng: location.lng }}
-            label={{ text: location.fullName || t("social.trackingGuestLabel"), color: "#ffffff", fontSize: "10px", fontWeight: "700" }}
-          />
-        ))}
-      </GoogleMap>
+        {/* ✨ LAYER 1: Vẽ Lộ trình đường bộ thực tế (Nét liền màu xanh thương hiệu) */}
+        {routeCoordinates.length > 0 && (
+          <Source id="tour-route-source" type="geojson" data={routeGeoJSON}>
+            <Layer
+              id="tour-route-line"
+              type="line"
+              paint={{
+                "line-color": "#0068E0",
+                "line-width": 5,
+              }}
+              layout={{
+                "line-join": "round",
+                "line-cap": "round",
+              }}
+            />
+          </Source>
+        )}
 
-      <div className="absolute right-4 top-28 z-10 rounded-3xl border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur-md">
-        <h3 className="text-sm font-bold uppercase tracking-[0.18em] text-slate-600">{t("social.trackingCustomersWatching")}</h3>
-        <div className="mt-3 space-y-3 max-h-[calc(100vh-12rem)] overflow-y-auto">
-          {locations.length > 0 ? (
-            locations.map((location) => (
-              <div key={location.userId} className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm">
-                <div className="font-semibold text-slate-900">{location.fullName || `User ${location.userId}`}</div>
-                <div className="text-xs text-slate-500">{new Date(location.lastUpdated).toLocaleString()}</div>
+        {/* ✨ LAYER 2: Đánh dấu danh sách các điểm Stop cố định của Tour */}
+        {tourStops.map((stop, idx) => (
+          <Marker key={`stop-${idx}`} longitude={stop.lng} latitude={stop.lat} anchor="bottom">
+            <div className="flex flex-col items-center group cursor-pointer">
+              <div className="bg-white px-2 py-1 rounded-md shadow-md text-[10px] font-bold border border-slate-200 mb-1 whitespace-nowrap">
+                {stop.sequence}. {stop.name}
               </div>
-            ))
-          ) : (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500">{t("social.trackingNoLocationsYet")}</div>
-          )}
+              <div className="w-8 h-8 rounded-full bg-orange-500 border-2 border-white flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110">
+                <Compass className="w-4 h-4 text-white animate-spin-slow" />
+              </div>
+            </div>
+          </Marker>
+        ))}
+
+        {/* ✨ LAYER 3: Vị trí trực tuyến (Realtime) của các thành viên */}
+        {locations.map((location) => (
+          <Marker key={location.userId} longitude={location.lng} latitude={location.lat} anchor="bottom">
+            <div className="relative flex flex-col items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-4 border-brand overflow-hidden bg-white shadow-lg relative z-10 cursor-pointer">
+                {location.avatarUrl ? (
+                  <img src={location.avatarUrl} alt={location.fullName} className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-slate-200 text-brand font-bold text-base">
+                    {location.fullName?.charAt(0) || "?"}
+                  </div>
+                )}
+              </div>
+              <span className="absolute top-full mt-1 px-2 py-0.5 bg-brand text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
+                {location.fullName || t("social.trackingGuestLabel")}
+              </span>
+            </div>
+          </Marker>
+        ))}
+      </Map>
+
+      {/* DANH SÁCH ĐỊA ĐIỂM TOUR KÈM NÚT DẪN ĐƯỜNG (UI SIDEBAR) */}
+      <div className="absolute right-4 top-24 z-10 w-80 rounded-3xl border border-white/20 bg-white/95 p-4 shadow-xl backdrop-blur-md">
+        <h3 className="text-sm font-black uppercase tracking-[0.12em] text-slate-800 mb-3 flex items-center gap-2">
+          <MapPin className="w-4 h-4 text-[#0068E0]" /> Lộ trình dừng chân
+        </h3>
+        <div className="space-y-3 max-h-[calc(100vh-14rem)] overflow-y-auto custom-scrollbar pr-1">
+          {tourStops.map((stop, idx) => (
+            <div key={`list-stop-${idx}`} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 shadow-sm">
+              <div className="flex-1 min-w-0 pr-2">
+                <p className="text-xs font-bold text-[#0068E0]">Điểm dừng {stop.sequence}</p>
+                <h4 className="text-sm font-semibold text-slate-800 truncate">{stop.name}</h4>
+              </div>
+              <button
+                onClick={() => handleOpenNavigation(stop)}
+                className="p-2 bg-[#0068E0] text-white rounded-xl hover:bg-blue-700 transition-colors shadow-md active:scale-95 flex items-center gap-1 shrink-0 text-xs font-bold"
+                title="Bật định vị dẫn đường qua Google Maps"
+              >
+                <Navigation className="w-3.5 h-3.5 fill-current" />
+                Dẫn đường
+              </button>
+            </div>
+          ))}
         </div>
       </div>
     </div>

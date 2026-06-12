@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { GoogleMap, OverlayView, useJsApiLoader } from "@react-google-maps/api";
+// 💡 Đã đổi sang Mapbox
+import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
 import { MapPin } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
@@ -14,15 +16,10 @@ export const PublicTrackingPage: React.FC = () => {
 
   const [liveLocation, setLiveLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [targetName, setTargetName] = useState<string>("");
+  const mapRef = useRef<MapRef | null>(null);
 
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string,
-  });
+  const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
-  const mapRef = useRef<google.maps.Map | null>(null);
-
-  // Khởi tạo toạ độ ban đầu khi API load xong
   useEffect(() => {
     if (data) {
       setLiveLocation({ lat: data.lat, lng: data.lng });
@@ -30,38 +27,32 @@ export const PublicTrackingPage: React.FC = () => {
     }
   }, [data]);
 
-  // Khởi tạo SignalR lắng nghe vị trí (Không cần Auth)
   useEffect(() => {
     if (!token || isError || !data) return;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${SIGNALR_HUB_BASE}/tracking`) // Kết nối public không kẹp Auth Header
+      .withUrl(`${SIGNALR_HUB_BASE}/tracking`)
       .withAutomaticReconnect()
       .build();
 
-    connection
-      .start()
-      .then(async () => {
-        await connection.invoke("JoinTrackingGroup", token);
-        connection.on("ReceivePublicLocation", (newLoc: { lat: number; lng: number }) => {
-          setLiveLocation({ lat: newLoc.lat, lng: newLoc.lng });
-        });
-      })
-      .catch((err) => console.error("SignalR Connection Error: ", err));
+    connection.start().then(async () => {
+      await connection.invoke("JoinTrackingGroup", token);
+      connection.on("ReceivePublicLocation", (newLoc: { lat: number; lng: number }) => {
+        setLiveLocation({ lat: newLoc.lat, lng: newLoc.lng });
+      });
+    }).catch(err => console.error("SignalR Connection Error: ", err));
 
-    return () => {
-      connection.stop();
-    };
+    return () => { connection.stop(); };
   }, [token, isError, data]);
 
-  // Tự động Pan bản đồ khi vị trí thay đổi
+  // Tự động Fly bản đồ khi vị trí thay đổi
   useEffect(() => {
     if (mapRef.current && liveLocation) {
-      mapRef.current.panTo(liveLocation);
+      mapRef.current.flyTo({ center: [liveLocation.lng, liveLocation.lat], duration: 1000 });
     }
   }, [liveLocation]);
 
-  if (isLoading || !isLoaded) {
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand border-t-transparent"></div>
@@ -83,12 +74,10 @@ export const PublicTrackingPage: React.FC = () => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-slate-100">
-      {/* Floating Card: Header trạng thái Live Tracking */}
       <div className="absolute left-1/2 top-6 z-10 w-max max-w-[90%] -translate-x-1/2 animate-fade-in-down rounded-full border border-white/20 bg-black/60 px-6 py-3 shadow-2xl backdrop-blur-md">
         <div className="flex items-center gap-3">
           <p className="text-sm font-medium text-white">
-            {t("social.trackingWatchingPrefix")}{" "}
-            <span className="font-bold text-brand">{targetName}</span>
+            {t("social.trackingWatchingPrefix")} <span className="font-bold text-brand">{targetName}</span>
           </p>
           <div className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/20 px-2 py-0.5">
             <div className="h-2 w-2 animate-pulse rounded-full bg-rose-500"></div>
@@ -97,17 +86,20 @@ export const PublicTrackingPage: React.FC = () => {
         </div>
       </div>
 
-      <GoogleMap 
-        mapContainerClassName="h-full w-full" 
-        center={liveLocation || { lat: 16.047079, lng: 108.206230 }} 
-        zoom={16} 
-        onLoad={(map) => {
-          mapRef.current = map;
-        }} 
-        options={{ disableDefaultUI: true, zoomControl: true, clickableIcons: false }}
+      <Map 
+        ref={mapRef}
+        initialViewState={{
+          longitude: liveLocation?.lng || 108.206230,
+          latitude: liveLocation?.lat || 16.047079,
+          zoom: 16
+        }}
+        mapboxAccessToken={apiKey}
+        mapStyle="mapbox://styles/mapbox/streets-v12"
+        style={{ width: "100%", height: "100%" }}
+        attributionControl={false}
       >
         {liveLocation && (
-          <OverlayView position={liveLocation} mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET} getPixelPositionOffset={(w, h) => ({ x: -(w / 2), y: -(h) })}>
+          <Marker longitude={liveLocation.lng} latitude={liveLocation.lat} anchor="bottom">
             <div className="pointer-events-none relative flex origin-bottom flex-col items-center justify-center">
               <div className="absolute -bottom-1 h-3 w-8 rounded-[100%] bg-black/30 blur-[3px]"></div>
               <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-tr from-brand to-brand shadow-xl">
@@ -116,9 +108,9 @@ export const PublicTrackingPage: React.FC = () => {
               </div>
               <div className="absolute -bottom-2 z-0 h-4 w-4 rotate-45 border-b-[4px] border-r-[4px] border-white bg-blue-400"></div>
             </div>
-          </OverlayView>
+          </Marker>
         )}
-      </GoogleMap>
+      </Map>
     </div>
   );
 };

@@ -10,3 +10,14 @@ export const useGetScheduleLiveLocations = (scheduleId: number) => {
     refetchOnWindowFocus: false,
   });
 };
+
+
+export const useGetTourRouteData = (scheduleId: number) => {
+  return useQuery({
+    queryKey: ["tourRoute", scheduleId],
+    queryFn: () => scheduleTrackingService.getTourRoute(scheduleId),
+    enabled: scheduleId > 0,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+};

@@ -24,11 +24,13 @@ export interface CreateUserDTO {
   dateOfBirth?: string;
   status?: string;
   roleIds?: number[];
+  sendCredentialsEmail?: boolean;
 }
 
 export interface AdminCreatedUserDTO {
   user: ReadUserDTO;
   temporaryPassword: string;
+  credentialsEmailSent: boolean | null;
 }
 
 export interface UpdateUserDTO {

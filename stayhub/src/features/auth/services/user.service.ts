@@ -38,6 +38,7 @@ export const userService = {
     if (data.gender) formData.append("gender", data.gender);
     if (data.dateOfBirth) formData.append("dateOfBirth", data.dateOfBirth);
     if (data.status) formData.append("status", data.status);
+    formData.append("sendCredentialsEmail", String(Boolean(data.sendCredentialsEmail)));
     
     if (data.roleIds && data.roleIds.length > 0) {
       data.roleIds.forEach((id) => formData.append("roleIds", id.toString()));

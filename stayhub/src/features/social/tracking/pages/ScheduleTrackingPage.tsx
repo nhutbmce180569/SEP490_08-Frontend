@@ -23,8 +23,10 @@ const defaultCenter = { lat: 16.047079, lng: 108.206230 };
 
 export const ScheduleTrackingPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
+  
   
   const { data, isLoading, isError } = useGetScheduleLiveLocations(scheduleIdNumber);
   const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleIdNumber);
@@ -54,11 +56,13 @@ export const ScheduleTrackingPage: React.FC = () => {
   useEffect(() => {
     if (scheduleIdNumber <= 0) {
       if (isMountedRef.current) setErrorMessage(t("social.trackingScheduleInvalid"));
+      if (isMountedRef.current) setErrorMessage(t("social.trackingScheduleInvalid"));
       return;
     }
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
+      if (isMountedRef.current) setErrorMessage(t("social.trackingLoginRequired"));
       if (isMountedRef.current) setErrorMessage(t("social.trackingLoginRequired"));
       return;
     }

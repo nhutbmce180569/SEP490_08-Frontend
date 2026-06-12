@@ -1,9 +1,10 @@
 export interface ReadTicketDTO {
   id: number;
-  orderId: number;
+  orderId?: number | null;
   orderDetailId: number;
   userId?: number;
   ticketTypeId: number;
+  ticketTypeName?: string;
   attendeeName: string;
   idCard: string;
   dateOfBirth?: string;
@@ -14,7 +15,6 @@ export interface ReadTicketDTO {
 }
 
 export interface CreateTicketRequest {
-  orderId?: number | null;
   userId?: number | null;
   ticketTypeId?: number | null;
   attendeeName: string;

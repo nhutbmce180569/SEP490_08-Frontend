@@ -20,7 +20,6 @@ export interface CreateOrderRequest {
 }
 
 export interface UpdateTicketDTO {
-  orderId?: number;
   userId?: number;
   ticketTypeId?: number | null;
   attendeeName: string;
@@ -57,15 +56,15 @@ export interface ReadOrderDTO {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
-    tickets: ReadTicketDTO[];
+    tickets?: ReadTicketDTO[] | null;
   }[];
-  tickets: ReadTicketDTO[];
+  tickets?: ReadTicketDTO[] | null;
   review?: {
     id: number;
     rating: number;
     comment?: string | null;
-    createdAt?: string | null; // 💥 THÊM DÒNG NÀY (Để dùng cho hàm isReviewEditable)
-    canEdit?: boolean;         // 💥 THÊM DÒNG NÀY (Nếu Backend trả về sẵn thuộc tính này)
+    createdAt?: string | null;
+    canEdit?: boolean;        
   } | null;
 }
 
@@ -78,4 +77,5 @@ export interface ReadScheduleCustomerDTO {
   dateOfBirth?: string | null;
   gender?: string | null;
   nationality?: string | null;
+  phoneNumber?: string | null; 
 }

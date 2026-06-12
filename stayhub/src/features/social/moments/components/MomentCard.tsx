@@ -7,6 +7,14 @@ import { useToggleReaction, useDeleteMoment } from "../hooks/useMoments";
 import { MomentModal } from "./MomentModal";
 import type { Moment } from "../types/moment.type";
 
+const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
+  const [hasError, setHasError] = useState(false);
+  if (hasError || !src) {
+    return <div className={fallbackClassName}>{fallbackText}</div>;
+  }
+  return <img src={src} alt={alt} className={className} onError={() => setHasError(true)} loading="lazy" decoding="async" />;
+};
+
 interface MomentCardProps { moment: Moment; }
 
 const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
@@ -112,13 +120,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="h-8 w-8 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-              {displayAvatar ? (
-                <img src={displayAvatar} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center font-bold text-xs">
-                  {userFullName.charAt(0)}
-                </div>
-              )}
+              <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100" fallbackText={userFullName.charAt(0)} />
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-slate-900 leading-tight">{userFullName}</span>
@@ -138,7 +140,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
           onDoubleClick={handleLike}
         >
 
-          <img src={moment.imageUrl} loading="lazy" decoding="async" className="w-full h-full object-contain" />
+          <SafeImage src={moment.imageUrl} alt="Moment" className="w-full h-full object-contain" fallbackClassName="w-full h-full flex items-center justify-center bg-black/5 text-slate-500 font-medium text-sm" fallbackText={t("social.noImage")} />
 
         </div>
 

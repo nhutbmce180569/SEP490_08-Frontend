@@ -3,27 +3,27 @@ import { apiClient } from '../../../../utils/axiosClient';
 import { API_BASE_URL } from '../../../../config/api/api';
 import { withLanguageHeaders } from '../../../../utils/httpLanguage';
 
+
+
 export const locationTrackingService = {
-  // 1. API Tạo mã chia sẻ (Có Auth)
   shareLocation: async (): Promise<string> => {
     const response = await apiClient.post<any>('/locations/share');
     
-    // Tùy thuộc apiClient có interceptor hay không, lấy phần payload thực sự
-    const payload = response.data || response;
+    // Tìm token trong mọi ngóc ngách của response
+    let tokenStr = response?.data?.data || response?.data?.token || response?.data || response;
     
-    // Bóc tách token dù BE có gói nó trong key "token" hay "data"
-    const tokenStr = payload.token || payload.data || payload;
+    if (typeof tokenStr === 'object') {
+      tokenStr = Object.values(tokenStr)[0]; // Lấy value đầu tiên nếu BE trả về object lạ
+    }
     
-    // Nếu vẫn là object, ép kiểu để tránh lỗi [object Object] (dành cho debug)
-    return typeof tokenStr === 'string' ? tokenStr : JSON.stringify(tokenStr);
+    // Ép về string và XÓA SẠCH dấu ngoặc kép thừa (thủ phạm gây lỗi 404/expired)
+    return String(tokenStr).replace(/['"]/g, ''); 
   },
-
 
   getPublicLocation: async (token: string): Promise<{ lat: number; lng: number; fullName: string }> => {
     const response = await axios.get(`${API_BASE_URL}/api/locations/track/${token}`, {
       headers: withLanguageHeaders(),
     });
-    
     return response.data?.data || response.data;
   }
 };

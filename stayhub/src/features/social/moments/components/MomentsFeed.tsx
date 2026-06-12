@@ -22,6 +22,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'feed' | 'map'>('feed');
+  const [isReplayActive, setIsReplayActive] = useState(false);
 
   const moments = useMemo(() => data?.pages.flat() || [], [data]);
 
@@ -54,6 +55,10 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
     setIsLiked(initialIsLiked);
     setLikeCount(initialLikeCount);
   }, [initialIsLiked, initialLikeCount]);
+
+  useEffect(() => {
+    if (viewMode === 'feed') setIsReplayActive(false);
+  }, [viewMode]);
 
   const handleToggleLike = useCallback(() => {
     if (!selectedMoment) return;
@@ -168,13 +173,13 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
           </div>
         ) : (
           <div className="h-full w-full">
-            <MomentsMapFeed scheduleId={scheduleId} onMarkerClick={setSelectedMomentId} />
+            <MomentsMapFeed scheduleId={scheduleId} onMarkerClick={setSelectedMomentId} onReplayStateChange={setIsReplayActive} />
           </div>
         )}
       </div>
 
       {/* FAB - Camera Button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40">
+      <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out flex flex-col items-center gap-2 ${isReplayActive ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}`}>
         <button
           onClick={() => setIsCreateOpen(true)}
           className="group relative flex items-center justify-center w-16 h-16 bg-brand text-white !rounded-full overflow-hidden shadow-[0_8px_32px_rgba(0,104,224,0.5)] border-4 border-slate-900 transition-all duration-300 hover:scale-110 active:scale-95"
@@ -183,6 +188,9 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
           {/* Zenly style ping effect */}
           <div className="absolute inset-0 rounded-full border-2 border-brand animate-ping opacity-40 group-hover:opacity-0 delay-75"></div>
         </button>
+        <span className="whitespace-nowrap text-[11px] font-bold text-slate-300 bg-slate-900/60 px-2.5 py-1 rounded-lg backdrop-blur-md shadow-sm">
+          Post Moment
+        </span>
       </div>
 
       {/* Create Moment Modal Overlay */}

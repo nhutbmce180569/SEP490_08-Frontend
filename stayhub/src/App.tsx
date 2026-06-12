@@ -112,6 +112,7 @@ import PublicInfoPage from "./pages/info/PublicInfoPage";
 import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
+import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -240,14 +241,7 @@ const MomentsRouteWrapper = () => {
   const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
   
   // Gọi hook lấy danh sách Tour mà bạn đã fix thành công lúc trước
-  // const { data: schedules } = useGetEligibleSchedules(); 
-  
-  // Mock data tạm nếu chưa import được hook:
-  const schedules = [
-    { scheduleId: 3, tourName: "Đà Lạt 3N2Đ - Săn Mây" },
-    { scheduleId: 5, tourName: "Hội An Xưa" },
-    { scheduleId: 7, tourName: "Mekong Delta" }
-  ];
+  const { data: schedules } = useGetEligibleSchedules();
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4 md:p-8">

@@ -321,9 +321,7 @@ export const TourDetail: React.FC = () => {
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-slate-400" />
                   <span>
-                    {[tour.address, tour.city, tour.country]
-                      .filter(Boolean)
-                      .join(", ") || t("tour.naLocation")}
+                    {tour.address || t("tour.naLocation")}
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">

@@ -6,6 +6,10 @@ import { PATH } from "../../../config/routes/route";
 import { useTourSchedule } from "./useTourSchedule";
 import { useTour } from "./useTour";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import {
+  getPlaceCoordinates,
+  searchPlaces,
+} from "../services/mapGeocoding.service";
 
 export const useCreateScheduleItinerary = () => {
   const { scheduleId } = useParams<{ scheduleId: string }>();
@@ -223,47 +227,24 @@ export const useCreateScheduleItinerary = () => {
     });
   };
 
-  const geocodeAddress = (address: string): Promise<{ lat: number; lng: number; name: string } | null> => {
-    return new Promise((resolve) => {
-      if (!address || !(window as any).google?.maps?.places) {
-        return resolve(null);
-      }
+  const geocodeAddress = async (
+    address: string,
+  ): Promise<{ lat: number; lng: number; name: string } | null> => {
+    if (!address.trim()) return null;
 
-      const dummyDiv = document.createElement("div");
-      const service = new (window as any).google.maps.places.PlacesService(dummyDiv);
+    try {
+      const place = (await searchPlaces(address, 1))[0];
+      if (!place) return null;
 
-      service.findPlaceFromQuery(
-        {
-          query: address,
-          fields: ["name", "geometry", "formatted_address"],
-        },
-        (results: any, status: any) => {
-          if (status === "OK" && results?.[0]?.geometry?.location) {
-            const place = results[0];
-            resolve({
-              lat: place.geometry.location.lat(),
-              lng: place.geometry.location.lng(),
-              name: place.name || place.formatted_address,
-            });
-          } else {
-            const geocoder = new (window as any).google.maps.Geocoder();
-            geocoder.geocode({ address, componentRestrictions: { country: "vn" } }, (geoResults: any, geoStatus: any) => {
-              if (geoStatus === "OK" && geoResults?.[0]?.geometry?.location) {
-                const place = geoResults[0];
-                resolve({
-                  lat: place.geometry.location.lat(),
-                  lng: place.geometry.location.lng(),
-                  name: place.formatted_address,
-                });
-              } else {
-                console.warn(`Geocoding failed for "${address}": ${geoStatus}`);
-                resolve(null);
-              }
-            });
-          }
-        },
-      );
-    });
+      const coordinates = getPlaceCoordinates(place);
+      return {
+        ...coordinates,
+        name: place.name || place.formatted_address,
+      };
+    } catch (error) {
+      console.warn(`Mapbox geocoding failed for "${address}"`, error);
+      return null;
+    }
   };
 
   const handleCloneFromTour = async () => {

@@ -1,4 +1,6 @@
 import React from "react";
+import Map, { Layer, Marker, Source } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { Search, X, Navigation, MapPin } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { extractLocationFromPlace } from "../services/mapGeocoding.service";
@@ -30,8 +32,13 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
     queries,
     isSearching,
     locations,
+    markerCoordinates,
+    routeCoordinates,
+    isRouteFallback,
     activePin,
     searchError,
+    handleMapClick,
+    handleMarkerDragEnd,
     handleSearchLocation,
     handleLocateMe,
     predictions,
@@ -39,6 +46,7 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
     handleSelectPrediction,
     handleFocusPin,
   } = useMapPicker(isOpen, mode, initialData);
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
   if (!isOpen) return null;
 
@@ -200,7 +208,118 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
         </div>
 
         <div className="relative z-10 flex-1 bg-slate-100">
-          <div ref={mapRef} className="absolute inset-0" />
+          {mapboxToken ? (
+            <Map
+              ref={mapRef}
+              initialViewState={{
+                latitude:
+                  markerCoordinates[mode === "route" ? "start" : "single"]?.lat ??
+                  10.762622,
+                longitude:
+                  markerCoordinates[mode === "route" ? "start" : "single"]?.lng ??
+                  106.660172,
+                zoom: 13,
+              }}
+              mapboxAccessToken={mapboxToken}
+              mapStyle="mapbox://styles/mapbox/streets-v12"
+              language="en"
+              style={{ width: "100%", height: "100%" }}
+              attributionControl={false}
+              onLoad={() => {
+                const coordinates =
+                  markerCoordinates[mode === "route" ? "start" : "single"];
+                if (coordinates) {
+                  mapRef.current?.jumpTo({
+                    center: [coordinates.lng, coordinates.lat],
+                    zoom: 13,
+                  });
+                }
+              }}
+              onClick={(event) =>
+                handleMapClick({
+                  lat: event.lngLat.lat,
+                  lng: event.lngLat.lng,
+                })
+              }
+            >
+              {routeCoordinates.length > 0 && (
+                <Source
+                  id="tour-picker-route"
+                  type="geojson"
+                  data={{
+                    type: "Feature",
+                    properties: {},
+                    geometry: {
+                      type: "LineString",
+                      coordinates: routeCoordinates,
+                    },
+                  }}
+                >
+                  <Layer
+                    id="tour-picker-route-line"
+                    type="line"
+                    paint={{
+                      "line-color": "#4f46e5",
+                      "line-width": isRouteFallback ? 3 : 4,
+                      "line-opacity": isRouteFallback ? 0.7 : 0.85,
+                      ...(isRouteFallback
+                        ? { "line-dasharray": [2, 2.5] }
+                        : {}),
+                    }}
+                    layout={{
+                      "line-cap": "round",
+                      "line-join": "round",
+                    }}
+                  />
+                </Source>
+              )}
+
+              {(["single", "start", "end"] as const).map((pin) => {
+                const coordinates = markerCoordinates[pin];
+                const shouldRender =
+                  coordinates &&
+                  (mode === "route"
+                    ? pin === "start" || pin === "end"
+                    : pin === "single");
+
+                if (!shouldRender) return null;
+
+                const color =
+                  pin === "start"
+                    ? "bg-emerald-500"
+                    : pin === "end"
+                      ? "bg-rose-500"
+                      : "bg-indigo-600";
+                const label = pin === "start" ? "A" : pin === "end" ? "B" : "";
+
+                return (
+                  <Marker
+                    key={pin}
+                    latitude={coordinates.lat}
+                    longitude={coordinates.lng}
+                    draggable
+                    anchor="center"
+                    onDragEnd={(event) =>
+                      handleMarkerDragEnd(pin, {
+                        lat: event.lngLat.lat,
+                        lng: event.lngLat.lng,
+                      })
+                    }
+                  >
+                    <div
+                      className={`flex h-8 w-8 cursor-grab items-center justify-center rounded-full border-[3px] border-white text-xs font-extrabold text-white shadow-lg active:cursor-grabbing ${color}`}
+                    >
+                      {label || <MapPin className="h-4 w-4" />}
+                    </div>
+                  </Marker>
+                );
+              })}
+            </Map>
+          ) : (
+            <div className="flex h-full items-center justify-center px-6 text-center text-sm font-medium text-amber-700">
+              VITE_MAPBOX_TOKEN is missing. Add it to the environment to load the map.
+            </div>
+          )}
           {isSearching && (
             <div className="absolute inset-0 flex items-center justify-center bg-white/40 backdrop-blur-[1px]">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-[#4880ff]"></div>

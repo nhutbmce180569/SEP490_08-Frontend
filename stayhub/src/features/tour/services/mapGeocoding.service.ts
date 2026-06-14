@@ -38,32 +38,46 @@ export type ExtractedLocation = {
 
 type Coordinates = { lat: number; lng: number };
 
-type PhotonProperties = {
+type MapboxContextItem = {
   name?: string;
-  country?: string;
-  city?: string;
-  state?: string;
-  county?: string;
-  district?: string;
-  locality?: string;
-  street?: string;
-  housenumber?: string;
-  postcode?: string;
-  osm_id?: number | string;
-  osm_type?: string;
+  country_code?: string;
 };
 
-type PhotonFeature = {
+type MapboxContext = {
+  country?: MapboxContextItem;
+  region?: MapboxContextItem;
+  district?: MapboxContextItem;
+  place?: MapboxContextItem;
+  locality?: MapboxContextItem;
+  neighborhood?: MapboxContextItem;
+  street?: MapboxContextItem;
+  address?: MapboxContextItem;
+};
+
+type MapboxFeature = {
+  id?: string;
   geometry?: { coordinates?: [number, number] };
-  properties?: PhotonProperties;
+  properties?: {
+    mapbox_id?: string;
+    name?: string;
+    name_preferred?: string;
+    full_address?: string;
+    place_formatted?: string;
+    coordinates?: {
+      latitude?: number;
+      longitude?: number;
+    };
+    context?: MapboxContext;
+  };
 };
 
-const PHOTON_BASE_URL = "https://photon.komoot.io";
-const VIETNAM_CENTER = { lat: 16.047079, lng: 108.20623 };
-const GOOGLE_MAPS_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
-const GOOGLE_SCRIPT_ID = "stayhub-google-maps-script";
+type MapboxGeocodingResponse = {
+  features?: MapboxFeature[];
+};
 
-let googleMapsLoadPromise: Promise<boolean> | null = null;
+const MAPBOX_GEOCODING_URL = "https://api.mapbox.com/search/geocode/v6";
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+const GEOCODING_TIMEOUT_MS = 8000;
 
 const createLocation = (coordinates: Coordinates) => ({
   lat: () => coordinates.lat,
@@ -92,6 +106,16 @@ const pickCity = (...values: Array<string | undefined>) => {
   }
   return "";
 };
+
+const normalizeEnglishText = (value?: string) =>
+  (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\u0111/g, "d")
+    .replace(/\u0110/g, "D")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .trim();
 
 export const isCoordinateOnlyAddress = (value?: string) => {
   const normalized = (value || "").trim();
@@ -149,33 +173,20 @@ const composeReadableAddress = ({
   return "";
 };
 
-const buildFormattedAddress = (properties: PhotonProperties, coordinates: Coordinates) => {
-  const streetLine = [properties.housenumber, properties.street].filter(Boolean).join(" ");
-  const composed = composeReadableAddress({
-    name: properties.name,
-    street: streetLine,
-    district: properties.district,
-    locality: properties.locality,
-    city: pickCity(properties.city, properties.locality, properties.district, properties.county, properties.state),
-    state: properties.state,
-    country: properties.country,
-  });
-
-  if (composed) return composed;
-
-  return `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`;
-};
-
-const createAddressComponents = (properties: PhotonProperties): AddressComponent[] => {
+const createAddressComponents = (
+  context?: MapboxContext,
+): AddressComponent[] => {
   const components: AddressComponent[] = [];
-  const country = normalizeCountry(properties.country);
-  const city = pickCity(
-    properties.city,
-    properties.locality,
-    properties.district,
-    properties.county,
-    properties.state,
+  const country = normalizeCountry(context?.country?.name);
+  const city = normalizeEnglishText(
+    pickCity(
+      context?.place?.name,
+      context?.locality?.name,
+      context?.district?.name,
+      context?.region?.name,
+    ),
   );
+  const region = normalizeEnglishText(context?.region?.name);
 
   if (country) {
     components.push({
@@ -193,10 +204,10 @@ const createAddressComponents = (properties: PhotonProperties): AddressComponent
     });
   }
 
-  if (properties.state && properties.state !== city) {
+  if (region && region !== city) {
     components.push({
-      long_name: properties.state,
-      short_name: properties.state,
+      long_name: region,
+      short_name: region,
       types: ["administrative_area_level_1"],
     });
   }
@@ -204,36 +215,57 @@ const createAddressComponents = (properties: PhotonProperties): AddressComponent
   return components;
 };
 
-const createPlaceFromPhotonFeature = (feature: PhotonFeature): MapPlace | null => {
+const createPlaceFromMapboxFeature = (feature: MapboxFeature): MapPlace | null => {
+  const properties = feature.properties;
   const coordinatesRaw = feature.geometry?.coordinates;
-  if (!coordinatesRaw || coordinatesRaw.length < 2) return null;
+  const longitude =
+    properties?.coordinates?.longitude ?? coordinatesRaw?.[0];
+  const latitude =
+    properties?.coordinates?.latitude ?? coordinatesRaw?.[1];
+
+  if (longitude == null || latitude == null) return null;
+
+  const coordinatesRawNormalized: [number, number] = [longitude, latitude];
 
   const coordinates = {
-    lat: Number(coordinatesRaw[1]),
-    lng: Number(coordinatesRaw[0]),
+    lat: Number(coordinatesRawNormalized[1]),
+    lng: Number(coordinatesRawNormalized[0]),
   };
 
   if (!Number.isFinite(coordinates.lat) || !Number.isFinite(coordinates.lng)) {
     return null;
   }
 
-  const properties = feature.properties || {};
-  const formattedAddress = buildFormattedAddress(properties, coordinates);
-  const placeId = [
-    properties.osm_id,
-    properties.osm_type,
-    properties.name,
-    coordinates.lat.toFixed(5),
-    coordinates.lng.toFixed(5),
-  ]
-    .filter(Boolean)
-    .join("-");
+  const context = properties?.context;
+  const name = normalizeEnglishText(
+    properties?.name_preferred ||
+      properties?.name ||
+      context?.address?.name ||
+      context?.street?.name,
+  );
+  const formattedAddress = normalizeEnglishText(
+    properties?.full_address ||
+      [name, properties?.place_formatted].filter(Boolean).join(", ") ||
+      composeReadableAddress({
+        name,
+        street: context?.street?.name,
+        district: context?.district?.name,
+        locality: context?.locality?.name,
+        city: context?.place?.name,
+        state: context?.region?.name,
+        country: context?.country?.name,
+      }) ||
+      `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`,
+  );
 
   return {
-    place_id: placeId || formattedAddress,
-    name: properties.name || splitDisplayName(formattedAddress).mainText,
+    place_id:
+      properties?.mapbox_id ||
+      feature.id ||
+      `mapbox-${coordinates.lat.toFixed(5)}-${coordinates.lng.toFixed(5)}`,
+    name: name || splitDisplayName(formattedAddress).mainText,
     formatted_address: formattedAddress,
-    address_components: createAddressComponents(properties),
+    address_components: createAddressComponents(context),
     geometry: {
       location: createLocation(coordinates),
     },
@@ -312,7 +344,7 @@ export const extractLocationFromPlace = (place: MapPlace | null): ExtractedLocat
   let country = "";
   let city = "";
   let street = "";
-  let district = "";
+  const district = "";
   let state = "";
 
   place.address_components?.forEach((component) => {
@@ -339,9 +371,14 @@ export const extractLocationFromPlace = (place: MapPlace | null): ExtractedLocat
   if (!city) city = parsed.city;
 
   country = country || "Vietnam";
-  city = city || state || splitDisplayName(place.formatted_address).mainText || "Unknown";
+  city = normalizeEnglishText(
+    city ||
+      state ||
+      splitDisplayName(place.formatted_address).mainText ||
+      "Unknown",
+  );
 
-  let address = place.formatted_address || "";
+  let address = normalizeEnglishText(place.formatted_address);
   if (isCoordinateOnlyAddress(address)) {
     address = composeReadableAddress({
       name: place.name,
@@ -371,224 +408,71 @@ export const extractLocationFromPlace = (place: MapPlace | null): ExtractedLocat
     address,
     lat: typeof latValue === "function" ? latValue() : latValue,
     lng: typeof lngValue === "function" ? lngValue() : lngValue,
-    locationName: place.name || splitDisplayName(address).mainText,
+    locationName:
+      normalizeEnglishText(place.name) || splitDisplayName(address).mainText,
   };
 };
 
-const loadGoogleMaps = async (): Promise<boolean> => {
-  if (!GOOGLE_MAPS_KEY) return false;
-  if (typeof window !== "undefined" && (window as Window & { google?: { maps?: unknown } }).google?.maps) {
-    return true;
+const fetchMapbox = async (
+  path: "forward" | "reverse",
+  params: Record<string, string>,
+): Promise<MapboxGeocodingResponse> => {
+  if (!MAPBOX_TOKEN) {
+    throw new Error("VITE_MAPBOX_TOKEN is missing.");
   }
 
-  if (googleMapsLoadPromise) return googleMapsLoadPromise;
+  const url = new URL(`${MAPBOX_GEOCODING_URL}/${path}`);
+  url.searchParams.set("access_token", MAPBOX_TOKEN);
+  url.searchParams.set("language", "en");
+  url.searchParams.set("country", "vn");
+  Object.entries(params).forEach(([key, value]) =>
+    url.searchParams.set(key, value),
+  );
 
-  googleMapsLoadPromise = new Promise<boolean>((resolve) => {
-    const existing = document.getElementById(GOOGLE_SCRIPT_ID);
-    if (existing) {
-      existing.addEventListener("load", () => resolve(Boolean((window as Window & { google?: { maps?: unknown } }).google?.maps)), { once: true });
-      existing.addEventListener("error", () => resolve(false), { once: true });
-      return;
-    }
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    GEOCODING_TIMEOUT_MS,
+  );
 
-    const script = document.createElement("script");
-    script.id = GOOGLE_SCRIPT_ID;
-    script.async = true;
-    script.defer = true;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&libraries=places&language=vi&region=VN`;
-    script.onload = () => resolve(Boolean((window as Window & { google?: { maps?: unknown } }).google?.maps));
-    script.onerror = () => resolve(false);
-    document.head.appendChild(script);
-  });
-
-  return googleMapsLoadPromise;
-};
-
-const createPlaceFromGoogleGeocoderResult = (
-  result: {
-    place_id: string;
-    formatted_address: string;
-    address_components: Array<{
-      long_name: string;
-      short_name: string;
-      types: string[];
-    }>;
-    geometry: {
-      location: {
-        lat: () => number;
-        lng: () => number;
-      };
-    };
-  },
-): MapPlace => {
-  const coordinates = {
-    lat: result.geometry.location.lat(),
-    lng: result.geometry.location.lng(),
-  };
-
-  const addressComponents: AddressComponent[] = result.address_components.map((component) => ({
-    long_name: component.long_name,
-    short_name: component.short_name,
-    types: [...component.types],
-  }));
-
-  return {
-    place_id: result.place_id,
-    name: result.address_components[0]?.long_name || result.formatted_address,
-    formatted_address: result.formatted_address,
-    address_components: addressComponents,
-    geometry: {
-      location: createLocation(coordinates),
-    },
-  };
-};
-
-const searchWithGoogle = async (query: string, limit = 5): Promise<MapPlace[]> => {
-  const loaded = await loadGoogleMaps();
-  const googleMaps = (window as Window & { google?: { maps?: any } }).google?.maps;
-  if (!loaded || !googleMaps?.places) {
-    return [];
-  }
-
-  const service = new googleMaps.places.AutocompleteService();
-
-  return new Promise((resolve) => {
-    service.getPlacePredictions(
-      {
-        input: query,
-        componentRestrictions: { country: "vn" },
-      },
-      (predictions: any[] | null, status: string) => {
-        if (status !== googleMaps.places.PlacesServiceStatus.OK || !predictions?.length) {
-          resolve([]);
-          return;
-        }
-
-        const geocoder = new googleMaps.Geocoder();
-        const limited = predictions.slice(0, limit);
-
-        Promise.all(
-          limited.map(
-            (prediction) =>
-              new Promise<MapPlace | null>((resolvePlace) => {
-                geocoder.geocode({ placeId: prediction.place_id }, (results: any[] | null, geoStatus: string) => {
-                  if (geoStatus === "OK" && results?.[0]) {
-                    resolvePlace(createPlaceFromGoogleGeocoderResult(results[0]));
-                    return;
-                  }
-                  resolvePlace(null);
-                });
-              }),
-          ),
-        ).then((places) => resolve(places.filter(Boolean) as MapPlace[]));
-      },
-    );
-  });
-};
-
-const reverseWithGoogle = async (coordinates: Coordinates): Promise<MapPlace | null> => {
-  const loaded = await loadGoogleMaps();
-  const googleMaps = (window as Window & { google?: { maps?: any } }).google?.maps;
-  if (!loaded || !googleMaps) {
-    return null;
-  }
-
-  const geocoder = new googleMaps.Geocoder();
-
-  return new Promise((resolve) => {
-    geocoder.geocode({ location: coordinates }, (results: any[] | null, status: string) => {
-      if (status === "OK" && results?.[0]) {
-        resolve(createPlaceFromGoogleGeocoderResult(results[0]));
-        return;
-      }
-      resolve(null);
+  try {
+    const response = await fetch(url.toString(), {
+      signal: controller.signal,
     });
-  });
-};
-
-const fetchPhoton = async (path: string, params: Record<string, string>) => {
-  const url = new URL(`${PHOTON_BASE_URL}${path}`);
-  Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
-
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error("Photon geocoding request failed.");
+    if (!response.ok) {
+      throw new Error(`Mapbox geocoding request failed (${response.status}).`);
+    }
+    return response.json() as Promise<MapboxGeocodingResponse>;
+  } finally {
+    window.clearTimeout(timeout);
   }
-
-  return response.json() as Promise<{ features?: PhotonFeature[] }>;
 };
 
-const searchWithPhoton = async (query: string, limit = 5): Promise<MapPlace[]> => {
-  const payload = await fetchPhoton("/api/", {
+const searchWithMapbox = async (
+  query: string,
+  limit = 5,
+): Promise<MapPlace[]> => {
+  const payload = await fetchMapbox("forward", {
     q: query,
-    limit: String(limit),
-    lang: "vi",
-    lat: String(VIETNAM_CENTER.lat),
-    lon: String(VIETNAM_CENTER.lng),
+    limit: String(Math.min(Math.max(limit, 1), 10)),
+    autocomplete: "true",
   });
 
   return (payload.features || [])
-    .map(createPlaceFromPhotonFeature)
+    .map(createPlaceFromMapboxFeature)
     .filter(Boolean) as MapPlace[];
 };
 
-const reverseWithPhoton = async (coordinates: Coordinates): Promise<MapPlace | null> => {
-  const payload = await fetchPhoton("/reverse", {
-    lat: String(coordinates.lat),
-    lon: String(coordinates.lng),
-    lang: "vi",
+const reverseWithMapbox = async (
+  coordinates: Coordinates,
+): Promise<MapPlace | null> => {
+  const payload = await fetchMapbox("reverse", {
+    longitude: String(coordinates.lng),
+    latitude: String(coordinates.lat),
   });
 
   const feature = payload.features?.[0];
-  return feature ? createPlaceFromPhotonFeature(feature) : null;
-};
-
-type BigDataCloudReverseResponse = {
-  locality?: string;
-  city?: string;
-  principalSubdivision?: string;
-  countryName?: string;
-  plusCode?: string;
-  localityInfo?: {
-    administrative?: Array<{ name?: string; order?: number }>;
-  };
-};
-
-const reverseWithBigDataCloud = async (coordinates: Coordinates): Promise<MapPlace | null> => {
-  const url = new URL("https://api.bigdatacloud.net/data/reverse-geocode-client");
-  url.searchParams.set("latitude", String(coordinates.lat));
-  url.searchParams.set("longitude", String(coordinates.lng));
-  url.searchParams.set("localityLanguage", "vi");
-
-  const response = await fetch(url.toString());
-  if (!response.ok) return null;
-
-  const payload = (await response.json()) as BigDataCloudReverseResponse;
-  const adminNames =
-    payload.localityInfo?.administrative
-      ?.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map((entry) => entry.name)
-      .filter(Boolean) ?? [];
-
-  const city = pickCity(payload.city, payload.locality, adminNames[adminNames.length - 1]);
-  const state = payload.principalSubdivision || adminNames[adminNames.length - 2];
-  const country = normalizeCountry(payload.countryName);
-  const formattedAddress = composeReadableAddress({
-    name: payload.locality,
-    city,
-    state,
-    country,
-  });
-
-  if (!formattedAddress) return null;
-
-  return createFallbackPlace(coordinates, {
-    name: payload.locality,
-    city,
-    state,
-    country,
-    locality: payload.locality,
-  });
+  return feature ? createPlaceFromMapboxFeature(feature) : null;
 };
 
 const enrichPlaceAddress = (place: MapPlace): MapPlace => {
@@ -608,36 +492,15 @@ export const searchPlaces = async (query: string, limit = 5): Promise<MapPlace[]
   const trimmed = query.trim();
   if (!trimmed) return [];
 
-  try {
-    const googleResults = await searchWithGoogle(trimmed, limit);
-    if (googleResults.length > 0) return googleResults.map(enrichPlaceAddress);
-  } catch (error) {
-    console.warn("Google place search unavailable", error);
-  }
-
-  return (await searchWithPhoton(trimmed, limit)).map(enrichPlaceAddress);
+  return (await searchWithMapbox(trimmed, limit)).map(enrichPlaceAddress);
 };
 
 export const reverseGeocodePlace = async (coordinates: Coordinates): Promise<MapPlace> => {
   try {
-    const googlePlace = await reverseWithGoogle(coordinates);
-    if (googlePlace) return enrichPlaceAddress(googlePlace);
+    const mapboxPlace = await reverseWithMapbox(coordinates);
+    if (mapboxPlace) return enrichPlaceAddress(mapboxPlace);
   } catch (error) {
-    console.warn("Google reverse geocoding unavailable", error);
-  }
-
-  try {
-    const photonPlace = await reverseWithPhoton(coordinates);
-    if (photonPlace) return enrichPlaceAddress(photonPlace);
-  } catch (error) {
-    console.warn("Photon reverse geocoding unavailable", error);
-  }
-
-  try {
-    const bigDataCloudPlace = await reverseWithBigDataCloud(coordinates);
-    if (bigDataCloudPlace) return enrichPlaceAddress(bigDataCloudPlace);
-  } catch (error) {
-    console.warn("BigDataCloud reverse geocoding unavailable", error);
+    console.warn("Mapbox reverse geocoding unavailable", error);
   }
 
   return createFallbackPlace(coordinates);

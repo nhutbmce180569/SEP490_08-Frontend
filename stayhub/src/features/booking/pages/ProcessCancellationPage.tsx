@@ -14,6 +14,10 @@ const formatCurrency = (amount?: number | null) => {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0);
 };
 
+const getErrorMessage = (error: unknown, fallback: string) => {
+  return error instanceof Error && error.message ? error.message : fallback;
+};
+
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div className="flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
     <span className="text-xs font-bold uppercase text-slate-400">{label}</span>
@@ -57,7 +61,9 @@ export const ProcessCancellationPage: React.FC = () => {
     );
   if (error || !detail)
     return (
-      <div className="p-10 text-center text-rose-500">{t("booking.requestNotFound")}</div>
+      <div className="p-10 text-center text-rose-500">
+        {getErrorMessage(error, t("booking.requestNotFound"))}
+      </div>
     );
 
   const normalizedStatus = detail.status?.toLowerCase();
@@ -105,8 +111,8 @@ export const ProcessCancellationPage: React.FC = () => {
       });
       success(t("booking.requestProcessed", { action: action.toLowerCase() }));
       navigate(MANAGER_ROUTES.CANCELLATION_REQUESTS);
-    } catch (err: any) {
-      showError(err?.response?.data?.message || t("booking.processRequestFailed"));
+    } catch (err: unknown) {
+      showError(getErrorMessage(err, t("booking.processRequestFailed")));
     }
   };
 

@@ -16,7 +16,7 @@ export const CategoryList: React.FC = () => {
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
 
-  const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete } = useCategories(PAGE_SIZE, keyword);
+  const { data, isLoading, error, pageSize, setPage, handleCreate, handleEdit, handleDelete } = useCategories(PAGE_SIZE, keyword);
   const { executeStatusChange, updatingId } = useChangeCategoryStatus();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export const CategoryList: React.FC = () => {
 
   const categories = data?.data || [];
   const totalPages = data?.totalPages || 1;
-  const currentPage = data?.currentPage || 1;
+  const currentPage = data?.page || 1;
   const totalItems = data?.total || 0;
 
   const columns: Column<ReadCategoryDTO>[] = useMemo(
@@ -91,7 +91,7 @@ export const CategoryList: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <ActionButton 
               variant="secondary" 
-              onClick={() => executeStatusChange(cat.id, cat.isActive)} 
+              onClick={() => executeStatusChange(cat.id, Boolean(cat.isActive))}
               className={`h-8 w-8 ${updatingId === cat.id ? "opacity-50 cursor-wait" : ""} ${cat.isActive ? "text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200" : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"}`}
               title={cat.isActive ? t("content.deactivate") : t("content.activate")}
               disabled={updatingId === cat.id}

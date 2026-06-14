@@ -18,12 +18,8 @@ interface LiveLocation {
   lastUpdated: string;
 }
 
-
-const defaultCenter = { lat: 16.047079, lng: 108.206230 };
-
 export const ScheduleTrackingPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
   
@@ -56,13 +52,11 @@ export const ScheduleTrackingPage: React.FC = () => {
   useEffect(() => {
     if (scheduleIdNumber <= 0) {
       if (isMountedRef.current) setErrorMessage(t("social.trackingScheduleInvalid"));
-      if (isMountedRef.current) setErrorMessage(t("social.trackingScheduleInvalid"));
       return;
     }
 
     const token = localStorage.getItem("accessToken");
     if (!token) {
-      if (isMountedRef.current) setErrorMessage(t("social.trackingLoginRequired"));
       if (isMountedRef.current) setErrorMessage(t("social.trackingLoginRequired"));
       return;
     }
@@ -140,6 +134,22 @@ export const ScheduleTrackingPage: React.FC = () => {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-50">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#0068E0] border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  const displayedError =
+    errorMessage || (isError ? t("social.trackingMapErrorDefault") : null);
+
+  if (displayedError) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50 px-6 text-center">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800">
+            {t("social.trackingMapErrorTitle")}
+          </h2>
+          <p className="mt-2 text-slate-500">{displayedError}</p>
+        </div>
       </div>
     );
   }

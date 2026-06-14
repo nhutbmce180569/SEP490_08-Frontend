@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { UserCheck, UserX, Clock, Search, Send, Loader2, MessageCircle, UserPlus } from 'lucide-react';
+import { UserCheck, UserX, Clock, Search, Loader2, MessageCircle, UserPlus } from 'lucide-react';
 import { 
   useGetFriendships, 
   useGetPendingRequests, 

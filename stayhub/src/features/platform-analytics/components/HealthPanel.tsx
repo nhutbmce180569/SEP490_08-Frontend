@@ -5,7 +5,6 @@ import {
   formatIndicatorValue,
   INDICATOR_STATUS_BADGE,
   INDICATOR_STATUS_STYLES,
-  OVERALL_STATUS_LABELS,
   OVERALL_STATUS_STYLES,
 } from '../utils/platformHelpers';
 import { formatNumber, formatPercent } from '../../customer-analytics/utils/analyticsHelpers';
@@ -94,7 +93,11 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
               : Math.min((indicator.value / maxValue) * 100, 100);
 
           return (
-            <AnalyticsPanel key={indicator.name} title={indicator.name} subtitle={indicator.description}>
+            <AnalyticsPanel
+              key={indicator.name}
+              title={indicator.name}
+              subtitle={indicator.description ?? undefined}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="text-2xl font-bold text-slate-900">
                   {formatIndicatorValue(indicator.value, indicator.unit)}

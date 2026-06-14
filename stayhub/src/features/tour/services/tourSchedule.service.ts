@@ -6,8 +6,6 @@ import type {
   UpdateTourScheduleRequest,
   PaginationResponse,
 } from "../types/tourSchedule";
-import type { AssignedTourSchedule } from "../types/tourScheduleStaff";
-
 export const tourScheduleService = {
   getAllSchedules: async (
     page: number = 1,

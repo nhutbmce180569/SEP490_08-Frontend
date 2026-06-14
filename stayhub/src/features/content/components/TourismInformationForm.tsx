@@ -91,9 +91,9 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
   };
 
   const handleConfirmLocation = (
-    locationData: ReturnType<typeof extractLocationFromPlace> | { start?: unknown; end?: unknown },
+    locationData: ReturnType<typeof extractLocationFromPlace>,
   ) => {
-    if (!currentSetFormData || !locationData || "start" in locationData) return;
+    if (!currentSetFormData || !locationData) return;
 
     currentSetFormData((prev) => ({
       ...prev,

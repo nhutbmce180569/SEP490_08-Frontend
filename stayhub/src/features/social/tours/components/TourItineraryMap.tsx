@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { GoogleMap, Marker, Polyline, useJsApiLoader, OverlayView } from "@react-google-maps/api";
+import { GoogleMap, Polyline, useJsApiLoader, OverlayView } from "@react-google-maps/api";
 import { MapPin, Clock, Navigation, Calendar, ChevronLeft, List, Share2 } from "lucide-react";
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
@@ -446,7 +446,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
               <div className="text-center text-sm text-slate-500 mt-10">{t("social.itineraryNoDestinations")}</div>
             ) : (
               <div className="relative border-l-2 border-slate-100 ml-3 pl-5 space-y-6">
-                {currentDayItineraries.map((loc, idx) => (
+                {currentDayItineraries.map((loc) => (
                   <div 
                     key={loc.id} 
                     onClick={() => handleLocationClick(loc)}

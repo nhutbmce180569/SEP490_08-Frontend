@@ -16,7 +16,7 @@ export const BannerList: React.FC = () => {
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
 
-  const { data, isLoading, error, page, setPage, handleCreate, handleEdit, handleDelete } = useBanners(keyword);
+  const { data, isLoading, error, setPage, handleCreate, handleEdit, handleDelete } = useBanners(keyword);
   const { executeStatusChange, updatingId } = useChangeBannerStatus();
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export const BannerList: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <ActionButton 
               variant="secondary" 
-              onClick={() => executeStatusChange(banner.id, banner.isActive)} 
+              onClick={() => executeStatusChange(banner.id, Boolean(banner.isActive))}
               className={`h-8 w-8 ${updatingId === banner.id ? "opacity-50 cursor-wait" : ""} ${banner.isActive ? "text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200" : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"}`}
               title={banner.isActive ? t("content.deactivate") : t("content.activate")}
               disabled={updatingId === banner.id}

@@ -7,7 +7,6 @@ import {
   Send, 
   MessageSquare, 
   Loader2, 
-  User,
   UserPlus,
   Pin,
   BellOff,
@@ -20,9 +19,10 @@ import {
   SquarePen,
   Users
 } from 'lucide-react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import type { ChatMessage } from '../types/chat.type';
 
 // ============ COMPONENT: Add Member Modal ============
 interface AddMemberModalProps {
@@ -210,7 +210,7 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({
     enabled: !!roomId && isOpen,
   });
 
-  const members = Array.isArray(membersResponse) ? membersResponse : membersResponse?.data || membersResponse?.items || [];
+  const members = membersResponse ?? [];
 
   if (!isOpen) return null;
 
@@ -295,7 +295,6 @@ export const ChatPage: React.FC = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlRoomId = searchParams.get('roomId');
-  const navigate = useNavigate();
 
   const { user } = useContext(AuthContext);
   const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
@@ -707,8 +706,11 @@ export const ChatPage: React.FC = () => {
                     const isMe = String(msg.senderId) === String(currentUserId);
                     
                     // Xử lý triệt để khác biệt JSON camelCase (API) và PascalCase (SignalR)
-                   const rawAvatar = msg.senderAvatarUrl || (msg as any).SenderAvatarUrl || msg.senderAvatar || (msg as any).SenderAvatar;
-                    const roomAvatar = selectedRoom?.avatarUrl || selectedRoom?.AvatarUrl;
+                    const rawAvatar =
+                      msg.senderAvatarUrl ||
+                      (msg as ChatMessage & { SenderAvatarUrl?: string }).SenderAvatarUrl ||
+                      (msg as ChatMessage & { SenderAvatar?: string }).SenderAvatar;
+                    const roomAvatar = selectedRoom?.avatarUrl;
                     const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? roomAvatar : null);
 
                     return (

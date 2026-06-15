@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { createOrder } from "../services/booking.service";
 import {
+  cancelPayment,
   createPayment,
-  rememberPaymentProvider,
   type PaymentProvider,
 } from "../services/payment.service";
 // import { customerVoucherService } from "../../customer-voucher/services/customerVoucher.service";
@@ -44,10 +44,11 @@ export const useCreateBooking = () => {
       return;
     }
 
+    let createdOrderId: number | null = null;
     try {
       setIsSubmitting(true);
       const order = await createOrder(data);
-      rememberPaymentProvider(order.id, paymentProvider);
+      createdOrderId = order.id;
       const paymentUrl = await createPayment(
         {
           orderId: order.id,
@@ -57,6 +58,13 @@ export const useCreateBooking = () => {
       );
       window.location.href = paymentUrl;
     } catch (error: unknown) {
+      if (createdOrderId !== null) {
+        try {
+          await cancelPayment(createdOrderId, paymentProvider);
+        } catch {
+          // The provider callback or unpaid-order job may already have cancelled it.
+        }
+      }
       const apiError = error as ApiError;
       if (apiError.response?.status === 400 && apiError.response.data?.errors) {
         showError("Please check the form for errors.");

@@ -27,7 +27,6 @@ export interface TourRouteResponse {
 }
 
 export const scheduleTrackingService = {
-  // ✅ Dùng axios + token từ localStorage (endpoint yêu cầu auth)
   getScheduleLiveLocations: async (scheduleId: number): Promise<ScheduleLocationInfo[]> => {
     const token = localStorage.getItem("accessToken");
     const response = await axios.get(

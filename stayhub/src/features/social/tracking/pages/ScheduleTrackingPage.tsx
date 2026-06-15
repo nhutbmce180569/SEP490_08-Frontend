@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
+import { Users } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -25,12 +26,14 @@ export const ScheduleTrackingPage: React.FC = () => {
 
   const [locations, setLocations] = useState<LiveLocation[]>([]);
   const mapRef = useRef<MapRef | null>(null);
+  const hasFlyRef = useRef(false); // Chỉ fly đến vị trí đầu tiên 1 lần
 
   const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
-  // Merge dữ liệu poll REST API vào state (giống PublicTrackingPage dùng useGetPublicLocation)
+  // Merge dữ liệu poll REST API vào state
   useEffect(() => {
-    if (!data) return;
+    if (!data || data.length === 0) return;
+
     setLocations((prev) => {
       const merged = [...prev];
       data.forEach((incoming) => {
@@ -43,9 +46,25 @@ export const ScheduleTrackingPage: React.FC = () => {
       });
       return merged;
     });
+
+    // Fly đến vị trí người đầu tiên trong danh sách, chỉ 1 lần duy nhất
+    if (!hasFlyRef.current && mapRef.current && data[0]) {
+      mapRef.current.flyTo({
+        center: [data[0].lng, data[0].lat],
+        zoom: 14,
+        duration: 1200,
+      });
+      hasFlyRef.current = true;
+    }
   }, [data]);
 
-  // SignalR realtime — truyền token qua query string (đúng cách backend đã config)
+  // Reset fly khi đổi schedule
+  useEffect(() => {
+    hasFlyRef.current = false;
+    setLocations([]);
+  }, [scheduleIdNumber]);
+
+  // SignalR realtime — truyền token qua query string
   useEffect(() => {
     if (scheduleIdNumber <= 0) return;
 
@@ -55,7 +74,7 @@ export const ScheduleTrackingPage: React.FC = () => {
       : `${SIGNALR_HUB_BASE}/tracking`;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl) // ← token qua query string, không dùng accessTokenFactory
+      .withUrl(hubUrl)
       .withAutomaticReconnect()
       .build();
 
@@ -92,13 +111,32 @@ export const ScheduleTrackingPage: React.FC = () => {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-slate-100">
+    <div className="relative h-[87vh] w-full overflow-hidden rounded-2xl bg-slate-100">
+
+      {/* Badge số người online */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/60">
+          <div className="relative flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+            <div className="absolute w-2.5 h-2.5 rounded-full bg-green-500 animate-ping opacity-60" />
+          </div>
+          <Users className="w-4 h-4 text-[#0068E0]" />
+          <span className="text-sm font-bold text-slate-800">
+            {locations.length > 0
+              ? `${locations.length} ${t("social.trackingOnlineCount") || "người đang online"}`
+              : t("social.trackingNoOneOnline") || "Chưa có ai online"}
+          </span>
+        </div>
+      </div>
+
       <Map
         ref={mapRef}
         initialViewState={{
-          latitude: locations[0]?.lat ?? 16.047079,
-          longitude: locations[0]?.lng ?? 108.20623,
-          zoom: 14,
+          // Dùng tọa độ trung tâm Việt Nam làm mặc định
+          // flyTo sẽ tự bay đến vị trí thực khi data về
+          latitude: 16.047079,
+          longitude: 108.20623,
+          zoom: 5,
         }}
         mapboxAccessToken={apiKey}
         mapStyle="mapbox://styles/mapbox/streets-v12"

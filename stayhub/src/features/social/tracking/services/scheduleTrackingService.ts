@@ -1,3 +1,6 @@
+import axios from "axios";
+import { API_BASE_URL } from "../../../../config/api/api";
+import { withLanguageHeaders } from "../../../../utils/httpLanguage";
 import { apiClient } from "../../../../utils/axiosClient";
 
 export interface ScheduleLocationInfo {
@@ -24,14 +27,23 @@ export interface TourRouteResponse {
 }
 
 export const scheduleTrackingService = {
+  // ✅ Dùng axios + token từ localStorage (endpoint yêu cầu auth)
   getScheduleLiveLocations: async (scheduleId: number): Promise<ScheduleLocationInfo[]> => {
-    const response = await apiClient.get<any>(`/locations/schedules/${scheduleId}/live`);
-    return response?.data || response;
+    const token = localStorage.getItem("accessToken");
+    const response = await axios.get(
+      `${API_BASE_URL}/api/locations/schedules/${scheduleId}/live`,
+      {
+        headers: {
+          ...withLanguageHeaders(),
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+    return response.data?.data || response.data || [];
   },
 
   getTourRoute: async (scheduleId: number): Promise<TourRouteResponse> => {
     const response = await apiClient.get<any>(`/TourSchedules/${scheduleId}/route`);
-    // Đảm bảo bóc tách đúng data field dựa theo format response chuẩn của BaseResponse
     return response?.data?.data || response?.data || response;
   },
 };

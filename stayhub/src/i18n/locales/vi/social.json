@@ -16,6 +16,8 @@
   "noUsersMatching": "Không tìm thấy người dùng khớp \"{{query}}\".",
   "results": "Kết quả ({{count}})",
   "addFriend": "Thêm bạn",
+  "trackingOnlineCount": "người đang online",
+  "trackingNoOneOnline": "Chưa có ai online",
   "newFriendRequest": "Bạn có lời mời kết bạn mới!",
   "requestAccepted": "Một lời mời kết bạn đã được chấp nhận!",
   "unfriendedYou": "Một người bạn đã hủy kết bạn với bạn.",

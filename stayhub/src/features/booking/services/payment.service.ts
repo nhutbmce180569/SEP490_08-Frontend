@@ -53,6 +53,7 @@ export const createPayment = async (
       orderId: data.orderId,
       amount: data.amount,
       provider: provider === "momo" ? "MoMo" : "VNPay",
+      clientType: "web",
     },
   );
 

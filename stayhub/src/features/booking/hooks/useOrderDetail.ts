@@ -2,21 +2,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { ReadOrderDTO } from "../types/booking";
 import { getOrderById } from "../services/booking.service";
-import {
-  cancelPayment,
-  confirmPayment,
-  getRememberedPaymentProvider,
-  type PaymentProvider,
-} from "../services/payment.service";
 import { useToast } from "../../../contexts/ToastContext";
-
-const getPaymentProviderFromQuery = (provider: string | null): PaymentProvider | null => {
-  const normalizedProvider = provider?.toLowerCase();
-  if (normalizedProvider === "momo" || normalizedProvider === "vnpay") {
-    return normalizedProvider;
-  }
-  return null;
-};
 
 const getErrorMessage = (err: unknown, fallback: string) => {
   if (err && typeof err === "object") {
@@ -102,28 +88,19 @@ export const useOrderDetail = (orderId?: string | number | null) => {
     paymentHandledRef.current = true;
 
     const syncPayment = async () => {
-      const paymentProvider =
-        getPaymentProviderFromQuery(searchParams.get("provider")) ??
-        getRememberedPaymentProvider(orderId) ??
-        "vnpay";
-
       if (paymentStatus === "success") {
         try {
-          await confirmPayment(orderId.toString(), paymentProvider);
-          await fetchOrder();
+          await fetchOrder(true);
           success("Payment successful! Your booking is now confirmed.");
         } catch (err: unknown) {
-          showError(getErrorMessage(err, "Failed to confirm payment. Please contact support."));
+          showError(getErrorMessage(err, "Failed to refresh the confirmed order."));
         }
       } else {
         try {
-          await cancelPayment(orderId.toString(), paymentProvider);
-          
-          // 3. SỬA: Tải lại ngầm dữ liệu
-          await fetchOrder(true); 
+          await fetchOrder(true);
           showError("Payment was cancelled. Your order has been cancelled.");
         } catch (err: unknown) {
-          showError(getErrorMessage(err, "Payment was cancelled, but we could not update the order. Please try again."));
+          showError(getErrorMessage(err, "Failed to refresh the cancelled order."));
         }
       }
 

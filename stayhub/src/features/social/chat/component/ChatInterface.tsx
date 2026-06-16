@@ -15,13 +15,13 @@ export const ChatInterface: React.FC = () => {
 
   const queryClient = useQueryClient();
 
-  // 1. Fetch danh sách phòng chat thực tế từ chatService thông qua React Query
+  // 1. Fetch actual chat room list from chatService via React Query
   const { data: rooms = [], isLoading: isLoadingRooms } = useQuery({
     queryKey: ["chatRooms"],
     queryFn: () => chatService.getChatRooms(),
   });
 
-  // 2. Kết nối SignalR Realtime và lấy danh sách tin nhắn từ Custom Hook có sẵn của bạn
+  // 2. Connect to SignalR Realtime and get message list from your existing Custom Hook
   const { 
     messages: currentRoomMessages, 
     sendMessage: sendMessageSignalR, 
@@ -33,7 +33,7 @@ export const ChatInterface: React.FC = () => {
 
   const activeRoom = rooms.find((r) => r.id === activeRoomId);
 
-  // Tự động sắp xếp: Ghim lên đầu, tiếp theo là thời gian cập nhật mới nhất
+  // Auto-sort: Pinned to top, then by latest update time
   const sortedRooms = useMemo(() => {
     return [...rooms].sort((a: any, b: any) => {
       if (a.isPinned && !b.isPinned) return -1;
@@ -45,7 +45,7 @@ export const ChatInterface: React.FC = () => {
     });
   }, [rooms]);
 
-  // Chọn phòng & reset unreadCount ngay lập tức trên UI bằng Cache (Zalo Style)
+  // Select room & reset unreadCount immediately on UI using Cache (Zalo Style)
   const handleSelectRoom = (roomId: number) => {
     setActiveRoomId(roomId);
     queryClient.setQueryData(["chatRooms"], (oldRooms: any) => {
@@ -56,30 +56,30 @@ export const ChatInterface: React.FC = () => {
     });
   };
 
-  // Tự động cuộn xuống đáy khi có tin nhắn mới hoặc đổi phòng
+  // Automatically scroll to bottom on new message or room change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [currentRoomMessages.length, activeRoomId]);
 
-  // 3. Hàm xử lý gửi tin nhắn trực tiếp qua cổng kết nối SignalR của Hook
+  // 3. Function to handle sending messages directly through the Hook's SignalR connection
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!typedMessage.trim() || !activeRoomId || !isConnected) return;
     
     const messageContent = typedMessage.trim();
-    setTypedMessage(""); // Clear ô nhập trước để tăng trải nghiệm người dùng mượt mà
+    setTypedMessage(""); // Clear input field beforehand for a smoother user experience
 
     try {
       await sendMessageSignalR(messageContent);
     } catch (err) {
-      console.error("Lỗi gửi tin nhắn qua SignalR: ", err);
+      console.error("Error sending message via SignalR: ", err);
     }
   };
 
   return (
     <div className="w-full bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden flex h-[600px]">
       
-      {/* SIDEBAR BÊN TRÁI: DANH SÁCH PHÒNG CHAT */}
+      {/* LEFT SIDEBAR: CHAT ROOM LIST */}
       <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50/50">
         <div className="p-4 border-b border-slate-100 bg-white">
           <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-2">
@@ -131,21 +131,21 @@ export const ChatInterface: React.FC = () => {
         </div>
       </div>
 
-      {/* KHUNG NỘI DUNG BÊN PHẢI: TIN NHẮN */}
+      {/* RIGHT CONTENT PANE: MESSAGES */}
       <div className="flex-1 flex flex-col bg-white">
         {activeRoom ? (
           <>
-            {/* Header phòng chat */}
+            {/* Chat room header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between shadow-sm z-10 bg-white">
               <div>
                 <h3 className="text-sm font-bold text-slate-900">{activeRoom.roomName || activeRoom.name}</h3>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                  {isConnected ? t("social.chatActiveSession") : "Đang kết nối lại..."}
+                  {isConnected ? t("social.chatActiveSession") : "Reconnecting..."}
                 </p>
               </div>
             </div>
 
-            {/* Vùng hiển thị danh sách tin nhắn (Dùng dạng thường, không lật ngược flex-col-reverse vì hook lưu mảng xuôi) */}
+            {/* Message list display area (Using normal flow, not flex-col-reverse because the hook stores the array in forward order) */}
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-slate-50/30 custom-scrollbar">
               {currentRoomMessages.map((msg) => {
                 const isMe = msg.senderId === currentUserId;
@@ -167,7 +167,7 @@ export const ChatInterface: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Ô nhập input gửi tin nhắn */}
+            {/* Message input box */}
             <form onSubmit={handleSendMessage} className="p-3 border-t border-slate-100 bg-white flex items-center gap-2">
               <input
                 type="text"
@@ -186,7 +186,7 @@ export const ChatInterface: React.FC = () => {
             </form>
           </>
         ) : (
-          /* Trạng thái trống khi chưa chọn phòng */
+          /* Empty state when no room is selected */
           <div className="flex-1 flex flex-col items-center justify-center text-slate-400 p-8">
             <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 mb-3 text-slate-300">
               <MessageSquare className="w-6 h-6" />

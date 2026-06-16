@@ -33,7 +33,7 @@ export const ChatNotificationCard: React.FC<ChatNotificationCardProps> = ({
       dragConstraints={{ top: -100, bottom: 0 }}
       dragElastic={{ top: 0.2, bottom: 0 }}
       onDragEnd={(e, info) => {
-        // Động tác vuốt hất ngược lên phía trên chuẩn trải nghiệm iOS để ẩn nhanh thông báo
+        // Swipe up gesture to quickly dismiss notification, standard on iOS
         if (info.offset.y < -30) {
           onClose();
         }
@@ -41,7 +41,7 @@ export const ChatNotificationCard: React.FC<ChatNotificationCardProps> = ({
       onClick={onClick}
       className="cursor-pointer w-full p-4 rounded-[32px] bg-white/75 backdrop-blur-[45px] border border-white/40 shadow-[0_16px_48px_rgba(0,0,0,0.1)] flex items-center gap-3.5 relative overflow-hidden select-none"
     >
-      {/* Vòng tròn Avatar mượt mà kèm viền bóng mờ */}
+      {/* Smooth Avatar circle */}
       <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 shadow-sm bg-gradient-to-tr from-brand to-blue-400 flex items-center justify-center text-white font-bold text-sm ring-1 ring-black/5">
         {avatarUrl ? (
           <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover pointer-events-none" />
@@ -50,13 +50,13 @@ export const ChatNotificationCard: React.FC<ChatNotificationCardProps> = ({
         )}
       </div>
       
-      {/* Khối hiển thị nội dung tin nhắn rút gọn */}
+      {/* Collapsed content block */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
         <div className="flex justify-between items-baseline mb-0.5">
           <h4 className="text-[14.5px] font-bold text-slate-900 truncate">
             {roomName}
           </h4>
-          <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-2">Bây giờ</span>
+          <span className="text-[11px] font-bold text-slate-400 shrink-0 ml-2">Just now</span>
         </div>
         <p className="text-[13px] text-slate-600 truncate leading-snug font-medium">
           {senderName && senderName !== roomName && (
@@ -65,14 +65,14 @@ export const ChatNotificationCard: React.FC<ChatNotificationCardProps> = ({
           {message}
         </p>
         
-        {/* Số lượng tin nhắn chưa đọc bo cong giọt nước Liquid dồn số dạng 5+ giống Zalo */}
+        {/* Unread message count with liquid drop shape and "5+" aggregation */}
         {unreadCount > 1 && (
           <div className="flex items-center gap-1.5 mt-1">
             <div className="min-w-[16px] h-4 px-1 rounded-full bg-gradient-to-r from-rose-500 to-red-600 text-white text-[9px] font-black flex items-center justify-center border border-white/20 shadow-[0_2px_6px_rgba(244,63,94,0.3)] animate-pulse">
               {unreadCount > 5 ? "5+" : unreadCount}
             </div>
             <span className="text-[10px] font-bold text-rose-500">
-              tin nhắn mới chưa đọc
+              new unread messages
             </span>
           </div>
         )}

@@ -34,6 +34,7 @@ import { FriendsManagement } from "./features/social/friends/pages/FriendsManage
 import { MomentsFeed } from "./features/social/moments/components/MomentsFeed";
 import { SocialProfile } from "./features/social/profile/pages/SocialProfile";
 import { ChatPage } from './features/social/chat/pages/ChatPage';
+import { ChatNotificationProvider } from "./features/social/chat/component/ChatNotificationContext";
 
 // Components dành cho Quản lý User (Admin)
 import UserList from "./features/auth/pages/UserList";
@@ -286,8 +287,9 @@ const App: React.FC = () => {
       <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
-          <AiPlannerProvider>
           <Router>
+            <ChatNotificationProvider>
+            <AiPlannerProvider>
             <CustomBrandCursor />
             <AiPlannerModal />
             <ScrollToTop />
@@ -671,8 +673,9 @@ const App: React.FC = () => {
               />
               </Routes>
             </PasswordChangeEnforcer>
-          </Router>
           </AiPlannerProvider>
+          </ChatNotificationProvider>
+          </Router>
         </AuthProvider>
       </ToastProvider>
       </ThemeProvider>

@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+// Strictly satisfy verbatimModuleSyntax configuration with import type
 import type { ReactNode } from "react";
 import * as signalR from "@microsoft/signalr";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { AnimatePresence } from "framer-motion";
-import { ChatNotificationCard } from "../component/ChatNotificationCard";
+import { ChatNotificationCard } from "./ChatNotificationCard";
 import { useNavigate } from "react-router-dom";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useQueryClient } from "@tanstack/react-query";
+import type { ChatMessage } from "../types/chat.type";
 
 interface NotificationItem {
   id: string;
@@ -37,7 +39,6 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
   const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   const dismissNotification = useCallback((id: string) => {
@@ -53,89 +54,141 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
     navigate(`/chat?roomId=${roomId}`);
   }, [dismissNotification, navigate]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
-    if (!user || !token) return;
+  // Handler to "intercept" changes from the new Global event from Backend
+  const handleGlobalNotification = useCallback((savedMessage: ChatMessage) => {
+    const roomId = savedMessage.chatRoomId;
+    if (!roomId) return;
 
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${SIGNALR_HUB_BASE}/chat`, {
-        accessTokenFactory: () => token,
-      })
-      .withAutomaticReconnect()
-      .build();
+    // Read the user's current room status directly from the URL
+    const searchParams = new URLSearchParams(window.location.search);
+    const isViewingThisRoom = searchParams.get("roomId") === String(roomId) && window.location.pathname.includes("/chat");
 
-    connection
-      .start()
-      .catch(err => console.error("Global Notification Hub Error:", err));
-
-    connection.on("ReceiveMessage", (roomId: number, senderId: number, content: string, createdAt: string, senderName?: string, roomName?: string, avatarUrl?: string) => {
+    // ✨ CACHE AGGREGATION ALGORITHM: Increase unreadCount directly on the Client UI layer
+    queryClient.setQueryData(['chatRooms'], (oldRooms: any) => {
+      if (!Array.isArray(oldRooms)) return oldRooms;
       
-      const searchParams = new URLSearchParams(window.location.search);
-      const isViewingThisRoom = searchParams.get("roomId") === String(roomId) && window.location.pathname.includes("/chat");
-
-      // ✨ GIẢI PHÁP TỐI THƯỢNG: Can thiệp trực tiếp tăng số lượng unreadCount thủ công trong bộ nhớ cache của React Query
-      queryClient.setQueryData(['chatRooms'], (oldRooms: any) => {
-        if (!Array.isArray(oldRooms)) return oldRooms;
+      const roomExists = oldRooms.some((r: any) => r.id === roomId);
+      if (roomExists) {
         return oldRooms.map((r: any) => {
           if (r.id === roomId) {
             return {
               ...r,
-              lastMessage: content,
-              lastMessageCreatedAt: createdAt,
-              updatedAt: createdAt,
-              // Nếu đang mở xem phòng đó thì giữ nguyên 0, ngược lại tự động cộng dồn 1 tin nhắn chưa đọc
+              lastMessage: savedMessage.content,
+              lastMessageCreatedAt: savedMessage.createdAt,
+              updatedAt: savedMessage.createdAt,
+              // Unread count rule: If viewing the room, keep it 0, otherwise increment by 1
               unreadCount: isViewingThisRoom ? 0 : (r.unreadCount || 0) + 1
             };
           }
           return r;
         });
-      });
-
-      // Kích hoạt đồng bộ hóa nhẹ nhàng luồng API ngầm mà không làm mất trạng thái unread vừa cộng dồn
-      queryClient.invalidateQueries({ queryKey: ['chatRooms'], refetchType: 'none' });
-
-      // Nếu đang mở xem phòng chat này thì chặn, không hiển thị Toast đẩy nổi lên màn hình
-      if (isViewingThisRoom) {
-        return;
       }
-
-      const notifId = Math.random().toString(36).substring(2, 9);
-      
-      // Lấy unreadCount vừa cập nhật để nạp vào Toast đẩy iOS 26
-      const latestRooms: any = queryClient.getQueryData(['chatRooms']);
-      const targetRoom = Array.isArray(latestRooms) ? latestRooms.find((r: any) => r.id === roomId) : null;
-      const nextUnreadCount = targetRoom ? (targetRoom.unreadCount || 1) : 1;
-
-      const newNotif: NotificationItem = {
-        id: notifId,
-        roomName: roomName || targetRoom?.roomName || targetRoom?.name || "Cuộc trò chuyện mới",
-        senderName: senderName || "Thành viên",
-        message: content,
-        avatarUrl: avatarUrl || targetRoom?.avatarUrl,
-        unreadCount: nextUnreadCount,
-        roomId: roomId,
-      };
-
-      setNotifications(prev => {
-        const filtered = prev.filter(n => n.roomId !== roomId);
-        return [newNotif, ...filtered];
-      });
-
-      if (timeoutRefs.current.has(notifId)) {
-        clearTimeout(timeoutRefs.current.get(notifId));
-      }
-      const timer = setTimeout(() => {
-        dismissNotification(notifId);
-      }, 4000);
-      timeoutRefs.current.set(notifId, timer);
+      return oldRooms;
     });
 
+    // Signal to trigger dynamic sorting, sliding the conversation with new message to the top of the Sidebar
+    queryClient.invalidateQueries({ queryKey: ['chatRooms'], refetchType: 'none' });
+
+    // If the user is currently viewing this chat room, block the floating Toast to avoid disturbance
+    if (isViewingThisRoom) return;
+
+    // Push a floating Toast with iOS 26 frosted glass style
+    const notifId = Math.random().toString(36).substring(2, 9);
+    const latestRooms: any = queryClient.getQueryData(['chatRooms']);
+    const targetRoom = Array.isArray(latestRooms) ? latestRooms.find((r: any) => r.id === roomId) : null;
+    const nextUnreadCount = targetRoom ? (targetRoom.unreadCount || 1) : 1;
+
+    const newNotif: NotificationItem = {
+      id: notifId,
+      roomName: targetRoom?.roomName || targetRoom?.name || savedMessage.senderName || "New conversation",
+      senderName: savedMessage.senderName || "Member",
+      message: savedMessage.content,
+      avatarUrl: savedMessage.senderAvatarUrl || targetRoom?.avatarUrl,
+      unreadCount: nextUnreadCount,
+      roomId: roomId,
+    };
+
+    setNotifications(prev => [newNotif, ...prev.filter(n => n.roomId !== roomId)]);
+
+    if (timeoutRefs.current.has(notifId)) {
+      clearTimeout(timeoutRefs.current.get(notifId));
+    }
+    const timer = setTimeout(() => { dismissNotification(notifId); }, 4000);
+    timeoutRefs.current.set(notifId, timer);
+  }, [queryClient, dismissNotification]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken") || localStorage.getItem("access_token");
+    if (!user || !token) return;
+
+    let isMounted = true;
+
+    // 🚀 ISOLATED CONNECTION: Connect precisely to your global notification Hub port
+    const globalConnection = new signalR.HubConnectionBuilder()
+      .withUrl(`${SIGNALR_HUB_BASE}/global-chat`, {
+        accessTokenFactory: () => localStorage.getItem("accessToken") || localStorage.getItem("access_token") || "",
+      })
+      .withAutomaticReconnect()
+      .build();
+
+    const startGlobalHub = async () => {
+      try {
+        if (!isMounted) return;
+        await globalConnection.start();
+        if (!isMounted) {
+          globalConnection.stop();
+          return;
+        }
+        console.log("🟢 [FRONT-END] Global Hub Connected to /hubs/global-chat");
+
+        // Intercept the exact global event sent from ChatHub.cs Backend
+        globalConnection.on("ReceiveGlobalNotification", (savedMessage: ChatMessage) => {
+          console.log("🔥 [SERVER SIGNAL] ReceiveGlobalNotification:", savedMessage);
+          if (savedMessage) {
+            handleGlobalNotification(savedMessage);
+          }
+        });
+      } catch (err: any) {
+        if (err.name === 'AbortError' || err.message?.includes('negotiation')) {
+          console.warn('SignalR NotificationHub: Negotiation cancelled due to React Strict Mode.');
+        } else {
+          console.error("SignalR NotificationHub Connection Error: ", err);
+        }
+      }
+    };
+
+    // Use a short setTimeout to let React stabilize the Component before negotiating, to avoid AbortError
+    const timerId = setTimeout(() => {
+      if (isMounted) {
+        startGlobalHub();
+      }
+    }, 300);
+
     return () => {
-      connection.stop();
+      isMounted = false;
+      clearTimeout(timerId);
+      globalConnection.stop();
       timeoutRefs.current.forEach(timer => clearTimeout(timer));
       timeoutRefs.current.clear();
     };
-  }, [user, dismissNotification, queryClient]);
+  }, [user, handleGlobalNotification]);
+
+  // Mock function to force Test UI via Console window (Window Object Injection)
+  useEffect(() => {
+    (window as any).testGlobalNotification = (sender: string, msg: string) => {
+      console.log("🛠️ TEST RUN: Activating mock notification...");
+      const fakeMessage = {
+        id: Math.random(),
+        chatRoomId: 9999, // Mock ID
+        senderId: 8888,
+        senderName: sender,
+        content: msg,
+        createdAt: new Date().toISOString()
+      };
+      handleGlobalNotification(fakeMessage as any);
+    };
+    return () => { delete (window as any).testGlobalNotification; };
+  }, [handleGlobalNotification]);
 
   return (
     <ChatNotificationContext.Provider value={{ notifications, dismissNotification, handleNotificationClick }}>

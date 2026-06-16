@@ -15,6 +15,8 @@
   "connectionError": "Connection error. Please check your network or API Gateway.",
   "noUsersMatching": "No users found matching \"{{query}}\".",
   "results": "Results ({{count}})",
+  "trackingNoOneOnline": "No one is online",
+  "trackingOnlineCount": "people online",
   "addFriend": "Add Friend",
   "newFriendRequest": "You have a new friend request!",
   "requestAccepted": "A friend request has been accepted!",

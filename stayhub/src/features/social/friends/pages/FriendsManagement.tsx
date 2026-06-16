@@ -17,12 +17,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { PATH } from '../../../../config/routes/route';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 
 export const FriendsManagement: React.FC = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'add'>('friends');
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [friendToUnfriend, setFriendToUnfriend] = useState<number | null>(null);
   
   const { success, error, warning } = useToast();
   const queryClient = useQueryClient();
@@ -113,11 +116,24 @@ export const FriendsManagement: React.FC = () => {
     );
   };
 
-  const handleUnfriend = (friendshipId: number) => {
-    if (window.confirm(t("social.confirmUnfriend"))) {
-      deleteFriend(friendshipId, {
-        onSuccess: () => success(t("social.removedFromFriends")),
-        onError: () => error(t("social.failedToUnfriend"))
+  const handleUnfriendClick = (friendshipId: number) => {
+    setFriendToUnfriend(friendshipId);
+    setIsConfirmOpen(true);
+  };
+
+  const executeUnfriend = () => {
+    if (friendToUnfriend !== null) {
+      deleteFriend(friendToUnfriend, {
+        onSuccess: () => {
+          success(t("social.removedFromFriends"));
+          setIsConfirmOpen(false);
+          setFriendToUnfriend(null);
+        },
+        onError: () => {
+          error(t("social.failedToUnfriend"));
+          setIsConfirmOpen(false);
+          setFriendToUnfriend(null);
+        }
       });
     }
   };
@@ -219,7 +235,7 @@ export const FriendsManagement: React.FC = () => {
                   {t('social.message')}
                 </button>
                 <button 
-                  onClick={() => handleUnfriend(friend?.id)}
+                  onClick={() => handleUnfriendClick(friend?.id)}
                   disabled={isDeleting}
                   className="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-md hover:bg-slate-50 hover:text-red-600 transition-colors disabled:opacity-50"
                 >
@@ -366,6 +382,18 @@ export const FriendsManagement: React.FC = () => {
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onClose={() => {
+          setIsConfirmOpen(false);
+          setFriendToUnfriend(null);
+        }}
+        onConfirm={executeUnfriend}
+        title={t("social.confirmUnfriendTitle") || "Hủy kết bạn"}
+        message={t("social.confirmUnfriend") || "Bạn có chắc chắn muốn hủy kết bạn với người này không?"}
+        variant="warning"
+      />
     </div>
   );
 };

@@ -22,6 +22,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { createPortal } from 'react-dom';
 
 // ============ COMPONENT: Add Member Modal ============
 interface AddMemberModalProps {
@@ -44,6 +45,17 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onConf
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   const handleToggleUser = (userId: number) => {
     if (isSingleSelect) { setSelectedUserIds([userId]); }
     else { setSelectedUserIds(prev => prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]); }
@@ -57,8 +69,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onConf
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center z-[500] p-4">
+  return createPortal(
+    <div className="fixed top-0 left-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[99999] p-4">
       <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-lg font-bold text-slate-900">{isSingleSelect ? t('social.startAChat') : t('social.addMembers')}</h2>
@@ -93,7 +105,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onConf
           <button onClick={handleConfirm} disabled={selectedUserIds.length === 0 || isLoading} className="flex-1 px-4 py-2 bg-brand text-white font-semibold rounded-lg hover:bg-brand-hover disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors">{t('common.confirm')} ({selectedUserIds.length})</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -113,10 +126,21 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
   });
   const members = Array.isArray(membersResponse) ? membersResponse : membersResponse?.data || [];
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xl flex items-center justify-center z-[500] p-4">
+  return createPortal(
+    <div className="fixed top-0 left-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[99999] p-4">
       <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <h2 className="text-lg font-bold text-slate-900">{t('social.roomMembers')}</h2>
@@ -143,7 +167,8 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
           <button onClick={onClose} className="w-full px-4 py-2 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 transition-colors">{t('common.close')}</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

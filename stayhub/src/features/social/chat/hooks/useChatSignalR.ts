@@ -7,9 +7,7 @@ import { chatService } from '../services/chatService';
 export const useChatSignalR = (roomId: number | null) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [connection, setConnection] = useState<signalR.HubConnection | null>(
-    null
-  );
+  const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
 
   useEffect(() => {
     if (!roomId) {
@@ -17,9 +15,10 @@ export const useChatSignalR = (roomId: number | null) => {
       return;
     }
 
+    // 🚀 LOCAL CHAT ROOM FLOW: Only responsible for connection and message exchange when a chat room is open
     const newConnection = new signalR.HubConnectionBuilder()
       .withUrl('https://localhost:7010/hubs/chat', {
-        accessTokenFactory: () => localStorage.getItem('accessToken') || '',
+        accessTokenFactory: () => localStorage.getItem('accessToken') || localStorage.getItem('access_token') || '',
       })
       .configureLogging(signalR.LogLevel.None)
       .withAutomaticReconnect()
@@ -32,17 +31,19 @@ export const useChatSignalR = (roomId: number | null) => {
         await newConnection.start();
         setIsConnected(true);
 
-        // Tham gia phòng chat
+        // Call the JoinRoom group function on the C# Server
         await newConnection.invoke('JoinRoom', roomId);
 
-        // Lắng nghe tin nhắn mới
+        // Receive real-time messages pushed to the current chat room
         newConnection.on('ReceiveMessage', (newMsg: ChatMessage) => {
-          setMessages((prev) => [...prev, newMsg]);
+          setMessages((prev) => {
+            if (prev.some(m => m.id === newMsg.id)) return prev;
+            return [...prev, newMsg];
+          });
         });
       } catch (error: any) {
-        // Phân biệt lỗi rác của React Strict Mode
         if (error.name === 'AbortError' || error.message?.includes('negotiation')) {
-          console.warn('SignalR Chat: Hủy đàm phán do React Strict Mode (Bỏ qua được).');
+          console.warn('SignalR Chat: Negotiation cancelled due to React Strict Mode.');
         } else {
           console.error('SignalR Chat Connection Error: ', error);
         }
@@ -51,7 +52,6 @@ export const useChatSignalR = (roomId: number | null) => {
 
     startSignalR();
 
-    // Cleanup function khi đổi phòng
     return () => {
       newConnection.off('ReceiveMessage');
       newConnection.stop().then(() => setIsConnected(false));
@@ -62,13 +62,11 @@ export const useChatSignalR = (roomId: number | null) => {
     async (content: string) => {
       if (connection && isConnected && roomId) {
         try {
-          // 👉 GỬI 1 OBJECT DUY NHẤT VỚI CÁC KEY KHỚP DTO C#
-          // DTO Backend: SendMessageDto { ChatRoomId, Content }
-         // 👉 TRUYỀN 2 THAM SỐ RỜI RẠC KHỚP VỚI HÀM CỦA BACKEND
+          // Pass 2 discrete parameters that exactly match the Task SendMessage(int chatRoomId, string content) signature in ChatHub.cs Backend
           await connection.invoke('SendMessage', roomId, content.trim());
         } catch (err) {
-          console.error('SignalR Lỗi khi gửi tin nhắn:', err);
-          alert('Gửi lỗi! Vui lòng kiểm tra kết nối và thử lại.');
+          console.error('SignalR Error sending message:', err);
+          alert('Send error! Please check your connection and try again.');
         }
       }
     },

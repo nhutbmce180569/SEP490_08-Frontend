@@ -13,6 +13,7 @@ import {
 import { useToast } from "../../../contexts/ToastContext";
 import { useSearchUsers } from "../../users/hooks/useUsers";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { ActionButton } from "../../../components/dashboard/ActionButton";
 
 // ============ TYPES ============
 interface StaffMember {
@@ -201,14 +202,15 @@ export const TourScheduleStaffManagement: React.FC<
 
         {/* Chỉ hiển thị nút Assign Staff khi không ở chế độ Read-Only */}
         {!isReadOnly && (
-          <button
+          <ActionButton
             onClick={() => setShowAssignModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-brand hover:bg-brand-hover disabled:bg-slate-300 text-white font-semibold rounded-lg transition-all shadow-sm active:scale-95"
             disabled={isAssigning}
+            variant="primary"
+            className="gap-2 px-4 py-2 text-sm"
           >
-            <UserPlus className="w-5 h-5" />
+            <UserPlus className="h-4 w-4" />
             {t("tour.assignStaff")}
-          </button>
+          </ActionButton>
         )}
       </div>
 

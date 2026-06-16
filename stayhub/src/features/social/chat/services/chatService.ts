@@ -58,4 +58,7 @@ export const chatService = {
     const response = await apiClient.get<any>(`/chat/rooms/${roomId}/members`);
     return response.data?.data || response.data || [];
 },
+markRoomAsRead: async (roomId: number): Promise<void> => {
+    await apiClient.post(`/chat/rooms/${roomId}/read`);
+  }
 };

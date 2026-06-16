@@ -198,11 +198,13 @@ export const ChatPage: React.FC = () => {
   const handleSelectRoom = (roomId: number) => {
     setSelectedRoomId(roomId);
     setSearchParams({ roomId: String(roomId) });
-    
+  
     queryClient.setQueryData(['chatRooms'], (oldRooms: any) => {
       if (!Array.isArray(oldRooms)) return oldRooms;
       return oldRooms.map((r: any) => r.id === roomId ? { ...r, unreadCount: 0 } : r);
     });
+
+    mutateMarkAsRead(roomId);
   };
 
   useEffect(() => {
@@ -225,7 +227,9 @@ export const ChatPage: React.FC = () => {
     mutationFn: (roomId: number) => chatService.pinRoom(roomId),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['chatRooms'] }); },
   });
-
+const { mutate: mutateMarkAsRead } = useMutation({
+    mutationFn: (roomId: number) => chatService.markRoomAsRead(roomId),
+  });
   const { mutate: mutateMute, isPending: isMuting } = useMutation({
     mutationFn: (roomId: number) => chatService.muteRoom(roomId),
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['chatRooms'] }); },

@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Search, Pencil, Trash2, Plus, Eye, Star, Power, ListFilter, X } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { useToast } from "../../../contexts/ToastContext";
 import { useTours } from "../hooks/useTours";
 import { type Tour } from "../types/tour";
 
@@ -18,6 +19,7 @@ const PAGE_SIZE = 5;
 
 export const TourList: React.FC = () => {
   const { t } = useTranslation();
+  const { error: showError } = useToast();
   const {
     data,
     isLoading,
@@ -51,7 +53,7 @@ export const TourList: React.FC = () => {
   const hasActiveFilters =
     search.trim() !== "" || categoryId !== null || createdByMe;
 
-  const getStatusLabel = (status?: string | null) => {
+  const getStatusLabel = useCallback((status?: string | null) => {
     const map: Record<string, string> = {
       Active: t("common.active"),
       Draft: t("tour.draft"),
@@ -59,7 +61,19 @@ export const TourList: React.FC = () => {
       Banned: t("tour.banned"),
     };
     return map[status || "Draft"] ?? status ?? t("tour.draft");
-  };
+  }, [t]);
+
+  const handleEditClick = useCallback(
+    (tour: Tour) => {
+      if (tour.status === "Active") {
+        showError(t("tour.inactiveBeforeEdit"));
+        return;
+      }
+
+      handleEdit(tour.id);
+    },
+    [handleEdit, showError, t],
+  );
 
   const columns: Column<Tour>[] = useMemo(
     () => [
@@ -175,7 +189,7 @@ export const TourList: React.FC = () => {
                 <ActionButton
                   variant="secondary"
                   aria-label={t("tour.edit")}
-                  onClick={() => handleEdit(tour.id)}
+                  onClick={() => handleEditClick(tour)}
                   className="h-8 w-8"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -198,7 +212,7 @@ export const TourList: React.FC = () => {
       t,
       getStatusLabel,
       categoryNameById,
-      handleEdit,
+      handleEditClick,
       handleDelete,
       handleToggleStatus,
       handleView,

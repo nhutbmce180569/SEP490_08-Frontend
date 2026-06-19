@@ -412,7 +412,7 @@ const App: React.FC = () => {
 
               {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
               <Route
-                element={<ProtectedRoute allowedRoles={["MANAGER"]} />}
+                element={<ProtectedRoute allowedRoles={["MANAGER", "ADMIN"]} />}
               >
                 <Route
                   path={PATH.MANAGER.DASHBOARD}

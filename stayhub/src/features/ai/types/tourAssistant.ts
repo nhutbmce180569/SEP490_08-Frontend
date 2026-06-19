@@ -12,7 +12,8 @@ export type QuestionnaireInputType =
   | "date"
   | "number"
   | "boolean"
-  | "text";
+  | "text"
+  | "counter";
 
 export interface QuestionnaireField {
   fieldKey: string;
@@ -33,10 +34,10 @@ export interface TourPreferenceQuestionnaire {
   preferredStartDate: string;
   preferredEndDate?: string;
   maxBudgetPerPerson?: number;
-  hasElderly: boolean;
-  hasChildren: boolean;
-  elderlyCount?: number;
-  childrenCount?: number;
+  adultCount: number;
+  elderlyCount: number;
+  childrenCount: number;
+  travelPace: string;
   travelInterests: string[];
   nationalityType: NationalityType;
   preferredCity?: string;
@@ -131,13 +132,26 @@ export interface KnowledgeSource {
   authority: string;
 }
 
+export interface AcademicReference {
+  key: string;
+  title: string;
+  authors: string;
+  venue: string;
+  year: number;
+  url: string;
+  doi?: string;
+  usedFor: string;
+}
+
 export interface RecommenderTransparency {
   modelVersion: string;
   modelFamily: string;
+  methodologySummary?: string;
   aggregationFormula: string;
   fairnessAlpha: number;
   personaTypesUsed: string[];
   knowledgeSources: KnowledgeSource[];
+  academicReferences?: AcademicReference[];
   dimensionWeights: Record<string, number>;
 }
 

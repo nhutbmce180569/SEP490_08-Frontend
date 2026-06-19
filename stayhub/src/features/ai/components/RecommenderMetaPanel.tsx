@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Info, ChevronDown, ChevronUp } from "lucide-react";
+import { BookOpen, ChevronDown, ChevronUp, Info } from "lucide-react";
 import type { RecommenderTransparency } from "../types/tourAssistant";
 import { formatDimensionKey } from "../utils/formatters";
 import { useTranslation } from "../../../contexts/LocaleContext";
@@ -15,6 +15,7 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
   if (!meta.modelVersion && !meta.modelFamily) return null;
 
   const weights = Object.entries(meta.dimensionWeights ?? {});
+  const references = meta.academicReferences ?? [];
 
   return (
     <section className="glass-card mt-8 overflow-hidden">
@@ -44,6 +45,13 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
               <MetaItem label={t("ai.formula")} value={meta.aggregationFormula} />
             )}
           </div>
+
+          {meta.methodologySummary && (
+            <div className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3">
+              <p className="travel-eyebrow mb-1">{t("ai.methodologySummary")}</p>
+              <p className="text-sm leading-relaxed text-slate-700">{meta.methodologySummary}</p>
+            </div>
+          )}
 
           {meta.personaTypesUsed?.length > 0 && (
             <div>
@@ -98,6 +106,34 @@ export const RecommenderMetaPanel: React.FC<Props> = ({ meta }) => {
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {references.length > 0 && (
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <BookOpen size={15} className="text-brand" />
+                <p className="travel-eyebrow">{t("ai.academicReferences")}</p>
+              </div>
+              <div className="grid gap-2">
+                {references.map((ref) => (
+                  <a
+                    key={ref.key}
+                    href={ref.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs transition hover:border-sky-200 hover:bg-sky-50"
+                  >
+                    <span className="block font-bold text-slate-800">
+                      {ref.authors} ({ref.year}). {ref.title}
+                    </span>
+                    <span className="mt-0.5 block text-slate-500">
+                      {ref.venue}{ref.doi ? ` · DOI: ${ref.doi}` : ""}
+                    </span>
+                    <span className="mt-1 block text-slate-600">{ref.usedFor}</span>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
         </div>

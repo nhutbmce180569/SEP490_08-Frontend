@@ -25,8 +25,9 @@ import {
   formatVnd,
   STATUS_STYLES,
 } from '../utils/voucherHelpers';
+import { BirthdayDistributeModal } from '../components/BirthdayDistributeModal';
 
-export const VoucherList: React.FC = () => {
+export const AdminVoucherList: React.FC = () => {
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -35,6 +36,8 @@ export const VoucherList: React.FC = () => {
 
   const [createdByMe, setCreatedByMe] = useState('');
   const [tourId, setTourId] = useState('');
+  const [voucherType, setVoucherType] = useState('');
+  const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
 
   const { options: tourOptions } = useTourOptions();
 
@@ -44,9 +47,10 @@ export const VoucherList: React.FC = () => {
       discountType: discountType || undefined,
       status: status || undefined,
       tourId: tourId ? Number(tourId) : undefined,
+      voucherType: voucherType || undefined,
       createdByMe: createdByMe === '' ? undefined : createdByMe === 'true',
     }),
-    [search, discountType, status, tourId, createdByMe],
+    [search, discountType, status, tourId, voucherType, createdByMe],
   );
 
   const {
@@ -210,29 +214,27 @@ export const VoucherList: React.FC = () => {
 
   return (
     <div className="rounded-2xl">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t('voucher.management')}</h2>
           <p className="mt-0.5 text-xs text-slate-500">{t('voucher.managementDesc')}</p>
         </div>
         <div className="flex items-center gap-2">
-          {isAdmin && (
-            <ActionButton 
-              variant="secondary" 
-              onClick={() => navigate(PATH.ADMIN.SYSTEM_VOUCHERS + '/birthday-distribute')} 
-              className="gap-2 px-4 py-2 text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-100"
-            >
-              🎁 {t('admin.distributeBirthdayVoucher') || 'Distribute Birthday Vouchers'}
-            </ActionButton>
-          )}
+          <ActionButton 
+            variant="secondary" 
+            onClick={() => setIsBirthdayModalOpen(true)} 
+            className="gap-2 px-4 py-2 text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-100"
+          >
+            🎁 {t('admin.distributeBirthdayVoucher') || 'Distribute Birthday Vouchers'}
+          </ActionButton>
           <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
             <Plus className="h-4 w-4" /> {t('voucher.createVoucher')}
           </ActionButton>
         </div>
       </div>
 
-      <div className="grid gap-3 border-b border-slate-100 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative sm:col-span-2 lg:col-span-1">
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 py-4">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
@@ -249,7 +251,8 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setTourId(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+          disabled={voucherType === 'birthday'}
+          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white disabled:opacity-50 disabled:bg-slate-100"
         >
           <option value="">{t('voucher.allTours')}</option>
           {tourOptions
@@ -267,7 +270,7 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setDiscountType(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
           <option value="">{t('voucher.allDiscountTypes')}</option>
           <option value="Percent">{t('voucher.percent')}</option>
@@ -280,7 +283,7 @@ export const VoucherList: React.FC = () => {
             setPage(1);
             setStatus(event.target.value);
           }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
         >
           <option value="">{t('voucher.allStatuses')}</option>
           <option value="Active">{t('common.active')}</option>
@@ -290,22 +293,23 @@ export const VoucherList: React.FC = () => {
           <option value="Depleted">{t('voucher.depleted')}</option>
         </select>
 
+        <select
+          value={voucherType}
+          onChange={(event) => {
+            setPage(1);
+            setVoucherType(event.target.value);
+            if (event.target.value === 'birthday') setTourId('');
+          }}
+          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+        >
+          <option value="">{t('voucher.allTypes') || 'Tất cả loại voucher'}</option>
+          <option value="birthday">{t('voucher.birthdayVouchers') || 'Voucher Sinh Nhật'}</option>
+          <option value="tour">{t('voucher.tourVouchers') || 'Voucher Tour'}</option>
+        </select>
 
 
-        {!isAdmin && (
-          <select
-            value={createdByMe}
-            onChange={(event) => {
-              setPage(1);
-              setCreatedByMe(event.target.value);
-            }}
-            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
-          >
-            <option value="">{t('voucher.allCreators') || 'All Creators'}</option>
-            <option value="true">{t('voucher.myVouchersFilter') || 'My Vouchers'}</option>
-            <option value="false">{t('voucher.otherVouchersFilter') || 'Others\' Vouchers'}</option>
-          </select>
-        )}
+
+
       </div>
 
       {isLoading ? (
@@ -327,6 +331,10 @@ export const VoucherList: React.FC = () => {
         totalItems={totalItems}
         pageSize={pageSize}
         onPageChange={setPage}
+      />
+      <BirthdayDistributeModal 
+        open={isBirthdayModalOpen} 
+        onClose={() => setIsBirthdayModalOpen(false)} 
       />
     </div>
   );

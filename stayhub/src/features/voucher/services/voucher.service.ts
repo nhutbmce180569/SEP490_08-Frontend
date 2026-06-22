@@ -28,6 +28,7 @@ export const voucherService = {
     if (filters?.tourId) params.tourId = filters.tourId;
     if (filters?.discountType) params.discountType = filters.discountType;
     if (filters?.status) params.status = filters.status;
+    if (filters?.voucherType) params.voucherType = filters.voucherType;
     if (filters?.createdByMe !== undefined) params.createdByMe = filters.createdByMe;
 
     const response = await apiClient.get<PaginationDTO<ReadVoucherDTO>>(VOUCHER_API.GET_ALL, { params });
@@ -62,6 +63,12 @@ export const voucherService = {
   distributeBirthdayVouchers: async (month?: number): Promise<{ voucherCode: string, totalEligibleCustomers: number, emailsSent: number, message: string }> => {
     const params = month ? { month } : undefined;
     const response = await apiClient.post(VOUCHER_API.DISTRIBUTE_BIRTHDAY, undefined, { params });
+    return unwrap(response);
+  },
+
+  checkBirthdayVoucherStatus: async (month: number, year: number): Promise<{ isDistributed: boolean }> => {
+    const params = { month, year };
+    const response = await apiClient.get(VOUCHER_API.DISTRIBUTE_BIRTHDAY_STATUS, { params });
     return unwrap(response);
   },
 };

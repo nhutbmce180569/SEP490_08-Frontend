@@ -9,6 +9,7 @@ export const VOUCHER_API = {
   ACTIVATE: (id: string | number) => `${FULL_API}/vouchers/${id}/activate`,
   DEACTIVATE: (id: string | number) => `${FULL_API}/vouchers/${id}/deactivate`,
   DISTRIBUTE_BIRTHDAY: `${FULL_API}/vouchers/birthday-distribute`,
+  DISTRIBUTE_BIRTHDAY_STATUS: `${FULL_API}/vouchers/birthday-distribute/status`,
 
   // Customer
   SAVE_VOUCHER: `${FULL_API}/customer/vouchers`,

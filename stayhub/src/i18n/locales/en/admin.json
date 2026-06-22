@@ -31,5 +31,7 @@
   "distributeError": "Error distributing vouchers",
   "emailsSent": "Emails Sent",
   "eligibleCustomers": "Eligible Customers",
-  "voucherCode": "Voucher Code"
+  "voucherCode": "Voucher Code",
+  "distributeConfirmMessage": "You are about to distribute birthday vouchers for customers with birthdays in month {{month}}/{{year}}.",
+  "alreadyDistributedMessage": "Birthday vouchers for month {{month}}/{{year}} have already been distributed. You cannot distribute them again for this month."
 }

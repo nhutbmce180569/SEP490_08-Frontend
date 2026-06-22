@@ -92,12 +92,13 @@ import { CancellationListPage } from "./features/booking/pages/CancellationListP
 import { ProcessCancellationPage } from "./features/booking/pages/ProcessCancellationPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
-import { VoucherList } from "./features/voucher/pages/VoucherList";
+import { ManagerVoucherList } from "./features/voucher/pages/ManagerVoucherList";
+import { AdminVoucherList } from "./features/voucher/pages/AdminVoucherList";
 import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
 import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
-import { AdminVoucherManagementPage } from "./features/voucher/pages/AdminVoucherManagementPage";
+
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
@@ -521,7 +522,7 @@ const App: React.FC = () => {
                     element={<ProcessCancellationPage />}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
-                    <Route index element={<VoucherList />} />
+                    <Route index element={<ManagerVoucherList />} />
                     <Route path="create" element={<CreateVoucher />} />
                     <Route path=":id/edit" element={<UpdateVoucher />} />
                     <Route path=":id" element={<VoucherDetail />} />
@@ -610,8 +611,8 @@ const App: React.FC = () => {
                     element={mock("app.titles.withdrawals", "app.mockWithdrawals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
-                    <Route index element={<VoucherList />} />
-                    <Route path="birthday-distribute" element={<AdminVoucherManagementPage />} />
+                    <Route index element={<AdminVoucherList />} />
+
                     <Route path="create" element={<CreateVoucher />} />
                     <Route path=":id/edit" element={<UpdateVoucher />} />
                     <Route path=":id" element={<VoucherDetail />} />

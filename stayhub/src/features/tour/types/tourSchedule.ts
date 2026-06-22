@@ -16,15 +16,7 @@ export interface TourSchedule {
   tourScheduleTickets?: TourScheduleTicket[] | null;
 }
 
-export interface AssignedTourSchedule {
-  scheduleId: number;
-  tourId: number;
-  departureDate: string;
-  returnDate: string;
-  tourName?: string | null;
-  tourImageUrl?: string | null;
-  assignedRole?: string | null;
-}
+
 
 // Map theo BaseTourScheduleDTO
 export interface CreateTourScheduleRequest {

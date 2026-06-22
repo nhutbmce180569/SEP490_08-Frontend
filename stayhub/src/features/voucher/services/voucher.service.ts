@@ -28,7 +28,6 @@ export const voucherService = {
     if (filters?.tourId) params.tourId = filters.tourId;
     if (filters?.discountType) params.discountType = filters.discountType;
     if (filters?.status) params.status = filters.status;
-    if (filters?.isActive !== undefined) params.isActive = filters.isActive;
     if (filters?.createdByMe !== undefined) params.createdByMe = filters.createdByMe;
 
     const response = await apiClient.get<PaginationDTO<ReadVoucherDTO>>(VOUCHER_API.GET_ALL, { params });

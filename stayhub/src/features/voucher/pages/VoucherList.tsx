@@ -32,7 +32,7 @@ export const VoucherList: React.FC = () => {
   const [search, setSearch] = useState('');
   const [discountType, setDiscountType] = useState('');
   const [status, setStatus] = useState('');
-  const [isActive, setIsActive] = useState('');
+
   const [createdByMe, setCreatedByMe] = useState('');
   const [tourId, setTourId] = useState('');
 
@@ -44,10 +44,9 @@ export const VoucherList: React.FC = () => {
       discountType: discountType || undefined,
       status: status || undefined,
       tourId: tourId ? Number(tourId) : undefined,
-      isActive: isActive === '' ? undefined : isActive === 'true',
       createdByMe: createdByMe === '' ? undefined : createdByMe === 'true',
     }),
-    [search, discountType, status, tourId, isActive, createdByMe],
+    [search, discountType, status, tourId, createdByMe],
   );
 
   const {
@@ -197,7 +196,7 @@ export const VoucherList: React.FC = () => {
                 onClick={() => handleEdit(voucher.id)}
                 className={`h-8 w-8 ${!canEdit ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title={t('voucher.editVoucher')}
-                disabled={!voucher.isActive || !canEdit}
+                disabled={voucher.isActive || !canEdit}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </ActionButton>
@@ -232,7 +231,7 @@ export const VoucherList: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid gap-3 border-b border-slate-100 px-6 py-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 border-b border-slate-100 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="relative sm:col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -291,18 +290,7 @@ export const VoucherList: React.FC = () => {
           <option value="Depleted">{t('voucher.depleted')}</option>
         </select>
 
-        <select
-          value={isActive}
-          onChange={(event) => {
-            setPage(1);
-            setIsActive(event.target.value);
-          }}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
-        >
-          <option value="">{t('voucher.activeFlag')}</option>
-          <option value="true">{t('voucher.enabled')}</option>
-          <option value="false">{t('voucher.disabled')}</option>
-        </select>
+
 
         {!isAdmin && (
           <select

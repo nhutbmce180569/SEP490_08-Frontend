@@ -154,10 +154,10 @@ export const UpdateVoucher: React.FC = () => {
     );
   }
 
-  if (!voucher.isActive) {
+  if (voucher.isActive) {
     return (
       <div className="mx-auto max-w-2xl py-8 text-center">
-        <p className="text-sm text-slate-600">{t('voucher.voucherDeactivatedNoEdit')}</p>
+        <p className="text-sm text-slate-600">{t('voucher.voucherActiveNoEdit') || 'Voucher đang hoạt động, vui lòng tắt voucher trước khi chỉnh sửa.'}</p>
         <button
           type="button"
           onClick={handleCancel}

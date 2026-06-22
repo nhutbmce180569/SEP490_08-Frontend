@@ -111,7 +111,7 @@ export const ScheduleTrackingPage: React.FC = () => {
   }
 
   return (
-    <div className="relative h-[87vh] w-full overflow-hidden rounded-2xl bg-slate-100">
+    <div className="relative h-[85vh] w-full overflow-hidden rounded-2xl bg-slate-100">
 
       {/* Badge số người online */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">

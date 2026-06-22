@@ -44,8 +44,8 @@ export const reviewService = {
     const response = await axios.get(
       TOURS_API.GET_REVIEWS_BY_TOUR_ADMIN(tourId),
       {
-        ...getAuthConfig(), // ✅ spread auth headers trước
-        params, // ✅ params sau để không bị ghi đè
+        ...getAuthConfig(), 
+        params, 
       },
     );
     return response.data;

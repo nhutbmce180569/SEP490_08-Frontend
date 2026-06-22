@@ -6,6 +6,7 @@ import {
   Plus,
   Search,
   Unlock,
+  ListFilter,
 } from 'lucide-react';
 import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +40,7 @@ export const AdminVoucherList: React.FC = () => {
   const [voucherType, setVoucherType] = useState('');
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
 
-  const { options: tourOptions } = useTourOptions();
+  const { options: tourOptions } = useTourOptions(true);
 
   const filters = useMemo(
     () => ({
@@ -91,9 +92,9 @@ export const AdminVoucherList: React.FC = () => {
       {
         header: t('voucher.code'),
         render: (voucher) => {
-          const isMine = voucher.creatorId === user?.id;
+          const isMine = String(voucher.creatorId) === String(user?.id);
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col items-start gap-1">
               <span className="font-semibold tracking-wide text-slate-800">{voucher.code}</span>
               {!isAdmin && (
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${isMine ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
@@ -162,7 +163,7 @@ export const AdminVoucherList: React.FC = () => {
       {
         header: t('common.actions'),
         render: (voucher) => {
-          const isMine = voucher.creatorId === user?.id;
+          const isMine = String(voucher.creatorId) === String(user?.id);
           const canEdit = isAdmin || isMine;
 
           return (
@@ -234,82 +235,90 @@ export const AdminVoucherList: React.FC = () => {
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 py-4">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[200px] flex-1">
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <input
             type="text"
             placeholder={t('voucher.searchCodeOrDesc')}
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+            className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
           />
         </div>
 
-        <select
-          value={tourId}
-          onChange={(event) => {
-            setPage(1);
-            setTourId(event.target.value);
-          }}
-          disabled={voucherType === 'birthday'}
-          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white disabled:opacity-50 disabled:bg-slate-100"
-        >
-          <option value="">{t('voucher.allTours')}</option>
-          {tourOptions
-            .filter((option) => option.value !== '')
-            .map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-        </select>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[140px] flex-1">
+          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <select
+            value={tourId}
+            onChange={(event) => {
+              setPage(1);
+              setTourId(event.target.value);
+            }}
+            disabled={voucherType === 'birthday'}
+            className="w-full bg-transparent text-sm text-slate-700 outline-none disabled:opacity-50"
+          >
+            <option value="">{t('voucher.allTours')}</option>
+            {tourOptions
+              .filter((option) => option.value !== '')
+              .map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+          </select>
+        </div>
 
-        <select
-          value={discountType}
-          onChange={(event) => {
-            setPage(1);
-            setDiscountType(event.target.value);
-          }}
-          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
-        >
-          <option value="">{t('voucher.allDiscountTypes')}</option>
-          <option value="Percent">{t('voucher.percent')}</option>
-          <option value="Amount">{t('voucher.amount')}</option>
-        </select>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[140px] flex-1">
+          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <select
+            value={discountType}
+            onChange={(event) => {
+              setPage(1);
+              setDiscountType(event.target.value);
+            }}
+            className="w-full bg-transparent text-sm text-slate-700 outline-none"
+          >
+            <option value="">{t('voucher.allDiscountTypes')}</option>
+            <option value="Percent">{t('voucher.percent')}</option>
+            <option value="Amount">{t('voucher.amount')}</option>
+          </select>
+        </div>
 
-        <select
-          value={status}
-          onChange={(event) => {
-            setPage(1);
-            setStatus(event.target.value);
-          }}
-          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
-        >
-          <option value="">{t('voucher.allStatuses')}</option>
-          <option value="Active">{t('common.active')}</option>
-          <option value="Inactive">{t('common.inactive')}</option>
-          <option value="Scheduled">{t('voucher.scheduled')}</option>
-          <option value="Expired">{t('tour.expired')}</option>
-          <option value="Depleted">{t('voucher.depleted')}</option>
-        </select>
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[140px] flex-1">
+          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <select
+            value={status}
+            onChange={(event) => {
+              setPage(1);
+              setStatus(event.target.value);
+            }}
+            className="w-full bg-transparent text-sm text-slate-700 outline-none"
+          >
+            <option value="">{t('voucher.allStatuses')}</option>
+            <option value="Active">{t('common.active')}</option>
+            <option value="Inactive">{t('common.inactive')}</option>
+            <option value="Scheduled">{t('voucher.scheduled')}</option>
+            <option value="Expired">{t('tour.expired')}</option>
+            <option value="Depleted">{t('voucher.depleted')}</option>
+          </select>
+        </div>
 
-        <select
-          value={voucherType}
-          onChange={(event) => {
-            setPage(1);
-            setVoucherType(event.target.value);
-            if (event.target.value === 'birthday') setTourId('');
-          }}
-          className="flex-1 min-w-[140px] rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
-        >
-          <option value="">{t('voucher.allTypes') || 'Tất cả loại voucher'}</option>
-          <option value="birthday">{t('voucher.birthdayVouchers') || 'Voucher Sinh Nhật'}</option>
-          <option value="tour">{t('voucher.tourVouchers') || 'Voucher Tour'}</option>
-        </select>
-
-
-
-
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[140px] flex-1">
+          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <select
+            value={voucherType}
+            onChange={(event) => {
+              setPage(1);
+              setVoucherType(event.target.value);
+              if (event.target.value === 'birthday') setTourId('');
+            }}
+            className="w-full bg-transparent text-sm text-slate-700 outline-none"
+          >
+            <option value="">{t('voucher.allTypes') || 'Tất cả loại voucher'}</option>
+            <option value="birthday">{t('voucher.birthdayVouchers') || 'Voucher Sinh Nhật'}</option>
+            <option value="tour">{t('voucher.tourVouchers') || 'Voucher Tour'}</option>
+          </select>
+        </div>
       </div>
 
       {isLoading ? (

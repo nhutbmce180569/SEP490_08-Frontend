@@ -48,7 +48,7 @@ export const DeleteUserConfirm: React.FC = () => {
                 <div className="flex items-center gap-2">{t("common.email")}: <span className="font-semibold">{user.email}</span></div>
                 <div className="flex items-center gap-2">{t("auth.rolesLabel")}: <span className="font-semibold">{user.roles?.join(", ") || t("auth.none")}</span></div>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className={`px-2 py-0.5 text-xs rounded-full font-semibold ${user.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{user.status || t("auth.unknown")}</span>
+                  <span className={`px-2 py-0.5 text-xs rounded-full font-semibold ${user.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>{user.status || t("auth.unknown")}</span>
                 </div>
               </div>
             </div>

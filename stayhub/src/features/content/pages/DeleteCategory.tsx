@@ -67,7 +67,7 @@ export const DeleteCategoryConfirm: React.FC = () => {
                     className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
                       category.isActive
                         ? "bg-emerald-100 text-emerald-700"
-                        : "bg-rose-100 text-rose-700"
+                        : "bg-slate-100 text-slate-700"
                     }`}
                   >
                     {category.isActive ? t("common.active") : t("common.inactive")}

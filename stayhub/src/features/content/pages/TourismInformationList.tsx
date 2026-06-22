@@ -9,6 +9,7 @@ import {
   Search,
   Tag,
   Unlock,
+  ListFilter,
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
@@ -132,7 +133,7 @@ export const TourismInformationList: React.FC = () => {
           return (
             <span
               className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                active ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-600"
               }`}
             >
               {active ? t("common.active") : t("common.inactive")}
@@ -176,8 +177,11 @@ export const TourismInformationList: React.FC = () => {
               <ActionButton
                 variant="secondary"
                 onClick={() => handleEdit(item.id)}
-                className="h-8 w-8"
+                className={`h-8 w-8 ${
+                  active ? "cursor-not-allowed opacity-50" : ""
+                }`}
                 title={t("content.edit")}
+                disabled={active}
               >
                 <Pencil className="h-3.5 w-3.5" />
               </ActionButton>
@@ -201,7 +205,7 @@ export const TourismInformationList: React.FC = () => {
 
   return (
     <div className="rounded-2xl">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[15px] font-bold leading-tight text-slate-900">
             {t("content.tourismInfoManagement")}
@@ -213,55 +217,63 @@ export const TourismInformationList: React.FC = () => {
         </ActionButton>
       </div>
 
-      <div className="grid gap-3 border-b border-slate-100 px-6 py-4 md:grid-cols-2 xl:grid-cols-5">
-        <div className="relative xl:col-span-2">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 py-4">
+        <div className="flex w-full sm:w-auto min-w-[200px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white">
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <input
             type="text"
             placeholder={t("content.searchTourismInfo")}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+            className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
           />
         </div>
 
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
-        >
-          <option value="">{t("content.allTypes")}</option>
-          {TOURISM_INFORMATION_TYPES.map((type) => (
-            <option key={type} value={type}>
-              {getTypeLabel(type)}
-            </option>
-          ))}
-        </select>
+        <div className="flex w-full sm:w-auto min-w-[160px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white">
+          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="w-full bg-transparent text-sm text-slate-700 outline-none"
+          >
+            <option value="">{t("content.allTypes")}</option>
+            {TOURISM_INFORMATION_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {getTypeLabel(type)}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
-        >
-          <option value="">{t("content.allStatuses")}</option>
-          <option value={TOURISM_INFORMATION_STATUS.ACTIVE}>{t("common.active")}</option>
-          <option value={TOURISM_INFORMATION_STATUS.INACTIVE}>{t("common.inactive")}</option>
-        </select>
+        <div className="flex w-full sm:w-auto min-w-[160px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white">
+          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="w-full bg-transparent text-sm text-slate-700 outline-none"
+          >
+            <option value="">{t("content.allStatuses")}</option>
+            <option value={TOURISM_INFORMATION_STATUS.ACTIVE}>{t("common.active")}</option>
+            <option value={TOURISM_INFORMATION_STATUS.INACTIVE}>{t("common.inactive")}</option>
+          </select>
+        </div>
 
-        <div className="flex gap-2">
+        <div className="flex w-full sm:w-auto min-w-[160px] items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white">
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <input
             type="text"
             placeholder={t("content.filterByCity")}
             value={cityInput}
             onChange={(e) => setCityInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+            className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
           />
-          {hasActiveFilters && (
-            <ActionButton variant="secondary" onClick={handleResetFilters} className="shrink-0 px-3">
-              {t("content.reset")}
-            </ActionButton>
-          )}
         </div>
+
+        {hasActiveFilters && (
+          <ActionButton variant="secondary" onClick={handleResetFilters} className="shrink-0 px-3 py-2 text-sm">
+            {t("content.reset")}
+          </ActionButton>
+        )}
       </div>
 
       {isLoading ? (

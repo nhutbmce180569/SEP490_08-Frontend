@@ -7,13 +7,17 @@ import {
   Search,
   Unlock,
 } from 'lucide-react';
+import { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, type Column } from '../../../components/dashboard/Table';
+import { PATH } from '../../../config/routes/route';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
 import { useTranslation } from '../../../contexts/LocaleContext';
 import { useVouchers } from '../hooks/useVouchers';
 import { useChangeVoucherStatus } from '../hooks/useChangeVoucherStatus';
 import { useTourOptions } from '../hooks/useTourOptions';
+import { AuthContext } from '../../../contexts/AuthContext';
 import type { ReadVoucherDTO } from '../types/voucher';
 import {
   formatDateTime,
@@ -29,6 +33,7 @@ export const VoucherList: React.FC = () => {
   const [discountType, setDiscountType] = useState('');
   const [status, setStatus] = useState('');
   const [isActive, setIsActive] = useState('');
+  const [createdByMe, setCreatedByMe] = useState('');
   const [tourId, setTourId] = useState('');
 
   const { options: tourOptions } = useTourOptions();
@@ -40,8 +45,9 @@ export const VoucherList: React.FC = () => {
       status: status || undefined,
       tourId: tourId ? Number(tourId) : undefined,
       isActive: isActive === '' ? undefined : isActive === 'true',
+      createdByMe: createdByMe === '' ? undefined : createdByMe === 'true',
     }),
-    [search, discountType, status, tourId, isActive],
+    [search, discountType, status, tourId, isActive, createdByMe],
   );
 
   const {
@@ -56,6 +62,11 @@ export const VoucherList: React.FC = () => {
   } = useVouchers(filters);
 
   const { executeStatusChange, updatingId } = useChangeVoucherStatus();
+  
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.roles?.includes('Admin');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,9 +87,19 @@ export const VoucherList: React.FC = () => {
     () => [
       {
         header: t('voucher.code'),
-        render: (voucher) => (
-          <span className="font-semibold tracking-wide text-slate-800">{voucher.code}</span>
-        ),
+        render: (voucher) => {
+          const isMine = voucher.creatorId === user?.id;
+          return (
+            <div className="flex items-center gap-2">
+              <span className="font-semibold tracking-wide text-slate-800">{voucher.code}</span>
+              {!isAdmin && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${isMine ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-100 text-slate-500 border border-slate-200'}`}>
+                  {isMine ? (t('voucher.myVoucherBadge') || 'Mine') : (t('voucher.otherVoucherBadge') || 'Others')}
+                </span>
+              )}
+            </div>
+          );
+        },
       },
       {
         header: t('voucher.discount'),
@@ -137,46 +158,52 @@ export const VoucherList: React.FC = () => {
       },
       {
         header: t('common.actions'),
-        render: (voucher) => (
-          <div className="flex items-center gap-1.5">
-            <ActionButton
-              variant="secondary"
-              onClick={() => executeStatusChange(voucher.id, voucher.isActive)}
-              className={`h-8 w-8 ${
-                updatingId === voucher.id ? 'cursor-wait opacity-50' : ''
-              } ${
-                voucher.isActive
-                  ? 'text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700'
-                  : 'text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700'
-              }`}
-              title={voucher.isActive ? t('voucher.deactivate') : t('voucher.activate')}
-              disabled={updatingId === voucher.id}
-            >
-              {voucher.isActive ? (
-                <Lock className="h-3.5 w-3.5" />
-              ) : (
-                <Unlock className="h-3.5 w-3.5" />
-              )}
-            </ActionButton>
-            <ActionButton
-              variant="secondary"
-              onClick={() => handleView(voucher.id)}
-              className="h-8 w-8"
-              title={t('content.viewDetails')}
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </ActionButton>
-            <ActionButton
-              variant="secondary"
-              onClick={() => handleEdit(voucher.id)}
-              className="h-8 w-8"
-              title={t('voucher.editVoucher')}
-              disabled={!voucher.isActive}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </ActionButton>
-          </div>
-        ),
+        render: (voucher) => {
+          const isMine = voucher.creatorId === user?.id;
+          const canEdit = isAdmin || isMine;
+
+          return (
+            <div className="flex items-center gap-1.5">
+              <ActionButton
+                variant="secondary"
+                onClick={() => executeStatusChange(voucher.id, voucher.isActive)}
+                className={`h-8 w-8 ${
+                  updatingId === voucher.id ? 'cursor-wait opacity-50' : ''
+                } ${
+                  !canEdit ? 'opacity-50 cursor-not-allowed' :
+                  voucher.isActive
+                    ? 'text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700'
+                    : 'text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700'
+                }`}
+                title={voucher.isActive ? t('voucher.deactivate') : t('voucher.activate')}
+                disabled={updatingId === voucher.id || !canEdit}
+              >
+                {voucher.isActive ? (
+                  <Lock className="h-3.5 w-3.5" />
+                ) : (
+                  <Unlock className="h-3.5 w-3.5" />
+                )}
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
+                onClick={() => handleView(voucher.id)}
+                className="h-8 w-8"
+                title={t('content.viewDetails')}
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </ActionButton>
+              <ActionButton
+                variant="secondary"
+                onClick={() => handleEdit(voucher.id)}
+                className={`h-8 w-8 ${!canEdit ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title={t('voucher.editVoucher')}
+                disabled={!voucher.isActive || !canEdit}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </ActionButton>
+            </div>
+          );
+        },
       },
     ],
     [t, executeStatusChange, handleEdit, handleView, updatingId],
@@ -189,9 +216,20 @@ export const VoucherList: React.FC = () => {
           <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t('voucher.management')}</h2>
           <p className="mt-0.5 text-xs text-slate-500">{t('voucher.managementDesc')}</p>
         </div>
-        <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
-          <Plus className="h-4 w-4" /> {t('voucher.createVoucher')}
-        </ActionButton>
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <ActionButton 
+              variant="secondary" 
+              onClick={() => navigate(PATH.ADMIN.SYSTEM_VOUCHERS + '/birthday-distribute')} 
+              className="gap-2 px-4 py-2 text-sm bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-100"
+            >
+              🎁 {t('admin.distributeBirthdayVoucher') || 'Distribute Birthday Vouchers'}
+            </ActionButton>
+          )}
+          <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
+            <Plus className="h-4 w-4" /> {t('voucher.createVoucher')}
+          </ActionButton>
+        </div>
       </div>
 
       <div className="grid gap-3 border-b border-slate-100 px-6 py-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -265,6 +303,21 @@ export const VoucherList: React.FC = () => {
           <option value="true">{t('voucher.enabled')}</option>
           <option value="false">{t('voucher.disabled')}</option>
         </select>
+
+        {!isAdmin && (
+          <select
+            value={createdByMe}
+            onChange={(event) => {
+              setPage(1);
+              setCreatedByMe(event.target.value);
+            }}
+            className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-brand focus:bg-white"
+          >
+            <option value="">{t('voucher.allCreators') || 'All Creators'}</option>
+            <option value="true">{t('voucher.myVouchersFilter') || 'My Vouchers'}</option>
+            <option value="false">{t('voucher.otherVouchersFilter') || 'Others\' Vouchers'}</option>
+          </select>
+        )}
       </div>
 
       {isLoading ? (

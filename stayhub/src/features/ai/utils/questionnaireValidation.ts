@@ -36,10 +36,12 @@ export const validateQuestionnaireField = (
         return "Invalid date format (YYYY-MM-DD).";
       return null;
 
-    case "number": {
+    case "number":
+    case "counter": {
       if (isEmpty(raw)) return field.required ? `${field.label} is required.` : null;
       const n = Number(raw);
-      if (Number.isNaN(n) || n < 0) return "Amount must be a non-negative number.";
+      if (Number.isNaN(n) || n < 0) return "Must be a non-negative number.";
+      if (field.fieldKey === "adultCount" && n < 1) return "Must have at least 1 adult.";
       return null;
     }
 
@@ -77,41 +79,6 @@ export const validateFullQuestionnaire = (
   values: QuestionnaireFormValues,
 ): Record<string, string> => validateQuestionnaireStep(questions, values);
 
-/** Conditional: elderly/children counts when toggles are true */
-export const validateExtraCounts = (
-  values: QuestionnaireFormValues,
-): Record<string, string> => {
-  const errors: Record<string, string> = {};
-
-  if (values.hasElderly === true) {
-    const count = values.elderlyCount;
-    if (count == null || Number(count) < 1)
-      errors.elderlyCount = "Enter number of elderly travelers (≥ 1).";
-    else if (Number(count) > 20) errors.elderlyCount = "Maximum 20 people.";
-  }
-
-  if (values.hasChildren === true) {
-    const count = values.childrenCount;
-    if (count == null || Number(count) < 1)
-      errors.childrenCount = "Enter number of children (≥ 1).";
-    else if (Number(count) > 20) errors.childrenCount = "Maximum 20 people.";
-  }
-
-  const start = values.preferredStartDate as string | undefined;
-  const end = values.preferredEndDate as string | undefined;
-  if (start && end && end < start) {
-    errors.preferredEndDate = "End date must be after start date.";
-  }
-
-  const top = values.top;
-  if (top != null && top !== "") {
-    const n = Number(top);
-    if (Number.isNaN(n) || n < 1 || n > 30)
-      errors.top = "Number of results must be between 1 and 30.";
-  }
-
-  return errors;
-};
 
 export const buildRecommendPayload = (
   values: QuestionnaireFormValues,
@@ -123,11 +90,22 @@ export const buildRecommendPayload = (
       ? [String(values.travelInterests)]
       : [];
 
+  const adultCount = Number(values.adultCount || 1);
+  const elderlyCount = Number(values.elderlyCount || 0);
+  const childrenCount = Number(values.childrenCount || 0);
+  const total = adultCount + elderlyCount + childrenCount;
+
+  let inferredCompanionType: TourPreferenceQuestionnaire["companionType"] = "group";
+  if (total === 1) inferredCompanionType = "solo";
+  else if (childrenCount > 0) inferredCompanionType = "family";
+
   const payload: TourPreferenceQuestionnaire = {
-    companionType: values.companionType as TourPreferenceQuestionnaire["companionType"],
+    companionType: inferredCompanionType,
     preferredStartDate: String(values.preferredStartDate),
-    hasElderly: Boolean(values.hasElderly),
-    hasChildren: Boolean(values.hasChildren),
+    adultCount,
+    elderlyCount,
+    childrenCount,
+    travelPace: String(values.travelPace || "moderate"),
     travelInterests,
     nationalityType:
       values.nationalityType as TourPreferenceQuestionnaire["nationalityType"],
@@ -136,12 +114,10 @@ export const buildRecommendPayload = (
 
   if (values.preferredEndDate)
     payload.preferredEndDate = String(values.preferredEndDate);
-  if (values.maxBudgetPerPerson != null && values.maxBudgetPerPerson !== "")
-    payload.maxBudgetPerPerson = Number(values.maxBudgetPerPerson);
-  if (values.hasElderly && values.elderlyCount != null)
-    payload.elderlyCount = Number(values.elderlyCount);
-  if (values.hasChildren && values.childrenCount != null)
-    payload.childrenCount = Number(values.childrenCount);
+  if (values.maxBudgetPerPerson != null && values.maxBudgetPerPerson !== "") {
+    const cleanBudget = String(values.maxBudgetPerPerson).replace(/[.,]/g, "");
+    payload.maxBudgetPerPerson = Number(cleanBudget);
+  }
   if (values.preferredCity) payload.preferredCity = String(values.preferredCity).trim();
   if (values.preferredCountry)
     payload.preferredCountry = String(values.preferredCountry).trim();

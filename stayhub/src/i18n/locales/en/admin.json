@@ -20,5 +20,16 @@
   "systemVouchers": "System vouchers",
   "globalSettings": "Global settings",
   "adminDashboard": "Admin dashboard",
-  "admin": "Admin"
+  "admin": "Admin",
+  "marketing": "Marketing",
+  "voucherManagement": "Voucher Management",
+  "distributeBirthdayVoucher": "Distribute Birthday Vouchers",
+  "birthdayVoucherDesc": "Automatically distribute discount vouchers to customers with birthdays in the selected month.",
+  "selectMonth": "Select month",
+  "distribute": "Auto Distribute",
+  "distributeSuccess": "Success!",
+  "distributeError": "Error distributing vouchers",
+  "emailsSent": "Emails Sent",
+  "eligibleCustomers": "Eligible Customers",
+  "voucherCode": "Voucher Code"
 }

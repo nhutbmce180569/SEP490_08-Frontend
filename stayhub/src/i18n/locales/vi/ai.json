@@ -173,6 +173,8 @@
   "version": "Phiên bản",
   "fairnessAlpha": "Hệ số công bằng α",
   "formula": "Công thức",
+  "methodologySummary": "Tóm tắt phương pháp",
+  "academicReferences": "Trích dẫn học thuật",
   "personasUsed": "Persona đã dùng",
   "dimensionWeights": "Trọng số chiều",
   "knowledgeSources": "Nguồn tri thức",

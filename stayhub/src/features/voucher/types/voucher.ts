@@ -81,4 +81,5 @@ export interface VoucherFilters {
   discountType?: string;
   status?: string;
   isActive?: boolean;
+  createdByMe?: boolean;
 }

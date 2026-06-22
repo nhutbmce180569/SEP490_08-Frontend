@@ -151,5 +151,11 @@
   "quantityPerCustomer": "Số lượng mỗi khách",
   "topCustomersPreview": "Xem trước top khách hàng",
   "noTopCustomersPreview": "Không có khách hàng trong kỳ doanh thu này.",
-  "totalSpend": "Tổng chi tiêu"
+  "totalSpend": "Tổng chi tiêu",
+  "filterCreatedByMe": "Lọc theo người tạo",
+  "allCreators": "Tất cả người tạo",
+  "myVouchersFilter": "Chỉ voucher của tôi",
+  "otherVouchersFilter": "Voucher của người khác",
+  "myVoucherBadge": "Của tôi",
+  "otherVoucherBadge": "Khác"
 }

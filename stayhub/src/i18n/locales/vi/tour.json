@@ -163,6 +163,8 @@
   "noRatings": "Chưa có đánh giá",
   "deactivateTour": "Vô hiệu tour",
   "activateTour": "Kích hoạt tour",
+  "deactivateTourConfirm": "Bạn có chắc muốn vô hiệu tour {{name}}? Khách sẽ không thể đặt tour này.",
+  "activateTourConfirm": "Bạn có chắc muốn kích hoạt tour {{name}}? Khách sẽ có thể xem và đặt tour này.",
   "searchToursPlaceholderMgr": "Tìm tour...",
   "loadingCategories": "Đang tải danh mục...",
   "allCategories": "Tất cả danh mục",

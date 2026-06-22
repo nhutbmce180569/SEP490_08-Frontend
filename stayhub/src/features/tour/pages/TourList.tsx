@@ -1,8 +1,9 @@
-import React, { useCallback, useMemo } from "react";
-import { Search, Pencil, Trash2, Plus, Eye, Star, Power, ListFilter, X } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
+import { Search, Pencil, Trash2, Plus, Eye, Star, Power, PowerOff, ListFilter, X } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { useTours } from "../hooks/useTours";
@@ -41,6 +42,7 @@ export const TourList: React.FC = () => {
     handleToggleStatus,
     togglingTourId,
   } = useTours(PAGE_SIZE);
+  const [tourStatusAction, setTourStatusAction] = useState<Tour | null>(null);
 
   const tours = data?.data || [];
   const totalPages = data?.totalPages || 1;
@@ -74,6 +76,18 @@ export const TourList: React.FC = () => {
     },
     [handleEdit, showError, t],
   );
+
+  const handleConfirmToggleStatus = useCallback(async () => {
+    if (!tourStatusAction) return;
+
+    try {
+      await handleToggleStatus(tourStatusAction);
+    } finally {
+      setTourStatusAction(null);
+    }
+  }, [handleToggleStatus, tourStatusAction]);
+
+  const shouldActivateSelectedTour = tourStatusAction?.status !== "Active";
 
   const columns: Column<Tour>[] = useMemo(
     () => [
@@ -176,7 +190,7 @@ export const TourList: React.FC = () => {
                   variant="secondary"
                   aria-label={tour.status === "Active" ? t("tour.deactivate") : t("tour.activate")}
                   title={tour.status === "Active" ? t("tour.deactivateTour") : t("tour.activateTour")}
-                  onClick={() => handleToggleStatus(tour)}
+                  onClick={() => setTourStatusAction(tour)}
                   disabled={togglingTourId === tour.id}
                   className={`h-8 w-8 ${
                     tour.status === "Active"
@@ -184,7 +198,11 @@ export const TourList: React.FC = () => {
                       : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
                   } ${togglingTourId === tour.id ? "cursor-wait opacity-60" : ""}`}
                 >
-                  <Power className="h-3.5 w-3.5" />
+                  {tour.status === "Active" ? (
+                    <PowerOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <Power className="h-3.5 w-3.5" />
+                  )}
                 </ActionButton>
                 <ActionButton
                   variant="secondary"
@@ -214,7 +232,6 @@ export const TourList: React.FC = () => {
       categoryNameById,
       handleEditClick,
       handleDelete,
-      handleToggleStatus,
       handleView,
       togglingTourId,
     ],
@@ -318,6 +335,33 @@ export const TourList: React.FC = () => {
         totalItems={totalItems}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={!!tourStatusAction}
+        onClose={() => setTourStatusAction(null)}
+        onConfirm={handleConfirmToggleStatus}
+        title={
+          shouldActivateSelectedTour
+            ? t("tour.activateTour")
+            : t("tour.deactivateTour")
+        }
+        message={
+          shouldActivateSelectedTour
+            ? t("tour.activateTourConfirm", { name: tourStatusAction?.name ?? "" })
+            : t("tour.deactivateTourConfirm", { name: tourStatusAction?.name ?? "" })
+        }
+        confirmText={
+          shouldActivateSelectedTour ? t("tour.activate") : t("tour.deactivate")
+        }
+        variant={shouldActivateSelectedTour ? "primary" : "warning"}
+        icon={
+          shouldActivateSelectedTour ? (
+            <Power className="h-6 w-6 text-brand" />
+          ) : (
+            <PowerOff className="h-6 w-6 text-rose-500" />
+          )
+        }
       />
     </div>
   );

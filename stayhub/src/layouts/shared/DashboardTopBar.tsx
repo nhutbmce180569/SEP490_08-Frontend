@@ -9,6 +9,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  User,
 } from "lucide-react";
 
 import { ActionButton } from "../../components/dashboard/ActionButton";
@@ -140,16 +141,6 @@ export function DashboardTopBar({
       </div>
 
       <div className="flex items-center gap-1.5 sm:gap-2">
-        <div className="search-bar-glass hidden max-w-xs lg:flex xl:max-w-sm">
-          <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={t("home.quickSearchDashboard")}
-            className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400"
-            aria-label={t("common.search")}
-          />
-        </div>
 
         <ActionButton
           variant="secondary"
@@ -221,6 +212,17 @@ export function DashboardTopBar({
                 <p className="truncate text-sm font-bold text-navy">{displayName}</p>
                 <p className="truncate text-xs text-slate-500">{user?.email || user?.Email}</p>
               </div>
+              <button
+                type="button"
+                className="menu-item mt-1"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  navigate(PATH.CUSTOMER.PROFILE);
+                }}
+              >
+                <User className="h-4 w-4" />
+                {t("header.myProfile")}
+              </button>
               <button
                 type="button"
                 className="menu-item menu-item-danger mt-1"

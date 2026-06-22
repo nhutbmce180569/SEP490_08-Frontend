@@ -73,6 +73,130 @@ type TicketSummaryItem = {
   quantity: number;
 };
 
+type CountryOption = {
+  code: string;
+  name: string;
+  region?: string;
+  aliases?: string[];
+};
+
+type CountriesNowStatesResponse = {
+  data?: {
+    name?: string;
+    iso2?: string;
+    states?: {
+      name?: string;
+      state_code?: string;
+    }[];
+  }[];
+};
+
+const DEFAULT_NATIONALITY = "Vietnam";
+const COUNTRY_API_URL = "https://countriesnow.space/api/v0.1/countries/states";
+const UK_CONSTITUENT_COUNTRIES = new Set([
+  "England",
+  "Northern Ireland",
+  "Scotland",
+  "Wales",
+]);
+const FALLBACK_COUNTRIES: CountryOption[] = [
+  { code: "VN", name: DEFAULT_NATIONALITY, region: "Asia" },
+  {
+    code: "GB",
+    name: "United Kingdom",
+    region: "Europe",
+    aliases: ["UK", "Britain", "Great Britain", "British"],
+  },
+  { code: "GB", name: "England", region: "Europe", aliases: ["English"] },
+  { code: "GB", name: "Scotland", region: "Europe", aliases: ["Scottish"] },
+  { code: "GB", name: "Wales", region: "Europe", aliases: ["Welsh"] },
+  {
+    code: "GB",
+    name: "Northern Ireland",
+    region: "Europe",
+    aliases: ["Irish", "Northern Irish"],
+  },
+  { code: "US", name: "United States", region: "North America" },
+  { code: "JP", name: "Japan", region: "Asia" },
+  { code: "KR", name: "Korea, Republic of", region: "Asia" },
+  { code: "CN", name: "China", region: "Asia" },
+  { code: "SG", name: "Singapore", region: "Asia" },
+  { code: "TH", name: "Thailand", region: "Asia" },
+  { code: "FR", name: "France", region: "Europe" },
+  { code: "DE", name: "Germany", region: "Europe" },
+  { code: "AU", name: "Australia", region: "Oceania" },
+];
+
+const getCountryFlag = (countryCode: string) => {
+  if (!/^[A-Z]{2}$/.test(countryCode)) return "🌐";
+
+  return countryCode
+    .split("")
+    .map((char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
+    .join("");
+};
+
+const getCountryDisplayName = (countryCode: string, countryName: string) =>
+  countryCode === "VN" ? DEFAULT_NATIONALITY : countryName.trim();
+
+const mergeCountryOptions = (options: CountryOption[]) => {
+  const countryByName = new Map<string, CountryOption>();
+
+  [...FALLBACK_COUNTRIES, ...options].forEach((option) => {
+    const name = option.name.trim();
+    if (!name) return;
+
+    countryByName.set(name.toLowerCase(), {
+      ...option,
+      code: option.code.toUpperCase(),
+      name,
+    });
+  });
+
+  return Array.from(countryByName.values()).sort((a, b) => {
+    if (a.name === DEFAULT_NATIONALITY) return -1;
+    if (b.name === DEFAULT_NATIONALITY) return 1;
+    return a.name.localeCompare(b.name);
+  });
+};
+
+const getCountriesNowOptions = (payload: CountriesNowStatesResponse) =>
+  (payload.data ?? []).flatMap((country) => {
+    const countryCode = country.iso2?.trim().toUpperCase() ?? "";
+    const countryName = getCountryDisplayName(
+      countryCode,
+      country.name?.trim() ?? "",
+    );
+
+    const options: CountryOption[] = countryName
+      ? [
+          {
+            code: countryCode,
+            name: countryName,
+          },
+        ]
+      : [];
+
+    if (countryCode === "GB") {
+      country.states
+        ?.filter(
+          (state) => state.name && UK_CONSTITUENT_COUNTRIES.has(state.name),
+        )
+        .forEach((state) => {
+          options.push({
+            code: countryCode,
+            name: state.name!,
+            region: "Europe",
+          });
+        });
+    }
+
+    return options;
+  });
+
+const getErrorMessage = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;
+
 const getTicketPrice = (ticket: TourScheduleTicket) => getNumberValue(ticket.price);
 
 const getTicketAvailable = (ticket: TourScheduleTicket) =>
@@ -121,6 +245,11 @@ export const BookingPage: React.FC = () => {
   const [paymentProvider, setPaymentProvider] = useState<PaymentProvider>("vnpay");
   const [isExcelProcessing, setIsExcelProcessing] = useState(false);
   const [excelImportCount, setExcelImportCount] = useState<number | null>(null);
+  const [countryOptions, setCountryOptions] = useState<CountryOption[]>(
+    () => mergeCountryOptions([]),
+  );
+  const [isCountryLoading, setIsCountryLoading] = useState(false);
+  const [isNationalityOptionsOpen, setIsNationalityOptionsOpen] = useState(false);
 
   const errorHandledRef = useRef(false);
   const passengerSequenceRef = useRef(0);
@@ -167,6 +296,29 @@ export const BookingPage: React.FC = () => {
     return Array.from(summary.values());
   }, [tickets]);
 
+  const nationalitySearch =
+    editingTicketIndex !== null
+      ? (tickets[editingTicketIndex]?.nationality ?? "")
+      : "";
+
+  const filteredCountryOptions = useMemo(() => {
+    const normalizedSearch = nationalitySearch.trim().toLowerCase();
+
+    const matches = normalizedSearch
+      ? countryOptions.filter((country) =>
+          `${country.name} ${country.code} ${country.region ?? ""} ${
+            country.aliases?.join(" ") ?? ""
+          } ${
+            country.code === "VN" ? "Viet Nam Việt Nam" : ""
+          }`
+            .toLowerCase()
+            .includes(normalizedSearch),
+        )
+      : countryOptions;
+
+    return matches.slice(0, 12);
+  }, [countryOptions, nationalitySearch]);
+
   const hasBookableTickets = scheduleTicketOptions.some(
     (ticket) => getTicketPrice(ticket) !== null && getTicketAvailable(ticket) > 0,
   );
@@ -210,6 +362,40 @@ export const BookingPage: React.FC = () => {
     t,
   ]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadCountries = async () => {
+      setIsCountryLoading(true);
+      try {
+        const response = await fetch(COUNTRY_API_URL, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error("Unable to load countries.");
+        }
+
+        const payload = (await response.json()) as CountriesNowStatesResponse;
+        const loadedCountries = getCountriesNowOptions(payload);
+
+        setCountryOptions(mergeCountryOptions(loadedCountries));
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsCountryLoading(false);
+        }
+      }
+    };
+
+    loadCountries();
+
+    return () => controller.abort();
+  }, []);
+
   if (!tour || !schedule) return null;
 
   const isExpired = new Date(schedule.departureDate).getTime() < currentTime;
@@ -233,7 +419,7 @@ export const BookingPage: React.FC = () => {
       idCard: "",
       dateOfBirth: "",
       gender: "Male",
-      nationality: "Vietnam",
+      nationality: DEFAULT_NATIONALITY,
     };
   };
 
@@ -301,8 +487,8 @@ export const BookingPage: React.FC = () => {
       setIsExcelProcessing(true);
       await downloadBookingPassengerExcel(getPassengerExcelRecords());
       success(t("booking.passengerExcelDownloaded", { count: tickets.length }));
-    } catch (error: any) {
-      showError(error.message || t("booking.passengerExcelDownloadFailed"));
+    } catch (error: unknown) {
+      showError(getErrorMessage(error, t("booking.passengerExcelDownloadFailed")));
     } finally {
       setIsExcelProcessing(false);
     }
@@ -341,8 +527,8 @@ export const BookingPage: React.FC = () => {
           count: importedRecords.length,
         }),
       );
-    } catch (error: any) {
-      showError(error.message || t("booking.passengerExcelImportFailed"));
+    } catch (error: unknown) {
+      showError(getErrorMessage(error, t("booking.passengerExcelImportFailed")));
     } finally {
       setIsExcelProcessing(false);
     }
@@ -1042,24 +1228,83 @@ export const BookingPage: React.FC = () => {
                   <label className="mb-1.5 block text-xs font-bold text-slate-700">
                     {t("booking.nationalityCol")} *
                   </label>
-                  <input
-                    type="text"
-                    placeholder={t("booking.nationalityPlaceholder")}
-                    value={tickets[editingTicketIndex].nationality}
-                    onChange={(event) =>
-                      handleTicketFieldChange(
-                        editingTicketIndex,
-                        "nationality",
-                        event.target.value,
-                      )
-                    }
-                    className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm outline-none transition-colors ${
-                      ticketErrors.nationality
-                        ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
-                        : "border-slate-200 focus:border-brand"
-                    }`}
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="search"
+                      autoComplete="off"
+                      placeholder={t("booking.nationalitySearchPlaceholder")}
+                      value={tickets[editingTicketIndex].nationality}
+                      onFocus={() => setIsNationalityOptionsOpen(true)}
+                      onBlur={() => {
+                        window.setTimeout(
+                          () => setIsNationalityOptionsOpen(false),
+                          100,
+                        );
+                      }}
+                      onChange={(event) => {
+                        setIsNationalityOptionsOpen(true);
+                        handleTicketFieldChange(
+                          editingTicketIndex,
+                          "nationality",
+                          event.target.value,
+                        );
+                      }}
+                      className={`w-full rounded-xl border bg-white px-4 py-2.5 pr-12 text-sm outline-none transition-colors ${
+                        ticketErrors.nationality
+                          ? "border-rose-400 focus:border-rose-500 focus:ring-1 focus:ring-rose-500"
+                          : "border-slate-200 focus:border-brand"
+                      }`}
+                      required
+                    />
+                    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm">
+                      {getCountryFlag(
+                        countryOptions.find(
+                          (country) =>
+                            country.name.toLowerCase() ===
+                            tickets[editingTicketIndex].nationality.trim().toLowerCase(),
+                        )?.code ?? "",
+                      )}
+                    </span>
+
+                    {isNationalityOptionsOpen && (
+                      <div className="absolute bottom-full left-0 right-0 z-20 mb-2 max-h-56 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1 shadow-xl">
+                        {isCountryLoading ? (
+                          <div className="px-3 py-2 text-xs font-semibold text-slate-500">
+                            {t("booking.loadingNationalities")}
+                          </div>
+                        ) : filteredCountryOptions.length > 0 ? (
+                          filteredCountryOptions.map((country) => (
+                            <button
+                              key={country.code}
+                              type="button"
+                              onMouseDown={(event) => event.preventDefault()}
+                              onClick={() => {
+                                handleTicketFieldChange(
+                                  editingTicketIndex,
+                                  "nationality",
+                                  country.name,
+                                );
+                                setIsNationalityOptionsOpen(false);
+                              }}
+                              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors hover:bg-brand-light hover:text-brand"
+                            >
+                              <span>{getCountryFlag(country.code)}</span>
+                              <span className="min-w-0 flex-1 truncate">
+                                {country.name}
+                              </span>
+                              <span className="text-[10px] font-black uppercase text-slate-400">
+                                {country.code}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-xs font-semibold text-slate-500">
+                            {t("booking.noNationalityMatches")}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {ticketErrors.nationality && (
                     <p className="mt-1 text-xs text-rose-500">
                       {ticketErrors.nationality}

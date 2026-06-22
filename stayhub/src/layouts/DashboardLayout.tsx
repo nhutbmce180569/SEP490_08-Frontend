@@ -3,7 +3,6 @@ import {
   BarChart3,
   BookOpen,
   CalendarDays,
-  CircleDollarSign,
   FileText,
   LayoutDashboard,
   Star,
@@ -52,11 +51,6 @@ export const DashboardLayout = () => {
         title: t("manager.sales"),
         items: [
           {
-            label: t("manager.bookings"),
-            to: PATH.MANAGER.BOOKING_MANAGEMENT,
-            icon: <TicketPercent className={iconClass} />,
-          },
-          {
             label: t("manager.cancellations"),
             to: PATH.MANAGER.CANCELLATION_REQUESTS,
             icon: <FileText className={iconClass} />,
@@ -85,11 +79,6 @@ export const DashboardLayout = () => {
             label: t("manager.bookingStatistics"),
             to: PATH.MANAGER.BOOKING_STATISTICS,
             icon: <TicketPercent className={iconClass} />,
-          },
-          {
-            label: t("manager.finance"),
-            to: PATH.MANAGER.PAYOUT,
-            icon: <CircleDollarSign className={iconClass} />,
           },
         ],
       },

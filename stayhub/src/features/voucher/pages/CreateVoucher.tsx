@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useContext } from 'react';
 import {
   Calendar,
   Hash,
@@ -10,6 +10,7 @@ import {
 import { DynamicForm, type FormField } from '../../../components/dashboard/DynamicForm';
 import { LoadingOverlay } from '../../../components/dashboard/LoadingOverlay';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { AuthContext } from '../../../contexts/AuthContext';
 import { createDefaultVoucherTarget, VoucherTargetEditor, type VoucherTargetValue } from '../components/VoucherTargetEditor';
 import { useCreateVoucher } from '../hooks/useCreateVoucher';
 import { useTourOptions } from '../hooks/useTourOptions';
@@ -17,8 +18,10 @@ import { validateVoucherCode } from '../utils/voucherHelpers';
 
 export const CreateVoucher: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.roles?.includes('Admin') ?? false;
   const { handleSubmit, handleCancel, isSubmitting, serverErrors } = useCreateVoucher();
-  const { options: tourOptions } = useTourOptions();
+  const { options: tourOptions } = useTourOptions(isAdmin);
 
   const voucherFields: FormField[] = useMemo(
     () => [
@@ -39,6 +42,7 @@ export const CreateVoucher: React.FC = () => {
         icon: <Ticket className="h-4 w-4" />,
         colSpan: 2,
         options: tourOptions,
+        required: !isAdmin,
       },
       {
         name: 'discountType',

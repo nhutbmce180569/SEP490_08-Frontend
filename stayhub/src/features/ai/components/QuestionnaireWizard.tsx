@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import type { QuestionnaireField, QuestionnaireFormValues } from "../types/tourAssistant";
@@ -37,6 +37,13 @@ export const QuestionnaireWizard: React.FC<Props> = ({
     buildInitialQuestionnaireValues(questions, draft),
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [direction, setDirection] = useState(1);
+
+  const variants = {
+    enter: (d: number) => ({ x: d > 0 ? 80 : -80, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -80 : 80, opacity: 0 }),
+  };
 
   const steps = useMemo(() => {
     const chunks: QuestionnaireField[][] = [];
@@ -50,25 +57,6 @@ export const QuestionnaireWizard: React.FC<Props> = ({
   const currentFields = steps[step] ?? [];
   const isLastStep = step === totalSteps - 1;
   const progress = ((step + 1) / totalSteps) * 100;
-  
-  // Custom animation variants
-  const variants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 50 : -50,
-      opacity: 0,
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 50 : -50,
-      opacity: 0,
-    }),
-  };
-  const [direction, setDirection] = useState(1);
 
   const handleChange = (fieldKey: string, value: unknown) => {
     setValues((prev) => ({ ...prev, [fieldKey]: value }));
@@ -83,21 +71,21 @@ export const QuestionnaireWizard: React.FC<Props> = ({
     const fieldErrors = isLastStep && currentFields.length === 0
       ? {}
       : validateQuestionnaireStep(currentFields, values);
-      
+
     // Custom check for dates if both present
     const start = values.preferredStartDate as string;
     const end = values.preferredEndDate as string;
     if (start && end && end < start) {
-      fieldErrors.preferredEndDate = "End date must be after start date.";
+      fieldErrors.preferredEndDate = t("ai.endDateError") || "Ngày kết thúc phải sau ngày bắt đầu";
     }
-    
+
     // Check Top constraint manually since ExtraCountFields is removed
     if (isLastStep) {
       const top = values.top;
       if (top != null && top !== "") {
         const n = Number(top);
         if (Number.isNaN(n) || n < 1 || n > 30) {
-          fieldErrors.top = "Number of results must be between 1 and 30.";
+          fieldErrors.top = t("ai.topError") || "Số lượng kết quả phải từ 1 đến 30.";
         }
       }
     }
@@ -121,7 +109,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
     setDirection(1);
     setStep((s) => s + 1);
   };
-  
+
   const handleBack = () => {
     setDirection(-1);
     setStep((s) => Math.max(0, s - 1));
@@ -172,15 +160,15 @@ export const QuestionnaireWizard: React.FC<Props> = ({
             {isLastStep ? (
               <>
                 <div className="mb-2">
-                  <p className="travel-eyebrow mb-1 text-brand">Final Step</p>
+                  <p className="travel-eyebrow mb-1 text-brand">{t("ai.finalStep") || "Bước cuối cùng"}</p>
                   <p className="text-[15px] font-medium text-[var(--text-muted)]">
-                    Almost there! How many options should we curate for you?
+                    {t("ai.finalStepDesc") || "Gần xong rồi! Bạn muốn nhận bao nhiêu gợi ý tour từ AI?"}
                   </p>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-bold text-[var(--color-navy)]">
-                    Max tours to show{" "}
-                    <span className="font-normal text-[var(--text-muted)]">(default 8)</span>
+                    {t("ai.maxToursToShow") || "Số tour hiển thị tối đa"}{" "}
+                    <span className="font-normal text-[var(--text-muted)]">({t("common.default") || "mặc định"} 8)</span>
                   </label>
                   <input
                     type="number"

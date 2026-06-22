@@ -97,6 +97,7 @@ import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
 import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
+import { AdminVoucherManagementPage } from "./features/voucher/pages/AdminVoucherManagementPage";
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
@@ -609,23 +610,11 @@ const App: React.FC = () => {
                     element={mock("app.titles.withdrawals", "app.mockWithdrawals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
-                    <Route index element={mock("app.titles.systemVouchers", "app.mockSystemVouchers", "app.sectionAdmin")} />
-                    <Route
-                      path="create"
-                      element={mock("app.titles.createVoucher", "app.mockCreateVoucher", "app.sectionAdmin")}
-                    />
-                    <Route
-                      path=":id"
-                      element={mock("app.titles.voucherDetail", "app.mockVoucherDetailAdmin", "app.sectionAdmin")}
-                    />
-                    <Route
-                      path=":id/edit"
-                      element={mock("app.titles.editVoucher", "app.mockEditVoucher", "app.sectionAdmin")}
-                    />
-                    <Route
-                      path=":id/delete"
-                      element={mock("app.titles.deleteVoucher", "app.mockDeleteVoucher", "app.sectionAdmin")}
-                    />
+                    <Route index element={<VoucherList />} />
+                    <Route path="birthday-distribute" element={<AdminVoucherManagementPage />} />
+                    <Route path="create" element={<CreateVoucher />} />
+                    <Route path=":id/edit" element={<UpdateVoucher />} />
+                    <Route path=":id" element={<VoucherDetail />} />
                   </Route>
                   <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
                     <Route index element={<BannerList />} />

@@ -29,6 +29,7 @@ export const voucherService = {
     if (filters?.discountType) params.discountType = filters.discountType;
     if (filters?.status) params.status = filters.status;
     if (filters?.isActive !== undefined) params.isActive = filters.isActive;
+    if (filters?.createdByMe !== undefined) params.createdByMe = filters.createdByMe;
 
     const response = await apiClient.get<PaginationDTO<ReadVoucherDTO>>(VOUCHER_API.GET_ALL, { params });
     return unwrap<PaginationDTO<ReadVoucherDTO>>(response);
@@ -57,5 +58,11 @@ export const voucherService = {
   deactivate: async (id: number | string): Promise<ReadVoucherDTO> => {
     const response = await apiClient.patch<ReadVoucherDTO>(VOUCHER_API.DEACTIVATE(id));
     return unwrap<ReadVoucherDTO>(response);
+  },
+
+  distributeBirthdayVouchers: async (month?: number): Promise<{ voucherCode: string, totalEligibleCustomers: number, emailsSent: number, message: string }> => {
+    const params = month ? { month } : undefined;
+    const response = await apiClient.post(VOUCHER_API.DISTRIBUTE_BIRTHDAY, undefined, { params });
+    return unwrap(response);
   },
 };

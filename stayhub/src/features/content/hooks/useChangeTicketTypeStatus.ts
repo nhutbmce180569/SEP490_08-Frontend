@@ -13,9 +13,7 @@ export const useChangeTicketTypeStatus = () => {
     setUpdatingId(id);
 
     try {
-      const res = currentStatus
-        ? await ticketTypeService.deactivate(id)
-        : await ticketTypeService.activate(id);
+      const res = await ticketTypeService.changeStatus(id);
 
       success(
         res?.message ||

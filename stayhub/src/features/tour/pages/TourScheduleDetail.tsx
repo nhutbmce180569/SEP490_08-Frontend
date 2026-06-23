@@ -241,11 +241,7 @@ export const TourScheduleDetail: React.FC = () => {
     try {
       setUpdatingTicketId(ticket.id);
       setConfirmAction(null);
-      if (shouldDeactivate) {
-        await tourScheduleTicketService.deactivate(ticket.id);
-      } else {
-        await tourScheduleTicketService.activate(ticket.id);
-      }
+      await tourScheduleTicketService.changeStatus(ticket.id);
 
       await fetchTickets(schedule.id);
     } catch (err: unknown) {

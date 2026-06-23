@@ -81,6 +81,8 @@
   "priority": "Ưu tiên",
   "deactivate": "Vô hiệu hóa",
   "activate": "Kích hoạt",
+  "deactivateTicketTypeConfirm": "Loại vé này sẽ không còn dùng để thiết lập vé cho lịch tour mới.",
+  "activateTicketTypeConfirm": "Loại vé này sẽ được dùng lại khi thiết lập vé cho lịch tour.",
   "viewDetails": "Xem chi tiết",
   "targetUrlLabel": "URL đích:",
   "addCategory": "Thêm danh mục",

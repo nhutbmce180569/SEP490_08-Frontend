@@ -134,7 +134,7 @@ export const AiRecommendationsPage: React.FC = () => {
         ),
       ];
 
-  const tourFilters: { id: TourFilter; label: string; show: boolean }[] = [
+  const tourFilters = ([
     {
       id: "all",
       label: t("ai.tourTabAll", { count: totalTours }),
@@ -150,7 +150,7 @@ export const AiRecommendationsPage: React.FC = () => {
       label: t("ai.tourTabNearby", { count: nearbyTours.length }),
       show: showNearbySection,
     },
-  ].filter((f) => f.show);
+  ] as { id: TourFilter; label: string; show: boolean }[]).filter((f) => f.show);
 
   return (
     <div className="home-page min-h-screen pb-20">

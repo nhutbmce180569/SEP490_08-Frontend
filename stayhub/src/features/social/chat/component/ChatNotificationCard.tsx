@@ -27,12 +27,11 @@ export const ChatNotificationCard: React.FC<ChatNotificationCardProps> = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       whileHover={{ scale: 1.015 }}
-      whileActive={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 380, damping: 30 }}
       drag="y"
       dragConstraints={{ top: -100, bottom: 0 }}
       dragElastic={{ top: 0.2, bottom: 0 }}
-      onDragEnd={(e, info) => {
+      onDragEnd={(_, info) => {
         // Swipe up gesture to quickly dismiss notification, standard on iOS
         if (info.offset.y < -30) {
           onClose();

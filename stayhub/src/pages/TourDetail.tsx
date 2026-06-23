@@ -50,8 +50,6 @@ type PublicTourItinerary = TourItinerary & {
   endLocationName?: string | null;
 };
 
-const fmt = (n: number) => n.toLocaleString("vi-VN");
-
 const fmtDate = (d: string) =>
   new Date(d).toLocaleDateString("vi-VN", {
     day: "2-digit",

@@ -10,10 +10,8 @@ import {
   UserPlus,
   Pin,
   BellOff,
-  MoreVertical,
   CheckCheck,
   SmilePlus,
-  LogOut,
   X,
   Search,
   SquarePen,
@@ -124,7 +122,7 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
     queryFn: () => chatService.getRoomMembers(roomId!),
     enabled: !!roomId && isOpen,
   });
-  const members = Array.isArray(membersResponse) ? membersResponse : membersResponse?.data || [];
+  const members = membersResponse ?? [];
 
   useEffect(() => {
     if (isOpen) {
@@ -272,14 +270,6 @@ const { mutate: mutateMarkAsRead } = useMutation({
     if (!selectedRoomId) return;
     mutateAddMembersAPI({ roomId: selectedRoomId, userIds });
   };
-
-  const { mutate: mutateLeaveGroup, isPending: isLeavingGroup } = useMutation({
-    mutationFn: (roomId: number) => chatService.leaveGroup(roomId),
-    onSuccess: () => {
-      setSelectedRoomId(null);
-      queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
-    },
-  });
 
   const { mutate: mutateCreateChatRoom, isPending: isCreatingNewChat } = useCreateChatRoom();
 
@@ -438,7 +428,12 @@ const { mutate: mutateMarkAsRead } = useMutation({
                       const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? selectedRoom?.avatarUrl : null);
 
                       return (
-                        <div key={`${msg.id}-${idx}`} className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} group shrink-0`}>
+                        <div
+                          key={`${msg.id}-${idx}`}
+                          onMouseEnter={() => setHoveredMessageId(msg.id)}
+                          onMouseLeave={() => setHoveredMessageId(null)}
+                          className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} group shrink-0`}
+                        >
                           <div className={`flex gap-2.5 items-end max-w-[75%] ${isMe ? 'flex-row-reverse' : ''}`}>
                             {!isMe && (
                               <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0 text-[10px] font-bold text-white mb-0.5 overflow-hidden border border-slate-200 shadow-sm">

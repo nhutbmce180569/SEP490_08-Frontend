@@ -2,16 +2,10 @@ import { useMemo } from "react";
 import {
   BarChart3,
   Bot,
-  Building,
   Compass,
-  CreditCard,
-  Download,
   Image,
   Layers,
-  Map,
   PieChart,
-  Settings,
-  ShieldAlert,
   Ticket,
   Users,
 } from "lucide-react";

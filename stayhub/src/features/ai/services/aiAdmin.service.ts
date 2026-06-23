@@ -10,7 +10,6 @@ import type {
   TourConsultationRequest,
   TourPreferenceQuestionnaire,
   TourRecommendationItem,
-  TourSearchResultItem,
   TourismInsight,
 } from "../types/tourAssistant";
 import type {

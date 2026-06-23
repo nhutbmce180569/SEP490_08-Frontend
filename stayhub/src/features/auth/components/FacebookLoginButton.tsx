@@ -27,7 +27,7 @@ export const FacebookLoginButton: React.FC = () => {
           error(t("errors.facebookLoginFailed"));
         }}
         onProfileSuccess={() => {}}
-        render={({ onClick }) => (
+        render={({ onClick }: { onClick: () => void }) => (
           <button
             type="button"
             onClick={onClick}

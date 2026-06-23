@@ -15,15 +15,15 @@ export const UpdateUser: React.FC = () => {
   if (fetchError) return <div className="flex justify-center p-10 text-rose-500">{fetchError}</div>;
   if (!user) return <div className="flex justify-center p-10 text-slate-500">{t("auth.userNotFound")}</div>;
 
-  const roleOptions = Array.isArray(rolesList) ? rolesList.map((role: any) => ({
-    label: role.name || role.Name || t("auth.unknown"),
-    value: role.id !== undefined ? role.id : role.Id,
+  const roleOptions = Array.isArray(rolesList) ? rolesList.map((role) => ({
+    label: role.name || t("auth.unknown"),
+    value: role.id,
   })) : [];
 
   const currentRoleIds = user?.roles?.map(roleName => {
-    const found = Array.isArray(rolesList) ? rolesList.find((r: any) => r.name === roleName || r.Name === roleName) : null;
-    return found ? (found.id !== undefined ? found.id : found.Id) : null;
-  }).filter(Boolean);
+    const found = Array.isArray(rolesList) ? rolesList.find((r) => r.name === roleName) : null;
+    return found ? found.id : null;
+  }).filter((roleId): roleId is number => roleId !== null);
 
   const userFields: FormField[] = [
     {
@@ -109,7 +109,7 @@ export const UpdateUser: React.FC = () => {
     <>
       <DynamicForm 
         title={t("auth.updateUser")} 
-        description={t("auth.updateUserDesc", { id })} 
+        description={t("auth.updateUserDesc", { id: id ?? "" })}
         fields={userFields} 
         initialValues={{ 
           ...user, 

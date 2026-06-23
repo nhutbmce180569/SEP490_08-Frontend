@@ -8,7 +8,6 @@ import {
   Menu,
   PanelLeftClose,
   PanelLeftOpen,
-  Search,
   User,
 } from "lucide-react";
 
@@ -46,7 +45,6 @@ export function DashboardTopBar({
   const { user } = useContext(AuthContext);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const displayName = user?.fullName || user?.FullName || t("common.user");

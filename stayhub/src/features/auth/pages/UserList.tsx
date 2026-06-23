@@ -16,7 +16,7 @@ export const UserList: React.FC = () => {
   const [filters, setFilters] = useState({ fullName: "", role: "" });
 
   const userHookData = useUsers(filters);
-  const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete } = userHookData;
+  const { data, isLoading, error, pageSize, setPage, handleCreate, handleEdit, handleDelete } = userHookData;
   const refetch = (userHookData as any).refetch;
 
   useEffect(() => {

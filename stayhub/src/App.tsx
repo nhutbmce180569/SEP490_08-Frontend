@@ -275,7 +275,7 @@ const MomentsRouteWrapper = () => {
       </div>
 
     
-      <MomentsFeed scheduleId={selectedSchedule as any} /> 
+      <MomentsFeed key={selectedSchedule || 'global-map'} scheduleId={selectedSchedule as any} />
     </div>
   );
 };

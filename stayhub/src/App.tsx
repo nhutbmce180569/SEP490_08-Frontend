@@ -116,6 +116,7 @@ import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
+import NotificationListPage from "./features/system/pages/Notificationlistpage";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -394,7 +395,7 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.NOTIFICATIONS}
-                      element={mock("app.titles.notifications", "app.mockNotifications", "app.sectionCustomer")}
+                      element={<NotificationListPage />}
                     />
                     
                     <Route path="/social/moments"

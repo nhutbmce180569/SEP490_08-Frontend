@@ -1,7 +1,7 @@
 import React from "react";
 import { Minus, Plus } from "lucide-react";
 import { useTranslation } from "../../../contexts/LocaleContext";
-import type { QuestionnaireField, QuestionnaireFormValues } from "../types/tourAssistant";
+import type { QuestionnaireField } from "../types/tourAssistant";
 
 const inputBase =
   "w-full rounded-xl border border-[var(--border-default)] bg-[var(--surface-input)] py-3 px-4 text-sm font-medium text-[var(--color-navy)] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10";
@@ -201,5 +201,3 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
       );
   }
 };
-
-

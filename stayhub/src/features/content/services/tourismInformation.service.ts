@@ -11,6 +11,8 @@ import type {
 type RawPagination<T> = {
   data?: T[];
   items?: T[];
+  Data?: T[];
+  Items?: T[];
   total?: number;
   totalItems?: number;
   totalCount?: number;

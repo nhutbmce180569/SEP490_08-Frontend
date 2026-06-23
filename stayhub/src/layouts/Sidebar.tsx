@@ -33,13 +33,11 @@ function NavItems({
   collapsed,
   logoLink,
   onClose,
-  variant,
 }: {
   items: AdminSidebarItem[];
   collapsed: boolean;
   logoLink: string;
   onClose: () => void;
-  variant: DashboardRole;
 }) {
   return (
     <>
@@ -141,7 +139,6 @@ export function Sidebar({
               collapsed={collapsed}
               logoLink={logoLink}
               onClose={onClose}
-              variant={variant}
             />
           )}
 
@@ -158,7 +155,6 @@ export function Sidebar({
                   collapsed={collapsed}
                   logoLink={logoLink}
                   onClose={onClose}
-                  variant={variant}
                 />
               </div>
             </div>

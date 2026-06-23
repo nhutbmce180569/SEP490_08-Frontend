@@ -11,7 +11,6 @@ import { useRemoveFromWishlist } from '../hooks/useRemoveFromWishlist';
 import type { WishlistTab } from '../types/customerWishlist';
 import {
   filterWishlistBySearch,
-  getWishlistTabCounts,
 } from '../utils/wishlistHelpers';
 
 export const MyWishlistPage: React.FC = () => {
@@ -36,7 +35,6 @@ export const MyWishlistPage: React.FC = () => {
     onRemoved: () => setPendingRemove(null),
   });
 
-  const tabCounts = useMemo(() => getWishlistTabCounts(allItems), [allItems]);
   const displayedItems = useMemo(
     () => filterWishlistBySearch(items, searchQuery),
     [items, searchQuery],

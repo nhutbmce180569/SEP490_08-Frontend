@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Lock, Pencil, Plus, Search, Ticket, Unlock } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { useChangeTicketTypeStatus } from "../hooks/useChangeTicketTypeStatus";
@@ -12,16 +13,17 @@ export const TicketTypeList: React.FC = () => {
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusTarget, setStatusTarget] = useState<ReadTicketTypeDTO | null>(null);
   const { data, isLoading, error, pageSize, setPage, handleCreate, handleEdit } =
     useTicketTypes(searchTerm);
   const { executeStatusChange, updatingId } = useChangeTicketTypeStatus();
 
-  const formatDate = (date?: string | null) => {
+  const formatDate = useCallback((date?: string | null) => {
     if (!date) return t("common.na");
     const parsed = new Date(date);
     if (Number.isNaN(parsed.getTime())) return t("common.na");
     return parsed.toLocaleString();
-  };
+  }, [t]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -37,6 +39,14 @@ export const TicketTypeList: React.FC = () => {
   const totalPages = data?.totalPages || 1;
   const currentPage = data?.currentPage || 1;
   const totalItems = data?.total || 0;
+  const statusTargetIsActive = statusTarget?.isActive === true;
+
+  const handleConfirmStatusChange = async () => {
+    if (!statusTarget) return;
+
+    await executeStatusChange(statusTarget.id, statusTargetIsActive);
+    setStatusTarget(null);
+  };
 
   const columns: Column<ReadTicketTypeDTO>[] = useMemo(
     () => [
@@ -97,7 +107,7 @@ export const TicketTypeList: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <ActionButton
                 variant="secondary"
-                onClick={() => executeStatusChange(ticketType.id, isActive)}
+                onClick={() => setStatusTarget(ticketType)}
                 className={`h-8 w-8 ${updatingId === ticketType.id ? "cursor-wait opacity-50" : ""} ${
                   isActive
                     ? "text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
@@ -121,7 +131,7 @@ export const TicketTypeList: React.FC = () => {
         },
       },
     ],
-    [t, executeStatusChange, handleEdit, updatingId],
+    [t, formatDate, handleEdit, updatingId],
   );
 
   return (
@@ -167,6 +177,34 @@ export const TicketTypeList: React.FC = () => {
         totalItems={totalItems}
         pageSize={pageSize}
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={!!statusTarget}
+        onClose={() => setStatusTarget(null)}
+        onConfirm={handleConfirmStatusChange}
+        title={statusTargetIsActive ? t("content.deactivate") : t("content.activate")}
+        message={
+          <span>
+            {statusTargetIsActive
+              ? t("content.deactivateTicketTypeConfirm")
+              : t("content.activateTicketTypeConfirm")}
+            {statusTarget && (
+              <span className="mt-2 block font-semibold text-slate-700">
+                {statusTarget.name}
+              </span>
+            )}
+          </span>
+        }
+        confirmText={statusTargetIsActive ? t("content.deactivate") : t("content.activate")}
+        variant={statusTargetIsActive ? "warning" : "primary"}
+        icon={
+          statusTargetIsActive ? (
+            <Lock className="h-6 w-6 text-rose-500" />
+          ) : (
+            <Unlock className="h-6 w-6 text-emerald-500" />
+          )
+        }
       />
     </div>
   );

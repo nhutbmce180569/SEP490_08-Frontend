@@ -31,8 +31,7 @@ export const CONTENT_API = {
     GET_BY_ID: (id: string | number) => `${FULL_API}/TicketTypes/${id}`,
     CREATE: `${FULL_API}/TicketTypes`,
     UPDATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}`,
-    ACTIVATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}/activate`,
-    DEACTIVATE: (id: string | number) => `${FULL_API}/TicketTypes/${id}/deactivate`,
+    CHANGE_STATUS: (id: string | number) => `${FULL_API}/TicketTypes/${id}/change-status`,
   },
 
   TOURISM_INFORMATION: {

@@ -130,17 +130,9 @@ export const ticketTypeService = {
     return unwrapData(response);
   },
 
-  activate: async (id: number | string): Promise<{ message: string }> => {
+  changeStatus: async (id: number | string): Promise<{ message: string }> => {
     const response = await apiClient.patch<{ message: string } | { data: { message: string } }>(
-      CONTENT_API.TICKET_TYPES.ACTIVATE(id),
-    );
-
-    return unwrapData(response);
-  },
-
-  deactivate: async (id: number | string): Promise<{ message: string }> => {
-    const response = await apiClient.patch<{ message: string } | { data: { message: string } }>(
-      CONTENT_API.TICKET_TYPES.DEACTIVATE(id),
+      CONTENT_API.TICKET_TYPES.CHANGE_STATUS(id),
     );
 
     return unwrapData(response);

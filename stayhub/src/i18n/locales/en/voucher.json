@@ -42,6 +42,9 @@
   "percent": "Percent",
   "amount": "Amount",
   "allStatuses": "All statuses",
+  "allTypes": "All types",
+  "birthdayVouchers": "Birthday Vouchers",
+  "tourVouchers": "Tour Vouchers",
   "scheduled": "Scheduled",
   "depleted": "Depleted",
   "activeFlag": "Active flag",
@@ -151,5 +154,11 @@
   "quantityPerCustomer": "Quantity per customer",
   "topCustomersPreview": "Preview top customers",
   "noTopCustomersPreview": "No customers found for this revenue period.",
-  "totalSpend": "Total spend"
+  "totalSpend": "Total spend",
+  "filterCreatedByMe": "Filter by Creator",
+  "allCreators": "All Creators",
+  "myVouchersFilter": "Only my vouchers",
+  "otherVouchersFilter": "Others' vouchers",
+  "myVoucherBadge": "Mine",
+  "otherVoucherBadge": "Others"
 }

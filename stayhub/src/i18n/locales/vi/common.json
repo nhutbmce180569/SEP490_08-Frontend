@@ -101,5 +101,22 @@
   "facebook": "Facebook",
   "anonymous": "Ẩn danh",
   "themeSwitchToLight": "Chuyển sang chế độ sáng",
-  "themeSwitchToDark": "Chuyển sang chế độ tối"
+  "themeSwitchToDark": "Chuyển sang chế độ tối",
+    "tabAll": "Tất cả",
+  "tabUnread": "Chưa đọc",
+  "tabRead": "Đã đọc",
+  "markRead": "Đánh dấu đã đọc",
+  "unreadSummary": "{{count}} thông báo chưa đọc",
+  "emptyAll": "Không có thông báo",
+  "emptyAllSub": "Bạn đã cập nhật tất cả rồi.",
+  "emptyUnread": "Không có thông báo mới",
+  "emptyUnreadSub": "Tất cả thông báo đã được đọc.",
+  "emptyRead": "Chưa có thông báo đã đọc",
+  "emptyReadSub": "Các thông báo sau khi đọc sẽ xuất hiện ở đây.",
+  "allLoaded": "Đã tải hết thông báo",
+  "loadError": "Không thể tải thông báo.",
+  "justNow": "Vừa xong",
+  "minutesAgo": "{{count}} phút trước",
+  "hoursAgo": "{{count}} giờ trước",
+  "daysAgo": "{{count}} ngày trước"
 }

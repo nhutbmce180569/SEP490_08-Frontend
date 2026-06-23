@@ -79,7 +79,7 @@ export const TicketTypeList: React.FC = () => {
           return (
             <span
               className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                isActive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-600"
               }`}
             >
               {isActive ? t("common.active") : t("common.inactive")}

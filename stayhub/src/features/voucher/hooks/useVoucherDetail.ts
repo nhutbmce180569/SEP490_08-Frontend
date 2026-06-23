@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
@@ -13,8 +13,11 @@ export const useVoucherDetail = () => {
     enabled: !!id,
   });
 
-  const handleEdit = () => navigate(PATH.MANAGER.EDIT_OPERATOR_VOUCHER(id!));
-  const handleBack = () => navigate(PATH.MANAGER.VOUCHERS);
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const handleEdit = () => navigate(isAdminRoute ? PATH.ADMIN.EDIT_ADMIN_VOUCHER(id!) : PATH.MANAGER.EDIT_OPERATOR_VOUCHER(id!));
+  const handleBack = () => navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
 
   return {
     id,

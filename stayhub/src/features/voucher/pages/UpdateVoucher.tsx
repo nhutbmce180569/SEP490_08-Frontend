@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useContext } from 'react';
 import {
   Calendar,
   Hash,
@@ -9,6 +9,7 @@ import {
 import { DynamicForm, type FormField } from '../../../components/dashboard/DynamicForm';
 import { LoadingOverlay } from '../../../components/dashboard/LoadingOverlay';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { AuthContext } from '../../../contexts/AuthContext';
 import { createDefaultVoucherTarget, VoucherTargetEditor, type VoucherTargetValue } from '../components/VoucherTargetEditor';
 import { useUpdateVoucher } from '../hooks/useUpdateVoucher';
 import { useTourOptions } from '../hooks/useTourOptions';
@@ -16,6 +17,8 @@ import { toDateTimeLocal } from '../utils/voucherHelpers';
 
 export const UpdateVoucher: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.roles?.includes('Admin') ?? false;
   const {
     id,
     voucher,
@@ -26,7 +29,7 @@ export const UpdateVoucher: React.FC = () => {
     handleSubmit,
     handleCancel,
   } = useUpdateVoucher();
-  const { options: tourOptions } = useTourOptions();
+  const { options: tourOptions } = useTourOptions(isAdmin);
   const isUsed = (voucher?.usedCount ?? 0) > 0;
 
   const voucherFields: FormField[] = useMemo(
@@ -48,6 +51,7 @@ export const UpdateVoucher: React.FC = () => {
         colSpan: 2,
         readOnly: isUsed,
         options: tourOptions,
+        required: !isAdmin,
       },
       {
         name: 'discountType',
@@ -150,10 +154,10 @@ export const UpdateVoucher: React.FC = () => {
     );
   }
 
-  if (!voucher.isActive) {
+  if (voucher.isActive) {
     return (
       <div className="mx-auto max-w-2xl py-8 text-center">
-        <p className="text-sm text-slate-600">{t('voucher.voucherDeactivatedNoEdit')}</p>
+        <p className="text-sm text-slate-600">{t('voucher.voucherActiveNoEdit') || 'Voucher đang hoạt động, vui lòng tắt voucher trước khi chỉnh sửa.'}</p>
         <button
           type="button"
           onClick={handleCancel}

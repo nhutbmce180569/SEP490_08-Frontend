@@ -6,7 +6,6 @@ import type { Notification } from "../types/notification";
 export const useNotificationHub = (
   setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>,
 ) => {
-  // Dùng ref thay vì để setNotifications vào dependency
   const setNotificationsRef = useRef(setNotifications);
   useEffect(() => {
     setNotificationsRef.current = setNotifications;
@@ -16,28 +15,57 @@ export const useNotificationHub = (
     const token = localStorage.getItem("accessToken");
     if (!token) return;
 
-    let disposed = false;
+    // ✅ Flag để biết effect này đã bị cleanup chưa
+    let isCancelled = false;
+    let connection: signalR.HubConnection | null = null;
 
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${SIGNALR_HUB_BASE}/notifications?access_token=${token}`)
-      // ← dùng query string thay vì accessTokenFactory cho nhất quán
-      .withAutomaticReconnect()
-      .build();
+    const startConnection = async () => {
+      connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${SIGNALR_HUB_BASE}/notifications`, {
+          // ✅ Dùng accessTokenFactory thay vì query string
+          // → token được đọc lại mỗi lần reconnect, tránh token cũ
+          accessTokenFactory: () =>
+            localStorage.getItem("accessToken") ?? token,
+        })
+        .withAutomaticReconnect([0, 2000, 5000, 10000])
+        .configureLogging(signalR.LogLevel.Warning)
+        .build();
 
-    connection.on("ReceiveNewNotification", (newNoti: Notification) => {
-      setNotificationsRef.current((prev) => {
-        if (prev.some((n) => n.id === newNoti.id)) return prev;
-        return [newNoti, ...prev];
+      connection.on("ReceiveNewNotification", (newNoti: Notification) => {
+        setNotificationsRef.current((prev) => {
+          if (prev.some((n) => n.id === newNoti.id)) return prev;
+          return [newNoti, ...prev];
+        });
       });
-    });
 
-    connection.start().catch((err) => {
-      if (!disposed) console.error("Notification SignalR error:", err);
-    });
+      try {
+        await connection.start();
+
+        // ✅ Kiểm tra sau await: nếu cleanup đã chạy thì stop ngay
+        if (isCancelled) {
+          connection.stop();
+          return;
+        }
+
+        console.log("[SignalR] Notification hub connected");
+      } catch (err) {
+        if (!isCancelled) {
+          console.error("[SignalR] Connection error:", err);
+        }
+      }
+    };
+
+    startConnection();
 
     return () => {
-      disposed = true;
-      connection.stop();
+      isCancelled = true;
+      // ✅ Chỉ stop khi connection đã Connected, tránh stop lúc đang negotiate
+      if (
+        connection &&
+        connection.state === signalR.HubConnectionState.Connected
+      ) {
+        connection.stop();
+      }
     };
-  }, []); // ← dependency rỗng, chỉ chạy 1 lần
+  }, []);
 };

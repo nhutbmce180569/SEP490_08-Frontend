@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Building, CreditCard, User, AlignLeft } from "lucide-react";
+import { Building, CreditCard, User, AlignLeft, Search } from "lucide-react";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateCancellation } from "../hooks/useCreateCancellation";
@@ -34,6 +34,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
   const [banks, setBanks] = useState<VietQrBank[]>([]);
   const [isLoadingBanks, setIsLoadingBanks] = useState(true);
   const [bankLoadError, setBankLoadError] = useState("");
+  const [bankSearch, setBankSearch] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -73,16 +74,22 @@ export const CreateCancellationRequestPage: React.FC = () => {
   }, [t]);
 
   const bankOptions = useMemo(() => {
-    if (banks.length === 0) return FALLBACK_BANK_OPTIONS;
+    const source = banks.length > 0 ? banks.map(bank => ({
+      label: `${bank.shortName || bank.code || t("tour.bankFallbackLabel")} - ${bank.name}`,
+      value: bank.name,
+    })) : FALLBACK_BANK_OPTIONS;
 
-    return banks
-      .slice()
-      .sort((a, b) => (a.shortName || a.name).localeCompare(b.shortName || b.name))
-      .map((bank) => ({
-        label: `${bank.shortName || bank.code || t("tour.bankFallbackLabel")} - ${bank.name}`,
-        value: bank.name,
-      }));
-  }, [banks, t]);
+    const sorted = source.sort((a, b) => a.label.localeCompare(b.label));
+
+    if (!bankSearch.trim()) {
+      return sorted;
+    }
+
+    const searchTerm = bankSearch.trim().toLowerCase();
+    return sorted.filter(option =>
+      option.label.toLowerCase().includes(searchTerm)
+    );
+  }, [banks, t, bankSearch]);
 
   const cancellationFields: FormField[] = useMemo(
     () => [
@@ -90,6 +97,10 @@ export const CreateCancellationRequestPage: React.FC = () => {
         name: "bankName",
         label: t("booking.bankName"),
         type: "select",
+        searchable: true,
+        searchPlaceholder: t("booking.searchBankPlaceholder", "Tìm kiếm ngân hàng..."),
+        searchValue: bankSearch,
+        onSearchChange: setBankSearch,
         placeholder: isLoadingBanks ? t("booking.loadingBanks") : t("booking.selectBank"),
         icon: <Building className="h-4 w-4" />,
         options: isLoadingBanks ? [{ label: t("booking.loadingBanks"), value: "" }] : bankOptions,
@@ -121,7 +132,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         required: true,
       },
     ],
-    [t, isLoadingBanks, bankOptions],
+    [t, isLoadingBanks, bankOptions, bankSearch],
   );
 
   const handleSubmit = async (formData: Record<string, unknown>) => {
@@ -156,7 +167,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         onSubmit={handleSubmit}
         submitText={t("booking.submitRequest")}
         onCancel={() => navigate(-1)}
-      />
+      /> 
       <LoadingOverlay isOpen={isPending} message={t("booking.submittingRequest")} />
     </div>
   );

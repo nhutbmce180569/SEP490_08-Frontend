@@ -10,7 +10,6 @@ const MOMENT_API_URL = "/moments";
  * Chuan hoa ve dung shape Moment/Comment de cac component dung thong nhat.
  * ========================================================================= */
 const mapComment = (c: any): any => ({
-  // giu nguyen field goc + bo sung shape chuan
   ...c,
   id: c.id ?? c.Id,
   momentId: c.momentId ?? c.MomentId,
@@ -62,13 +61,12 @@ const mapMoment = (m: any): Moment => {
     createdAt: m.createdAt ?? m.CreatedAt ?? new Date().toISOString(),
     comments: (m.comments ?? m.Comments ?? []).map(mapComment),
     reactions,
-    // tien ich: so dem chuan tu BE (component co the dung neu can)
     reactionCount: likeCount,
     isLikedByMe: (m.isLikedByMe ?? m.IsLikedByMe ?? false) === true,
   } as Moment;
 };
 
-// Trich xuat mang tu nhieu kieu response (body-array hoac AxiosResponse).
+// Trich xuat mang tu nhieu kieu response (body-array hoac AxiosResponse, co/khong wrapper {data}).
 const extractList = (raw: any): any[] => {
   if (Array.isArray(raw)) return raw;
   if (Array.isArray(raw?.data)) return raw.data;
@@ -82,22 +80,41 @@ export const getMomentFeed = async (
   top: number = 5
 ): Promise<Moment[]> => {
   const scheduleQuery = scheduleId ? `scheduleId=${scheduleId}&` : "";
-
   const raw: any = await apiClient.get<any>(
     `${MOMENT_API_URL}?${scheduleQuery}$skip=${skip}&$top=${top}`
   );
   return extractList(raw).map(mapMoment);
 };
 
-export const getMyFootprints = async (): Promise<{lat: number, lng: number}[]> => {
-  const res = await apiClient.get<any>(`${MOMENT_API_URL}/my-footprints`);
-  // Dam bao lay dung mang data tu backend C#
-  return res.data?.data || res.data || [];
+// FIX: footprint lay tu LocationLogs (di chuyen) qua /locations/footprints,
+// KHONG phai tu anh (/moments/my-footprints). Khop voi mobile.
+export const getMyFootprints = async (): Promise<{ lat: number; lng: number }[]> => {
+  const raw: any = await apiClient.get<any>(`/locations/footprints`);
+  return extractList(raw).map((f: any) => ({
+    lat: Number(f.lat ?? f.Lat),
+    lng: Number(f.lng ?? f.Lng),
+  }));
+};
+
+// MOI: heatmap realtime tu LocationLogs (giong mobile), weight = so lan qua o luoi.
+export const getHeatmap = async (
+  scheduleId: number | null,
+  days: number = 90
+): Promise<{ lat: number; lng: number; weight: number }[]> => {
+  const scheduleQuery = scheduleId ? `scheduleId=${scheduleId}&` : "";
+  const raw: any = await apiClient.get<any>(`/locations/heatmap?${scheduleQuery}days=${days}`);
+  return extractList(raw).map((p: any) => ({
+    lat: Number(p.lat ?? p.Lat),
+    lng: Number(p.lng ?? p.Lng),
+    weight: Number(p.weight ?? p.Weight ?? p.count ?? 1),
+  }));
 };
 
 export const createMoment = (data: FormData): Promise<Moment> => {
   return apiClient.post<Moment>(MOMENT_API_URL, data, {
     headers: { "Content-Type": "multipart/form-data" },
+    // Bound upload de khong treo vo han neu mang cham.
+    timeout: 90000,
   });
 };
 

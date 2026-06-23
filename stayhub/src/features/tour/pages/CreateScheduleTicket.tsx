@@ -214,7 +214,7 @@ export const CreateScheduleTicket: React.FC = () => {
                   className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                     selectedTicketType.isActive
                       ? "bg-emerald-100 text-emerald-700"
-                      : "bg-rose-100 text-rose-700"
+                      : "bg-slate-100 text-slate-700"
                   }`}
                 >
                   {selectedTicketType.isActive ? t("common.active") : t("common.inactive")}

@@ -108,7 +108,7 @@ export const UserList: React.FC = () => {
           return (
               <span
                 className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                  isActive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                  isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-600"
                 }`}
               >
                 {user.status || t("auth.unknown")}
@@ -241,7 +241,7 @@ export const UserList: React.FC = () => {
                     <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.dateOfBirth")}:</span><span className="font-medium">{selectedUserForView.dateOfBirth ? new Date(selectedUserForView.dateOfBirth).toLocaleDateString() : t("common.na")}</span></div>
                     <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.provider")}:</span><span className="font-medium">{selectedUserForView.provider || t("auth.local")}</span></div>
                     <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.rolesLabel")}:</span><span className="font-medium">{selectedUserForView.roles?.join(", ") || t("auth.none")}</span></div>
-                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.status")}:</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${selectedUserForView.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{selectedUserForView.status || t("auth.unknown")}</span></div>
+                    <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("common.status")}:</span><span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${selectedUserForView.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>{selectedUserForView.status || t("auth.unknown")}</span></div>
                     <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.lastOnline")}:</span><span className="font-medium">{selectedUserForView.lastOnline ? new Date(selectedUserForView.lastOnline).toLocaleString() : t("common.na")}</span></div>
                     <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.createdAt")}:</span><span className="font-medium">{selectedUserForView.createdAt ? new Date(selectedUserForView.createdAt).toLocaleString() : t("common.na")}</span></div>
                     <div className="flex justify-between"><span className="font-semibold text-slate-500">{t("auth.updatedAt")}:</span><span className="font-medium">{selectedUserForView.updatedAt ? new Date(selectedUserForView.updatedAt).toLocaleString() : t("common.na")}</span></div>

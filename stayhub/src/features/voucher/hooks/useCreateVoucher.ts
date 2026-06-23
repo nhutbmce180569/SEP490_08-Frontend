@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
@@ -20,6 +20,8 @@ import {
 
 export const useCreateVoucher = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const queryClient = useQueryClient();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
@@ -27,7 +29,7 @@ export const useCreateVoucher = () => {
     mutationFn: (data: CreateVoucherDTO) => voucherService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vouchers'] });
-      navigate(PATH.MANAGER.VOUCHERS);
+      navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
     },
     onError: (error: unknown) => {
       const validationErrors = getApiValidationErrors(error);
@@ -105,7 +107,7 @@ export const useCreateVoucher = () => {
     });
   };
 
-  const handleCancel = () => navigate(PATH.MANAGER.VOUCHERS);
+  const handleCancel = () => navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
 
   return { handleSubmit, handleCancel, isSubmitting: mutation.isPending, serverErrors };
 };

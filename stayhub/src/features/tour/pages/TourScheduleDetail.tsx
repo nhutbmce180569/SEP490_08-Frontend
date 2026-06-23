@@ -505,7 +505,7 @@ export const TourScheduleDetail: React.FC = () => {
                               className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
                                 isActive
                                   ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-rose-100 text-rose-700"
+                                  : "bg-slate-100 text-slate-700"
                               }`}
                             >
                               {isActive ? t("common.active") : t("common.inactive")}

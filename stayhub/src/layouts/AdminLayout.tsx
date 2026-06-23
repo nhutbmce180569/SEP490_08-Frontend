@@ -3,6 +3,7 @@ import {
   BarChart3,
   Bot,
   Compass,
+  Gift,
   Image,
   Layers,
   PieChart,
@@ -79,6 +80,16 @@ export const AdminLayout = () => {
             label: t("admin.aiConsole"),
             to: PATH.ADMIN.AI_CONSOLE,
             icon: <Bot className={iconClass} />,
+          },
+        ],
+      },
+      {
+        title: t("admin.marketing"),
+        items: [
+          {
+            label: t("admin.voucherManagement"),
+            to: PATH.ADMIN.SYSTEM_VOUCHERS,
+            icon: <Gift className={iconClass} />,
           },
         ],
       },

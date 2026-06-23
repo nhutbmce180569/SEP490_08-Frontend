@@ -9,9 +9,7 @@ import {
   ListFilter,
 } from 'lucide-react';
 import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Table, type Column } from '../../../components/dashboard/Table';
-import { PATH } from '../../../config/routes/route';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
 import { useTranslation } from '../../../contexts/LocaleContext';
@@ -35,7 +33,6 @@ export const AdminVoucherList: React.FC = () => {
   const [discountType, setDiscountType] = useState('');
   const [status, setStatus] = useState('');
 
-  const [createdByMe, setCreatedByMe] = useState('');
   const [tourId, setTourId] = useState('');
   const [voucherType, setVoucherType] = useState('');
   const [isBirthdayModalOpen, setIsBirthdayModalOpen] = useState(false);
@@ -49,9 +46,8 @@ export const AdminVoucherList: React.FC = () => {
       status: status || undefined,
       tourId: tourId ? Number(tourId) : undefined,
       voucherType: voucherType || undefined,
-      createdByMe: createdByMe === '' ? undefined : createdByMe === 'true',
     }),
-    [search, discountType, status, tourId, voucherType, createdByMe],
+    [search, discountType, status, tourId, voucherType],
   );
 
   const {
@@ -69,8 +65,6 @@ export const AdminVoucherList: React.FC = () => {
   
   const { user } = useContext(AuthContext);
   const isAdmin = user?.roles?.includes('Admin');
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {

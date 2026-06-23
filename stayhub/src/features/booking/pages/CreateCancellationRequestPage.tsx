@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Building, CreditCard, User, AlignLeft, Search } from "lucide-react";
+import { Building, CreditCard, User, AlignLeft } from "lucide-react";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateCancellation } from "../hooks/useCreateCancellation";

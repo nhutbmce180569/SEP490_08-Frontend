@@ -92,11 +92,13 @@ import { CancellationListPage } from "./features/booking/pages/CancellationListP
 import { ProcessCancellationPage } from "./features/booking/pages/ProcessCancellationPage";
 import { MyReviewsPage } from "./features/tour/pages/MyReviewsPage";
 import { DashboardReviewManager } from "./features/tour/pages/DashboardReviewManager";
-import { VoucherList } from "./features/voucher/pages/VoucherList";
+import { ManagerVoucherList } from "./features/voucher/pages/ManagerVoucherList";
+import { AdminVoucherList } from "./features/voucher/pages/AdminVoucherList";
 import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
 import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
+
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
@@ -114,6 +116,7 @@ import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
+import NotificationListPage from "./features/system/pages/Notificationlistpage";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -392,7 +395,7 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.NOTIFICATIONS}
-                      element={mock("app.titles.notifications", "app.mockNotifications", "app.sectionCustomer")}
+                      element={<NotificationListPage />}
                     />
                     
                     <Route path="/social/moments"
@@ -520,7 +523,7 @@ const App: React.FC = () => {
                     element={<ProcessCancellationPage />}
                   />
                   <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
-                    <Route index element={<VoucherList />} />
+                    <Route index element={<ManagerVoucherList />} />
                     <Route path="create" element={<CreateVoucher />} />
                     <Route path=":id/edit" element={<UpdateVoucher />} />
                     <Route path=":id" element={<VoucherDetail />} />
@@ -609,23 +612,11 @@ const App: React.FC = () => {
                     element={mock("app.titles.withdrawals", "app.mockWithdrawals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
-                    <Route index element={mock("app.titles.systemVouchers", "app.mockSystemVouchers", "app.sectionAdmin")} />
-                    <Route
-                      path="create"
-                      element={mock("app.titles.createVoucher", "app.mockCreateVoucher", "app.sectionAdmin")}
-                    />
-                    <Route
-                      path=":id"
-                      element={mock("app.titles.voucherDetail", "app.mockVoucherDetailAdmin", "app.sectionAdmin")}
-                    />
-                    <Route
-                      path=":id/edit"
-                      element={mock("app.titles.editVoucher", "app.mockEditVoucher", "app.sectionAdmin")}
-                    />
-                    <Route
-                      path=":id/delete"
-                      element={mock("app.titles.deleteVoucher", "app.mockDeleteVoucher", "app.sectionAdmin")}
-                    />
+                    <Route index element={<AdminVoucherList />} />
+
+                    <Route path="create" element={<CreateVoucher />} />
+                    <Route path=":id/edit" element={<UpdateVoucher />} />
+                    <Route path=":id" element={<VoucherDetail />} />
                   </Route>
                   <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
                     <Route index element={<BannerList />} />

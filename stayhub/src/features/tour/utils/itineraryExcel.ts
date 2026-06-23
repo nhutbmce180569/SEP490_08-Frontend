@@ -45,7 +45,7 @@ const asTime = (value: CellValue | null, field: string) => {
   }
 
   if (value instanceof Date) {
-    return `${String(value.getHours()).padStart(2, "0")}:${String(value.getMinutes()).padStart(2, "0")}`;
+    return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
   }
 
   const text = asText(value);

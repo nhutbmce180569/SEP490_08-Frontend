@@ -34,9 +34,10 @@ export const TripContextPanel: React.FC<Props> = ({ profile, compact }) => {
       <div className="space-y-2 text-xs">
         <InfoRow label={t("ai.travelDates")} value={`${formatDate(profile.preferredStartDate)} → ${formatDate(endDate)}`} />
         <InfoRow label={t("ai.travelParty")} value={t(companionKey[profile.companionType] ?? "ai.companionSolo")} />
-        {profile.preferredCity && (
-          <InfoRow label={t("ai.destination")} value={profile.preferredCity} />
-        )}
+        <InfoRow 
+          label={t("ai.destination")} 
+          value={profile.preferredCity || "Bất kỳ đâu (Surprise me!)"} 
+        />
         {profile.maxBudgetPerPerson != null && (
           <InfoRow label={t("ai.budgetPerPerson")} value={formatVnd(profile.maxBudgetPerPerson, locale)} />
         )}
@@ -61,9 +62,11 @@ export const TripContextPanel: React.FC<Props> = ({ profile, compact }) => {
           label={t("ai.travelParty")}
           value={t(companionKey[profile.companionType] ?? "ai.companionSolo")}
         />
-        {profile.preferredCity && (
-          <InfoItem icon={MapPin} label={t("ai.destination")} value={profile.preferredCity} />
-        )}
+        <InfoItem 
+          icon={MapPin} 
+          label={t("ai.destination")} 
+          value={profile.preferredCity || "Bất kỳ đâu (Surprise me!)"} 
+        />
         {profile.maxBudgetPerPerson != null && (
           <InfoItem
             icon={Wallet}

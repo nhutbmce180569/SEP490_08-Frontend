@@ -127,7 +127,7 @@ export const VoucherDetail: React.FC = () => {
               variant="primary"
               onClick={handleEdit}
               className="gap-2 px-4 py-2 text-sm"
-              disabled={!voucher.isActive}
+              disabled={voucher.isActive}
             >
               <Pencil className="h-4 w-4" /> {t('common.edit')}
             </ActionButton>

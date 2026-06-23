@@ -136,17 +136,17 @@ export const AiRecommendationsPage: React.FC = () => {
 
   const tourFilters: { id: TourFilter; label: string; show: boolean }[] = [
     {
-      id: "all",
+      id: "all" as const,
       label: t("ai.tourTabAll", { count: totalTours }),
       show: showExactSection && showNearbySection,
     },
     {
-      id: "exact",
+      id: "exact" as const,
       label: t("ai.tourTabExact", { count: exactTours.length }),
       show: showExactSection,
     },
     {
-      id: "nearby",
+      id: "nearby" as const,
       label: t("ai.tourTabNearby", { count: nearbyTours.length }),
       show: showNearbySection,
     },
@@ -302,9 +302,9 @@ export const AiRecommendationsPage: React.FC = () => {
           </div>
         )}
 
-        {isAdminView && viewTab === "tours" && (
+        {viewTab === "tours" && (
           <div className="mt-8 space-y-4">
-            <RelatedInsightsCarousel insights={data.relatedInsights} />
+            {isAdminView && <RelatedInsightsCarousel insights={data.relatedInsights} />}
             <RecommenderMetaPanel meta={data.recommenderMeta} />
           </div>
         )}

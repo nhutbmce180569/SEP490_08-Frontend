@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
 import type { VoucherFilters } from '../types/voucher';
@@ -16,9 +16,12 @@ export const useVouchers = (filters: VoucherFilters) => {
     queryFn: () => voucherService.getAll(page, PAGE_SIZE, filters),
   });
 
-  const handleCreate = () => navigate(PATH.MANAGER.CREATE_OPERATOR_VOUCHER);
-  const handleEdit = (id: number) => navigate(PATH.MANAGER.EDIT_OPERATOR_VOUCHER(id));
-  const handleView = (id: number) => navigate(PATH.MANAGER.OPERATOR_VOUCHER_DETAIL(id));
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
+  const handleCreate = () => navigate(isAdminRoute ? PATH.ADMIN.CREATE_ADMIN_VOUCHER : PATH.MANAGER.CREATE_OPERATOR_VOUCHER);
+  const handleEdit = (id: number) => navigate(isAdminRoute ? PATH.ADMIN.EDIT_ADMIN_VOUCHER(id) : PATH.MANAGER.EDIT_OPERATOR_VOUCHER(id));
+  const handleView = (id: number) => navigate(isAdminRoute ? PATH.ADMIN.ADMIN_VOUCHER_DETAIL(id) : PATH.MANAGER.OPERATOR_VOUCHER_DETAIL(id));
 
   return {
     data: query.data,

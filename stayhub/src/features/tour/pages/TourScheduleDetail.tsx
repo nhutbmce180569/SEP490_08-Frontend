@@ -162,12 +162,19 @@ export const TourScheduleDetail: React.FC = () => {
       ),
     );
 
-    if (tourismInfoIds.length === 0) {
-      setTourismInformationById({});
-      return;
-    }
-
     let isMounted = true;
+
+    if (tourismInfoIds.length === 0) {
+      void Promise.resolve().then(() => {
+        if (isMounted) {
+          setTourismInformationById({});
+        }
+      });
+
+      return () => {
+        isMounted = false;
+      };
+    }
 
     tourismInformationService.getActiveList().then((activeTourismInformation) => {
       if (!isMounted) return;
@@ -262,12 +269,36 @@ export const TourScheduleDetail: React.FC = () => {
         ? t("tour.deactivateTicket")
         : t("tour.activateTicket");
 
+  const confirmTicket =
+    confirmAction?.type === "activateTicket" ||
+    confirmAction?.type === "deactivateTicket"
+      ? confirmAction.ticket
+      : null;
+  const confirmTicketTypeId = confirmTicket
+    ? getScheduleTicketTypeId(confirmTicket)
+    : null;
+  const confirmTicketName = confirmTicket
+    ? getScheduleTicketName(
+        confirmTicket,
+        confirmTicketTypeId ? ticketTypeDetails[confirmTicketTypeId] : undefined,
+      )
+    : null;
+
   const confirmMessage =
-    confirmAction?.type === "deleteSchedule"
-      ? t("tour.deleteScheduleQuestion")
-      : confirmAction?.type === "deactivateTicket"
-        ? t("tour.deactivateTicketDesc")
-        : t("tour.activateTicketDesc");
+    confirmAction?.type === "deleteSchedule" ? (
+      t("tour.deleteScheduleQuestion")
+    ) : (
+      <span>
+        {confirmAction?.type === "deactivateTicket"
+          ? t("tour.deactivateTicketDesc")
+          : t("tour.activateTicketDesc")}
+        {confirmTicketName && (
+          <span className="mt-2 block font-semibold text-slate-700">
+            {confirmTicketName}
+          </span>
+        )}
+      </span>
+    );
 
   const confirmButtonText =
     confirmAction?.type === "deleteSchedule"
@@ -478,7 +509,7 @@ export const TourScheduleDetail: React.FC = () => {
                               className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
                                 isActive
                                   ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-rose-100 text-rose-700"
+                                  : "bg-slate-100 text-slate-700"
                               }`}
                             >
                               {isActive ? t("common.active") : t("common.inactive")}

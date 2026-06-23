@@ -46,7 +46,7 @@ export const DeleteBannerConfirm: React.FC = () => {
                   <LinkIcon className="h-4 w-4 text-slate-400" /> {t("content.targetUrlLabel")} {banner.targetUrl || t("common.na")}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`px-2 py-0.5 text-xs rounded-full font-semibold ${banner.isActive ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>{banner.isActive ? t("common.active") : t("common.inactive")}</span>
+                  <span className={`px-2 py-0.5 text-xs rounded-full font-semibold ${banner.isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"}`}>{banner.isActive ? t("common.active") : t("common.inactive")}</span>
                   <span>{t("content.priority")}: {banner.priority ?? 0}</span>
                 </div>
               </div>

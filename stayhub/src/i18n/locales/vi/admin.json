@@ -20,5 +20,18 @@
   "systemVouchers": "Voucher hệ thống",
   "globalSettings": "Cài đặt chung",
   "adminDashboard": "Bảng điều khiển quản trị",
-  "admin": "Quản trị"
+  "admin": "Quản trị",
+  "marketing": "Tiếp thị",
+  "voucherManagement": "Quản lý Voucher",
+  "distributeBirthdayVoucher": "Phát Voucher Sinh Nhật",
+  "birthdayVoucherDesc": "Tự động phát Voucher giảm giá cho khách hàng có sinh nhật trong tháng đã chọn.",
+  "selectMonth": "Chọn tháng",
+  "distribute": "Phát tự động",
+  "distributeSuccess": "Thành công!",
+  "distributeError": "Lỗi khi phát voucher",
+  "emailsSent": "Số email đã gửi",
+  "eligibleCustomers": "Số KH hợp lệ",
+  "voucherCode": "Mã Voucher",
+  "distributeConfirmMessage": "Bạn đang chuẩn bị phát voucher sinh nhật cho các khách hàng có sinh nhật trong tháng {{month}}/{{year}}.",
+  "alreadyDistributedMessage": "Voucher sinh nhật cho tháng {{month}}/{{year}} đã được phát rồi. Bạn không thể phát lại cho tháng này."
 }

@@ -1,4 +1,4 @@
-import type { RecommenderTransparency } from "./tourAssistant";
+import type { AcademicReference, RecommenderTransparency } from "./tourAssistant";
 
 export interface ModelTrainingRun {
   id: number;
@@ -18,6 +18,8 @@ export interface ModelTrainingStatus {
   tourCatalogCount: number;
   tourismKnowledgeCount: number;
   interactionCount: number;
+  matrixFactorizationReady?: boolean;
+  matrixFactorizationInteractionCount?: number;
   intentModelAccuracy?: number;
   recentRuns: ModelTrainingRun[];
 }
@@ -44,6 +46,7 @@ export interface ScoringModelDocumentation {
   methodologySummary: string;
   paperTitleSuggestion: string;
   formalDefinitions: Record<string, string>;
+  academicReferences?: AcademicReference[];
   baselines: { name: string; description: string }[];
 }
 

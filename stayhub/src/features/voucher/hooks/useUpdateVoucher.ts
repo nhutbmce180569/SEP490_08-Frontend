@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
@@ -20,6 +20,8 @@ import {
 export const useUpdateVoucher = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
   const queryClient = useQueryClient();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
@@ -34,7 +36,7 @@ export const useUpdateVoucher = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vouchers'] });
       queryClient.invalidateQueries({ queryKey: ['voucher', id] });
-      navigate(PATH.MANAGER.VOUCHERS);
+      navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
     },
     onError: (err: unknown) => {
       const validationErrors = getApiValidationErrors(err);
@@ -116,7 +118,7 @@ export const useUpdateVoucher = () => {
     });
   };
 
-  const handleCancel = () => navigate(PATH.MANAGER.VOUCHERS);
+  const handleCancel = () => navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
 
   return {
     id,

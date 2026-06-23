@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, Check, Loader2, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";   // ← thêm
 import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationHub } from "../hooks/useNotificationHub";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
 export default function NotificationBell() {
   const { t } = useTranslation();
+  const navigate = useNavigate();                  // ← thêm
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +43,12 @@ export default function NotificationBell() {
       void refresh();
     }
   }, [hasLoaded, isLoading, isOpen, refresh]);
+
+  // ← Thêm handler navigate
+  const handleViewAll = () => {
+    setIsOpen(false);
+    navigate("/notifications");
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -86,7 +94,7 @@ export default function NotificationBell() {
               </div>
             ) : notifications.length > 0 ? (
               <div className="flex flex-col divide-y divide-slate-100/80">
-                {notifications.map((noti) => (
+                {notifications.slice(0, 5).map((noti) => (  // ← slice 5 items trong dropdown
                   <div
                     key={noti.id}
                     onClick={() => markAsRead(noti)}
@@ -135,9 +143,11 @@ export default function NotificationBell() {
             )}
           </div>
 
+          {/* ← View all: giờ dùng handleViewAll */}
           <div className="border-t border-slate-100/80 bg-slate-50/50 p-2 text-center">
             <button
               type="button"
+              onClick={handleViewAll}
               className="text-xs font-semibold text-slate-500 transition-colors hover:text-brand"
             >
               {t("dashboard.viewAllNotifications")}

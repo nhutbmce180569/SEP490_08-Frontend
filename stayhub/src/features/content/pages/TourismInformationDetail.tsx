@@ -98,7 +98,7 @@ export const TourismInformationDetail: React.FC = () => {
                 <h2 className="text-xl font-bold text-slate-900">{tourismInfo.name}</h2>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                    active ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"
+                    active ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-600"
                   }`}
                 >
                   {active ? t("common.active") : t("common.inactive")}

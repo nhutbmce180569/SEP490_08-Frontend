@@ -139,7 +139,7 @@ export const DeleteScheduleTicket: React.FC = () => {
                 className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${
                   (ticket.isActive ?? true)
                       ? "bg-emerald-100 text-emerald-700"
-                      : "bg-rose-100 text-rose-700"
+                      : "bg-slate-100 text-slate-700"
                 }`}
               >
                 {(ticket.isActive ?? true) ? t("common.active") : t("common.inactive")}

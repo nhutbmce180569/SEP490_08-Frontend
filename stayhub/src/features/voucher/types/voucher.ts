@@ -80,5 +80,6 @@ export interface VoucherFilters {
   tourId?: number;
   discountType?: string;
   status?: string;
-  isActive?: boolean;
+  voucherType?: string;
+  createdByMe?: boolean;
 }

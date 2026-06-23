@@ -52,7 +52,7 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
       setResult({
         voucherCode: response.voucherCode,
         totalEligibleCustomers: response.totalEligibleCustomers,
-        emailsSent: response.emailsEsnt,
+        emailsSent: response.emailsSent, // CORRECTED HERE
       });
       success(response.message || 'Vouchers distributed successfully.');
     } catch (error: any) {

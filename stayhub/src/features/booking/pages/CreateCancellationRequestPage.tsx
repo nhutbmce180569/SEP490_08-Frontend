@@ -98,7 +98,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         label: t("booking.bankName"),
         type: "select",
         searchable: true,
-        searchPlaceholder: t("booking.searchBankPlaceholder", "Tìm kiếm ngân hàng..."),
+        searchPlaceholder: t("booking.searchBankPlaceholder") || "Tìm kiếm ngân hàng...",
         searchValue: bankSearch,
         onSearchChange: setBankSearch,
         placeholder: isLoadingBanks ? t("booking.loadingBanks") : t("booking.selectBank"),
@@ -162,7 +162,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
       )}
       <DynamicForm
         title={t("booking.requestTourCancellation")}
-        description={t("booking.cancellationBankDesc", { id: id ?? "" })}
+        description={t("booking.cancellationBankDesc", { id: id ?? "" })} 
         fields={cancellationFields}
         onSubmit={handleSubmit}
         submitText={t("booking.submitRequest")}

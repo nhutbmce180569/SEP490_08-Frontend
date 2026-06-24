@@ -117,6 +117,7 @@ import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourSchedule
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
 import NotificationListPage from "./features/system/pages/Notificationlistpage";
+import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -472,7 +473,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
-                    element={mock("app.titles.deleteSchedule", "app.mockDeleteSchedule", "app.sectionPartner")}
+                    element={<DeleteTourSchedule/>}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}

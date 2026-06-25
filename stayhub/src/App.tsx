@@ -366,11 +366,15 @@ const App: React.FC = () => {
                   />
                   <Route element={<ProfileLayout />}>
                     <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
+                    <Route path={PATH.CUSTOMER.UPDATE_PROFILE} element={<Profile />} />
                     <Route
-                      path={PATH.CUSTOMER.MY_BOOKINGS}
-                      element={<MyBookingsPage />}
-                    />
-                    <Route
+                    element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}
+                    >
+                      <Route
+                        path={PATH.CUSTOMER.MY_BOOKINGS}
+                        element={<MyBookingsPage />}
+                      />
+                       <Route
                       path={PATH.CUSTOMER.BOOKING_DETAIL()}
                       element={<OrderDetailPage />}
                     />
@@ -399,13 +403,16 @@ const App: React.FC = () => {
                       element={<NotificationListPage />}
                     />
                     
-                    <Route path="/social/moments"
-                     element={<MomentsRouteWrapper />} />
-
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_FRIENDS}
                       element={<FriendsManagement />}
                     />
+                    </Route>
+                   
+                    
+                    <Route path="/social/moments"
+                     element={<MomentsRouteWrapper />} />
+
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_CHAT}
                       element={<ChatPage />}
@@ -423,6 +430,7 @@ const App: React.FC = () => {
                   element={<DashboardLayout />}
                 >
                   <Route index element={<PartnerDashboard />} />
+                  <Route path={childPath(PATH.MANAGER.PROFILE)} element={<Profile />} />
                   <Route
                     path={childPath(PATH.MANAGER.MY_TOURS)}
                     element={<TourList />}
@@ -551,6 +559,7 @@ const App: React.FC = () => {
               <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
                 <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
                   <Route index element={<AssignedSchedulesPage />} />
+                  <Route path={childPath(PATH.STAFF.PROFILE)} element={<Profile />} />
                   
                   {/* UC-49: Assigned Schedules */}
                   <Route path={childPath(PATH.STAFF.SCHEDULES)} element={<AssignedSchedulesPage />} />
@@ -579,6 +588,7 @@ const App: React.FC = () => {
               <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                 <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
                   <Route index element={<Navigate to={PATH.ADMIN.PLATFORM_ANALYTICS} replace />} />
+                  <Route path={childPath(PATH.ADMIN.PROFILE)} element={<Profile />} />
                   <Route
                     path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}
                     element={<PlatformAnalyticsPage />}

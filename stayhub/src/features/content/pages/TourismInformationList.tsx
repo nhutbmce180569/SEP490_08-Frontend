@@ -14,6 +14,7 @@ import {
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { Table, type Column } from "../../../components/dashboard/Table";
+import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { getImg } from "../../../config/api/api";
 import { useChangeTourismInformationStatus } from "../hooks/useChangeTourismInformationStatus";
@@ -34,6 +35,7 @@ export const TourismInformationList: React.FC = () => {
   const [cityInput, setCityInput] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ id: number; status: string } | null>(null);
   const [filters, setFilters] = useState({
     searchTerm: "",
     city: "",
@@ -155,7 +157,7 @@ export const TourismInformationList: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <ActionButton
                 variant="secondary"
-                onClick={() => executeStatusChange(item.id, item.status)}
+                onClick={() => setPendingStatusChange({ id: item.id, status: item.status })}
                 className={`h-8 w-8 ${updatingId === item.id ? "cursor-wait opacity-50" : ""} ${
                   active
                     ? "text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"
@@ -295,6 +297,28 @@ export const TourismInformationList: React.FC = () => {
         totalItems={totalItems}
         pageSize={pageSize}
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={!!pendingStatusChange}
+        onClose={() => setPendingStatusChange(null)}
+        onConfirm={() => {
+          if (pendingStatusChange) {
+            executeStatusChange(pendingStatusChange.id, pendingStatusChange.status);
+            setPendingStatusChange(null);
+          }
+        }}
+        title={
+          pendingStatusChange && isActiveStatus(pendingStatusChange.status)
+            ? (t("content.confirmDeactivateTitle") || "Confirm Deactivation")
+            : (t("content.confirmActivateTitle") || "Confirm Activation")
+        }
+        message={
+          pendingStatusChange && isActiveStatus(pendingStatusChange.status)
+            ? (t("content.confirmDeactivateMessage") || "Are you sure you want to deactivate this item? It will no longer be visible to users.")
+            : (t("content.confirmActivateMessage") || "Are you sure you want to activate this item? It will become visible to users.")
+        }
+        variant={pendingStatusChange && isActiveStatus(pendingStatusChange.status) ? "warning" : "primary"}
       />
     </div>
   );

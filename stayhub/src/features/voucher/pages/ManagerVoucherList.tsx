@@ -12,6 +12,7 @@ import { useContext } from 'react';
 import { Table, type Column } from '../../../components/dashboard/Table';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
+import { ConfirmDialog } from '../../../components/dashboard/ConfirmDialog';
 import { useTranslation } from '../../../contexts/LocaleContext';
 import { useVouchers } from '../hooks/useVouchers';
 import { useChangeVoucherStatus } from '../hooks/useChangeVoucherStatus';
@@ -34,6 +35,7 @@ export const ManagerVoucherList: React.FC = () => {
 
   const [createdByMe, setCreatedByMe] = useState('');
   const [tourId, setTourId] = useState('');
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ id: number | string; isActive: boolean } | null>(null);
 
   const { options: tourOptions } = useTourOptions();
 
@@ -162,7 +164,7 @@ export const ManagerVoucherList: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <ActionButton
                 variant="secondary"
-                onClick={() => executeStatusChange(voucher.id, voucher.isActive)}
+                onClick={() => setPendingStatusChange({ id: voucher.id, isActive: voucher.isActive })}
                 className={`h-8 w-8 ${
                   updatingId === voucher.id ? 'cursor-wait opacity-50' : ''
                 } ${
@@ -323,6 +325,28 @@ export const ManagerVoucherList: React.FC = () => {
         totalItems={totalItems}
         pageSize={pageSize}
         onPageChange={setPage}
+      />
+
+      <ConfirmDialog
+        open={!!pendingStatusChange}
+        onClose={() => setPendingStatusChange(null)}
+        onConfirm={() => {
+          if (pendingStatusChange) {
+            executeStatusChange(pendingStatusChange.id, pendingStatusChange.isActive);
+            setPendingStatusChange(null);
+          }
+        }}
+        title={
+          pendingStatusChange?.isActive
+            ? (t("voucher.confirmDeactivateTitle") || "Confirm Deactivation")
+            : (t("voucher.confirmActivateTitle") || "Confirm Activation")
+        }
+        message={
+          pendingStatusChange?.isActive
+            ? (t("voucher.confirmDeactivateMessage") || "Are you sure you want to deactivate this voucher? It can no longer be used.")
+            : (t("voucher.confirmActivateMessage") || "Are you sure you want to activate this voucher? It will become usable.")
+        }
+        variant={pendingStatusChange?.isActive ? "warning" : "primary"}
       />
     </div>
   );

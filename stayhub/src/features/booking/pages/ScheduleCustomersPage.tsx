@@ -108,11 +108,6 @@ export const ScheduleCustomersPage: React.FC = () => {
     }
   }, [selectedScheduleId, debouncedSearch, fetchCustomers, navigate]);
 
-  const selectedSchedule = useMemo(
-    () => schedules.find((item) => item.scheduleId === selectedScheduleId) ?? null,
-    [schedules, selectedScheduleId],
-  );
-
   const columns: Column<ReadScheduleCustomerDTO>[] = useMemo(
     () => [
       {

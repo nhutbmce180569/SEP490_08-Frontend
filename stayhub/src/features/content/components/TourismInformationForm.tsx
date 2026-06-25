@@ -11,7 +11,10 @@ import {
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { MapPickerModal } from "../../tour/components/MapPickerModal";
-import { extractLocationFromPlace, isCoordinateOnlyAddress } from "../../tour/services/mapGeocoding.service";
+import {
+  isCoordinateOnlyAddress,
+  type ExtractedLocation,
+} from "../../tour/services/mapGeocoding.service";
 import {
   TOURISM_DEFAULT_COUNTRY,
   TOURISM_INFORMATION_TYPES,
@@ -27,6 +30,10 @@ const TOURISM_TYPE_I18N: Record<TourismInformationType, string> = {
   Activity: "content.tourismTypeActivity",
   Other: "content.tourismTypeOther",
 };
+
+const isExtractedLocation = (
+  value: ExtractedLocation | { start?: unknown; end?: unknown } | null,
+): value is ExtractedLocation => Boolean(value && "address" in value);
 
 interface TourismInformationFormProps {
   title: string;
@@ -90,10 +97,8 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
     setIsMapModalOpen(true);
   };
 
-  const handleConfirmLocation = (
-    locationData: ReturnType<typeof extractLocationFromPlace> | { start?: unknown; end?: unknown },
-  ) => {
-    if (!currentSetFormData || !locationData || "start" in locationData) return;
+  const handleConfirmLocation = (locationData: ExtractedLocation | { start?: unknown; end?: unknown } | null) => {
+    if (!currentSetFormData || !isExtractedLocation(locationData)) return;
 
     currentSetFormData((prev) => ({
       ...prev,

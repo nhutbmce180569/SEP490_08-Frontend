@@ -39,7 +39,7 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const timeoutRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const timeoutRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   const dismissNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));

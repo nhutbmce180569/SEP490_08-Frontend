@@ -9,12 +9,14 @@ import { useTranslation } from "../../../../contexts/LocaleContext";
 
 interface CreateMomentFormProps {
   onClose?: () => void;
+  scheduleId?: number;
 }
 
 const MAX_CAPTION_LENGTH = 500;
 
 export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({ 
-  onClose
+  onClose,
+  scheduleId,
 }) => {
   const { t } = useTranslation();
   const { mutate: createMoment, isPending } = useCreateMoment();
@@ -22,17 +24,23 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
   // 1. GỌI API LẤY DANH SÁCH CHUYẾN ĐI
   const { data: eligibleSchedules, isLoading: isSchedulesLoading } = useGetEligibleSchedules();
   
-  const [selectedScheduleId, setSelectedScheduleId] = useState<string>("");
+  const [selectedScheduleId, setSelectedScheduleId] = useState<string>(
+    scheduleId ? String(scheduleId) : "",
+  );
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
   const [privacy, setPrivacy] = useState<'Public' | 'Friend' | 'Private'>('Public');
   
   // 2. TỰ ĐỘNG CHỌN CHUYẾN ĐI TRÊN CÙNG KHI CÓ DATA
   useEffect(() => {
+    if (scheduleId) {
+      setSelectedScheduleId(String(scheduleId));
+      return;
+    }
     if (eligibleSchedules && eligibleSchedules.length > 0) {
       setSelectedScheduleId(String(eligibleSchedules[0].scheduleId));
     }
-  }, [eligibleSchedules]);
+  }, [eligibleSchedules, scheduleId]);
 
   // STATE: GPS
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { userService } from "../services/user.service";
 import { useToast } from "../../../contexts/ToastContext";
-import { type ReadUserDTO } from "../types/user";
 
 export const useChangeUserStatus = (refetch?: () => void) => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);

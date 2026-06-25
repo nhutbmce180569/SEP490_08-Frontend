@@ -4,7 +4,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
 import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame } from "lucide-react";
 import type { Moment } from "../types/moment.type";
-import { useGetMomentFeed, useGetMyFootprints } from "../hooks/useMoments"; 
+import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
 import { useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
 import { MomentCard } from "./MomentCard"; 
 import * as signalR from '@microsoft/signalr';
@@ -60,6 +60,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [dynamicFootprints, setDynamicFootprints] = useState<any[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  // Heatmap lay tu LocationLogs (giong mobile); chi fetch khi bat lop heatmap.
+  const { data: heatmapData } = useGetHeatmap(scheduleId, showHeatmap);
   const [isNightMode, setIsNightMode] = useState(false);
   const [dockState, setDockState] = useState<'collapsed' | 'expanded'>('expanded');
   
@@ -415,6 +417,24 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       });
   }, [moments]);
 
+  // --- HEATMAP POINTS (tu LocationLogs, giong mobile) ---
+  // Moi diem co weight = so lan di qua o luoi -> chuan hoa ve 0..1 cho mapbox.
+  const heatmapPoints = useMemo(() => {
+    const src = Array.isArray(heatmapData) ? heatmapData : [];
+    if (src.length === 0) {
+      // Fallback: neu chua co log di chuyen, dung vi tri cac anh (weight 1) de lop van hien.
+      return points.map((p: any) => ({ ...p, properties: { ...p.properties, weight: 1 } }));
+    }
+    const maxW = Math.max(...src.map((p: any) => Number(p.weight) || 1), 1);
+    return src
+      .filter((p: any) => p.lat != null && p.lng != null)
+      .map((p: any) => ({
+        type: "Feature" as const,
+        properties: { weight: (Number(p.weight) || 1) / maxW },
+        geometry: { type: "Point" as const, coordinates: [Number(p.lng), Number(p.lat)] },
+      }));
+  }, [heatmapData, points]);
+
   const hasCenteredRef = useRef(false);
 
   // Tự động định vị
@@ -558,13 +578,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             )}
 
             {/* Lớp Heatmap (Social Energy) */}
-            {showHeatmap && points && points.length > 0 && (
-              <Source id="heatmap-source" type="geojson" data={{ type: "FeatureCollection" as const, features: points }}>
+            {showHeatmap && heatmapPoints && heatmapPoints.length > 0 && (
+              <Source id="heatmap-source" type="geojson" data={{ type: "FeatureCollection" as const, features: heatmapPoints }}>
                 <Layer 
                   id="heatmap-layer" 
                   type="heatmap"
                   paint={{
-                    "heatmap-weight": 1,
+                    "heatmap-weight": ["interpolate", ["linear"], ["get", "weight"], 0, 0, 1, 1],
                     "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 0, 1, 15, 3],
                     "heatmap-color": [
                       "interpolate", ["linear"], ["heatmap-density"],

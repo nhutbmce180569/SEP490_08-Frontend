@@ -58,17 +58,9 @@ export const tourScheduleTicketService = {
     return unwrapData(response);
   },
 
-  activate: async (id: number | string): Promise<TourScheduleTicket> => {
+  changeStatus: async (id: number | string): Promise<TourScheduleTicket> => {
     const response = await apiClient.patch<TourScheduleTicket | { data: TourScheduleTicket }>(
-      TOURS_API.ACTIVATE_TOUR_SCHEDULE_TICKET(id),
-    );
-
-    return unwrapData(response);
-  },
-
-  deactivate: async (id: number | string): Promise<TourScheduleTicket> => {
-    const response = await apiClient.patch<TourScheduleTicket | { data: TourScheduleTicket }>(
-      TOURS_API.DEACTIVATE_TOUR_SCHEDULE_TICKET(id),
+      TOURS_API.CHANGE_TOUR_SCHEDULE_TICKET_STATUS(id),
     );
 
     return unwrapData(response);

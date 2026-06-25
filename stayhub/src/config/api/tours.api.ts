@@ -35,10 +35,8 @@ export const TOURS_API = {
     `${FULL_API}/TourScheduleTickets/${id}`,
   UPDATE_TOUR_SCHEDULE_TICKET: (id: string | number) =>
     `${FULL_API}/TourScheduleTickets/${id}`,
-  ACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) =>
-    `${FULL_API}/TourScheduleTickets/${id}/activate`,
-  DEACTIVATE_TOUR_SCHEDULE_TICKET: (id: string | number) =>
-    `${FULL_API}/TourScheduleTickets/${id}/deactivate`,
+  CHANGE_TOUR_SCHEDULE_TICKET_STATUS: (id: string | number) =>
+    `${FULL_API}/TourScheduleTickets/${id}/change-status`,
   SCHEDULES: `${FULL_API}/TourSchedules`,
   GET_SCHEDULE_BY_OPERATOR: `${FULL_API}/TourSchedules/operator`,
 

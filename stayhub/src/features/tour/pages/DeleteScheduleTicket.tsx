@@ -69,7 +69,9 @@ export const DeleteScheduleTicket: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      await tourScheduleTicketService.deactivate(ticketId);
+      if (ticket?.isActive ?? true) {
+        await tourScheduleTicketService.changeStatus(ticketId);
+      }
       success(t("tour.scheduleTicketDeactivated"));
       navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (err: unknown) {

@@ -116,6 +116,8 @@ import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
+import NotificationListPage from "./features/system/pages/Notificationlistpage";
+import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -277,7 +279,7 @@ const MomentsRouteWrapper = () => {
       </div>
 
     
-      <MomentsFeed scheduleId={selectedSchedule as any} /> 
+      <MomentsFeed key={selectedSchedule || 'global-map'} scheduleId={selectedSchedule as any} />
     </div>
   );
 };
@@ -394,7 +396,7 @@ const App: React.FC = () => {
                     />
                     <Route
                       path={PATH.CUSTOMER.NOTIFICATIONS}
-                      element={mock("app.titles.notifications", "app.mockNotifications", "app.sectionCustomer")}
+                      element={<NotificationListPage />}
                     />
                     
                     <Route path="/social/moments"
@@ -471,7 +473,7 @@ const App: React.FC = () => {
                   />
                   <Route
                     path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
-                    element={mock("app.titles.deleteSchedule", "app.mockDeleteSchedule", "app.sectionPartner")}
+                    element={<DeleteTourSchedule/>}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}

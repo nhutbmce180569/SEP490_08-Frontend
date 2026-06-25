@@ -81,6 +81,8 @@
   "priority": "Priority",
   "deactivate": "Deactivate",
   "activate": "Activate",
+  "deactivateTicketTypeConfirm": "This ticket type will no longer be available for new schedule ticket setup.",
+  "activateTicketTypeConfirm": "This ticket type will be available for schedule ticket setup again.",
   "viewDetails": "View details",
   "targetUrlLabel": "Target URL:",
   "addCategory": "Add Category",

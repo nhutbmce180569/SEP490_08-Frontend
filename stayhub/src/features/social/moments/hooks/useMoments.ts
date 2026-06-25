@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from "@tansta
 import {
   getMomentFeed,
   getMyFootprints,
+  getHeatmap,
   createMoment,
   toggleReaction,
   deleteMoment,
@@ -30,6 +31,17 @@ export const useGetMyFootprints = () => {
   return useQuery({
     queryKey: [...momentQueryKeys.all, "footprints"],
     queryFn: getMyFootprints,
+  });
+};
+
+// Heatmap realtime tu LocationLogs (giong mobile). Chi fetch khi lop heatmap bat.
+export const useGetHeatmap = (scheduleId: number | null, enabled: boolean = true) => {
+  return useQuery({
+    queryKey: [...momentQueryKeys.all, "heatmap", scheduleId ?? "global"],
+    queryFn: () => getHeatmap(scheduleId),
+    enabled,
+    // Du lieu di chuyen thay doi lien tuc -> lam tuoi dinh ky.
+    refetchInterval: enabled ? 30000 : false,
   });
 };
 

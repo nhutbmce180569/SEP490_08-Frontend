@@ -13,7 +13,7 @@ interface BirthdayDistributeModalProps {
 
 export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = ({ open, onClose }) => {
   const { t } = useTranslation();
-  const { addToast } = useToast();
+  const { success, error: showError } = useToast();
   
   const currentMonth = new Date().getMonth() + 1;
   const [isLoading, setIsLoading] = useState(false);
@@ -52,19 +52,11 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
       setResult({
         voucherCode: response.voucherCode,
         totalEligibleCustomers: response.totalEligibleCustomers,
-        emailsSent: response.emailsSent,
+        emailsSent: response.emailsSent, // CORRECTED HERE
       });
-      addToast({
-        title: t('admin.distributeSuccess') || 'Success!',
-        message: response.message || 'Vouchers distributed successfully.',
-        type: 'success',
-      });
+      success(response.message || 'Vouchers distributed successfully.');
     } catch (error: any) {
-      addToast({
-        title: t('admin.distributeError') || 'Error',
-        message: error?.response?.data?.message || error.message || 'Failed to distribute vouchers',
-        type: 'error',
-      });
+      showError(error?.response?.data?.message || error.message || 'Failed to distribute vouchers');
     } finally {
       setIsLoading(false);
     }

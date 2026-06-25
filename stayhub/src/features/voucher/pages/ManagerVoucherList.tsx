@@ -9,9 +9,7 @@ import {
   ListFilter,
 } from 'lucide-react';
 import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Table, type Column } from '../../../components/dashboard/Table';
-import { PATH } from '../../../config/routes/route';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
 import { useTranslation } from '../../../contexts/LocaleContext';
@@ -26,7 +24,6 @@ import {
   formatVnd,
   STATUS_STYLES,
 } from '../utils/voucherHelpers';
-import { BirthdayDistributeModal } from '../components/BirthdayDistributeModal';
 
 export const ManagerVoucherList: React.FC = () => {
   const { t } = useTranslation();
@@ -66,8 +63,6 @@ export const ManagerVoucherList: React.FC = () => {
   
   const { user } = useContext(AuthContext);
   const isAdmin = user?.roles?.includes('Admin');
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -304,7 +299,7 @@ export const ManagerVoucherList: React.FC = () => {
           >
             <option value="">{t('voucher.allCreators') || 'All Creators'}</option>
             <option value="true">{t('voucher.myVouchersFilter') || 'My Vouchers'}</option>
-            <option value="false">{t('voucher.otherVouchersFilter') || 'Others\' Vouchers'}</option>
+            <option value="false">{t('voucher.otherVouchersFilter') || "Others' Vouchers"}</option>
           </select>
         </div>
       </div>

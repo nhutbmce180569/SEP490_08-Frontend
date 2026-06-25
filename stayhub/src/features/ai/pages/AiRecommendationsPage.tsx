@@ -266,16 +266,6 @@ export const AiRecommendationsPage: React.FC = () => {
               <TripContextPanel profile={data.appliedProfile} compact />
             </section>
 
-            {data.weatherAdvice ? (
-              <section className="glass-card rounded-2xl p-5">
-                <WeatherAdviceCard weather={data.weatherAdvice} />
-              </section>
-            ) : (
-              <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                {t("ai.weatherUnavailable")}
-              </p>
-            )}
-
             {(data.generalTips.length > 0 ||
               data.foreignVisitorTips.length > 0 ||
               data.elderlyCompanionTips.length > 0 ||

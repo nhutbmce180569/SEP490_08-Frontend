@@ -95,6 +95,7 @@ export interface TourRecommendationItem {
   nextDeparture?: string;
   matchesPreferredDates?: boolean;
   scheduleNote?: string;
+  destinationWeather?: WeatherAdvice;
 }
 
 export interface ScheduleAvailability {

@@ -18,6 +18,7 @@ import { resolvePublicTourId } from "../utils/catalogTourId";
 import { ScoreBreakdownPanel } from "./ScoreBreakdownPanel";
 import { CustomerScoreBreakdownPanel } from "./CustomerScoreBreakdownPanel";
 import { TourWhyFitPanel } from "./TourWhyFitPanel";
+import { WeatherAdviceCard } from "./WeatherAdviceCard";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import {
   buildWhyFitSummary,
@@ -160,6 +161,12 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             </p>
           )}
 
+          {tour.destinationWeather && (
+            <div className="mt-3 rounded-xl border border-sky-100 bg-sky-50/50 p-2.5">
+              <WeatherAdviceCard weather={tour.destinationWeather} compact />
+            </div>
+          )}
+
           <div className="mt-auto flex items-end justify-between gap-2 border-t border-slate-100 pt-3">
             <div>
               {tour.durationDays != null && (
@@ -267,6 +274,14 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
                 <p className="mt-0.5 line-clamp-1 text-[9px]">
                   {tour.scheduleNote ?? formatDeparture(tour.nextDeparture, locale)}
                 </p>
+              )}
+              {tour.destinationWeather && (
+                <div className="mt-1 flex gap-1 items-center font-semibold text-sky-600">
+                  <span className="text-[10px]">⛅ {tour.destinationWeather.avgMaxTempC?.toFixed(0)}°C</span>
+                  {tour.destinationWeather.totalRainMm != null && tour.destinationWeather.totalRainMm > 20 && (
+                     <span className="text-[10px]">☔</span>
+                  )}
+                </div>
               )}
             </div>
             <div className="shrink-0 text-right">
@@ -398,6 +413,12 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           <div className="mb-3 flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
             <CalendarDays size={14} className="mt-0.5 shrink-0 text-brand" />
             <span>{tour.scheduleNote ?? formatDeparture(tour.nextDeparture, locale)}</span>
+          </div>
+        )}
+
+        {tour.destinationWeather && (
+          <div className="mb-3 rounded-xl border border-sky-100 bg-sky-50/50 p-3">
+            <WeatherAdviceCard weather={tour.destinationWeather} compact />
           </div>
         )}
 

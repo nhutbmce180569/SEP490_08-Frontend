@@ -1,5 +1,8 @@
 export const MANAGER_ROUTES = {
   DASHBOARD: '/manager',
+  PROFILE: '/manager/profile',
+  UPDATE_PROFILE: '/manager/profile/update',
+  CHANGE_PASSWORD: '/manager/profile/change-password',
   APPROVAL_STATUS: '/manager/status',
   MY_TOURS: '/manager/tours',
   CREATE_TOUR: '/manager/tours/create', // Cho phép Optional Params trên Component

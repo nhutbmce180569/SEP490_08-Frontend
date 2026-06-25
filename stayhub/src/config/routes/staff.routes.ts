@@ -1,5 +1,8 @@
 export const STAFF_ROUTES = {
   DASHBOARD: '/staff',
+  PROFILE: '/staff/profile',
+  UPDATE_PROFILE: '/staff/profile/update',
+  CHANGE_PASSWORD: '/staff/profile/change-password',
   SCHEDULES: '/staff/schedules',
   SCHEDULE_DETAIL: (id: string | number = ':id') => `/staff/schedules/${id}`,
   QR_CHECKIN: '/staff/qr-checkin',

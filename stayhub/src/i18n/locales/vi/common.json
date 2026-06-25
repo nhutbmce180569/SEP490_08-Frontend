@@ -102,7 +102,14 @@
   "anonymous": "Ẩn danh",
   "themeSwitchToLight": "Chuyển sang chế độ sáng",
   "themeSwitchToDark": "Chuyển sang chế độ tối",
-    "tabAll": "Tất cả",
+
+  "header": {
+    "myProfile": "Hồ sơ của tôi",
+    "changePassword": "Đổi mật khẩu",
+    "signOut": "Đăng xuất"
+  },
+
+  "tabAll": "Tất cả",
   "tabUnread": "Chưa đọc",
   "tabRead": "Đã đọc",
   "markRead": "Đánh dấu đã đọc",

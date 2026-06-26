@@ -26,9 +26,14 @@ export const DashboardLayout = () => {
         title: t("manager.overview"),
         items: [
           {
-            label: t("manager.dashboard"),
-            to: PATH.MANAGER.DASHBOARD,
-            icon: <LayoutDashboard className={iconClass} />,
+            label: t("manager.customerAnalytics"),
+            to: PATH.MANAGER.CUSTOMER_ANALYTICS,
+            icon: <BarChart3 className={iconClass} />,
+          },
+          {
+            label: t("manager.bookingStatistics"),
+            to: PATH.MANAGER.BOOKING_STATISTICS,
+            icon: <TicketPercent className={iconClass} />,
           },
         ],
       },
@@ -69,16 +74,6 @@ export const DashboardLayout = () => {
             label: t("manager.reviews"),
             to: PATH.MANAGER.REVIEWS,
             icon: <Star className={iconClass} />,
-          },
-          {
-            label: t("manager.customerAnalytics"),
-            to: PATH.MANAGER.CUSTOMER_ANALYTICS,
-            icon: <BarChart3 className={iconClass} />,
-          },
-          {
-            label: t("manager.bookingStatistics"),
-            to: PATH.MANAGER.BOOKING_STATISTICS,
-            icon: <TicketPercent className={iconClass} />,
           },
         ],
       },

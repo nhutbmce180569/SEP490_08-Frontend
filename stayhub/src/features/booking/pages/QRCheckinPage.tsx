@@ -235,18 +235,27 @@ export const QRCheckinPage: React.FC = () => {
 
                   {/* THIẾT KẾ DẠNG VÉ (TICKET STYLE) */}
                   <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm text-left overflow-hidden">
-                    <div className="px-4 py-3 bg-slate-50/50 flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border border-blue-200/50">
-                        <User className="h-5 w-5 text-blue-600" />
+                    <div className="px-4 py-3 bg-slate-50/50 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border border-blue-200/50">
+                          <User className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
+                            Hành khách / Passenger
+                          </p>
+                          <p className="truncate font-black text-slate-800 text-base">
+                            {lastResult.ticketData?.attendeeName || t("booking.anonymous")}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
-                          Hành khách / Passenger
-                        </p>
-                        <p className="truncate font-black text-slate-800 text-base">
-                          {lastResult.ticketData?.attendeeName || t("booking.anonymous")}
-                        </p>
-                      </div>
+
+                      {/* Badge trạng thái check-in */}
+                      {lastResult.ticketData?.checkInStatus && (
+                        <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
+                          {lastResult.ticketData.checkInStatus}
+                        </span>
+                      )}
                     </div>
 
                     {/* Vạch đứt */}

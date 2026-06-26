@@ -26,4 +26,6 @@ export const locationTrackingService = {
     });
     return response.data?.data || response.data;
   }
+
+  
 };

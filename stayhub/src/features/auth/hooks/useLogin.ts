@@ -76,7 +76,7 @@ export const useLogin = () => {
       if (upperRoles.includes("ADMIN")) {
         navigate(PATH.ADMIN.DASHBOARD);
       } else if (upperRoles.includes("MANAGER") || upperRoles.includes("OPERATOR")) {
-        navigate(PATH.MANAGER.DASHBOARD);
+        navigate(PATH.MANAGER.BOOKING_STATISTICS);
       } else if (upperRoles.includes("STAFF")) {
         navigate(PATH.STAFF.DASHBOARD);
       } else {

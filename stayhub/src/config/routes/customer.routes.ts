@@ -1,5 +1,7 @@
 export const CUSTOMER_ROUTES = {
   PROFILE: '/profile',
+  UPDATE_PROFILE: '/profile/update',
+  CHANGE_PASSWORD: '/profile/change-password',
   SETTINGS: '/settings',
   UPGRADE_ACCOUNT: '/profile/upgrade',
   NOTIFICATIONS: '/notifications',

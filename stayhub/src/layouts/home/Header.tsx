@@ -57,7 +57,7 @@ export default function Header() {
     if (upperRoles.includes("ADMIN")) {
       navigate(PATH.ADMIN.DASHBOARD);
     } else  if(upperRoles.includes("MANAGER")){
-      navigate(PATH.MANAGER.DASHBOARD);
+      navigate(PATH.MANAGER.CUSTOMER_ANALYTICS);
     }else{
       navigate(PATH.STAFF.DASHBOARD);
     }

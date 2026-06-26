@@ -103,7 +103,14 @@
   "anonymous": "Anonymous",
   "themeSwitchToLight": "Switch to light mode",
   "themeSwitchToDark": "Switch to dark mode",
-    "tabAll": "All",
+
+  "header": {
+    "myProfile": "My Profile",
+    "changePassword": "Change Password",
+    "signOut": "Sign Out"
+  },
+
+  "tabAll": "All",
   "tabUnread": "Unread",
   "tabRead": "Read",
   "markRead": "Mark as read",

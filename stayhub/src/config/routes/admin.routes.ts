@@ -1,5 +1,8 @@
 export const ADMIN_ROUTES = {
   DASHBOARD: '/admin',
+  PROFILE: '/admin/profile',
+  UPDATE_PROFILE: '/admin/profile/update',
+  CHANGE_PASSWORD: '/admin/profile/change-password',
   USER_MANAGEMENT: '/admin/users',
   PARTNER_APPROVAL: '/admin/partners',
   TOUR_MODERATION: '/admin/tours',

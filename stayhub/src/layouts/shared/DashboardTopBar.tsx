@@ -4,6 +4,7 @@ import {
   Bell,
   ChevronRight,
   Home,
+  KeyRound,
   LogOut,
   Menu,
   PanelLeftClose,
@@ -50,33 +51,42 @@ export function DashboardTopBar({
   const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
 
-  const meta = useMemo(() => {
+  const { meta, profilePath } = useMemo(() => {
+    let basePath = '';
+    let metaData;
     switch (role) {
       case "partner":
-        return {
+        basePath = PATH.MANAGER.DASHBOARD;
+        metaData = {
           label: t("dashboard.partner"),
-          badgeClass: "bg-brand-light text-brand", 
+          badgeClass: "bg-brand-light text-brand",
           subtitle: t("dashboard.partnerSubtitle"),
         };
+        break;
       case "admin":
-        return {
+        basePath = PATH.ADMIN.DASHBOARD;
+        metaData = {
           label: t("dashboard.admin"),
-          badgeClass: "bg-brand-light text-brand", 
+          badgeClass: "bg-brand-light text-brand",
           subtitle: t("dashboard.adminSubtitle"),
         };
+        break;
       case "staff":
-        return {
-          label: "STAFF", 
+        basePath = PATH.STAFF.DASHBOARD;
+        metaData = {
+          label: "STAFF",
           badgeClass: "bg-brand-light text-brand",
           subtitle: t("dashboard.staffSubtitle"),
         };
+        break;
       default:
-        return {
+        metaData = {
           label: role,
           badgeClass: "bg-slate-100 text-slate-700",
           subtitle: "User",
         };
     }
+    return { meta: metaData, profilePath: basePath };
   }, [role, t]);
 
   const notificationItems = useMemo(
@@ -158,7 +168,7 @@ export function DashboardTopBar({
             className={`icon-btn relative ${showNotifications ? "!bg-brand-light !text-brand" : ""}`}
             onClick={() => {
               setShowNotifications((v) => !v);
-              setShowProfileMenu(false);
+setShowProfileMenu(false);
             }}
             aria-label={t("dashboard.notifications")}
           >
@@ -215,11 +225,22 @@ export function DashboardTopBar({
                 className="menu-item mt-1"
                 onClick={() => {
                   setShowProfileMenu(false);
-                  navigate(PATH.CUSTOMER.PROFILE);
+                  navigate(profilePath ? `${profilePath}/profile` : PATH.CUSTOMER.PROFILE);
                 }}
               >
                 <User className="h-4 w-4" />
                 {t("header.myProfile")}
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  navigate(`/change-password`);
+                }}
+              >
+                <KeyRound className="h-4 w-4" />
+                {t("header.changePassword")}
               </button>
               <button
                 type="button"

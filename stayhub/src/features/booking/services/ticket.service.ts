@@ -13,7 +13,8 @@ export const ticketService = {
 
   checkInByQR: async (qrCode: string) => {
     const response: any = await apiClient.put(TICKETS_API.CHECK_IN, { qrCode });
-    return response.data !== undefined ? response.data : response;
+      console.log("RAW checkInByQR response:", response); 
+    return response;
   },
 
   getMyTickets: async (): Promise<ReadTicketDTO[]> => {

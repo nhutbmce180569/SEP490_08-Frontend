@@ -27,10 +27,30 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
   const { t } = useTranslation();
 
   switch (field.inputType) {
-    case "single_select":
+    case "single_select": {
+      const options = field.options ?? [];
+      if (options.length > 10) {
+        return (
+          <div className="relative">
+            <select
+              value={(value as string) ?? ""}
+              onChange={(e) => onChange(field.fieldKey, e.target.value)}
+              className={`${inputBase} ${error ? inputError : ""} w-full appearance-none cursor-pointer`}
+            >
+              <option value="">{t("common.select") || "Select"}...</option>
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+            {error && <p className="mt-1 text-xs font-bold text-rose-500">{error}</p>}
+          </div>
+        );
+      }
       return (
-        <div className="flex flex-wrap gap-2">
-          {(field.options ?? []).map((opt) => {
+        <div className="flex flex-wrap gap-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-2">
+          {options.map((opt) => {
             const active = value === opt.value;
             return (
               <button
@@ -50,11 +70,12 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
           {error && <p className="mt-1 w-full text-xs font-bold text-rose-500">{error}</p>}
         </div>
       );
+    }
 
     case "multi_select": {
       const selected = Array.isArray(value) ? (value as string[]) : [];
       return (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 max-h-[240px] overflow-y-auto custom-scrollbar pr-2">
           {(field.options ?? []).map((opt) => {
             const active = selected.includes(opt.value);
             return (

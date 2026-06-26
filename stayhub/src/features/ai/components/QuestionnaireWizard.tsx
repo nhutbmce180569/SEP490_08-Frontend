@@ -49,7 +49,6 @@ export const QuestionnaireWizard: React.FC<Props> = ({
     const chunks: QuestionnaireField[][] = [];
     for (let i = 0; i < questions.length; i += STEPS_PER_PAGE)
       chunks.push(questions.slice(i, i + STEPS_PER_PAGE));
-    chunks.push([]); // extra step for group size + top
     return chunks;
   }, [questions]);
 
@@ -72,22 +71,10 @@ export const QuestionnaireWizard: React.FC<Props> = ({
       ? {}
       : validateQuestionnaireStep(currentFields, values);
 
-    // Custom check for dates if both present
     const start = values.preferredStartDate as string;
     const end = values.preferredEndDate as string;
     if (start && end && end < start) {
       fieldErrors.preferredEndDate = t("ai.endDateError") || "Ngày kết thúc phải sau ngày bắt đầu";
-    }
-
-    // Check Top constraint manually since ExtraCountFields is removed
-    if (isLastStep) {
-      const top = values.top;
-      if (top != null && top !== "") {
-        const n = Number(top);
-        if (Number.isNaN(n) || n < 1 || n > 30) {
-          fieldErrors.top = t("ai.topError") || "Số lượng kết quả phải từ 1 đến 30.";
-        }
-      }
     }
 
     setErrors(fieldErrors);
@@ -157,34 +144,8 @@ export const QuestionnaireWizard: React.FC<Props> = ({
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="space-y-6"
           >
-            {isLastStep ? (
-              <>
-                <div className="mb-2">
-                  <p className="travel-eyebrow mb-1 text-brand">{t("ai.finalStep") || "Bước cuối cùng"}</p>
-                  <p className="text-[15px] font-medium text-[var(--text-muted)]">
-                    {t("ai.finalStepDesc") || "Gần xong rồi! Bạn muốn nhận bao nhiêu gợi ý tour từ AI?"}
-                  </p>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-bold text-[var(--color-navy)]">
-                    {t("ai.maxToursToShow") || "Số tour hiển thị tối đa"}{" "}
-                    <span className="font-normal text-[var(--text-muted)]">({t("common.default") || "mặc định"} 8)</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={30}
-                    placeholder="8"
-                    value={values.top != null && values.top !== "" ? String(values.top) : ""}
-                    onChange={(e) => handleChange("top", e.target.value === "" ? "" : Number(e.target.value))}
-                    className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--surface-input)] px-4 py-3 text-sm font-medium text-[var(--color-navy)] outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10"
-                  />
-                  {errors.top && <p className="mt-1 text-xs font-bold text-rose-500">{errors.top}</p>}
-                </div>
-              </>
-            ) : (
-              currentFields.map((field) => (
-                <div key={field.fieldKey}>
+            {currentFields.map((field) => (
+              <div key={field.fieldKey}>
                   <label className="mb-1.5 block text-[15px] font-bold text-[var(--color-navy)]">
                     {field.label}
                     {field.required && <span className="ml-1 text-rose-500">*</span>}
@@ -204,8 +165,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
                     onChange={handleChange}
                   />
                 </div>
-              ))
-            )}
+              ))}
           </motion.div>
         </AnimatePresence>
       </div>

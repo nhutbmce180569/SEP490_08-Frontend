@@ -23,7 +23,6 @@ import {
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
 import { PATH } from "../config/routes/route";
-import { useWishlist } from "../features/wishlist/hooks/useWishlist";
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
 import { useToast } from "../contexts/ToastContext";
@@ -44,6 +43,8 @@ import {
 import { useTranslation } from "../contexts/LocaleContext";
 import { useReview } from "../features/tour/hooks/useReview";
 import { MoneyDisplay } from "../features/currency/MoneyDisplay";
+import { WishlistToggleButton } from "../features/wishlist/customer/components/WishlistToggleButton";
+import { SimilarToursSection } from "../features/ai/components/SimilarToursSection";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -125,8 +126,7 @@ export default function PublicTourDetail() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { tour, isLoading, error } = usePublicTour(id);
-  const { isInWishlist, toggleWishlist, isSubmitting, isSubmittingTourId } = useWishlist();
+  const { tour, isLoading, error } = usePublicTour(id ? Number(id) : undefined);
   const { error: showError } = useToast();
 
   const [showFullError, setShowFullError] = useState(false);
@@ -143,9 +143,6 @@ export default function PublicTourDetail() {
   });
 
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
-
-  const isWished = tour ? isInWishlist(Number(tour.id)) : false;
-  const isWishlistBusy = tour ? isSubmitting && isSubmittingTourId === Number(tour.id) : false;
 
   const sortedSchedules = useMemo(() => {
     const arr = [...(tour?.tourSchedules || [])];
@@ -414,27 +411,7 @@ export default function PublicTourDetail() {
         {/* Wishlist */}
         <div className="absolute top-[100px] right-6 z-10">
           {!isLoading && tour && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                if (!isWishlistBusy) toggleWishlist(Number(tour.id), tour.status);
-              }}
-              disabled={isWishlistBusy}
-              className="flex h-12 w-12 items-center justify-center backdrop-blur-md shadow-sm transition-all duration-200"
-              style={{
-                borderRadius: 999,
-                background: isWished ? "#FFF1F2" : "rgba(255,255,255,0.96)",
-                color: isWished ? "#F43F5E" : "#94A3B8",
-              }}
-              onMouseEnter={(e) => {
-                if (!isWished) (e.currentTarget as HTMLElement).style.color = "#F43F5E";
-              }}
-              onMouseLeave={(e) => {
-                if (!isWished) (e.currentTarget as HTMLElement).style.color = "#94A3B8";
-              }}
-            >
-              <Heart size={22} className={isWished ? "fill-current" : ""} />
-            </button>
+            <WishlistToggleButton tourId={Number(tour.id)} tourStatus={tour.status} variant="hero" />
           )}
         </div>
 
@@ -892,6 +869,9 @@ export default function PublicTourDetail() {
                 )}
               </div>
             </section>
+            
+            {/* Similar Tours */}
+            {tour && <SimilarToursSection tourId={Number(tour.id)} />}
           </div>
 
           {/* RIGHT: Booking widget */}

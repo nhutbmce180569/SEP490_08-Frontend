@@ -28,6 +28,8 @@ import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
 import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
 import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
+import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
+
 
 export default function Header() {
   const navigate = useNavigate();
@@ -276,21 +278,9 @@ export default function Header() {
                 )}
               </div>
 
-              <button
-                type="button"
-                onClick={() => navigate(PATH.CUSTOMER.WISHLIST)}
-                className="icon-btn"
-                title={t("header.wishlist")}
-                aria-label={t("header.wishlist")}
-              >
-                <Heart className="h-5 w-5" />
-              </button>
+              <WishlistHeaderButton />
 
               <NotificationBell />
-
-              <CurrencyToggle />
-              <LanguageSwitcher />
-              <ThemeToggle />
 
               <div className="relative ml-0.5" ref={userMenuRef}>
                 <button
@@ -365,6 +355,22 @@ export default function Header() {
                       <LogOut className="h-4 w-4" />
                       {t("header.signOut")}
                     </button>
+
+                    {/* Settings Group */}
+                    <div className="mt-1.5 border-t border-slate-100/80 bg-slate-50/50 -mx-1.5 -mb-1.5 p-3 rounded-b-xl flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-500">Language</span>
+                        <LanguageSwitcher />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-500">Currency</span>
+                        <CurrencyToggle className="inline-flex" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-slate-500">Theme</span>
+                        <ThemeToggle variant="menu" className="flex-1 ml-4" />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { PATH } from "../../config/routes/route";
 import { useTranslation } from "../../contexts/LocaleContext";
 import { MoneyDisplay } from "../../features/currency/MoneyDisplay";
+import { WishlistToggleButton } from "../../features/wishlist/customer/components/WishlistToggleButton";
 
 export interface TourCardProps {
   id: string | number;
@@ -47,6 +48,10 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
             {tour.reviews > 0 && (
               <span className="font-semibold text-slate-400">({tour.reviews})</span>
             )}
+          </div>
+
+          <div className="absolute right-3 top-3">
+             <WishlistToggleButton tourId={Number(tour.id)} variant="card" />
           </div>
 
           <div className="absolute bottom-3 left-0 right-0 flex translate-y-2 justify-center opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">

@@ -29,14 +29,7 @@ export const UpdateCategory: React.FC = () => {
         colSpan: 1,
         required: true,
       },
-      {
-        name: "slug",
-        label: t("content.slug"),
-        type: "text",
-        icon: <Type className="h-4 w-4" />,
-        colSpan: 1,
-        required: true,
-      },
+
       {
         name: "description",
         label: t("common.description"),

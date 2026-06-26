@@ -18,6 +18,7 @@ import { useSearchTours } from "../hooks/useSearchTours";
 import type { Tour } from "../features/tour/types/tour";
 import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
 import { useTranslation } from "../contexts/LocaleContext";
+import { AiSemanticSearchBar } from "../features/ai/components/AiSemanticSearchBar";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -644,6 +645,11 @@ export default function TourSearch() {
 
           {/* Main content */}
           <div className="flex-1 min-w-0 w-full">
+            {/* AI Semantic Search */}
+            <div className="mb-6">
+              <AiSemanticSearchBar />
+            </div>
+
             {/* Sort + filter bar */}
             <div
               className="flex items-center justify-between gap-4 mb-8 px-5 py-3.5 rounded-2xl"

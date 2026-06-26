@@ -1,9 +1,14 @@
 import type { DateRangeParams } from '../../customer-analytics/types/customerAnalytics.types';
 import type { VoucherTargetValue } from '../components/VoucherTargetEditor';
-import type { RevenuePeriod } from '../types/voucher';
+import type { RevenuePeriod, TopCustomerVoucherAssignmentDTO } from '../types/voucher';
 
-export const getRevenuePeriodRange = (period: RevenuePeriod): DateRangeParams => {
+export const getRevenuePeriodRange = (assignment: TopCustomerVoucherAssignmentDTO): DateRangeParams => {
   const now = new Date();
+  const period = assignment.revenuePeriod;
+
+  if (period === 'Custom') {
+    return { from: assignment.fromDate, to: assignment.toDate };
+  }
 
   if (period === 'AllTime') {
     return {};

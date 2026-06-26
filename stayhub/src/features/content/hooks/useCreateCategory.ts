@@ -16,9 +16,20 @@ export const useCreateCategory = () => {
     setServerErrors({});
     
     try {
+      const generatedSlug = data.name
+        ? data.name
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim()
+            .replace(/đ/g, "d")
+            .replace(/[^a-z0-9\s-]/g, "")
+            .replace(/[\s-]+/g, "-")
+        : "";
+
       const payload = {
         name: data.name,
-        slug: data.slug,
+        slug: generatedSlug,
         description: data.description,
         isActive: data.isActive === "Active",
         iconFile: data.iconFile instanceof File ? data.iconFile : undefined,

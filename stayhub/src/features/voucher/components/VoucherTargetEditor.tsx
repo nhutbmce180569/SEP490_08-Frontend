@@ -37,8 +37,8 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
   const { t } = useTranslation();
 
   const topDateParams = useMemo(
-    () => getRevenuePeriodRange(value.topCustomerAssignment.revenuePeriod),
-    [value.topCustomerAssignment.revenuePeriod],
+    () => getRevenuePeriodRange(value.topCustomerAssignment),
+    [value.topCustomerAssignment],
   );
 
   const previewEnabled = value.type === 'topRevenue' && value.topCustomerAssignment.top > 0;
@@ -155,6 +155,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
                 <option value="Month">{t('voucher.revenuePeriodMonth')}</option>
                 <option value="Year">{t('voucher.revenuePeriodYear')}</option>
                 <option value="AllTime">{t('voucher.revenuePeriodAllTime')}</option>
+                <option value="Custom">{t('voucher.revenuePeriodCustom', 'Custom Range')}</option>
               </select>
             </div>
 
@@ -172,6 +173,35 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
               />
             </div>
           </div>
+
+          {value.topCustomerAssignment.revenuePeriod === 'Custom' && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  {t('voucher.fromDate', 'From Date')}
+                </label>
+                <input
+                  type="date"
+                  value={value.topCustomerAssignment.fromDate ? value.topCustomerAssignment.fromDate.split('T')[0] : ''}
+                  disabled={readOnly}
+                  onChange={(event) => handleTopFieldChange('fromDate', event.target.value ? new Date(event.target.value).toISOString() : '')}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-4 focus:ring-brand/10"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-600">
+                  {t('voucher.toDate', 'To Date')}
+                </label>
+                <input
+                  type="date"
+                  value={value.topCustomerAssignment.toDate ? value.topCustomerAssignment.toDate.split('T')[0] : ''}
+                  disabled={readOnly}
+                  onChange={(event) => handleTopFieldChange('toDate', event.target.value ? new Date(event.target.value).toISOString() : '')}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-4 focus:ring-brand/10"
+                />
+              </div>
+            </div>
+          )}
 
           <div>
             <div className="mb-2 flex items-center justify-between">

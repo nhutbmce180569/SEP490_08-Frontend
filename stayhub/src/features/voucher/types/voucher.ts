@@ -38,7 +38,7 @@ export interface CreateUserVoucherAssignmentDTO {
   quantity: number;
 }
 
-export type RevenuePeriod = 'Month' | 'Year' | 'AllTime';
+export type RevenuePeriod = 'Month' | 'Year' | 'AllTime' | 'Custom';
 
 export type VoucherTargetType = 'public' | 'specific' | 'topRevenue';
 
@@ -46,6 +46,8 @@ export interface TopCustomerVoucherAssignmentDTO {
   top: number;
   revenuePeriod: RevenuePeriod;
   quantity: number;
+  fromDate?: string;
+  toDate?: string;
 }
 
 export interface CreateVoucherDTO {

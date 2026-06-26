@@ -2,12 +2,12 @@ import React from "react";
 import { DollarSign } from "lucide-react";
 import { useCurrency } from "./CurrencyContext";
 
-export const CurrencyToggle: React.FC = () => {
+export const CurrencyToggle: React.FC<{ className?: string }> = ({ className = "" }) => {
   const { mode, setMode, isRateUnavailable } = useCurrency();
 
   return (
     <div
-      className="hidden items-center rounded-full border border-slate-200 bg-white/80 p-0.5 shadow-sm backdrop-blur sm:inline-flex"
+      className={`items-center rounded-full border border-slate-200 bg-white/80 p-0.5 shadow-sm backdrop-blur ${className ? className : "hidden sm:inline-flex"}`}
       aria-label="Currency display"
       title={isRateUnavailable ? "USD rate unavailable, showing VND" : "Currency display"}
     >

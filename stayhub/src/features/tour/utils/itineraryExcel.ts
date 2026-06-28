@@ -1,4 +1,5 @@
-import { readSheet, type CellValue } from "read-excel-file/browser";
+import ExcelJS from "exceljs";
+import { saveAs } from "file-saver";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import type { CreateItineraryRequest } from "../types/tourItinerary";
 
@@ -6,6 +7,7 @@ export type ImportedItinerary = CreateItineraryRequest & {
   tourismSearchKeyword?: string;
 };
 
+// Đã bỏ "Latitude" và "Longitude" theo yêu cầu
 const EXPECTED_HEADERS = [
   "DayNumber",
   "Title",
@@ -13,30 +15,34 @@ const EXPECTED_HEADERS = [
   "StartTime",
   "EndTime",
   "LocationName",
-  "Latitude",
-  "Longitude",
   "TourismName",
 ];
 
-const asText = (value: CellValue | null) => String(value ?? "").trim();
+const asText = (value: unknown) => String(value ?? "").trim();
 
-const asRequiredNumber = (value: CellValue | null, field: string) => {
-  const numberValue = typeof value === "number" ? value : Number(asText(value));
-  if (!Number.isFinite(numberValue)) {
+const asRequiredNumber = (value: unknown, field: string) => {
+  const text = asText(value);
+  const numberValue = Number(text);
+  if (!text || !Number.isFinite(numberValue)) {
     throw new Error(`${field} must be a valid number.`);
   }
   return numberValue;
 };
 
-const asOptionalNumber = (value: CellValue | null, field: string) => {
-  if (value === null || asText(value) === "") return null;
-  return asRequiredNumber(value, field);
-};
-
 const normalizeName = (value: string) =>
   value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
 
-const asTime = (value: CellValue | null, field: string) => {
+const asTime = (value: ExcelJS.CellValue, field: string) => {
+  if (value === null || value === undefined || value === "") {
+    throw new Error(`${field} is required.`);
+  }
+
+  // Handle ExcelJS Date object
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
+  }
+
+  // Handle Excel fraction of 24 hours format
   if (typeof value === "number") {
     const totalMinutes = Math.round((value % 1) * 24 * 60);
     const hours = Math.floor(totalMinutes / 60) % 24;
@@ -44,8 +50,9 @@ const asTime = (value: CellValue | null, field: string) => {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   }
 
-  if (value instanceof Date) {
-    return `${String(value.getUTCHours()).padStart(2, "0")}:${String(value.getUTCMinutes()).padStart(2, "0")}`;
+  // Handle RichText
+  if (typeof value === "object" && "richText" in value) {
+    value = value.richText.map((t) => t.text).join("");
   }
 
   const text = asText(value);
@@ -57,6 +64,129 @@ const asTime = (value: CellValue | null, field: string) => {
   return `${match[1].padStart(2, "0")}:${match[2]}`;
 };
 
+//
+// HÀM TẠO TEMPLATE FILE EXCEL MỚI CÓ SHEET HƯỚNG DẪN
+//
+export const downloadItineraryExcelTemplate = async () => {
+  const workbook = new ExcelJS.Workbook();
+  workbook.creator = "StayHub";
+  workbook.created = new Date();
+
+  // Sheet điền thông tin
+  const itinerarySheet = workbook.addWorksheet("Itineraries", {
+    views: [{ state: "frozen", ySplit: 1 }],
+  });
+
+  // Sheet hướng dẫn 
+  const instructionSheet = workbook.addWorksheet("Instructions");
+
+  // Format header
+  const HEADER_FILL = {
+    type: "pattern" as const,
+    pattern: "solid" as const,
+    fgColor: { argb: "E0E7FF" },
+  };
+
+  const BORDER = {
+    top: { style: "thin" as const },
+    left: { style: "thin" as const },
+    right: { style: "thin" as const },
+    bottom: { style: "thin" as const },
+  };
+
+  itinerarySheet.columns = [
+    { header: EXPECTED_HEADERS[0], key: "dayNumber", width: 15 },
+    { header: EXPECTED_HEADERS[1], key: "title", width: 30 },
+    { header: EXPECTED_HEADERS[2], key: "description", width: 50 },
+    { header: EXPECTED_HEADERS[3], key: "startTime", width: 15 },
+    { header: EXPECTED_HEADERS[4], key: "endTime", width: 15 },
+    { header: EXPECTED_HEADERS[5], key: "locationName", width: 30 },
+    { header: EXPECTED_HEADERS[6], key: "tourismName", width: 30 },
+  ];
+
+  itinerarySheet.getRow(1).height = 24;
+  itinerarySheet.getRow(1).eachCell((cell) => {
+    cell.font = { bold: true };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+    cell.fill = HEADER_FILL;
+    cell.border = BORDER;
+  });
+for (let i = 2; i <= 100; i++) {
+    // 1. DayNumber (Cột A) - Phải là số nguyên dương
+    const dayCell = itinerarySheet.getCell(`A${i}`);
+    dayCell.dataValidation = {
+      type: "whole",
+      operator: "greaterThan",
+      allowBlank: true,
+      formulae: [0],
+      showErrorMessage: true,
+      errorStyle: "stop",
+      errorTitle: "Sai định dạng DayNumber",
+      error: "DayNumber phải là số nguyên dương (Ví dụ: 1, 2, 3).",
+    };
+
+    // 3. StartTime (Cột E) - Format giờ
+    const startTimeCell = itinerarySheet.getCell(`D${i}`);
+    startTimeCell.numFmt = "hh:mm";
+    startTimeCell.dataValidation = {
+      type: "decimal", // Thay vì "time", ta dùng "decimal" để chiều lòng TypeScript
+      operator: "between",
+      allowBlank: true,
+      formulae: [0, 0.9999], // Từ 00:00 đến 23:59
+      showErrorMessage: true,
+      errorStyle: "stop",
+      errorTitle: "Sai định dạng giờ",
+      error: "Vui lòng nhập giờ đúng định dạng HH:mm (Ví dụ: 08:30).",
+    };
+
+    // 4. EndTime (Cột F) - Format giờ
+    const endTimeCell = itinerarySheet.getCell(`E${i}`);
+    endTimeCell.numFmt = "hh:mm";
+    endTimeCell.dataValidation = {
+      type: "decimal",
+      operator: "between",
+      allowBlank: true,
+      formulae: [0, 0.9999],
+      showErrorMessage: true,
+      errorStyle: "stop",
+      errorTitle: "Sai định dạng giờ",
+      error: "Vui lòng nhập giờ đúng định dạng HH:mm (Ví dụ: 10:30).",
+    };
+  }
+  // Ghi chú cho Sheet Hướng Dẫn
+  instructionSheet.columns = [
+    { width: 20 }, { width: 15 }, { width: 80 }
+  ];
+
+  instructionSheet.addRow(["Column", "Required", "Notes"]);
+  instructionSheet.addRow(["DayNumber", "Yes", "Positive integer."]);
+  instructionSheet.addRow(["Title", "Yes", "Between 3 and 255 characters."]);
+  instructionSheet.addRow(["Description", "Yes", "Between 10 and 2000 characters."]);
+  instructionSheet.addRow(["StartTime", "Yes", "HH:mm format (e.g., 08:30)."]);
+  instructionSheet.addRow(["EndTime", "Yes", "HH:mm format (e.g., 10:30). Must be later than StartTime."]);
+  instructionSheet.addRow(["LocationName", "Yes", "Phải chọn lại trên map ở UI khi import lên web để hệ thống lấy được dữ liệu giao diện."]);
+  instructionSheet.addRow(["TourismName", "No", "Tên địa điểm du lịch trong hệ thống nếu có."]);
+
+  instructionSheet.getRow(1).eachCell((cell) => {
+    cell.font = { bold: true };
+    cell.fill = HEADER_FILL;
+    cell.border = BORDER;
+  });
+
+  instructionSheet.eachRow((row) => {
+    row.eachCell((cell) => {
+      cell.border = BORDER;
+      cell.alignment = { vertical: "middle", wrapText: true };
+    });
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(new Blob([buffer]), `StayHub_Itinerary_Template.xlsx`);
+};
+
+//
+// HÀM ĐỌC DATA EXCEL (Thay thế read-excel-file thành ExcelJS)
+//
 export const parseItineraryExcel = async (
   file: File,
   tourId: number,
@@ -69,40 +199,52 @@ export const parseItineraryExcel = async (
     throw new Error("Excel file must be non-empty and no larger than 5 MB.");
   }
 
-  const rows = await readSheet(file);
-  if (rows.length < 2) {
-    throw new Error("The Excel file does not contain itinerary rows.");
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(await file.arrayBuffer());
+
+  const worksheet = workbook.getWorksheet("Itineraries") || workbook.getWorksheet(1);
+  if (!worksheet) {
+    throw new Error("Worksheet not found in the Excel file.");
   }
 
-  const headers = rows[0].map(asText);
-  const invalidHeader = EXPECTED_HEADERS.find(
-    (header, index) => headers[index] !== header,
-  );
+  // Header Validation
+  const headerRow = worksheet.getRow(1);
+  const headers = EXPECTED_HEADERS.map((_, index) => asText(headerRow.getCell(index + 1).value));
+
+  const invalidHeader = EXPECTED_HEADERS.find((header, index) => headers[index] !== header);
   if (invalidHeader) {
     throw new Error(`Invalid template. Expected column "${invalidHeader}".`);
+  }
+
+  const dataRows = worksheet
+    .getRows(2, worksheet.rowCount - 1)
+    ?.filter((row) =>
+      Array.isArray(row.values) &&
+      row.values.some((value, index) => index !== 0 && value !== null && value !== undefined && asText(value) !== ""),
+    );
+
+  if (!dataRows || dataRows.length === 0) {
+    throw new Error("The Excel file does not contain itinerary rows.");
   }
 
   const errors: string[] = [];
   const itineraries: ImportedItinerary[] = [];
 
-  rows.slice(1).forEach((row, index) => {
-    if (row.every((cell) => cell === null || asText(cell) === "")) return;
-
-    const rowNumber = index + 2;
+  dataRows.forEach((row) => {
+    const rowNumber = row.number;
     try {
-      const dayNumber = asRequiredNumber(row[0], "DayNumber");
-      const title = asText(row[1]);
-      const description = asText(row[2]);
-      const startDuration = asTime(row[3], "StartTime");
-      const endDuration = asTime(row[4], "EndTime");
-      const locationName = asText(row[5]);
-      const locationLat = asOptionalNumber(row[6], "Latitude");
-      const locationLng = asOptionalNumber(row[7], "Longitude");
-      const tourismName = asText(row[8]);
+      const dayNumber = asRequiredNumber(row.getCell(1).value, "DayNumber");
+      const title = asText(row.getCell(2).value);
+      const description = asText(row.getCell(3).value);
+      const startDuration = asTime(row.getCell(4).value, "StartTime");
+      const endDuration = asTime(row.getCell(5).value, "EndTime");
+      const locationName = asText(row.getCell(6).value);
+      const tourismName = asText(row.getCell(7).value);
+
       const matchingTourismInformation = tourismName
         ? tourismInformationList.filter(
-            (item) => normalizeName(item.name) === normalizeName(tourismName),
-          )
+          (item) => normalizeName(item.name) === normalizeName(tourismName),
+        )
         : [];
 
       if (!Number.isInteger(dayNumber) || dayNumber <= 0)
@@ -111,18 +253,11 @@ export const parseItineraryExcel = async (
         throw new Error("Title must be between 3 and 255 characters.");
       if (description.length < 10 || description.length > 2000)
         throw new Error("Description must be between 10 and 2000 characters.");
-      if (locationName.length < 3 || locationName.length > 255)
-        throw new Error("LocationName must be between 3 and 255 characters.");
-      if (locationLat !== null && (locationLat < -90 || locationLat > 90))
-        throw new Error("Latitude must be between -90 and 90.");
-      if (locationLng !== null && (locationLng < -180 || locationLng > 180))
-        throw new Error("Longitude must be between -180 and 180.");
       if (endDuration <= startDuration)
         throw new Error("EndTime must be later than StartTime.");
+
       const matchedTourismInformation =
-        matchingTourismInformation.length === 1
-          ? matchingTourismInformation[0]
-          : null;
+        matchingTourismInformation.length === 1 ? matchingTourismInformation[0] : null;
 
       itineraries.push({
         tourId,
@@ -132,8 +267,8 @@ export const parseItineraryExcel = async (
         startDuration,
         endDuration,
         locationName,
-        locationLat,
-        locationLng,
+        locationLat: null, // Mặc định null để bắt user chọn map trên web
+        locationLng: null, // Mặc định null
         tourismInfoId: matchedTourismInformation?.id ?? null,
         tourismSearchKeyword: matchedTourismInformation ? "" : tourismName,
       });
@@ -147,13 +282,15 @@ export const parseItineraryExcel = async (
   const duplicatedTimes = itineraries
     .map((item) => `${item.dayNumber}-${item.startDuration}`)
     .filter((key, index, all) => all.indexOf(key) !== index);
+
   if (duplicatedTimes.length > 0) {
     errors.push("Excel contains duplicated StartTime values in the same day.");
   }
 
   if (errors.length > 0) {
-    throw new Error(errors.slice(0, 20).join(" "));
+    throw new Error(errors.slice(0, 20).join("\n"));
   }
+
   if (itineraries.length === 0) {
     throw new Error("The Excel file does not contain itinerary rows.");
   }

@@ -27,8 +27,7 @@ import { TourismInformationSelector } from "../../content/components/TourismInfo
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
-import { downloadScheduleItineraryImportTemplate } from "../services/tourScheduleItinerary.service";
-import { parseScheduleItineraryExcel } from "../utils/scheduleItineraryExcel";
+import { downloadScheduleItineraryExcelTemplate, parseScheduleItineraryExcel } from "../utils/scheduleItineraryExcel";
 
 export const CreateScheduleItinerary: React.FC = () => {
   const { t } = useTranslation();
@@ -181,15 +180,7 @@ export const CreateScheduleItinerary: React.FC = () => {
 
   const handleDownloadTemplate = async () => {
     try {
-      const blob = await downloadScheduleItineraryImportTemplate();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "StayHub_Tour_Schedule_Itinerary_Template.xlsx";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
+      await downloadScheduleItineraryExcelTemplate();
     } catch (error: any) {
       showError(error.message || t("tour.downloadTemplateFailed"));
     }

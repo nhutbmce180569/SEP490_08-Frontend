@@ -91,3 +91,32 @@ export const useSearchTours = (
 
   return { tours, isLoading, error, totalPages };
 };
+
+/**
+ * Fetches search suggestions from the API.
+ * @param searchTerm The term to search for.
+ * @param signal AbortSignal to cancel the request.
+ * @returns A promise that resolves to an array of suggestion strings.
+ */
+export const getSearchSuggestions = async (
+  searchTerm: string,
+  signal?: AbortSignal,
+): Promise<string[]> => {
+  if (!searchTerm.trim()) {
+    return [];
+  }
+
+  // Sử dụng API search có sẵn để lấy gợi ý
+  const res = await apiClient.get<SearchToursResponse>(TOURS_API.SEARCH, {
+    params: {
+      searchTerm,
+      pageSize: 5, // Chỉ lấy 5 kết quả để làm gợi ý
+      page: 1,
+    },
+    signal,
+  });
+
+  // Chuẩn hóa response và trích xuất tên tour
+  const { items: tours } = normalizeSearchToursResponse(res);
+  return tours.map((tour) => tour.name).filter((name): name is string => !!name);
+};

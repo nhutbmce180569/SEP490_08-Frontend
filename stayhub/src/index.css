@@ -1,6 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800&family=Sora:wght@500;600;700;800&display=swap");
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* StayHub brand — logo blue #0068E0, accent #EB662B, navy #05073C */

@@ -116,14 +116,6 @@ export const TourList: React.FC = () => {
         ),
       },
       {
-        header: t("common.description"),
-        render: (tour) => (
-          <span className="line-clamp-2 max-w-[250px] text-sm text-slate-600">
-            {tour.description || t("tour.noDescriptionShort")}
-          </span>
-        ),
-      },
-      {
         header: t("tour.category"),
         render: (tour) => (
           <span className="text-sm text-slate-600">

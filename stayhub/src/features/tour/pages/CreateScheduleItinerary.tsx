@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Calendar,
   Type,
@@ -17,18 +17,27 @@ import {
   FileSpreadsheet,
   CircleCheck,
   RotateCcw,
+  Pencil,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Info,
 } from "lucide-react";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateScheduleItinerary } from "../hooks/useCreateScheduleItinerary";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
+import { ItineraryFormModal } from "../components/ItineraryFormModal";
 import { useToast } from "../../../contexts/ToastContext";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
-import { downloadScheduleItineraryImportTemplate } from "../services/tourScheduleItinerary.service";
-import { parseScheduleItineraryExcel } from "../utils/scheduleItineraryExcel";
+import {
+  downloadScheduleItineraryExcelTemplate,
+  parseScheduleItineraryExcel,
+} from "../utils/scheduleItineraryExcel";
+import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
 
 export const CreateScheduleItinerary: React.FC = () => {
   const { t } = useTranslation();
@@ -42,6 +51,8 @@ export const CreateScheduleItinerary: React.FC = () => {
     serverErrors,
     itineraries,
     missingDayNumbers,
+    invalidItineraryIds,
+    newlyAddedId,
     cloneableDayNumbers,
     handleAddItinerary,
     handleRemoveItinerary,
@@ -54,18 +65,53 @@ export const CreateScheduleItinerary: React.FC = () => {
     isCloneVisible,
     isCloning,
     cloningDayIndex,
+    setInvalidItineraryIds,
     isTourLoading,
   } = useCreateScheduleItinerary();
   const { success, error: showError } = useToast();
-  const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
-  const [isTourismInformationLoading, setIsTourismInformationLoading] = useState(true);
+  const [tourismInformationList, setTourismInformationList] = useState<
+    TourismInformation[]
+  >([]);
+  const [isTourismInformationLoading, setIsTourismInformationLoading] =
+    useState(true);
   const [isImporting, setIsImporting] = useState(false);
-  const [importSummary, setImportSummary] = useState<{ count: number; fileName: string } | null>(null);
+  const [importSummary, setImportSummary] = useState<{
+    count: number;
+    fileName: string;
+  } | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
 
   // --- STATE CHO MAP PICKER ---
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [pickingIndex, setPickingIndex] = useState<number | null>(null);
+
+  // --- STATE CHO EDIT MODAL ---
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const isEditModalOpen = editingIndex !== null;
+
+  // --- STATE CHO LỊCH TRÌNH HIỆN CÓ ---
+  const [isExistingItinerariesVisible, setIsExistingItinerariesVisible] =
+    useState(false);
+  const { groupedItineraries: existingGroupedItineraries, toggleIti: toggleExistingIti, expandedItiIds: expandedExistingItiIds } =
+    useGroupedItineraries(schedule?.tourScheduleItineraries);
+
+
+  const isFirstOfDay = useMemo(() => {
+    if (editingIndex === null) return false;
+
+    const currentItinerary = itineraries[editingIndex];
+    if (!currentItinerary) return false;
+
+    const currentDayNumber = Number(currentItinerary.dayNumber);
+    const existsInDb = schedule?.tourScheduleItineraries?.some(
+      (i: any) => Number(i.dayNumber) === currentDayNumber,
+    );
+    const firstIndexInForm = itineraries.findIndex(
+      (i: any) => Number(i.dayNumber) === currentDayNumber,
+    );
+
+    return !existsInDb && firstIndexInForm === editingIndex;
+  }, [editingIndex, itineraries, schedule?.tourScheduleItineraries]);
 
   useEffect(() => {
     tourismInformationService
@@ -84,8 +130,7 @@ export const CreateScheduleItinerary: React.FC = () => {
     if (pickingIndex !== null) {
       const patch: Record<string, any> = {};
       if (locationData) {
-        patch.locationName =
-          locationData.locationName || locationData.address;
+        patch.locationName = locationData.locationName || locationData.address;
         patch.locationLat = locationData.lat;
         patch.locationLng = locationData.lng;
       }
@@ -93,13 +138,17 @@ export const CreateScheduleItinerary: React.FC = () => {
     }
   };
 
-  const handleChangeTourismInfo = (index: number, selectedTourismInfo: TourismInformation | null) => {
+  const handleChangeTourismInfo = (
+    index: number,
+    selectedTourismInfo: TourismInformation | null,
+  ) => {
     patchItinerary(index, {
       tourismInfoId: selectedTourismInfo?.id ?? null,
       tourismSearchKeyword: "",
       ...(selectedTourismInfo
         ? {
-            locationName: selectedTourismInfo.address || selectedTourismInfo.name,
+            locationName:
+              selectedTourismInfo.address || selectedTourismInfo.name,
             locationLat: selectedTourismInfo.latitude ?? undefined,
             locationLng: selectedTourismInfo.longitude ?? undefined,
           }
@@ -110,6 +159,7 @@ export const CreateScheduleItinerary: React.FC = () => {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const invalidIds = new Set<number>();
     const dateDayMap = new Map<string, number>();
 
     // Lấp đầy map bằng các ngày đã có trong Database
@@ -128,74 +178,109 @@ export const CreateScheduleItinerary: React.FC = () => {
       const assignedDay = Number(iti.dayNumber);
 
       if (!assignedDay || assignedDay <= 0) {
-        showError(`Item ${i + 1}: Day number must be greater than 0.`);
+        showError(t("tour.error.dayNumberPositive", { item: i + 1 }));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
         return;
       }
 
       if (!iti.itineraryDate) {
-        showError(`Day ${assignedDay}: Please select an itinerary date.`);
+        showError(t("tour.error.dateRequired", { day: assignedDay }));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
         return;
       }
 
       // Kiểm tra xem Ngày này đã bị một DayNumber khác chiếm chưa
       if (dateDayMap.has(iti.itineraryDate)) {
         const mappedDay = dateDayMap.get(iti.itineraryDate);
-        if (mappedDay !== assignedDay) {
-          showError(`Date ${iti.itineraryDate} is already assigned to Day ${mappedDay}. Different days cannot share the same date.`);
+        if (mappedDay !== undefined && mappedDay !== assignedDay) {
+          showError(
+            t("tour.error.dateConflict", {
+              date: iti.itineraryDate,
+              day: mappedDay as number,
+            }),
+          );
+          invalidIds.add(iti.id);
+          setInvalidItineraryIds(invalidIds);
           return;
         }
       } else {
         dateDayMap.set(iti.itineraryDate, assignedDay);
       }
 
-      if (!iti.title) {
-        showError(`Day ${assignedDay}: Title is required.`);
+      if (String(iti.title ?? "").trim().length < 3) {
+        showError(t("tour.error.titleMinLength", { day: assignedDay }));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
         return;
       }
       if (!iti.startDuration) {
-        showError(`Day ${assignedDay}: Start Time is required.`);
+        showError(t("tour.error.startTimeRequired", { day: assignedDay }));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
         return;
       }
       if (!iti.endDuration) {
-        showError(`Day ${assignedDay}: End Time is required.`);
+        showError(t("tour.error.endTimeRequired", { day: assignedDay }));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
         return;
       }
       if (iti.startDuration >= iti.endDuration) {
-        showError(`Day ${assignedDay} - ${iti.title || 'Item'}: End time must be strictly after start time.`);
+        showError(
+          t("tour.error.endTimeAfterStart", {
+            day: assignedDay,
+            title: iti.title || "Item",
+          }),
+        );
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
         return;
       }
     }
 
     const dayTimeSet = new Set<string>();
     for (const iti of itineraries) {
-      const key = `${iti.dayNumber}-${iti.startDuration}`;
-      if (dayTimeSet.has(key)) {
-        showError(`Day ${iti.dayNumber}: Start time ${iti.startDuration} cannot be duplicated.`);
-        return;
+      if (iti.startDuration) {
+        const key = `${iti.dayNumber}-${iti.startDuration}`;
+        if (dayTimeSet.has(key)) {
+          showError(
+            t("tour.error.duplicateStartTime", {
+              day: iti.dayNumber,
+              time: iti.startDuration,
+            }),
+          );
+          // Tìm tất cả các item bị trùng để highlight
+          itineraries.forEach((item) => {
+            if (
+              item.dayNumber === iti.dayNumber &&
+              item.startDuration === iti.startDuration
+            ) {
+              invalidIds.add(item.id);
+            }
+          });
+          setInvalidItineraryIds(invalidIds);
+          return;
+        }
+        dayTimeSet.add(key);
       }
-      dayTimeSet.add(key);
     }
-
+    setInvalidItineraryIds(new Set());
     handleSubmitBatch(itineraries);
   };
 
   const handleDownloadTemplate = async () => {
     try {
-      const blob = await downloadScheduleItineraryImportTemplate();
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = "StayHub_Tour_Schedule_Itinerary_Template.xlsx";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
+      await downloadScheduleItineraryExcelTemplate();
     } catch (error: any) {
       showError(error.message || t("tour.downloadTemplateFailed"));
     }
   };
 
-  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !scheduleId) return;
@@ -212,9 +297,23 @@ export const CreateScheduleItinerary: React.FC = () => {
         Number(scheduleId),
         tourismInformationList,
       );
-      addImportedItineraries(importedItineraries);
-      setImportSummary({ count: importedItineraries.length, fileName: file.name });
-      success(t("tour.importPreviewSuccess", { count: importedItineraries.length }));
+
+      // Nếu form chỉ có 1 item và item đó trống thì thay thế, ngược lại thì nối vào
+      if (itineraries.length === 1 && !itineraries[0].title?.trim()) {
+        // Form mới, chỉ có 1 item trống -> thay thế nó bằng dữ liệu import
+        addImportedItineraries(importedItineraries);
+      } else {
+        // Form đã có dữ liệu -> nối dữ liệu import vào cuối danh sách hiện tại
+        addImportedItineraries([...itineraries, ...importedItineraries]);
+      }
+
+      setImportSummary({
+        count: importedItineraries.length,
+        fileName: file.name,
+      });
+      success(
+        t("tour.importPreviewSuccess", { count: importedItineraries.length }),
+      );
     } catch (error: any) {
       showError(error.message || t("tour.importExcelFailed"));
     } finally {
@@ -260,15 +359,17 @@ export const CreateScheduleItinerary: React.FC = () => {
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
               {t("tour.createScheduleItineraryBatchDesc")} #{scheduleId}
-              {schedule ? ` (${t("tour.tour")}: ${schedule.tour?.name || `ID ${schedule.tourId}`})` : ""}
+              {schedule
+                ? ` (${t("tour.tour")}: ${schedule.tour?.name || `ID ${schedule.tourId}`})`
+                : ""}
             </p>
-          </div>
-          <div className="flex w-4/12 shrink-0 justify-end gap-3">
+          </div>{" "}
+          <div className="flex w-full sm:w-auto shrink-0 justify-end gap-3">
             <ActionButton
               type="button"
               variant="secondary"
               onClick={handleCancel}
-              className="gap-2 px-4 py-2.5 shadow-sm"
+              className="gap-2 px-5 py-2 shadow-sm"
             >
               <X className="h-4 w-4" />
               {t("common.cancel")}
@@ -277,8 +378,8 @@ export const CreateScheduleItinerary: React.FC = () => {
               type="submit"
               variant="primary"
               onClick={onSubmit}
-              disabled={isSubmitting}
-              className="gap-1 px-6 py-2.5 shadow-sm"
+              disabled={isSubmitting || itineraries.length === 0}
+              className="gap-2 px-5 py-2 shadow-sm"
             >
               <Save className="h-4 w-4" />
               {t("tour.saveItineraries")}
@@ -291,8 +392,12 @@ export const CreateScheduleItinerary: React.FC = () => {
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-900">{t("tour.excelToolsTitle")}</p>
-              <p className="mt-0.5 text-xs leading-5 text-slate-600">{t("tour.excelToolsDescription")}</p>
+              <p className="text-sm font-bold text-slate-900">
+                {t("tour.excelToolsTitle")}
+              </p>
+              <p className="mt-0.5 text-xs leading-5 text-slate-600">
+                {t("tour.excelToolsDescription")}
+              </p>
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
@@ -303,7 +408,12 @@ export const CreateScheduleItinerary: React.FC = () => {
               className="hidden"
               onChange={handleImportFile}
             />
-            <ActionButton type="button" variant="secondary" onClick={handleDownloadTemplate} className="gap-2 px-4 py-2 shadow-sm">
+            <ActionButton
+              type="button"
+              variant="secondary"
+              onClick={handleDownloadTemplate}
+              className="gap-2 px-4 py-2 shadow-sm"
+            >
               <Download className="h-4 w-4" />
               {t("tour.downloadExcelTemplate")}
             </ActionButton>
@@ -319,6 +429,21 @@ export const CreateScheduleItinerary: React.FC = () => {
             </ActionButton>
           </div>
         </div>
+        {isCloneVisible && (
+          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/30 p-4">
+            <p className="flex-1 text-sm font-medium text-indigo-800">
+              {t("tour.cloneFromTourPrompt")}
+            </p>
+            <ActionButton
+              type="button"
+              variant="primary"
+              onClick={handleCloneFromTour}
+              className="gap-2 px-4 py-2 shadow-sm"
+            >
+              <Copy className="h-4 w-4" /> {t("tour.cloneFromTour")}
+            </ActionButton>
+          </div>
+        )}
         {importSummary && (
           <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
             <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
@@ -327,16 +452,22 @@ export const CreateScheduleItinerary: React.FC = () => {
                 {t("tour.importPreviewLoaded", { count: importSummary.count })}
               </p>
               <p className="mt-0.5 text-xs text-emerald-700">
-                {t("tour.importPreviewReview", { fileName: importSummary.fileName })}
+                {t("tour.importPreviewReview", {
+                  fileName: importSummary.fileName,
+                })}
               </p>
             </div>
           </div>
         )}
         {missingDayNumbers.length > 0 && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mt-4">
-            <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
+            <p className="font-semibold">
+              {t("tour.missingItineraryDaysTitle")}
+            </p>
             <p>
-              {t("tour.missingItineraryDaysMsg", { days: missingDayNumbers.join(", Day ") })}
+              {t("tour.missingItineraryDaysMsg", {
+                days: missingDayNumbers.join(", Day "),
+              })}
             </p>
             <p className="mt-1 text-[13px] text-amber-700">
               New itinerary entries will fill the earliest missing day numbers
@@ -346,304 +477,274 @@ export const CreateScheduleItinerary: React.FC = () => {
         )}
       </div>
 
+      {/* Existing Itineraries Section */}
+      {schedule &&
+        schedule.tourScheduleItineraries &&
+        schedule.tourScheduleItineraries.length > 0 && (
+          <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+            <button
+              type="button"
+              onClick={() =>
+                setIsExistingItinerariesVisible(!isExistingItinerariesVisible)
+              }
+              className="flex w-full items-center justify-between bg-slate-50/70 px-5 py-4 text-left font-bold text-slate-800 transition-colors hover:bg-slate-100"
+            >
+              <span>
+                {t("tour.existingItineraries")} (
+                {schedule.tourScheduleItineraries.length})
+              </span>
+              {isExistingItinerariesVisible ? (
+                <ChevronUp className="h-5 w-5 text-slate-500" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-slate-500" />
+              )}
+            </button>
+            {isExistingItinerariesVisible && (
+              <div className="p-5">
+                <div className="flex flex-col gap-4">
+                  {Object.entries(existingGroupedItineraries)
+                    .map(([dayStr]) => Number(dayStr))
+                    .sort((a, b) => a - b)
+                    .map((dayNumber) => {
+                      const itemsForDay = existingGroupedItineraries[dayNumber];
+                      const dayDate = itemsForDay[0]?.itineraryDate;
+                      return (
+                        <div
+                          key={`existing-${dayNumber}`}
+                          className="overflow-hidden rounded-xl border border-slate-200 bg-white"
+                        >
+                          <div className="border-b border-slate-100 bg-slate-50 px-4 py-3">
+                            <h4 className="font-bold text-slate-800">
+                              {t("tour.day")} {dayNumber}
+                            </h4>
+                            {dayDate && (
+                              <p className="mt-0.5 text-xs text-slate-400">
+                                {new Date(dayDate).toLocaleDateString("vi-VN")}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-col divide-y divide-slate-100">
+                            {itemsForDay.map((iti) => {
+                              const isExpanded = expandedExistingItiIds.includes(
+                                iti.id,
+                              );
+                              const timeStr =
+                                iti.startDuration && iti.endDuration
+                                  ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
+                                  : iti.startDuration
+                                    ? iti.startDuration.substring(0, 5)
+                                    : t("tour.anyTime");
+                              const tourismInfo = iti.tourismInfoId
+                                ? tourismInformationList.find(
+                                    (info) => info.id === iti.tourismInfoId,
+                                  )
+                                : null;
+
+                              return (
+                                <div key={iti.id}>
+                                  <div
+                                    className="flex cursor-pointer items-center justify-between px-4 py-3 hover:bg-slate-50/50"
+                                    onClick={() => toggleExistingIti(iti.id)}
+                                  >
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex min-w-[90px] items-center justify-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-600">
+                                        <Clock className="mr-1 h-3 w-3" />
+                                        {timeStr}
+                                      </div>
+                                      <p className="text-sm font-semibold text-slate-700">
+                                        {iti.title}
+                                      </p>
+                                    </div>
+                                    {isExpanded ? (
+                                      <ChevronUp className="h-4 w-4 text-slate-400" />
+                                    ) : (
+                                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                                    )}
+                                  </div>
+                                  {isExpanded && (
+                                    <div className="border-t border-slate-100 bg-slate-50/30 px-4 pb-4 pt-3 sm:pl-10">
+                                      {iti.description && (
+                                        <div
+                                          className="prose prose-sm max-w-none mb-3 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
+                                          dangerouslySetInnerHTML={{
+                                            __html: iti.description.replace(
+                                              /&nbsp;/g,
+                                              " ",
+                                            ),
+                                          }}
+                                        />
+                                      )}
+                                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                                        <MapPin className="h-3.5 w-3.5 text-emerald-500" />
+                                        <span className="font-medium">
+                                          {iti.locationName || t("common.na")}
+                                        </span>
+                                      </div>
+                                      {tourismInfo && (
+                                        <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
+                                           <Info className="h-3.5 w-3.5 text-blue-500" />
+                                           <span className="font-medium">{tourismInfo.name} ({tourismInfo.type})</span>
+                                           {tourismInfo.sourceUrl && <a href={tourismInfo.sourceUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline"><ExternalLink size={12} /></a>}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       {/* Itinerary forms list */}
       <form onSubmit={onSubmit} className="flex flex-col gap-6">
-        {isCloneVisible && (
+        <div className="min-h-[150px] rounded-2xl border border-slate-200 bg-slate-50 p-6">
+          {itineraries.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {itineraries.map((iti, index) => {
+                const isNew = iti.id === newlyAddedId;
+                const isInvalid = invalidItineraryIds.has(iti.id);
+                return (
+                  <div key={iti.id} className="relative shrink-0">
+                    <div
+                      onClick={() => setEditingIndex(index)}
+                      className={`flex h-32 cursor-pointer flex-col justify-between rounded-2xl border-2 bg-white p-3 shadow-sm transition-all hover:border-indigo-400 hover:shadow-md ${isNew ? "border-indigo-400 animate-flash" : isInvalid ? "border-rose-400 animate-shake" : "border-slate-200"}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-500">
+                            {t("tour.day")}
+                          </span>
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            value={iti.dayNumber}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) =>
+                              updateItinerary(
+                                index,
+                                "dayNumber",
+                                e.target.value,
+                              )
+                            }
+                            className="w-12 rounded-md border border-slate-200 px-1 py-0.5 text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none"
+                          />
+                        </div>
+                        <ActionButton
+                          type="button"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingIndex(index);
+                          }}
+                          className="h-7 w-7 text-indigo-600"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </ActionButton>
+                      </div>
+                      <div>
+                        <p
+                          className="truncate text-sm font-semibold text-slate-700"
+                          title={iti.title}
+                        >
+                          {iti.title || t("tour.untitledItinerary")}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                          <Calendar className="h-3 w-3" />
+                          <span>
+                            {iti.itineraryDate
+                              ? new Date(iti.itineraryDate).toLocaleDateString(
+                                  "vi-VN",
+                                )
+                              : t("common.na")}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            {iti.startDuration || "--:--"} -{" "}
+                            {iti.endDuration || "--:--"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItinerary(index)}
+                      className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full border border-rose-200 bg-rose-100 text-rose-500 transition-colors hover:bg-rose-200"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="py-10 text-center text-sm text-slate-500">
+              {t("tour.noItineraryItemsYet")}
+            </p>
+          )}
+        </div>
+        <div className="flex justify-center">
           <ActionButton
             type="button"
             variant="secondary"
-            onClick={handleCloneFromTour}
-            className="gap-2 px-3 py-1.5 text-xs shadow-sm !text-indigo-600 !bg-indigo-50 hover:!bg-indigo-100 !border-indigo-200 shrink-0"
+            onClick={() => handleAddItinerary()}
+            className="gap-2 px-4 py-2 shadow-sm"
           >
-            <Copy className="h-3.5 w-3.5" />
-            Clone from Tour
+            <Plus className="h-4 w-4" />
+            {t("tour.addAnotherDay")}
           </ActionButton>
-        )}
-        {itineraries.map((iti, index) => {
-          const currentDayNumber = Number(iti.dayNumber);
-          const canCloneCurrentDay = cloneableDayNumbers.includes(currentDayNumber);
-
-          const existsInDb = schedule?.tourScheduleItineraries?.some((i: any) => Number(i.dayNumber) === Number(currentDayNumber));
-          const isFirstInForm = itineraries.findIndex((i) => Number(i.dayNumber) === Number(currentDayNumber)) === index;
-          const isFirstOfDay = !existsInDb && isFirstInForm;
-
-          const selectedDateStr = iti.itineraryDate
-            ? String(iti.itineraryDate).split("T")[0]
-            : "";
-          const departureDateStr = schedule?.departureDate?.split("T")[0];
-          const returnDateStr = schedule?.returnDate?.split("T")[0];
-          let isOutsideRange = false;
-          if (selectedDateStr && departureDateStr && returnDateStr) {
-            if (
-              selectedDateStr < departureDateStr ||
-              selectedDateStr > returnDateStr
-            ) {
-              isOutsideRange = true;
-            }
-          }
-
-          return (
-            <div
-              key={iti.id}
-              className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all focus-within:ring-2 focus-within:ring-indigo-500/20"
-            >
-              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-6 py-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100/50 text-indigo-600 ring-1 ring-indigo-200">
-                    <Calendar className="h-4 w-4" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <label className="text-[15px] font-bold text-slate-900">Day</label>
-                    <input type="number" min="1" required value={iti.dayNumber} onChange={(e) => updateItinerary(index, "dayNumber", e.target.value)} className="w-16 rounded-md border border-slate-200 px-2 py-1 text-center font-bold text-slate-900 focus:border-indigo-500 focus:outline-none" />
-                  </div>
-                  {canCloneCurrentDay && (
-                    <ActionButton
-                      type="button"
-                      variant="secondary"
-                      onClick={() =>
-                        handleCloneSingleDayFromTour(currentDayNumber, index)
-                      }
-                      disabled={cloningDayIndex === index}
-                      className="ml-3 gap-2 px-3 py-1.5 text-xs shadow-sm !text-indigo-600 !bg-indigo-50 hover:!bg-indigo-100 !border-indigo-200 shrink-0"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      {cloningDayIndex === index
-                        ? t("tour.cloning")
-                        : `Clone Day ${currentDayNumber} from Tour`}
-                    </ActionButton>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <ActionButton
-                    type="button"
-                    variant="secondary"
-                    onClick={() => handleClearItinerary(index)}
-                    className="gap-1.5 px-3 py-1.5 text-xs"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {t("tour.clearForm")}
-                  </ActionButton>
-                  {itineraries.length > 1 && (
-                    <ActionButton
-                      type="button"
-                      variant="warning"
-                      onClick={() => handleRemoveItinerary(index)}
-                      className="h-8 w-8 !bg-rose-50 !text-rose-500 hover:!bg-rose-100 hover:!text-rose-600 !border-transparent transition-colors"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </ActionButton>
-                  )}
-                </div>
-              </div>
-
-              <div className="p-6">
-                <div className="grid gap-6 sm:grid-cols-2">
-                  {/* Itinerary Date */}
-                  <div className="sm:col-span-2">
-                    <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                      <Calendar className="h-4 w-4 text-slate-400" /> Itinerary
-                      Date <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      required
-                      disabled={!isFirstOfDay}
-                      value={iti.itineraryDate}
-                      onChange={(e) =>
-                        updateItinerary(index, "itineraryDate", e.target.value)
-                      }
-                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${!isFirstOfDay ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : getError(index, "itineraryDate") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-brand focus:bg-white"}`}
-                    />
-                    {!isFirstOfDay && (
-                      <p className="mt-1.5 text-xs font-medium text-slate-500">
-                        Date is auto-synced with existing items on Day {currentDayNumber}.
-                      </p>
-                    )}
-                    {getError(index, "itineraryDate") && (
-                      <span className="mt-1 block text-xs font-medium text-rose-500">
-                        {getError(index, "itineraryDate")}
-                      </span>
-                    )}
-                    {departureDateStr &&
-                      returnDateStr &&
-                      (() => {
-                        const [depY, depM, depD] = departureDateStr
-                          .split("-")
-                          .map(Number);
-                        const [retY, retM, retD] = returnDateStr
-                          .split("-")
-                          .map(Number);
-                        const depDate = new Date(depY, depM - 1, depD);
-                        const retDate = new Date(retY, retM - 1, retD);
-
-                        return (
-                          <div className="mt-1.5 flex items-center gap-1.5 text-xs text-slate-500">
-                            <span>{t("tour.suggestedPeriod")}</span>
-                            <strong className="font-semibold text-slate-600">
-                              {depDate.toLocaleDateString("vi-VN")}
-                            </strong>{" "}
-                            to{" "}
-                            <strong className="font-semibold text-slate-600">
-                              {retDate.toLocaleDateString("vi-VN")}
-                            </strong>
-                            .
-                          </div>
-                        );
-                      })()}
-                    {isOutsideRange && (
-                      <div className="mt-2 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-                        <AlertTriangle className="h-4 w-4 shrink-0" />
-                        <span>
-                          Warning: This date is outside the original schedule
-                          period.
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Title */}
-                  <div className="sm:col-span-2">
-                    <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                      <Type className="h-4 w-4 text-slate-400" /> Title{" "}
-                      <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={iti.title}
-                      onChange={(e) =>
-                        updateItinerary(index, "title", e.target.value)
-                      }
-                      placeholder="e.g., Arrival and City Tour"
-                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "title") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-brand focus:bg-white"}`}
-                    />
-                    {getError(index, "title") && (
-                      <span className="mt-1 block text-xs font-medium text-rose-500">
-                        {getError(index, "title")}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Description */}
-                  <div className="sm:col-span-2">
-                    <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                      <FileText className="h-4 w-4 text-slate-400" />{" "}
-                      Description
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={iti.description}
-                      onChange={(e) =>
-                        updateItinerary(index, "description", e.target.value)
-                      }
-                      placeholder={t("tour.describeActivitiesItem")}
-                      className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all ${getError(index, "description") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 focus:border-brand focus:bg-white"}`}
-                    />
-                    {getError(index, "description") && (
-                      <span className="mt-1 block text-xs font-medium text-rose-500">
-                        {getError(index, "description")}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="sm:col-span-1">
-                    <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                      <Clock className="h-4 w-4 text-slate-400" /> Start Time <span className="text-rose-500">*</span>
-                    </label>
-                    <input type="time" required value={iti.startDuration ? iti.startDuration.substring(0, 5) : ""} onChange={(e) => updateItinerary(index, "startDuration", e.target.value)} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "startDuration") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
-                    {getError(index, "startDuration") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "startDuration")}</span>}
-                  </div>
-
-                  <div className="sm:col-span-1">
-                    <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                      <Clock className="h-4 w-4 text-slate-400" /> End Time <span className="text-rose-500">*</span>
-                    </label>
-                    <input type="time" required value={iti.endDuration ? iti.endDuration.substring(0, 5) : ""} onChange={(e) => updateItinerary(index, "endDuration", e.target.value)} className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "endDuration") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`} />
-                    {getError(index, "endDuration") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError(index, "endDuration")}</span>}
-                  </div>
-
-                  {/* Location Picker */}
-                  <div className="sm:col-span-2 mt-2 flex items-center justify-between border-b border-slate-100 pb-3">
-                    <label className="text-sm font-semibold text-slate-700">
-                      Location
-                    </label>
-                    <ActionButton
-                      type="button"
-                      variant="secondary"
-                      onClick={() => openMapModal(index)}
-                      className="gap-2 px-3 py-1.5 text-xs text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100"
-                    >
-                      <MapIcon className="h-3.5 w-3.5" /> Pick Location on Map
-                    </ActionButton>
-                  </div>
-
-                  <div className="grid gap-6 sm:grid-cols-2 sm:col-span-2">
-                    <div className="sm:col-span-2">
-                      <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                        Tourism Info
-                      </label>
-                      <TourismInformationSelector
-                        items={tourismInformationList}
-                        value={iti.tourismInfoId ?? null}
-                        initialKeyword={iti.tourismSearchKeyword ?? ""}
-                        onChange={(item) => handleChangeTourismInfo(index, item)}
-                        error={getError(index, "tourismInfoId")}
-                      />
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                        <MapPin className="h-4 w-4 text-emerald-500" /> Location Name
-                      </label>
-                      <input
-                        type="text"
-                        value={iti.locationName ?? ""}
-                        onChange={(e) => {
-                          const locationName = e.target.value;
-                          patchItinerary(index, {
-                            locationName,
-                            ...(locationName.trim()
-                              ? {}
-                              : { locationLat: null, locationLng: null }),
-                          });
-                        }}
-                        placeholder={t("tour.typeNameOrPickMap")}
-                        className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError(index, "locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
-                      />
-                      {getError(index, "locationName") && (
-                        <span className="mt-1 block text-xs font-medium text-rose-500">
-                          {getError(index, "locationName")}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Add more button */}
-        <div className="flex justify-center pt-2 pb-10">
-          <button
-            type="button"
-            onClick={handleAddItinerary}
-            className="group flex items-center gap-2 rounded-full border border-dashed border-indigo-300 bg-indigo-50/50 px-6 py-3 text-sm font-semibold text-indigo-600 transition-all hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md active:scale-95"
-          >
-            <Plus className="h-5 w-5 transition-transform group-hover:rotate-90" />
-            Add Another Item
-          </button>
         </div>
       </form>
 
       <LoadingOverlay
         isOpen={isSubmitting || isImporting}
-        message={isImporting ? t("tour.importingExcel") : t("tour.savingAllItineraries")}
+        message={
+          isImporting
+            ? t("tour.importingExcel")
+            : t("tour.savingAllItineraries")
+        }
       />
       <LoadingOverlay
         isOpen={isCloning}
         message={t("tour.cloningFetchingCoords")}
       />
+
+      {isEditModalOpen && editingIndex !== null && (
+        <ItineraryFormModal
+          isOpen={isEditModalOpen}
+          onClose={() => setEditingIndex(null)}
+          itinerary={itineraries[editingIndex]}
+          updateItinerary={(field, value) =>
+            updateItinerary(editingIndex, field, value)
+          }
+          patchItinerary={(patch) => patchItinerary(editingIndex, patch)}
+          getError={(field) => getError(editingIndex, field)}
+          tourismInformationList={tourismInformationList}
+          openMapModal={() => openMapModal(editingIndex)}
+          isSchedule={true}
+          schedule={schedule}
+          isFirstOfDay={isFirstOfDay}
+          canClone={cloneableDayNumbers.includes(
+            Number(itineraries[editingIndex].dayNumber),
+          )}
+          isCloning={cloningDayIndex === editingIndex}
+          onClone={() =>
+            handleCloneSingleDayFromTour(
+              itineraries[editingIndex].dayNumber,
+              editingIndex,
+            )
+          }
+        />
+      )}
 
       <MapPickerModal
         isOpen={isMapModalOpen}

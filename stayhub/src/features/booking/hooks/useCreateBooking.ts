@@ -67,7 +67,10 @@ export const useCreateBooking = () => {
       }
       const apiError = error as ApiError;
       if (apiError.response?.status === 400 && apiError.response.data?.errors) {
-        showError("Please check the form for errors.");
+        // Ném lỗi chứa thông tin validation để component cha có thể xử lý
+        const validationError = new Error("Validation failed");
+        (validationError as any).validationErrors = apiError.response.data.errors;
+        throw validationError;
       } else {
         showError(
           apiError.response?.data?.message ||

@@ -216,13 +216,11 @@ export const parseItineraryExcel = async (
     throw new Error(`Invalid template. Expected column "${invalidHeader}".`);
   }
 
-  const dataRows = worksheet
-    .getRows(2, worksheet.rowCount - 1)
-    ?.filter((row) =>
-      Array.isArray(row.values) &&
-      row.values.some((value, index) => index !== 0 && value !== null && value !== undefined && asText(value) !== ""),
-    );
-
+  const dataRows: ExcelJS.Row[] = [];
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber > 1) dataRows.push(row);
+  });
+  
   if (!dataRows || dataRows.length === 0) {
     throw new Error("The Excel file does not contain itinerary rows.");
   }
@@ -251,8 +249,7 @@ export const parseItineraryExcel = async (
         throw new Error("DayNumber must be a positive integer.");
       if (title.length < 3 || title.length > 255)
         throw new Error("Title must be between 3 and 255 characters.");
-      if (description.length < 10 || description.length > 2000)
-        throw new Error("Description must be between 10 and 2000 characters.");
+     
       if (endDuration <= startDuration)
         throw new Error("EndTime must be later than StartTime.");
 

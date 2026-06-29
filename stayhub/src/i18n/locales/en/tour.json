@@ -539,7 +539,7 @@
   "errorDeleteReply": "Failed to delete reply.",
   "errorToggleReviewVisibility": "Failed to change hide/show status.",
   "errorLoadAdminReviews": "Failed to load review list.",
-  "nameLengthValidation": "Tour name must be between 5 and 200 characters.",
+  "nameLengthValidation": "Tour name must be between 5 and 100 characters.",
   "descriptionLengthValidation": "Description must be between 20 and 2000 characters.",
   "imageSizeValidation": "Image cannot exceed 5 MB.",
   "imageTypeValidation": "Only JPEG, PNG, and WebP images are supported.",
@@ -554,5 +554,26 @@
   "excelToolsDescription": "Download the template, fill in itinerary activities, then import them for review before saving.",
   "importPreviewSuccess": "Loaded {{count}} itinerary records into the form.",
   "importPreviewLoaded": "{{count}} records were added to the form.",
-  "importPreviewReview": "Imported from {{fileName}}. Review and edit the records below, then click Save Itineraries."
+  "importPreviewReview": "Imported from {{fileName}}. Review and edit the records below, then click Save Itineraries.",
+  "cloneDayFromTour": "Clone from tour day {{day}}",
+  "cloneFromTourPrompt": "Want to get started quickly? Clone the entire itinerary from the original tour.",
+  "cloneFromTour": "Clone from Tour",
+  "error": {
+    "noItinerariesToClone": "This tour does not have any itineraries to clone.",
+    "cloneFailed": "An error occurred while cloning itineraries.",
+    "dayNumberPositive": "Item {{item}}: Day number must be greater than 0.",
+    "titleMinLength": "Day {{day}}: Title must contain at least 3 characters.",
+    "descriptionMinLength": "Day {{day}}: Description must contain at least 10 characters.",
+    "endTimeAfterStart": "Day {{day}} - {{title}}: End time must be strictly after start time.",
+    "duplicateStartTime": "Day {{day}}: Start time {{time}} cannot be duplicated.",
+    "dateRequired": "Day {{day}}: Please select an itinerary date.",
+    "dateConflict": "Date {{date}} is already assigned to Day {{day}}. Different days cannot share the same date.",
+    "titleRequired": "Day {{day}}: Title is required."
+  },
+  "warning": {
+    "allDaysExistNoClone": "All days from the original tour already exist in the form. Nothing to clone."
+  },
+  "success": {
+    "clonedMissingDays": "Successfully cloned and added {{count}} missing day(s) from the original tour."
+  }
 }

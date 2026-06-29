@@ -44,6 +44,7 @@
   "submit": "Gửi",
   "close": "Đóng",
   "menu": "Menu",
+  "done": "Xong",
   "account": "Tài khoản",
   "goBack": "Quay lại",
   "confirmDelete": "Bạn có chắc muốn xóa mục này?",
@@ -102,6 +103,15 @@
   "anonymous": "Ẩn danh",
   "themeSwitchToLight": "Chuyển sang chế độ sáng",
   "themeSwitchToDark": "Chuyển sang chế độ tối",
+
+  "error": {
+    "formErrors": "Vui lòng kiểm tra lại các lỗi trong biểu mẫu.",
+    "unknown": "Đã xảy ra lỗi không xác định.",
+    "operationFailed": "Thao tác thất bại. Vui lòng thử lại.",
+    "invalidData": "Dữ liệu cung cấp không hợp lệ.",
+    "networkError": "Lỗi mạng. Vui lòng kiểm tra kết nối.",
+    "serverError": "Đã có lỗi phía máy chủ. Vui lòng liên hệ hỗ trợ."
+  },
 
   "header": {
     "myProfile": "Hồ sơ của tôi",

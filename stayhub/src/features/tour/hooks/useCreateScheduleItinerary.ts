@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { createScheduleItineraryBatch } from "../services/tourScheduleItinerary.service";
 import { useToast } from "../../../contexts/ToastContext";
@@ -30,22 +30,9 @@ export const useCreateScheduleItinerary = () => {
   const [isCloning, setIsCloning] = useState(false);
   const [cloningDayIndex, setCloningDayIndex] = useState<number | null>(null);
   const [serverErrors, setServerErrors] = useState<Record<string, any>>({});
-  const [itineraries, setItineraries] = useState<any[]>([
-    {
-      id: Date.now(),
-      dayNumber: 1,
-      itineraryDate: "",
-      title: "",
-      description: "",
-      startDuration: "",
-      endDuration: "",
-      locationName: "",
-      locationLat: undefined,
-      locationLng: undefined,
-      tourismInfoId: null,
-      tourismSearchKeyword: "",
-    },
-  ]);
+  const [itineraries, setItineraries] = useState<any[]>([]);
+  const [newlyAddedId, setNewlyAddedId] = useState<number | null>(null);
+  const [invalidItineraryIds, setInvalidItineraryIds] = useState<Set<number>>(new Set());
 
   const isBlankItinerary = (itinerary: any) =>
     !itinerary.title &&
@@ -97,14 +84,35 @@ export const useCreateScheduleItinerary = () => {
     }
   }, [schedule]);
 
+  useEffect(() => {
+    if (newlyAddedId) {
+      const timer = setTimeout(() => setNewlyAddedId(null), 1500); // Clear after 1.5s
+      return () => clearTimeout(timer);
+    }
+  }, [newlyAddedId]);
+
   const handleAddItinerary = () => {
     const lastItinerary = itineraries.length > 0 ? itineraries[itineraries.length - 1] : null;
-    const lastDayNumber = lastItinerary ? lastItinerary.dayNumber : 1;
-    const lastItineraryDate = lastItinerary ? lastItinerary.itineraryDate : "";
+    
+    const newDayNumber = lastItinerary ? Number(lastItinerary.dayNumber) + 1 : 1;
+
+    let newItineraryDate = "";
+    if (lastItinerary && lastItinerary.itineraryDate) {
+      try {
+        const lastDate = new Date(lastItinerary.itineraryDate);
+        lastDate.setDate(lastDate.getDate() + 1);
+        newItineraryDate = lastDate.toISOString().split("T")[0];
+      } catch (e) {
+        // Bỏ qua nếu ngày không hợp lệ
+      }
+    } else if (!lastItinerary && schedule?.departureDate) {
+        newItineraryDate = schedule.departureDate.split("T")[0];
+    }
+
     const newItinerary = {
-      id: Date.now() + Math.random(),
-      dayNumber: Number(lastDayNumber),
-      itineraryDate: lastItineraryDate,
+      id: Date.now(),
+      dayNumber: newDayNumber,
+      itineraryDate: newItineraryDate,
       title: "",
       description: "",
       startDuration: "",
@@ -115,15 +123,10 @@ export const useCreateScheduleItinerary = () => {
       tourismInfoId: null,
       tourismSearchKeyword: "",
     };
-    const replacesBlankDefault =
-      itineraries.length === 1 && isBlankItinerary(itineraries[0]);
-
     setItineraries((prev) =>
-      replacesBlankDefault ? [newItinerary] : [...prev, newItinerary],
+      [...prev, newItinerary]
     );
-    if (replacesBlankDefault) {
-      warning(t("tour.blankFormReplaced"));
-    }
+    setNewlyAddedId(newItinerary.id);
   };
 
   const handleRemoveItinerary = (indexToRemove: number) => {
@@ -135,7 +138,7 @@ export const useCreateScheduleItinerary = () => {
       prev.map((itinerary, index) =>
         index === indexToClear
           ? {
-              id: Date.now() + Math.random(),
+              id: Date.now(),
               dayNumber: itinerary.dayNumber,
               itineraryDate: itinerary.itineraryDate,
               title: "",
@@ -156,7 +159,7 @@ export const useCreateScheduleItinerary = () => {
 
   const addImportedItineraries = (imported: any[]) => {
     const normalized = imported.map((item, index) => ({
-      id: Date.now() + index + Math.random(),
+      id: Date.now() + index,
       dayNumber: Number(item.dayNumber),
       itineraryDate: item.itineraryDate ?? "",
       title: item.title ?? "",
@@ -177,7 +180,7 @@ export const useCreateScheduleItinerary = () => {
     );
   };
 
-  const updateItinerary = (index: number, field: string, value: any) => {
+  const updateItinerary = useCallback((index: number, field: string, value: any) => {
     setItineraries((prev) => {
       const newItis = [...prev];
       const currentIti = newItis[index];
@@ -217,7 +220,7 @@ export const useCreateScheduleItinerary = () => {
 
       return newItis;
     });
-  };
+  }, [schedule?.tourScheduleItineraries]);
 
   const patchItinerary = (index: number, patch: Record<string, any>) => {
     setItineraries((prev) => {
@@ -249,7 +252,7 @@ export const useCreateScheduleItinerary = () => {
 
   const handleCloneFromTour = async () => {
     if (!tour?.tourItineraries || tour.tourItineraries.length === 0) {
-      showError("This tour does not have any itineraries to clone.");
+      showError(t("tour.error.noItinerariesToClone"));
       return;
     }
 
@@ -257,7 +260,13 @@ export const useCreateScheduleItinerary = () => {
     try {
       const clonedItinerariesPromises = tour.tourItineraries.map(async (iti) => {
         let { locationLat, locationLng, locationName, startDuration, endDuration, tourismInfoId } = iti;
-
+        
+        // Lấy danh sách các ngày đã có trong form hiện tại
+        const existingDaysInForm = new Set(itineraries.map(i => Number(i.dayNumber)));
+        if (existingDaysInForm.has(Number(iti.dayNumber))) {
+          return null; // Bỏ qua nếu ngày này đã tồn tại
+        }
+        
         if (locationName && (!locationLat || !locationLng)) {
           const coords = await geocodeAddress(locationName);
           if (coords) {
@@ -279,7 +288,7 @@ export const useCreateScheduleItinerary = () => {
         }
 
         return {
-          id: Date.now() + Math.random(), 
+          id: Date.now() + Math.random(), // Use random here to avoid collision with Date.now() from handleAdd
           dayNumber: iti.dayNumber,
           itineraryDate: dateString, 
           title: iti.title || "", 
@@ -294,11 +303,16 @@ export const useCreateScheduleItinerary = () => {
         };
       });
 
-      const resolvedItineraries = await Promise.all(clonedItinerariesPromises);
-      setItineraries(resolvedItineraries);
-      success("Cloned from tour! Coordinates were auto-filled if missing.");
+      const resolvedItineraries = (await Promise.all(clonedItinerariesPromises)).filter(Boolean);
+
+      if (resolvedItineraries.length === 0) {
+        warning(t("tour.warning.allDaysExistNoClone"));
+      } else {
+        setItineraries(prev => [...prev, ...resolvedItineraries]);
+        success(t("tour.success.clonedMissingDays", { count: resolvedItineraries.length }));
+      }
     } catch (e: any) {
-      showError(e.message || "An error occurred while cloning itineraries.");
+      showError(e.message || t("tour.error.cloneFailed"));
     } finally {
       setIsCloning(false);
     }
@@ -410,7 +424,8 @@ export const useCreateScheduleItinerary = () => {
     }
   };
 
-  const isCloneVisible = !schedule?.tourScheduleItineraries || schedule.tourScheduleItineraries.length === 0;
+  // Luôn hiển thị nút clone nếu tour gốc có lịch trình
+  const isCloneVisible = tour?.tourItineraries && tour.tourItineraries.length > 0;
 
   return {
     scheduleId,
@@ -421,6 +436,8 @@ export const useCreateScheduleItinerary = () => {
     isSubmitting,
     serverErrors,
     itineraries,
+    newlyAddedId,
+    invalidItineraryIds,
     missingDayNumbers,
     cloneableDayNumbers,
     handleAddItinerary,
@@ -434,6 +451,7 @@ export const useCreateScheduleItinerary = () => {
     isCloneVisible,
     isCloning,
     cloningDayIndex,
+    setInvalidItineraryIds,
     isTourLoading,
   };
 };

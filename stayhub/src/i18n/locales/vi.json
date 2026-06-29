@@ -11,7 +11,8 @@
     "seeAll": "Xem tất cả",
     "english": "English",
     "vietnamese": "Tiếng Việt",
-    "language": "Ngôn ngữ"
+    "language": "Ngôn ngữ",
+    "fieldRequired": "{{label}} là bắt buộc"
   },
   "header": {
     "searchPlaceholder": "Tìm điểm đến, tour hoặc trải nghiệm...",

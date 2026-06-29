@@ -539,7 +539,7 @@
   "errorDeleteReply": "Lỗi khi xóa phản hồi.",
   "errorToggleReviewVisibility": "Lỗi khi thay đổi trạng thái ẩn/hiện.",
   "errorLoadAdminReviews": "Lỗi khi lấy danh sách đánh giá.",
-  "nameLengthValidation": "Tên tour phải có từ 5 đến 200 ký tự.",
+  "nameLengthValidation": "Tên tour phải có từ 5 đến 100 ký tự.",
   "descriptionLengthValidation": "Mô tả phải có từ 20 đến 2000 ký tự.",
   "imageSizeValidation": "Ảnh không được vượt quá 5 MB.",
   "imageTypeValidation": "Chỉ hỗ trợ ảnh JPEG, PNG và WebP.",
@@ -554,5 +554,26 @@
   "excelToolsDescription": "Tải template, điền các hoạt động lịch trình rồi import để kiểm tra trước khi lưu.",
   "importPreviewSuccess": "Đã nạp {{count}} record lịch trình vào form.",
   "importPreviewLoaded": "Đã thêm {{count}} record vào form.",
-  "importPreviewReview": "Dữ liệu từ file {{fileName}} đang ở trạng thái xem trước. Hãy kiểm tra, chỉnh sửa rồi nhấn Lưu lịch trình."
+  "importPreviewReview": "Dữ liệu từ file {{fileName}} đang ở trạng thái xem trước. Hãy kiểm tra, chỉnh sửa rồi nhấn Lưu lịch trình.",
+  "cloneDayFromTour": "Sao chép Ngày {{day}}",
+  "cloneFromTourPrompt": "Bạn muốn bắt đầu nhanh? Sao chép toàn bộ lịch trình từ tour gốc.",
+  "cloneFromTour": "Sao chép từ Tour",
+  "error": {
+    "noItinerariesToClone": "Tour này không có lịch trình để sao chép.",
+    "cloneFailed": "Đã xảy ra lỗi khi sao chép lịch trình.",
+    "dayNumberPositive": "Mục {{item}}: Số ngày phải lớn hơn 0.",
+    "titleMinLength": "Ngày {{day}}: Tiêu đề phải có ít nhất 3 ký tự.",
+    "descriptionMinLength": "Ngày {{day}}: Mô tả phải có ít nhất 10 ký tự.",
+    "endTimeAfterStart": "Ngày {{day}} - {{title}}: Giờ kết thúc phải sau giờ bắt đầu.",
+    "duplicateStartTime": "Ngày {{day}}: Giờ bắt đầu {{time}} không được trùng lặp.",
+    "dateRequired": "Ngày {{day}}: Vui lòng chọn ngày cho lịch trình.",
+    "dateConflict": "Ngày {{date}} đã được gán cho Ngày {{day}}. Các ngày khác nhau không thể có cùng một ngày.",
+    "titleRequired": "Ngày {{day}}: Tiêu đề là bắt buộc."
+  },
+  "warning": {
+    "allDaysExistNoClone": "Tất cả các ngày trong tour gốc đã có trong form. Không có gì để sao chép."
+  },
+  "success": {
+    "clonedMissingDays": "Đã sao chép và thêm thành công {{count}} ngày còn thiếu từ tour gốc."
+  }
 }

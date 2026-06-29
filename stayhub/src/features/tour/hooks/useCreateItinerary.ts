@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
@@ -31,18 +31,9 @@ export const useCreateItinerary = () => {
     return missing;
   }, [existingDayNumbers, maxDay]);
 
-  const [itineraries, setItineraries] = useState<any[]>([{ 
-    id: Date.now(),
-    dayNumber: 1,
-    title: "", 
-    description: "", 
-    startDuration: "",
-    endDuration: "",
-    locationName: "", 
-    locationLat: undefined, 
-    locationLng: undefined,
-    tourismInfoId: null,
-  }] );
+  const [itineraries, setItineraries] = useState<any[]>([]);
+  const [newlyAddedId, setNewlyAddedId] = useState<number | null>(null);
+  const [invalidItineraryIds, setInvalidItineraryIds] = useState<Set<number>>(new Set());
 
   const isBlankItinerary = (itinerary: any) =>
     !itinerary.title &&
@@ -55,11 +46,18 @@ export const useCreateItinerary = () => {
     !itinerary.tourismInfoId &&
     !itinerary.tourismSearchKeyword;
 
+  useEffect(() => {
+    if (newlyAddedId) {
+      const timer = setTimeout(() => setNewlyAddedId(null), 1500); // Clear after 1.5s
+      return () => clearTimeout(timer);
+    }
+  }, [newlyAddedId]);
+
   const handleAddDay = () => {
-    const lastDayNumber = itineraries.length > 0 ? itineraries[itineraries.length - 1].dayNumber : 1;
+    const lastDayNumber = itineraries.length > 0 ? itineraries[itineraries.length - 1].dayNumber : 0;
     const newItinerary = {
-      id: Date.now() + Math.random(),
-      dayNumber: Number(lastDayNumber),
+      id: Date.now(),
+      dayNumber: Number(lastDayNumber) + 1,
       title: "",
       description: "",
       startDuration: "",
@@ -70,15 +68,11 @@ export const useCreateItinerary = () => {
       tourismInfoId: null,
       tourismSearchKeyword: "",
     };
-    const replacesBlankDefault =
-      itineraries.length === 1 && isBlankItinerary(itineraries[0]);
 
     setItineraries((prev) =>
-      replacesBlankDefault ? [newItinerary] : [...prev, newItinerary],
+      [...prev, newItinerary]
     );
-    if (replacesBlankDefault) {
-      warning(t("tour.blankFormReplaced"));
-    }
+    setNewlyAddedId(newItinerary.id);
   };
 
   const handleRemoveDay = (indexToRemove: number) => {
@@ -185,12 +179,12 @@ export const useCreateItinerary = () => {
       };
 
       await createItineraryBatch(payload);
-      success("Itineraries added successfully!");
+      success(t("tour.success.itinerariesAdded"));
       navigate(PATH.MANAGER.TOUR_DETAIL(tourId));
     } catch (error: any) {
       if (error.response?.status === 400 && error.response.data?.errors) {
         setServerErrors(error.response.data.errors);
-        showError("Please check again the errors in the form.");
+        showError(t("common.error.formErrors"));
       } else {
         showError(error.message || "Failed to create itineraries.");
       }
@@ -210,6 +204,8 @@ export const useCreateItinerary = () => {
     isSubmitting,
     serverErrors,
     itineraries,
+    newlyAddedId,
+    invalidItineraryIds,
     missingDayNumbers,
     handleAddDay,
     handleRemoveDay,
@@ -217,5 +213,6 @@ export const useCreateItinerary = () => {
     updateItinerary,
     patchItinerary,
     addImportedItineraries,
+    setInvalidItineraryIds,
   };
 };

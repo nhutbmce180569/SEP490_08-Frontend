@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Type, FileText, MapPin, Map } from "lucide-react";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useUpdateItinerary } from "../hooks/useUpdateItinerary";
@@ -64,10 +66,23 @@ export const UpdateItinerary: React.FC = () => {
       {
         name: "description",
         label: t("common.description"),
-        type: "textarea",
-        placeholder: t("tour.describeActivities"),
+        type: "custom",
         icon: <FileText className="h-4 w-4" />,
         colSpan: 2,
+        render: (value, onChange, error) => (
+          <div className="flex flex-col gap-1.5">
+            <div className="prose-sm max-w-none [&>.ql-toolbar]:rounded-t-xl [&>.ql-toolbar]:border-slate-200 [&>.ql-container]:rounded-b-xl [&>.ql-container]:border-slate-200">
+              <ReactQuill
+                theme="snow"
+                value={value || ""}
+                onChange={onChange}
+                placeholder={t("tour.describeActivities")}
+                className={error ? "[&>.ql-container]:!border-rose-500" : ""}
+              />
+            </div>
+            {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
+          </div>
+        ),
       },
       {
         name: "startDuration",

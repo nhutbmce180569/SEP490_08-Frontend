@@ -329,11 +329,14 @@ export const TourDetail: React.FC = () => {
             <h2 className="mb-3 text-lg font-bold text-slate-900">
               {t("common.description")}
             </h2>
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 leading-relaxed text-slate-700">
+            <div className="prose prose-sm max-w-none rounded-2xl border border-slate-100 bg-slate-50 p-5 leading-relaxed text-slate-700 [overflow-wrap:break-word]">
               {tour.description ? (
-                <p className="whitespace-pre-wrap text-sm">
-                  {tour.description}
-                </p>
+                 <div
+                    className="break-word [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
+                    dangerouslySetInnerHTML={{
+                      __html: tour.description.replace(/&nbsp;/g, " "),
+                    }}
+                  />
               ) : (
                 <p className="text-sm italic text-slate-400">
                   {t("tour.noDescriptionProvided")}

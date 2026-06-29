@@ -486,15 +486,16 @@ export default function PublicTourDetail() {
               <h2 className="text-2xl font-bold text-slate-800 mb-4">
                 {t("tour.aboutExperience")}
               </h2>
-              {tour.description ? (
-                <p className="text-slate-600 leading-relaxed whitespace-pre-wrap text-[15px]">
-                  {tour.description}
-                </p>
-              ) : (
-                <p className="italic text-slate-400">
-                  {t("tour.noDescription")}
-                </p>
-              )}
+              <div className="prose prose-sm text-slate-600 leading-relaxed text-[15px]">
+                {tour.description ? (
+                  <div
+                    className="[&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
+                    dangerouslySetInnerHTML={{ __html: tour.description.replace(/&nbsp;/g, ' ') }}
+                  />
+                ) : (
+                  <p className="italic text-slate-400">{t("tour.noDescription")}</p>
+                )}
+              </div>
             </section>
 
             {/* Highlights */}

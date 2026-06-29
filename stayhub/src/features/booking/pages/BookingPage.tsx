@@ -8,6 +8,7 @@ import {
   Download,
   FileSpreadsheet,
   Minus,
+  PackageCheck,
   Plus,
   ShieldCheck,
   Smartphone,
@@ -15,6 +16,7 @@ import {
   Upload,
   Users,
   X,
+  AlertTriangle,
 } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
@@ -250,6 +252,7 @@ export const BookingPage: React.FC = () => {
   );
   const [isCountryLoading, setIsCountryLoading] = useState(false);
   const [isNationalityOptionsOpen, setIsNationalityOptionsOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   const errorHandledRef = useRef(false);
   const passengerSequenceRef = useRef(0);
@@ -547,11 +550,14 @@ export const BookingPage: React.FC = () => {
       const errors = { ...ticketErrors };
       if (field === "attendeeName") {
         if (!value.trim()) errors.attendeeName = t("booking.nameRequired");
+        else if (value.length > 100) errors.attendeeName = t("booking.nameTooLong");
         else delete errors.attendeeName;
       }
       if (field === "idCard") {
         if (!value.trim()) errors.idCard = t("booking.idCardRequired");
-        else delete errors.idCard;
+        else if (value.length > 20) {
+          errors.idCard = t("booking.idCardTooLong");
+        } else delete errors.idCard;
       }
       if (field === "dateOfBirth") {
         if (!value.trim()) errors.dateOfBirth = t("booking.dobRequired");
@@ -574,7 +580,11 @@ export const BookingPage: React.FC = () => {
       const ticket = tickets[index];
       const errors: Record<string, string> = {};
       if (!ticket.attendeeName.trim()) errors.attendeeName = t("booking.nameRequired");
+      else if (ticket.attendeeName.length > 100) errors.attendeeName = t("booking.nameTooLong");
       if (!ticket.idCard.trim()) errors.idCard = t("booking.idCardRequired");
+      else if (ticket.idCard.length > 20) {
+        errors.idCard = t("booking.idCardTooLong");
+      }
       if (!ticket.dateOfBirth.trim()) errors.dateOfBirth = t("booking.dobRequired");
       else if (new Date(ticket.dateOfBirth).getTime() > currentTime) {
         errors.dateOfBirth = t("booking.dobFuture");
@@ -587,7 +597,7 @@ export const BookingPage: React.FC = () => {
     setEditingTicketIndex(index);
   };
 
-  const onSubmit = () => {
+  const handlePaymentClick = () => {
     setHasAttemptedSubmit(true);
 
     if (new Date(schedule.departureDate).getTime() < currentTime) {
@@ -629,14 +639,30 @@ export const BookingPage: React.FC = () => {
         !ticket.nationality?.trim()
       ) {
         showError(t("booking.fillPassengerFields", { count: index + 1 }));
+        openTicketModal(index);
+        return;
+      }
+      if (ticket.attendeeName.length > 100) {
+        showError(t("booking.nameTooLong"));
+        openTicketModal(index);
+        return;
+      }
+      if (ticket.idCard.length > 20) {
+        showError(t("booking.idCardTooLong"));
+        openTicketModal(index);
         return;
       }
       if (new Date(ticket.dateOfBirth).getTime() > currentTime) {
         showError(t("booking.dobFuturePassenger", { count: index + 1 }));
+        openTicketModal(index);
         return;
       }
     }
 
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmPayment = async () => {
     const orderDetails = Array.from(
       tickets.reduce((groups, ticket) => {
         const current = groups.get(ticket.tourScheduleTicketId);
@@ -676,17 +702,49 @@ export const BookingPage: React.FC = () => {
       }>()),
     ).map(([, detail]) => detail);
 
-    handleCreateBooking(
-      {
-        scheduleId: schedule.id,
-        totalQuantity: ticketCount,
-        ticketCount,
-        note,
-        finalAmount: Math.round(finalPayable),
-        orderDetails,
-      },
-      paymentProvider,
-    );
+    try {
+      await handleCreateBooking(
+        {
+          scheduleId: schedule.id,
+          totalQuantity: ticketCount,
+          ticketCount,
+          note,
+          finalAmount: Math.round(finalPayable),
+          orderDetails,
+        },
+        paymentProvider,
+      );
+      setIsConfirmModalOpen(false);
+    } catch (err: unknown) {
+      const error = err as any;
+      if (error.validationErrors) {
+        // Lỗi validation từ backend
+        setIsConfirmModalOpen(false); // Đóng popup xác nhận
+
+        // Tìm hành khách đầu tiên bị lỗi và mở modal chỉnh sửa
+        const firstErrorKey = Object.keys(error.validationErrors)[0];
+        const match = firstErrorKey.match(/OrderDetails\[\d+\]\.Tickets\[(\d+)\]/);
+        if (match) {
+          const passengerIndex = Number(match[1]);
+          showError(t("booking.fillPassengerFields", { count: passengerIndex + 1 }));
+
+          // Dịch lỗi từ backend sang state ticketErrors để hiển thị dưới input
+          const newTicketErrors: Record<string, string> = {};
+          for (const key in error.validationErrors) {
+            if (key.includes(`Tickets[${passengerIndex}]`)) {
+              const fieldMatch = key.match(/\.(\w+)$/);
+              if (fieldMatch) {
+                const fieldName = fieldMatch[1].charAt(0).toLowerCase() + fieldMatch[1].slice(1);
+                newTicketErrors[fieldName] = error.validationErrors[key][0];
+              }
+            }
+          }
+          
+          setTicketErrors(newTicketErrors);
+          setEditingTicketIndex(passengerIndex);
+        }
+      }
+    }
   };
 
   return (
@@ -1068,7 +1126,7 @@ export const BookingPage: React.FC = () => {
 
                   <ActionButton
                     variant="primary"
-                    onClick={onSubmit}
+                    onClick={handlePaymentClick}
                     disabled={isSubmitting || ticketCount <= 0}
                     className="w-full gap-2 py-4 text-base shadow-lg shadow-brand/30 disabled:cursor-not-allowed disabled:opacity-50"
                   >
@@ -1323,6 +1381,123 @@ export const BookingPage: React.FC = () => {
               </ActionButton>
             </div>
           </div>
+          </div>,
+          document.body,
+        )}
+
+      {isConfirmModalOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+            onClick={() => setIsConfirmModalOpen(false)}
+          >
+            <div
+              className="w-full max-w-lg animate-in overflow-hidden rounded-3xl bg-white shadow-2xl fade-in zoom-in-95 duration-200"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-100 text-brand">
+                    <PackageCheck size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800">
+                      {t("booking.confirmBookingTitle")}
+                    </h3>
+                    <p className="text-xs font-medium text-slate-500">
+                      {t("booking.confirmBookingDesc")}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsConfirmModalOpen(false)}
+                  className="rounded-full p-1.5 text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="max-h-[60vh] space-y-4 overflow-y-auto p-6">
+                <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                  <div className="flex items-start justify-between text-sm">
+                    <span className="font-medium text-slate-600">{tour.name}</span>
+                    <span className="text-right font-bold text-slate-900">
+                      {t("booking.passengerCount", { count: ticketCount })}
+                    </span>
+                  </div>
+                  <div className="flex items-start justify-between border-t border-slate-100 pt-3 text-sm">
+                    <span className="font-medium text-slate-600">{t("booking.departure")}</span>
+                    <span className="text-right font-bold text-slate-900">
+                      {new Date(schedule.departureDate).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 rounded-2xl border border-slate-100 bg-white p-4">
+                  {ticketSummary.map((item) => (
+                    <div
+                      key={item.scheduleTicketId}
+                      className="flex items-start justify-between gap-3 text-sm"
+                    >
+                      <div>
+                        <div className="font-semibold text-slate-800">{item.name}</div>
+                        <div className="text-xs text-slate-400">
+                          <MoneyDisplay amountVnd={item.price} compact /> x {item.quantity}
+                        </div>
+                      </div>
+                      <span className="font-medium text-slate-900">
+                        <MoneyDisplay amountVnd={item.price * item.quantity} compact />
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between border-t border-slate-100 pt-3 text-sm">
+                    <span className="font-medium text-slate-600">{t("booking.subtotal")}</span>
+                    <span className="font-bold text-slate-900">
+                      <MoneyDisplay amountVnd={totalPrice} compact />
+                    </span>
+                  </div>
+                  {appliedVoucher && (
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-rose-600">{t("booking.discount")}</span>
+                      <span className="font-bold text-rose-600">
+                        -<MoneyDisplay amountVnd={appliedVoucher.discountAmount} compact />
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between rounded-xl bg-brand-light px-4 py-3">
+                    <span className="font-bold text-slate-950">{t("booking.totalPrice")}</span>
+                    <span className="whitespace-nowrap text-lg font-bold text-brand">
+                      <MoneyDisplay amountVnd={finalPayable} compact />
+                    </span>
+                  </div>
+                </div>
+
+                {appliedVoucher && (
+                  <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                    <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
+                    <p className="text-xs font-medium leading-relaxed text-amber-800">
+                      {t("booking.voucherLossWarning")}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmModalOpen(false)}
+                  className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                >
+                  {t("booking.backToEdit")}
+                </button>
+                <ActionButton
+                  variant="primary"
+                  onClick={handleConfirmPayment}
+                  disabled={isSubmitting}
+                  className="gap-2 px-5 py-2.5 text-sm"
+                >
+                  {t("booking.confirmAndPay", { provider: paymentProviderLabel })}
+                </ActionButton>
+              </div>
+            </div>
           </div>,
           document.body,
         )}

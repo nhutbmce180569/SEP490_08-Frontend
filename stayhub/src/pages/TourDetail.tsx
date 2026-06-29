@@ -589,9 +589,10 @@ export default function PublicTourDetail() {
                                    {isExpanded && (
                                      <div className="bg-slate-50/50 px-5 pb-5 pt-2 sm:pl-[130px]">
                                        {iti.description && (
-                                         <p className="mb-4 text-sm leading-relaxed text-slate-600">
-                                           {iti.description}
-                                         </p>
+                                          <div
+                                            className="prose prose-sm mb-4 text-sm leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
+                                            dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, ' ') }}
+                                          />
                                        )}
                                        <div className="flex flex-col gap-2 text-sm text-slate-500 bg-white border border-slate-100 p-3 rounded-xl w-fit">
                                          {iti.locationName && (

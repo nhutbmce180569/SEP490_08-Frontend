@@ -558,6 +558,7 @@
   "cloneDayFromTour": "Clone from tour day {{day}}",
   "cloneFromTourPrompt": "Want to get started quickly? Clone the entire itinerary from the original tour.",
   "cloneFromTour": "Clone from Tour",
+    "existingItineraries": "Itineraries exist for this schedule.",
   "error": {
     "noItinerariesToClone": "This tour does not have any itineraries to clone.",
     "cloneFailed": "An error occurred while cloning itineraries.",

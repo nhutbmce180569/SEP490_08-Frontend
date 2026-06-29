@@ -496,6 +496,7 @@
   "createScheduleItineraryBatchDesc": "Thêm mục lịch trình cho lịch khởi hành này.",
   "mapPickerTitle": "Chọn vị trí trên bản đồ",
   "mapPickerSubtitle": "Tìm địa điểm, nhấp bản đồ hoặc kéo ghim. Địa chỉ được điền tự động.",
+  "existingItineraries": "Lịch trình hiện có",
   "mapSearchPlaceholder": "Tìm địa điểm hoặc nhấp trên bản đồ...",
   "mapUseCurrentLocation": "Dùng vị trí hiện tại",
   "mapStartPlaceholder": "Điểm bắt đầu...",

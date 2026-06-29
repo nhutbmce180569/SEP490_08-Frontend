@@ -423,9 +423,12 @@ export const TourDetail: React.FC = () => {
                               {isExpanded && (
                                 <div className="bg-slate-50/50 px-5 pb-5 pt-2 sm:pl-[150px]">
                                   {iti.description && (
-                                    <p className="mb-3 text-sm leading-relaxed text-slate-600">
-                                      {iti.description}
-                                    </p>
+                                    <div
+                                      className="prose prose-sm max-w-none mb-3 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
+                                      dangerouslySetInnerHTML={{
+                                        __html: iti.description.replace(/&nbsp;/g, " "),
+                                      }}
+                                    />
                                   )}
                                   <div className="flex items-center gap-1.5 text-sm text-slate-500">
                                     <MapPin className="h-4 w-4 text-emerald-500" />

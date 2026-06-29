@@ -297,15 +297,6 @@ export const CreateItinerary: React.FC = () => {
             <ActionButton
               type="button"
               variant="secondary"
-              onClick={() => handleAddDay()}
-              className="gap-2 px-4 py-2 shadow-sm"
-            >
-              <Plus className="h-4 w-4" />
-              {t("tour.addAnotherDay")}
-            </ActionButton>
-            <ActionButton
-              type="button"
-              variant="secondary"
               onClick={handleCancel}
               className="gap-2 px-5 py-2 shadow-sm"
             >
@@ -397,63 +388,63 @@ export const CreateItinerary: React.FC = () => {
       </div>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-6">
-        <div className="min-h-[150px] rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center gap-4 overflow-x-auto pb-4 pt-3 pr-3">
-            {itineraries.map((iti, index) => {
-              const isNew = iti.id === newlyAddedId;
-              const isInvalid = invalidItineraryIds.has(iti.id);
-              return (
-                <div key={iti.id} className="relative shrink-0">
-                  <div
-                    onClick={() => setEditingIndex(index)}
-                    className={`flex h-32 w-52 cursor-pointer flex-col justify-between rounded-2xl border-2 bg-white p-3 shadow-sm transition-all hover:border-indigo-400 hover:shadow-md ${isNew ? "border-indigo-400 animate-flash" : isInvalid ? "border-rose-400 animate-shake" : "border-slate-200"}`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-500">
-                          {t("tour.day")}
-                        </span>
-                        <input
-                          type="number"
-                          min="1"
-                          required
-                          value={iti.dayNumber}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) =>
-                            updateItinerary(index, "dayNumber", e.target.value)
-                          }
-                          className="w-12 rounded-md border border-slate-200 px-1 py-0.5 text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none"
-                        />
+        <div className="min-h-[150px] rounded-2xl border border-slate-200 bg-slate-50 p-6">
+          {itineraries.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {itineraries.map((iti, index) => {
+                const isNew = iti.id === newlyAddedId;
+                const isInvalid = invalidItineraryIds.has(iti.id);
+                return (
+                  <div key={iti.id} className="relative shrink-0">
+                    <div
+                      onClick={() => setEditingIndex(index)}
+                      className={`flex h-32 cursor-pointer flex-col justify-between rounded-2xl border-2 bg-white p-3 shadow-sm transition-all hover:border-indigo-400 hover:shadow-md ${isNew ? "border-indigo-400 animate-flash" : isInvalid ? "border-rose-400 animate-shake" : "border-slate-200"}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-500">
+                            {t("tour.day")}
+                          </span>
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            value={iti.dayNumber}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) =>
+                              updateItinerary(index, "dayNumber", e.target.value)
+                            }
+                            className="w-12 rounded-md border border-slate-200 px-1 py-0.5 text-center font-bold text-slate-800 focus:border-indigo-500 focus:outline-none"
+                          />
+                        </div>
+                        <ActionButton
+                          type="button"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingIndex(index);
+                          }}
+                          className="h-7 w-7 text-indigo-600"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </ActionButton>
                       </div>
-                      <ActionButton
-                        type="button"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingIndex(index);
-                        }}
-                        className="h-7 w-7 text-indigo-600"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </ActionButton>
-                    </div>
-                    <div>
-                      <p
-                        className="truncate text-sm font-semibold text-slate-700"
-                        title={iti.title}
-                      >
-                        {iti.title || t("tour.untitledItinerary")}
-                      </p>
-                      <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
-                        <Clock className="h-3 w-3" />
-                        <span>
-                          {iti.startDuration || "--:--"} -{" "}
-                          {iti.endDuration || "--:--"}
-                        </span>
+                      <div>
+                        <p
+                          className="truncate text-sm font-semibold text-slate-700"
+                          title={iti.title}
+                        >
+                          {iti.title || t("tour.untitledItinerary")}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-slate-500">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            {iti.startDuration || "--:--"} -{" "}
+                            {iti.endDuration || "--:--"}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {itineraries.length > 0 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveDay(index)}
@@ -461,11 +452,24 @@ export const CreateItinerary: React.FC = () => {
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="py-10 text-center text-sm text-slate-500">{t("tour.noItinerariesYet")}</p>
+          )}
+        </div>
+        <div className="flex justify-center">
+          <ActionButton
+            type="button"
+            variant="secondary"
+            onClick={() => handleAddDay()}
+            className="gap-2 px-4 py-2 shadow-sm"
+          >
+            <Plus className="h-4 w-4" />
+            {t("tour.addAnotherDay")}
+          </ActionButton>
         </div>
       </form>
 

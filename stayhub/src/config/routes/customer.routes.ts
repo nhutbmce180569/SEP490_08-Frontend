@@ -15,7 +15,7 @@ export const CUSTOMER_ROUTES = {
   SOCIAL_CHAT: '/social/chat',
   SOCIAL_MOMENTS: '/social/moments',
   SAFETY_SOS: '/safety/sos',
-
+  BOOKING_CONFIRMATION: '/booking-confirmation',
   // Dynamic Routes & Delete Confirms
   CHECKOUT: (id: string | number = ':id') => `/tours/${id}/book`,
   BOOKING_DETAIL: (id: string | number = ':id') => `/my-bookings/${id}`,

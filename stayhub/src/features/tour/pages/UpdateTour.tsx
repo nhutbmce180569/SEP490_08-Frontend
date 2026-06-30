@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { FileText, MapPin, Layers, Tag } from "lucide-react";
+import { MapPin, Layers, Tag } from "lucide-react";
 import {
   DynamicForm,
   type FormField,
 } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useUpdateTour } from "../hooks/useUpdateTour";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { MapPickerModal } from "../components/MapPickerModal";
 import { useTranslation } from "../../../contexts/LocaleContext";
@@ -71,7 +73,7 @@ export const UpdateTour: React.FC = () => {
       required: true,
       validate: (value) => {
         const length = String(value ?? "").trim().length;
-        return length < 5 || length > 200 ? t("tour.nameLengthValidation") : undefined;
+        return length < 5 || length > 100 ? t("tour.nameLengthValidation") : undefined;
       },
     },
     {
@@ -153,14 +155,25 @@ export const UpdateTour: React.FC = () => {
     {
       name: "description",
       label: t("common.description"),
-      type: "textarea",
-      icon: <FileText className="h-4 w-4" />,
+      type: "custom",
       colSpan: 2,
       required: true,
-      validate: (value) => {
-        const length = String(value ?? "").trim().length;
-        return length < 20 || length > 2000 ? t("tour.descriptionLengthValidation") : undefined;
-      },
+      render: (value, onChange, error) => (
+        <div className="flex flex-col gap-1.5">
+          <div className="prose-sm max-w-none [&>.ql-toolbar]:rounded-t-xl [&>.ql-toolbar]:border-slate-200 [&>.ql-container]:rounded-b-xl [&>.ql-container]:border-slate-200">
+            <ReactQuill
+              theme="snow"
+              value={value || ""}
+              onChange={onChange}
+              placeholder={t("tour.tourDescriptionPlaceholder")}
+              className={error ? "[&>.ql-container]:!border-rose-500" : ""}
+            />
+          </div>
+          {error && (
+            <span className="text-xs font-medium text-rose-500">{error}</span>
+          )}
+        </div>
+      ),
     },
     {
       name: "image",

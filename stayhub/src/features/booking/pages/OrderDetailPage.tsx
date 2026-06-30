@@ -19,6 +19,7 @@ import {
   X,
   Image as ImageIcon,
   ExternalLink,
+  Copy,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { PATH } from "../../../config/routes/route";
@@ -32,6 +33,7 @@ import { ticketTypeService } from "../../content/services/ticketType.service";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourScheduleItinerary } from "../../tour/types/tourScheduleItinerary";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { useToast } from "../../../contexts/ToastContext";
 
 const dateFormatter = new Intl.DateTimeFormat("en-US", {
   weekday: "short",
@@ -89,8 +91,10 @@ export const OrderDetailPage: React.FC = () => {
   const { order, isLoading, error, refetch } = useOrderDetail(id);
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
+  const { success, error: showError } = useToast();
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [isCancellationPolicyOpen, setIsCancellationPolicyOpen] = useState(false);
+  const [isCancellationPolicyOpen, setIsCancellationPolicyOpen] =
+    useState(false);
 
   const { expandedItiIds, toggleIti, groupedItineraries } =
     useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
@@ -288,6 +292,18 @@ export const OrderDetailPage: React.FC = () => {
     if (!canCancelByDepartureDate) return;
     setIsCancellationPolicyOpen(false);
     navigate(PATH.CUSTOMER.REQUEST_CANCELLATION(order.id));
+  };
+
+  const handleCopyQrCode = (qrCode?: string | null) => {
+    if (!qrCode) return;
+    navigator.clipboard.writeText(qrCode).then(
+      () => {
+        success(t("booking.qrCodeCopied"));
+      },
+      () => {
+        showError(t("booking.qrCodeCopyFailed"));
+      },
+    );
   };
 
   const safeTourId = order.tour?.id || order.schedule?.tourId || 0;
@@ -593,7 +609,8 @@ export const OrderDetailPage: React.FC = () => {
                     <div className="flex justify-between gap-4 text-rose-600">
                       <span>{t("booking.discount")}</span>
                       <span>
-                        -<MoneyDisplay amountVnd={order.discountValue} compact />
+                        -
+                        <MoneyDisplay amountVnd={order.discountValue} compact />
                       </span>
                     </div>
                   ) : null}
@@ -708,36 +725,47 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                   </div>
 
-              {canCancelByDepartureDate ? (
-                <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-amber-800">{t("booking.cancellationFee")}</span>
-                    <span className="font-bold text-amber-900">
-                      {cancellationFeePercent}% (
-                      <MoneyDisplay amountVnd={cancellationFeeAmount ?? 0} compact />)
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-amber-800">{t("booking.estimatedRefund")}</span>
-                    <span className="font-bold text-emerald-700">
-                      <MoneyDisplay amountVnd={estimatedRefundAmount ?? 0} compact />
-                    </span>
-                  </div>
-                  <p className="text-xs leading-relaxed text-amber-700">
-                    {t("booking.feeRule")}
-                  </p>
+                  {canCancelByDepartureDate ? (
+                    <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                      <div className="flex justify-between gap-4">
+                        <span className="text-amber-800">
+                          {t("booking.cancellationFee")}
+                        </span>
+                        <span className="font-bold text-amber-900">
+                          {cancellationFeePercent}% (
+                          <MoneyDisplay
+                            amountVnd={cancellationFeeAmount ?? 0}
+                            compact
+                          />
+                          )
+                        </span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="text-amber-800">
+                          {t("booking.estimatedRefund")}
+                        </span>
+                        <span className="font-bold text-emerald-700">
+                          <MoneyDisplay
+                            amountVnd={estimatedRefundAmount ?? 0}
+                            compact
+                          />
+                        </span>
+                      </div>
+                      <p className="text-xs leading-relaxed text-amber-700">
+                        {t("booking.feeRule")}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
+                      <p className="font-semibold text-rose-800">
+                        {t("booking.cannotCancel")}
+                      </p>
+                      <p className="mt-1 text-sm leading-relaxed text-rose-700">
+                        {t("booking.cannotCancelDesc")}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-4">
-                  <p className="font-semibold text-rose-800">
-                    {t("booking.cannotCancel")}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-rose-700">
-                    {t("booking.cannotCancelDesc")}
-                  </p>
-                </div>
-              )}
-            </div>
 
                 <div className="flex flex-col-reverse gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
                   <button
@@ -1170,9 +1198,19 @@ export const OrderDetailPage: React.FC = () => {
                             <div className="mb-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
                               <QRCodeSVG value={ticket.qrCode} size={80} />
                             </div>
-                            <span className="font-mono text-[10px] text-slate-500">
-                              {ticket.qrCode}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => handleCopyQrCode(ticket.qrCode)}
+                                className="flex items-center gap-1.5 text-slate-400 hover:text-brand transition-colors"
+                                title={t("booking.copyQrCode")}
+                              >
+                                <span className="font-mono text-[10px] text-slate-500">
+                                  {ticket.qrCode}
+                                </span>
+                                <Copy size={12} />
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -1184,7 +1222,7 @@ export const OrderDetailPage: React.FC = () => {
           )}
 
           {/* 💥 3. Review Modal Wrapper */}
-          {isReviewModalOpen && (safeTourId > 0) && (
+          {isReviewModalOpen && safeTourId > 0 && (
             <div
               className="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
               onClick={() => setIsReviewModalOpen(false)}
@@ -1206,7 +1244,11 @@ export const OrderDetailPage: React.FC = () => {
                         }
                       : null
                   } // Tự động bật chế độ Edit nếu order đã có review
-                  isReadOnly={order.review ? !isReviewEditable(order.review.createdAt) : false}
+                  isReadOnly={
+                    order.review
+                      ? !isReviewEditable(order.review.createdAt)
+                      : false
+                  }
                   onSuccess={() => {
                     setIsReviewModalOpen(false); // Đóng Modal
                     refetch(); // Cập nhật lại data order (để hiện dòng "Your Review...")

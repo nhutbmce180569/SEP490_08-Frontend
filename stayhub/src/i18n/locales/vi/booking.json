@@ -46,6 +46,7 @@
   "endOfBookings": "Bạn đã xem hết đặt chỗ.",
   "paymentCancelledToast": "Thanh toán bị hủy hoặc thất bại. Mở đơn để đồng bộ trạng thái hủy.",
   "completeBooking": "Hoàn tất đặt chỗ",
+  "backToEdit": "Quay lại sửa",
   "backToTour": "Quay lại tour",
   "chooseTickets": "Chọn vé",
   "noPrice": "Chưa có giá",
@@ -102,11 +103,17 @@
   "fillPassengerFields": "Vui lòng điền đầy đủ thông tin cho Hành khách {{count}}",
   "dobFuturePassenger": "Ngày sinh của Hành khách {{count}} không thể ở tương lai.",
   "nameRequired": "Tên là bắt buộc.",
+  "nameTooLong": "Tên không được vượt quá 100 ký tự.",
   "idCardRequired": "CMND / Hộ chiếu là bắt buộc.",
+  "idCardTooLong": "CMND / Hộ chiếu không được vượt quá 20 ký tự.",
   "dobRequired": "Ngày sinh là bắt buộc.",
   "dobFuture": "Ngày sinh không thể ở tương lai.",
   "nationalityRequired": "Quốc tịch là bắt buộc.",
   "loadingOrderDetails": "Đang tải chi tiết đơn...",
+  "confirmBookingTitle": "Xác nhận thông tin đặt chỗ",
+  "confirmBookingDesc": "Vui lòng kiểm tra lại thông tin trước khi tiến hành thanh toán.",
+  "passengerCount": "{{count}} hành khách",
+  "voucherLossWarning": "Nếu bạn hủy thanh toán ở bước tiếp theo, voucher đã áp dụng có thể bị mất và không thể sử dụng lại.",
   "orderNotFound": "Không tìm thấy đơn",
   "orderNotFoundDesc": "Đơn bạn yêu cầu không tồn tại hoặc đã bị xóa.",
   "backToMyBookings": "Quay lại Đặt chỗ của tôi",
@@ -146,6 +153,7 @@
   "cannotCancel": "Không thể hủy đặt chỗ này.",
   "cannotCancelDesc": "Không được hủy khi tour bắt đầu trong vòng 1 ngày hoặc không xác minh được ngày khởi hành.",
   "continue": "Tiếp tục",
+  "confirmAndPay": "Xác nhận & Thanh toán với {{provider}}",
   "scheduleItinerary": "Lịch trình khởi hành",
   "daysOfActivities": "{{count}} ngày hoạt động",
   "today": "Hôm nay",
@@ -331,5 +339,8 @@
     "ticketTotalLabel": "vé",
     "noData": "Không có dữ liệu"
   },
-  "genderLabel": "Giới tính"
+  "genderLabel": "Giới tính",
+  "copyQrCode": "Sao chép mã QR",
+  "qrCodeCopied": "Đã sao chép mã QR vào clipboard!",
+  "qrCodeCopyFailed": "Không thể sao chép mã QR."
 }

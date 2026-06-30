@@ -28,7 +28,8 @@ export const ScheduleTrackingPage: React.FC = () => {
   const [locations, setLocations] = useState<LiveLocation[]>([]);
   const mapRef = useRef<MapRef | null>(null);
   const hasFlyRef = useRef(false);
-
+  const token = localStorage.getItem("accessToken");
+  console.log("[DEBUG] Token tồn tại:", !!token, token?.substring(0, 20));
   const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
   // 🔍 DEBUG: log mọi response từ REST API để biết data có về không
@@ -104,7 +105,9 @@ export const ScheduleTrackingPage: React.FC = () => {
         connection.on("ReceiveTourLocationUpdate", (update: LiveLocation) => {
           console.log("[DEBUG] SignalR push:", update);
           setLocations((prev) => {
-            const index = prev.findIndex((item) => item.userId === update.userId);
+            const index = prev.findIndex(
+              (item) => item.userId === update.userId,
+            );
             if (index >= 0) {
               const next = [...prev];
               next[index] = { ...next[index], ...update };
@@ -116,7 +119,10 @@ export const ScheduleTrackingPage: React.FC = () => {
       })
       .catch((err) => {
         // Lỗi SignalR không chặn REST API — chỉ log để biết
-        console.warn("[SignalR] Realtime không khả dụng, vẫn dùng polling REST:", err);
+        console.warn(
+          "[SignalR] Realtime không khả dụng, vẫn dùng polling REST:",
+          err,
+        );
       });
 
     return () => {
@@ -135,7 +141,6 @@ export const ScheduleTrackingPage: React.FC = () => {
 
   return (
     <div className="relative h-[85vh] w-full overflow-hidden rounded-2xl bg-slate-100">
-
       {/* Badge số người online */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/60">

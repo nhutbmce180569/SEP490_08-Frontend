@@ -45,6 +45,7 @@ import { useReview } from "../features/tour/hooks/useReview";
 import { MoneyDisplay } from "../features/currency/MoneyDisplay";
 import { WishlistToggleButton } from "../features/wishlist/customer/components/WishlistToggleButton";
 import { SimilarToursSection } from "../features/ai/components/SimilarToursSection";
+import { getTicketEffectivePriceInfo } from "../features/tour/utils/tourPrice";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -63,7 +64,7 @@ const getScheduleTickets = (schedule: TourSchedule) =>
 
 const getScheduleLowestPrice = (schedule: TourSchedule) => {
   const prices = getScheduleTickets(schedule)
-    .map((ticket) => getNumberValue(ticket.price))
+    .map((ticket) => getTicketEffectivePriceInfo(ticket).price)
     .filter((price): price is number => price !== null);
 
   return prices.length > 0 ? Math.min(...prices) : null;
@@ -71,7 +72,7 @@ const getScheduleLowestPrice = (schedule: TourSchedule) => {
 
 const getSchedulePriceRange = (schedule: TourSchedule) => {
   const prices = getScheduleTickets(schedule)
-    .map((ticket) => getNumberValue(ticket.price))
+    .map((ticket) => getTicketEffectivePriceInfo(ticket).price)
     .filter((price): price is number => price !== null);
 
   if (prices.length === 0) return null;
@@ -971,9 +972,16 @@ export default function PublicTourDetail() {
                                       {t("tour.left", { count: ticketAvailable })}
                                     </div>
                                   </div>
-                                  <div className="shrink-0 font-bold text-slate-900">
-                                    {getNumberValue(ticket.price) !== null ? (
-                                      <MoneyDisplay amountVnd={getNumberValue(ticket.price) ?? 0} compact />
+                                  <div className="shrink-0 font-bold text-slate-900 text-right">
+                                    {getTicketEffectivePriceInfo(ticket).price !== null ? (
+                                      <>
+                                        {getTicketEffectivePriceInfo(ticket).originalPrice !== null && (
+                                          <div className="text-[10px] font-medium text-slate-400 line-through mb-0.5">
+                                            <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).originalPrice!} compact />
+                                          </div>
+                                        )}
+                                        <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).price!} compact />
+                                      </>
                                     ) : (
                                       t("tour.noPrice")
                                     )}
@@ -1274,9 +1282,16 @@ export default function PublicTourDetail() {
                                     <span className="min-w-0 truncate font-semibold text-slate-800">
                                       {getTicketDisplayName(ticket, ticketTypeDetails)}
                                     </span>
-                                    <span className="shrink-0 font-bold text-slate-900">
+                                    <span className="shrink-0 font-bold text-slate-900 text-right">
                                       {ticketPrice !== null ? (
-                                        <MoneyDisplay amountVnd={ticketPrice} compact />
+                                        <>
+                                          {getTicketEffectivePriceInfo(ticket).originalPrice !== null && (
+                                            <div className="text-[10px] font-medium text-slate-400 line-through mb-0.5">
+                                              <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).originalPrice!} compact />
+                                            </div>
+                                          )}
+                                          <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).price!} compact />
+                                        </>
                                       ) : (
                                         t("tour.noPrice")
                                       )}

@@ -19,21 +19,12 @@ import type { Tour } from "../features/tour/types/tour";
 import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
 import { useTranslation } from "../contexts/LocaleContext";
 import { AiSemanticSearchBar } from "../features/ai/components/AiSemanticSearchBar";
+import { getTourPriceInfo } from "../features/tour/utils/tourPrice";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const MAX_PRICE = 100_000_000;
 const MAX_DAYS = 30;
-
-const getTourLowestTicketPrice = (tour: Tour) => {
-  const prices =
-    tour.tourSchedules
-      ?.flatMap((schedule) => schedule.tourScheduleTickets ?? [])
-      .map((ticket) => getNumberValue(ticket.price))
-      .filter((price): price is number => price !== null) ?? [];
-
-  return prices.length > 0 ? Math.min(...prices) : null;
-};
 
 // ─── Slider CSS ───────────────────────────────────────────────────────────────
 
@@ -855,7 +846,6 @@ export default function TourSearch() {
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {tours.map((tour) => {
                   const days = tour.tourItineraries?.length ?? 0;
-                  const minP = getTourLowestTicketPrice(tour);
                   const loc =
                     [tour.city, tour.country].filter(Boolean).join(", ") ||
                     t("tour.variousLocations");
@@ -872,7 +862,7 @@ export default function TourSearch() {
                           days > 0
                             ? `${days} ${days > 1 ? t("tour.daysLabel") : t("tour.day")}`
                             : t("tour.flexible"),
-                        price: minP,
+                        ...getTourPriceInfo(tour),
                         imageUrl:
                           tour.imageUrl ||
                           "",

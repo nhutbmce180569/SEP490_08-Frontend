@@ -1,22 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { Tour } from "../../../features/tour/types/tour";
-import { getNumberValue } from "../../../features/tour/utils/tourScheduleTicket";
 import { PATH } from "../../../config/routes/route";
 import { TourCard, type TourCardProps } from "../TourCard";
 import { SectionHeader } from "./SectionHeader";
 import { HomeSection } from "./HomeSection";
 import { HOME_GLASS } from "./shared";
 import { useTranslation } from "../../../contexts/LocaleContext";
-
-const getTourLowestTicketPrice = (tour: Tour) => {
-  const prices =
-    tour.tourSchedules
-      ?.flatMap((s) => s.tourScheduleTickets ?? [])
-      .map((t) => getNumberValue(t.price))
-      .filter((p): p is number => p !== null) ?? [];
-  return prices.length > 0 ? Math.min(...prices) : null;
-};
+import { getTourPriceInfo } from "../../../features/tour/utils/tourPrice";
 
 type HomePopularToursProps = {
   tours: Tour[];
@@ -46,7 +37,7 @@ export const HomePopularTours: React.FC<HomePopularToursProps> = ({
             ? t("home.durationDaysPlural", { count: dayCount })
             : t("home.durationDays", { count: dayCount })
           : t("home.flexibleDuration"),
-      price: getTourLowestTicketPrice(tour),
+      ...getTourPriceInfo(tour),
       imageUrl: tour.imageUrl || "",
     };
   };

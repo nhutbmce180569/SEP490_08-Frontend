@@ -99,6 +99,10 @@ import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
 
+import { AdminPromotionList } from "./features/promotion/pages/AdminPromotionList";
+import { CreatePromotion } from "./features/promotion/pages/CreatePromotion";
+import { UpdatePromotion } from "./features/promotion/pages/UpdatePromotion";
+
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
@@ -628,6 +632,11 @@ const App: React.FC = () => {
                     <Route path="create" element={<CreateVoucher />} />
                     <Route path=":id/edit" element={<UpdateVoucher />} />
                     <Route path=":id" element={<VoucherDetail />} />
+                  </Route>
+                  <Route path={childPath(PATH.ADMIN.SYSTEM_PROMOTIONS)}>
+                    <Route index element={<AdminPromotionList />} />
+                    <Route path="create" element={<CreatePromotion />} />
+                    <Route path=":id/edit" element={<UpdatePromotion />} />
                   </Route>
                   <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
                     <Route index element={<BannerList />} />

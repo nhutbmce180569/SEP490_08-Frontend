@@ -186,5 +186,9 @@
     "contact": "Contact",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy"
+  },
+  "admin": {
+    "promotionManagement": "Promotions",
+    "voucherManagement": "Vouchers"
   }
 }

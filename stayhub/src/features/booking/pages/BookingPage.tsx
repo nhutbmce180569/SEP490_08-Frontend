@@ -37,6 +37,7 @@ import {
   getScheduleTicketTypeId,
 } from "../../tour/utils/tourScheduleTicket";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { getTicketEffectivePriceInfo } from "../../tour/utils/tourPrice";
 import {
   downloadBookingPassengerExcel,
   parseBookingPassengerExcel,
@@ -199,7 +200,8 @@ const getCountriesNowOptions = (payload: CountriesNowStatesResponse) =>
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
 
-const getTicketPrice = (ticket: TourScheduleTicket) => getNumberValue(ticket.price);
+const getTicketPrice = (ticket: TourScheduleTicket) => getTicketEffectivePriceInfo(ticket).price;
+const getTicketOriginalPrice = (ticket: TourScheduleTicket) => getTicketEffectivePriceInfo(ticket).originalPrice;
 
 const getTicketAvailable = (ticket: TourScheduleTicket) =>
   getScheduleTicketAvailable(ticket) ?? 0;
@@ -791,7 +793,16 @@ export const BookingPage: React.FC = () => {
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
                             <span>
-                              {price === null ? t("booking.noPrice") : <MoneyDisplay amountVnd={price} compact />}
+                              {price === null ? t("booking.noPrice") : (
+                                <>
+                                  {getTicketOriginalPrice(ticketOption) !== null && (
+                                    <span className="text-[10px] text-slate-400 line-through mr-1">
+                                      <MoneyDisplay amountVnd={getTicketOriginalPrice(ticketOption)!} compact />
+                                    </span>
+                                  )}
+                                  <MoneyDisplay amountVnd={price} compact />
+                                </>
+                              )}
                             </span>
                             <span className="h-1 w-1 rounded-full bg-slate-300" />
                             <span>

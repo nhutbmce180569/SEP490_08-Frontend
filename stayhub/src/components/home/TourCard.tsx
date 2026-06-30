@@ -14,6 +14,7 @@ export interface TourCardProps {
   reviews: number;
   duration: string;
   price: number | null;
+  originalPrice?: number | null;
   imageUrl: string;
 }
 
@@ -82,6 +83,11 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     {t("home.priceFrom")}
                   </div>
+                  {tour.originalPrice != null && (
+                    <div className="text-xs font-medium text-slate-400 line-through">
+                      <MoneyDisplay amountVnd={tour.originalPrice} compact />
+                    </div>
+                  )}
                   <div className="text-lg font-black text-brand">
                     <MoneyDisplay amountVnd={tour.price} compact />
                   </div>

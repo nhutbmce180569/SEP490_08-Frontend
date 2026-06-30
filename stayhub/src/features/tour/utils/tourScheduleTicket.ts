@@ -50,6 +50,7 @@ export const buildScheduleTicketPayload = (
   quantity: number,
   isActive: boolean = true,
   note?: string | null,
+  promotionId?: number | null,
 ) => ({
   scheduleId,
   tourScheduleId: scheduleId,
@@ -58,4 +59,5 @@ export const buildScheduleTicketPayload = (
   quantity,
   isActive,
   note: note?.trim() ? note.trim() : null,
+  promotionId,
 });

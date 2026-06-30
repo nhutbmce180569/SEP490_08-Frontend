@@ -22,17 +22,32 @@ export const ScheduleTrackingPage: React.FC = () => {
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
 
-  const { data, isLoading } = useGetScheduleLiveLocations(scheduleIdNumber);
+  const { data, isLoading, isError, error } =
+    useGetScheduleLiveLocations(scheduleIdNumber);
 
   const [locations, setLocations] = useState<LiveLocation[]>([]);
   const mapRef = useRef<MapRef | null>(null);
-  const hasFlyRef = useRef(false); // Chỉ fly đến vị trí đầu tiên 1 lần
-
+  const hasFlyRef = useRef(false);
+  const token = localStorage.getItem("accessToken");
+  console.log("[DEBUG] Token tồn tại:", !!token, token?.substring(0, 20));
   const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
+
+  // 🔍 DEBUG: log mọi response từ REST API để biết data có về không
+  useEffect(() => {
+    console.log("[DEBUG] scheduleIdNumber:", scheduleIdNumber);
+    console.log("[DEBUG] isLoading:", isLoading);
+    console.log("[DEBUG] isError:", isError, error);
+    console.log("[DEBUG] raw data from useGetScheduleLiveLocations:", data);
+  }, [data, isLoading, isError, error, scheduleIdNumber]);
 
   // Merge dữ liệu poll REST API vào state
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    if (!data || data.length === 0) {
+      console.log("[DEBUG] data rỗng hoặc null — không có ai để hiện marker");
+      return;
+    }
+
+    console.log("[DEBUG] Merge", data.length, "vị trí vào state");
 
     setLocations((prev) => {
       const merged = [...prev];
@@ -44,11 +59,12 @@ export const ScheduleTrackingPage: React.FC = () => {
           merged.push(incoming);
         }
       });
+      console.log("[DEBUG] locations sau merge:", merged);
       return merged;
     });
 
-    // Fly đến vị trí người đầu tiên trong danh sách, chỉ 1 lần duy nhất
     if (!hasFlyRef.current && mapRef.current && data[0]) {
+      console.log("[DEBUG] flyTo vị trí đầu tiên:", data[0].lat, data[0].lng);
       mapRef.current.flyTo({
         center: [data[0].lng, data[0].lat],
         zoom: 14,
@@ -58,13 +74,13 @@ export const ScheduleTrackingPage: React.FC = () => {
     }
   }, [data]);
 
-  // Reset fly khi đổi schedule
+  // Reset khi đổi schedule
   useEffect(() => {
     hasFlyRef.current = false;
     setLocations([]);
   }, [scheduleIdNumber]);
 
-  // SignalR realtime — truyền token qua query string
+  // SignalR — KHÔNG để lỗi ở đây ảnh hưởng tới REST API phía trên
   useEffect(() => {
     if (scheduleIdNumber <= 0) return;
 
@@ -78,14 +94,20 @@ export const ScheduleTrackingPage: React.FC = () => {
       .withAutomaticReconnect()
       .build();
 
+    let isCancelled = false;
+
     connection
       .start()
       .then(async () => {
+        if (isCancelled) return; // tránh invoke sau khi component unmount
         await connection.invoke("JoinTourTrackingGroup", scheduleIdNumber);
 
         connection.on("ReceiveTourLocationUpdate", (update: LiveLocation) => {
+          console.log("[DEBUG] SignalR push:", update);
           setLocations((prev) => {
-            const index = prev.findIndex((item) => item.userId === update.userId);
+            const index = prev.findIndex(
+              (item) => item.userId === update.userId,
+            );
             if (index >= 0) {
               const next = [...prev];
               next[index] = { ...next[index], ...update };
@@ -95,10 +117,17 @@ export const ScheduleTrackingPage: React.FC = () => {
           });
         });
       })
-      .catch((err) => console.error("SignalR error:", err));
+      .catch((err) => {
+        // Lỗi SignalR không chặn REST API — chỉ log để biết
+        console.warn(
+          "[SignalR] Realtime không khả dụng, vẫn dùng polling REST:",
+          err,
+        );
+      });
 
     return () => {
-      connection.stop();
+      isCancelled = true;
+      connection.stop().catch(() => {});
     };
   }, [scheduleIdNumber]);
 
@@ -112,7 +141,6 @@ export const ScheduleTrackingPage: React.FC = () => {
 
   return (
     <div className="relative h-[85vh] w-full overflow-hidden rounded-2xl bg-slate-100">
-
       {/* Badge số người online */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/60">
@@ -132,8 +160,6 @@ export const ScheduleTrackingPage: React.FC = () => {
       <Map
         ref={mapRef}
         initialViewState={{
-          // Dùng tọa độ trung tâm Việt Nam làm mặc định
-          // flyTo sẽ tự bay đến vị trí thực khi data về
           latitude: 16.047079,
           longitude: 108.20623,
           zoom: 5,
@@ -151,10 +177,8 @@ export const ScheduleTrackingPage: React.FC = () => {
             anchor="bottom"
           >
             <div className="pointer-events-none relative flex origin-bottom flex-col items-center justify-center">
-              {/* Shadow dưới chân marker */}
               <div className="absolute -bottom-1 h-3 w-8 rounded-[100%] bg-black/30 blur-[3px]" />
 
-              {/* Avatar hoặc chữ cái đầu */}
               <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-white shadow-xl overflow-hidden">
                 {location.avatarUrl ? (
                   <img
@@ -167,14 +191,11 @@ export const ScheduleTrackingPage: React.FC = () => {
                     {location.fullName?.charAt(0) || "?"}
                   </div>
                 )}
-                {/* Ping animation viền ngoài */}
                 <div className="absolute inset-0 animate-ping rounded-full border-[3px] border-[#0068E0] opacity-40" />
               </div>
 
-              {/* Mũi tên nhọn dưới bubble */}
               <div className="absolute -bottom-2 z-0 h-4 w-4 rotate-45 border-b-[4px] border-r-[4px] border-white bg-[#0068E0]" />
 
-              {/* Tên hiển thị phía dưới */}
               <span className="mt-3 px-2 py-0.5 bg-[#0068E0] text-white text-[10px] font-bold rounded-md whitespace-nowrap shadow-sm">
                 {location.fullName || t("social.trackingGuestLabel")}
               </span>

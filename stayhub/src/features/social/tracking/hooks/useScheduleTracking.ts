@@ -6,7 +6,7 @@ export const useGetScheduleLiveLocations = (scheduleId: number) => {
     queryKey: ["scheduleLiveLocations", scheduleId],
     queryFn: () => scheduleTrackingService.getScheduleLiveLocations(scheduleId),
     enabled: scheduleId > 0,
-    refetchInterval: 10000, // ✅ Poll mỗi 10s để lấy vị trí mới nhất
+    refetchInterval: 10000, 
     refetchOnWindowFocus: false,
     retry: false,
   });

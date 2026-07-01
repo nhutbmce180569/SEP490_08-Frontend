@@ -28,6 +28,7 @@ import { ActionButton } from "../../../components/home/ActionButton";
 import { useGroupedItineraries } from "../../tour/hooks/useGroupedItineraries";
 import { ReviewForm } from "../../tour/pages/ReviewForm";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { cancelOrder } from "../services/booking.service";
 import { useQuery } from "@tanstack/react-query";
 import { ticketTypeService } from "../../content/services/ticketType.service";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
@@ -95,6 +96,27 @@ export const OrderDetailPage: React.FC = () => {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [isCancellationPolicyOpen, setIsCancellationPolicyOpen] =
     useState(false);
+  const [isCancelOrderConfirmOpen, setIsCancelOrderConfirmOpen] = useState(false);
+  const [isCancellingOrder, setIsCancellingOrder] = useState(false);
+
+  const handleCancelPendingOrderClick = () => {
+    setIsCancelOrderConfirmOpen(true);
+  };
+
+  const handleConfirmCancelPendingOrder = async () => {
+    if (!order) return;
+    setIsCancellingOrder(true);
+    try {
+      await cancelOrder(order.id);
+      success(t("booking.orderCancelledSuccess") || "Đơn hàng đã được hủy thành công!");
+      setIsCancelOrderConfirmOpen(false);
+      refetch();
+    } catch (err: any) {
+      showError(err.response?.data?.message || "Failed to cancel order.");
+    } finally {
+      setIsCancellingOrder(false);
+    }
+  };
 
   const { expandedItiIds, toggleIti, groupedItineraries } =
     useGroupedItineraries(order?.schedule?.tourScheduleItineraries);
@@ -662,6 +684,25 @@ export const OrderDetailPage: React.FC = () => {
                   onClick={handleRequestCancellation}
                 >
                   {t("booking.requestCancellation")}
+                </ActionButton>
+              </section>
+            )}
+
+            {normalizedStatus === "pending" && (
+              <section className="rounded-2xl border border-rose-200 bg-rose-50 p-5 shadow-sm sm:p-6">
+                <h2 className="mb-2 flex items-center gap-2 text-base font-bold text-rose-900">
+                  <AlertTriangle className="h-5 w-5 text-rose-500" />
+                  {t("booking.cancelUnpaidOrder") || "Hủy đơn hàng chưa thanh toán"}
+                </h2>
+                <p className="mb-4 text-sm leading-relaxed text-rose-700">
+                  {t("booking.cancelUnpaidOrderDesc") || "Nếu không muốn tiếp tục đặt tour này, bạn có thể hủy đơn hàng."}
+                </p>
+                <ActionButton
+                  variant="outline"
+                  className="w-full !border-rose-200 !text-rose-600 hover:!border-rose-300 hover:!bg-rose-100"
+                  onClick={handleCancelPendingOrderClick}
+                >
+                  {t("booking.cancelOrder")}
                 </ActionButton>
               </section>
             )}
@@ -1255,6 +1296,56 @@ export const OrderDetailPage: React.FC = () => {
                   }}
                   onCancel={() => setIsReviewModalOpen(false)} // Nút Hủy
                 />
+              </div>
+            </div>
+          )}
+
+          {/* Unpaid Order Cancellation Confirmation Modal */}
+          {isCancelOrderConfirmOpen && (
+            <div
+              className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+              onClick={() => setIsCancelOrderConfirmOpen(false)}
+            >
+              <div
+                className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="border-b border-slate-100 bg-rose-50 px-6 py-5">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-600">
+                      <AlertTriangle className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-950">
+                        {t("booking.confirmCancellationTitle") || "Xác nhận hủy đơn hàng"}
+                      </h3>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                        {t("booking.confirmCancellationMessage") || "Bạn có chắc chắn muốn hủy đơn hàng này không? Hành động này không thể hoàn tác."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setIsCancelOrderConfirmOpen(false)}
+                    className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:bg-slate-100"
+                    disabled={isCancellingOrder}
+                  >
+                    {t("common.back") || "Quay lại"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleConfirmCancelPendingOrder}
+                    disabled={isCancellingOrder}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isCancellingOrder && (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    )}
+                    {t("booking.confirmCancelOrder") || "Xác nhận hủy"}
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -33,5 +33,5 @@ export const useCategories = (pageSize: number = 5, keyword?: string) => {
   const handleEdit = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/edit`);
   const handleDelete = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/delete`);
 
-  return { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete };
+  return { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete, refetch: fetchCategories };
 };

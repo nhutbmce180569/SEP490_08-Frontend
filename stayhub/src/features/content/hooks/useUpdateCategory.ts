@@ -40,7 +40,7 @@ export const useUpdateCategory = () => {
     setServerErrors({});
     
     try {
-      const generatedSlug = data.name
+      const finalSlug = data.slug || (data.name
         ? data.name
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "")
@@ -49,11 +49,11 @@ export const useUpdateCategory = () => {
             .replace(/đ/g, "d")
             .replace(/[^a-z0-9\s-]/g, "")
             .replace(/[\s-]+/g, "-")
-        : "";
+        : "");
 
       const payload = {
         name: data.name,
-        slug: generatedSlug,
+        slug: finalSlug,
         description: data.description,
         isActive: data.isActive === "Active",
         iconFile: data.iconFile instanceof File ? data.iconFile : undefined, 

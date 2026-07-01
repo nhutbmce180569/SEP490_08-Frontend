@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Pencil, Trash2, Plus, User as UserIcon, Lock, Unlock, Eye, X, Search, Filter } from "lucide-react";
+import { Pencil, Plus, User as UserIcon, Lock, Unlock, Eye, X, Search, Filter } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -38,7 +38,7 @@ export const UserList: React.FC = () => {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState<ReadUserDTO | null>(null);
 
-  const users = data?.data || [];
+  const users = (data?.data || []).filter(user => !user.roles?.includes("Admin"));
   const totalPages = data?.totalPages || 1;
   const currentPage = data?.currentPage || 1;
   const totalItems = data?.total || 0;
@@ -123,9 +123,11 @@ export const UserList: React.FC = () => {
             <ActionButton variant="secondary" onClick={() => openViewDialog(user)} className="h-8 w-8" title={t("auth.viewDetails")}>
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>
-            <ActionButton variant="secondary" onClick={() => handleEdit(user.id)} className="h-8 w-8">
-              <Pencil className="h-3.5 w-3.5" />
-            </ActionButton>
+            {!user.roles?.includes("Customer") && (
+              <ActionButton variant="secondary" onClick={() => handleEdit(user.id)} className="h-8 w-8">
+                <Pencil className="h-3.5 w-3.5" />
+              </ActionButton>
+            )}
             <ActionButton
               variant="secondary"
               onClick={() => openStatusDialog(user)}
@@ -143,14 +145,11 @@ export const UserList: React.FC = () => {
                 <Unlock className="h-3.5 w-3.5" />
               )}
             </ActionButton>
-            <ActionButton variant="warning" onClick={() => handleDelete(user.id)} className="h-8 w-8">
-              <Trash2 className="h-3.5 w-3.5" />
-            </ActionButton>
           </div>
         ),
       },
     ],
-    [handleEdit, handleDelete, updatingId, t]
+    [handleEdit, updatingId, t]
   );
 
   return (
@@ -181,9 +180,9 @@ export const UserList: React.FC = () => {
             className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           >
             <option value="">{t("auth.allRoles")}</option>
-            <option value="Admin">Admin</option>
             <option value="Customer">Customer</option>
-            <option value="Host">Host</option>
+            <option value="Manager">Manager</option>
+            <option value="Staff">Staff</option>
           </select>
         </div>
       </div>

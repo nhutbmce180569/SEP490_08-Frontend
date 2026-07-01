@@ -14,13 +14,52 @@ export const CreateCategory: React.FC = () => {
       {
         name: "name",
         label: t("content.categoryName"),
+        type: "custom",
+        required: true,
+        colSpan: 1,
+        render: (value, onChange, error, setFormData) => (
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+              <Type className="h-4 w-4" />
+            </div>
+            <input
+              type="text"
+              className={`input-field py-2.5 pr-4 text-sm pl-10 w-full rounded-xl border border-slate-200 outline-none focus:border-brand ${
+                error ? "!border-rose-500 !bg-rose-50/30" : ""
+              }`}
+              placeholder={t("content.categoryNamePlaceholder")}
+              value={value || ""}
+              onChange={(e) => {
+                const nameVal = e.target.value;
+                onChange(nameVal);
+                
+                // Auto generate slug from name
+                const generatedSlug = nameVal
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .toLowerCase()
+                  .trim()
+                  .replace(/đ/g, "d")
+                  .replace(/[^a-z0-9\s-]/g, "")
+                  .replace(/[\s-]+/g, "-");
+                  
+                if (setFormData) {
+                  setFormData((prev) => ({ ...prev, slug: generatedSlug }));
+                }
+              }}
+            />
+          </div>
+        )
+      },
+      {
+        name: "slug",
+        label: "Slug",
         type: "text",
-        placeholder: t("content.categoryNamePlaceholder"),
-        icon: <Type className="h-4 w-4" />,
+        placeholder: "Ví dụ: luxury-travel",
+        icon: <Tag className="h-4 w-4" />,
         colSpan: 1,
         required: true,
       },
-
       {
         name: "description",
         label: t("common.description"),

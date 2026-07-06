@@ -106,6 +106,7 @@ import { LocationTrackingPage } from "./features/social/tracking/pages/LocationT
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 import { BookingStatisticsPage } from "./features/booking/pages/BookingStatisticsPage";
+import { RevenueStatisticsPage } from "./features/booking/pages/RevenueStatisticsPage";
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
@@ -598,8 +599,12 @@ const App: React.FC = () => {
                     element={<CustomerAnalyticsPage />}
                   />
                   <Route
-                    path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
+                    path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
                     element={<BookingStatisticsPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
+                    element={<RevenueStatisticsPage />}
                   />
                   <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                     <Route index element={<UserList />} />

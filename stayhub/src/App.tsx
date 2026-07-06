@@ -597,6 +597,10 @@ const App: React.FC = () => {
                     path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
                     element={<CustomerAnalyticsPage />}
                   />
+                  <Route
+                    path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
+                    element={<BookingStatisticsPage />}
+                  />
                   <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                     <Route index element={<UserList />} />
                     <Route path="create" element={<CreateUser />} />

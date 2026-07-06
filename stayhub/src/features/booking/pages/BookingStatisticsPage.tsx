@@ -1,8 +1,7 @@
 import React, { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   BarChart3,
-  CircleDollarSign,
-  Clock3,
   RefreshCw,
   RotateCcw,
   Ticket,
@@ -27,6 +26,7 @@ import {
   MetricStrip,
 } from '../../platform-analytics/components/AnalyticsLayout';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { ticketTypeService } from '../../content/services/ticketType.service';
 import { useBookingStatistics } from '../hooks/useBookingStatistics';
 import type {
   BookingStatisticsGroupBy,
@@ -53,6 +53,19 @@ export const BookingStatisticsPage: React.FC = () => {
 
   const statisticsQuery = useBookingStatistics(request);
   const data = statisticsQuery.data;
+
+  const { data: ticketTypesData } = useQuery({
+    queryKey: ['ticket-types-all'],
+    queryFn: () => ticketTypeService.getAll(1, 100),
+  });
+
+  const ticketTypes = useMemo(() => {
+    if (!ticketTypesData?.data) return {};
+    return ticketTypesData.data.reduce((acc, curr) => {
+      acc[curr.id] = curr.name;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [ticketTypesData]);
 
   return (
     <div className="space-y-5">
@@ -98,11 +111,10 @@ export const BookingStatisticsPage: React.FC = () => {
                   key={option}
                   type="button"
                   onClick={() => setGroupBy(option)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                    groupBy === option
-                      ? 'bg-brand text-white shadow-sm'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                  }`}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${groupBy === option
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
                 >
                   {t(groupByLabelKey(option))}
                 </button>
@@ -161,25 +173,18 @@ export const BookingStatisticsPage: React.FC = () => {
                 <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} />
               </AnalyticsPanel>
 
-              <ChartGrid columns={3}>
+              <ChartGrid columns={2}>
                 <AnalyticsPanel
                   title={t('booking.statistics.salesByTicketType')}
                   subtitle={t('booking.statistics.revenueShare')}
                 >
                   <TicketTypePieChart
                     data={data.salesByTicketType.map((item) => ({
-                      label: t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
+                      label: ticketTypes[item.ticketTypeId] || t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
                       count: item.quantitySold,
                       value: item.revenue,
                     }))}
                   />
-                </AnalyticsPanel>
-
-                <AnalyticsPanel
-                  title={t('booking.statistics.goldenHours')}
-                  subtitle={t('booking.statistics.ordersByHour')}
-                >
-                  <HourlyBarChart data={data.ordersByHour} />
                 </AnalyticsPanel>
 
                 <AnalyticsPanel
@@ -189,18 +194,6 @@ export const BookingStatisticsPage: React.FC = () => {
                   <CheckInDonutChart data={data.checkInRatio} />
                 </AnalyticsPanel>
               </ChartGrid>
-
-              <AnalyticsPanel
-                title={t('booking.statistics.topCancellationReasons')}
-                subtitle={t('booking.statistics.cancellationReasonsSubtitle')}
-              >
-                <HorizontalReasonBars
-                  data={data.topCancellationReasons.map((item) => ({
-                    label: item.reason,
-                    count: item.count,
-                  }))}
-                />
-              </AnalyticsPanel>
             </div>
           )}
         </div>
@@ -341,38 +334,6 @@ const TicketTypePieChart: React.FC<{
   );
 };
 
-const HourlyBarChart: React.FC<{ data: OrdersByHour[] }> = ({ data }) => {
-  const { t } = useTranslation();
-  const hours = Array.from({ length: 24 }, (_, hour) => ({
-    hour,
-    orderCount: data.find((item) => item.hour === hour)?.orderCount ?? 0,
-  }));
-  const max = Math.max(...hours.map((item) => item.orderCount), 1);
-
-  if (data.length === 0) return <EmptyChart icon={<Clock3 className="h-5 w-5" />} />;
-
-  return (
-    <div>
-      <div className="flex h-52 items-end gap-1.5">
-        {hours.map((item) => (
-          <div key={item.hour} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-            <div
-              className="w-full rounded-t-md bg-brand transition-all"
-              style={{ height: `${Math.max(6, (item.orderCount / max) * 180)}px` }}
-              title={t('booking.statistics.hourOrdersTitle', {
-                hour: item.hour,
-                count: item.orderCount,
-              })}
-            />
-            {item.hour % 4 === 0 && (
-              <span className="text-[10px] font-bold text-slate-400">{item.hour}</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) => {
   const { t } = useTranslation();
@@ -428,36 +389,6 @@ const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) =
           color: CHART_COLORS[index % CHART_COLORS.length],
         }))}
       />
-    </div>
-  );
-};
-
-const HorizontalReasonBars: React.FC<{
-  data: Array<{ label: string; count: number }>;
-}> = ({ data }) => {
-  const max = Math.max(...data.map((item) => item.count), 1);
-
-  if (data.length === 0) return <EmptyChart icon={<CircleDollarSign className="h-5 w-5" />} />;
-
-  return (
-    <div className="space-y-3">
-      {data.map((item, index) => (
-        <div key={`${item.label}-${index}`}>
-          <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-            <span className="min-w-0 truncate font-semibold text-slate-700">{item.label}</span>
-            <span className="shrink-0 font-bold text-slate-500">{formatNumber(item.count)}</span>
-          </div>
-          <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${(item.count / max) * 100}%`,
-                backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-              }}
-            />
-          </div>
-        </div>
-      ))}
     </div>
   );
 };

@@ -320,7 +320,7 @@
   "scanTicketFailed": "Lỗi khi quét vé. Vui lòng thử lại.",
   "statistics": {
     "eyebrow": "Phân tích dành cho quản lý",
-    "title": "Thống kê đặt vé",
+    "title": "Thống kê doanh thu",
     "subtitle": "Doanh thu, doanh số vé, hành vi điểm danh, khung giờ đặt vé cao điểm và lý do hủy",
     "refresh": "Làm mới",
     "groupBy": "Nhóm theo",
@@ -329,6 +329,7 @@
     "groupYear": "Năm",
     "unableToLoad": "Không thể tải thống kê đặt vé.",
     "actualRevenue": "Doanh thu thực tế",
+    "totalRevenue": "Tổng doanh thu",
     "actualRevenueHint": "Đơn đã thanh toán và hoàn tất",
     "discounts": "Giảm giá",
     "discountsHint": "Giá trị voucher đã áp dụng",

@@ -322,7 +322,7 @@
   "scanTicketFailed": "Failed to scan ticket. Please try again.",
   "statistics": {
     "eyebrow": "Manager insights",
-    "title": "Booking Statistics",
+    "title": "Revenue Statistics",
     "subtitle": "Revenue, ticket sales, check-in behavior, peak booking hours, and cancellation reasons",
     "refresh": "Refresh",
     "groupBy": "Group by",
@@ -331,6 +331,7 @@
     "groupYear": "Year",
     "unableToLoad": "Unable to load booking statistics.",
     "actualRevenue": "Actual revenue",
+    "totalRevenue": "Total revenue",
     "actualRevenueHint": "Paid and completed orders",
     "discounts": "Discounts",
     "discountsHint": "Applied voucher value",

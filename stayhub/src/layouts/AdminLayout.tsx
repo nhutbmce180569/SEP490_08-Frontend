@@ -36,6 +36,11 @@ export const AdminLayout = () => {
             to: PATH.ADMIN.CUSTOMER_ANALYTICS,
             icon: <BarChart3 className={iconClass} />,
           },
+          {
+            label: t("admin.revenueStatistics"),
+            to: PATH.ADMIN.REVENUE_STATISTICS,
+            icon: <PieChart className={iconClass} />,
+          },
         ],
       },
       {

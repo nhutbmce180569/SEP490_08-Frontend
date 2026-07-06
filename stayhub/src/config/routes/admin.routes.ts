@@ -23,6 +23,7 @@ export const ADMIN_ROUTES = {
   REPORT_MODERATION: '/admin/reports',
   CUSTOMER_ANALYTICS: '/admin/customer-analytics',
   PLATFORM_ANALYTICS: '/admin/platform-analytics',
+  BOOKING_STATISTICS: '/admin/booking-statistics',
   REVENUE_STATISTICS: '/admin/revenue-statistics',
   SYSTEM_SETTINGS: '/admin/settings',
   AI_CONSOLE: '/admin/ai',

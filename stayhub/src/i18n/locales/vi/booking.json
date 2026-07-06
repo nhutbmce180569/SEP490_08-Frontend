@@ -320,8 +320,10 @@
   "scanTicketFailed": "Lỗi khi quét vé. Vui lòng thử lại.",
   "statistics": {
     "eyebrow": "Phân tích dành cho quản lý",
-    "title": "Thống kê doanh thu",
+    "title": "Thống kê đặt vé",
     "subtitle": "Doanh thu, doanh số vé, hành vi điểm danh, khung giờ đặt vé cao điểm và lý do hủy",
+    "revenueTitle": "Thống kê doanh thu",
+    "revenueSubtitle": "Phân tích chuyên sâu về doanh thu và tỷ trọng bán hàng",
     "refresh": "Làm mới",
     "groupBy": "Nhóm theo",
     "groupDay": "Ngày",

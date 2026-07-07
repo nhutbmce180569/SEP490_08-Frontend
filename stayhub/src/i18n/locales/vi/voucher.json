@@ -160,5 +160,8 @@
   "myVouchersFilter": "Chỉ voucher của tôi",
   "otherVouchersFilter": "Voucher của người khác",
   "myVoucherBadge": "Của tôi",
-  "otherVoucherBadge": "Khác"
+  "otherVoucherBadge": "Khác",
+  "revenuePeriodCustom": "Tùy chỉnh khoảng",
+  "fromDate": "Từ ngày",
+  "toDate": "Đến ngày"
 }

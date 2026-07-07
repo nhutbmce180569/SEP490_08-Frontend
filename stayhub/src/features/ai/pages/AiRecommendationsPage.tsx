@@ -14,7 +14,6 @@ import { TourMatchModal } from "../components/TourMatchModal";
 import { RelatedInsightsCarousel } from "../components/RelatedInsightsCarousel";
 import { RecommenderMetaPanel } from "../components/RecommenderMetaPanel";
 import { TipsTabsPanel } from "../components/TipsTabsPanel";
-import { WeatherAdviceCard } from "../components/WeatherAdviceCard";
 import { useRecommendFromProfile } from "../hooks/useRecommendFromProfile";
 import { useLogAiInteraction } from "../hooks/useLogAiInteraction";
 import type {

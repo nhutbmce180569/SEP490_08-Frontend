@@ -66,7 +66,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
 
   const handleTopFieldChange = (
     field: keyof TopCustomerVoucherAssignmentDTO,
-    fieldValue: number | RevenuePeriod,
+    fieldValue: number | RevenuePeriod | string,
   ) => {
     onChange({
       ...value,
@@ -155,7 +155,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
                 <option value="Month">{t('voucher.revenuePeriodMonth')}</option>
                 <option value="Year">{t('voucher.revenuePeriodYear')}</option>
                 <option value="AllTime">{t('voucher.revenuePeriodAllTime')}</option>
-                <option value="Custom">{t('voucher.revenuePeriodCustom', 'Custom Range')}</option>
+                <option value="Custom">{t('voucher.revenuePeriodCustom')}</option>
               </select>
             </div>
 
@@ -178,7 +178,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600">
-                  {t('voucher.fromDate', 'From Date')}
+                  {t('voucher.fromDate')}
                 </label>
                 <input
                   type="date"
@@ -190,7 +190,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600">
-                  {t('voucher.toDate', 'To Date')}
+                  {t('voucher.toDate')}
                 </label>
                 <input
                   type="date"

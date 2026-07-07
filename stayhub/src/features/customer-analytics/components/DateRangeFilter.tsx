@@ -89,8 +89,8 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({
 };
 
 export const useDateRangeState = () => {
-  const initial = getDateRangeFromPreset('30d');
-  const [preset, setPreset] = React.useState<DatePreset>('30d');
+  const initial = getDateRangeFromPreset('90d');
+  const [preset, setPreset] = React.useState<DatePreset>('90d');
   const [from, setFrom] = React.useState(initial.from);
   const [to, setTo] = React.useState(initial.to);
 

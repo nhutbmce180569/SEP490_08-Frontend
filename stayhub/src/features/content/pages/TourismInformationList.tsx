@@ -157,7 +157,7 @@ export const TourismInformationList: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <ActionButton
                 variant="secondary"
-                onClick={() => setPendingStatusChange({ id: item.id, status: item.status })}
+                onClick={() => setPendingStatusChange({ id: item.id, status: item.status ?? '' })}
                 className={`h-8 w-8 ${updatingId === item.id ? "cursor-wait opacity-50" : ""} ${
                   active
                     ? "text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"

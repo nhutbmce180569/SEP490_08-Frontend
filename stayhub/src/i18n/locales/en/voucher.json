@@ -160,5 +160,8 @@
   "myVouchersFilter": "Only my vouchers",
   "otherVouchersFilter": "Others' vouchers",
   "myVoucherBadge": "Mine",
-  "otherVoucherBadge": "Others"
+  "otherVoucherBadge": "Others",
+  "revenuePeriodCustom": "Custom range",
+  "fromDate": "From date",
+  "toDate": "To date"
 }

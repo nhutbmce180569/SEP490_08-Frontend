@@ -1,5 +1,8 @@
 {
   "travelPlanner": "AI Travel Planner",
+  "aiConsultTitle": "Consult and design tours with AI",
+  "aiChatTab": "AI Chat",
+  "aiFormTab": "Tour Survey",
   "findPerfectTour": "Find your perfect tour",
   "close": "Close",
   "loadingSurvey": "Loading survey…",

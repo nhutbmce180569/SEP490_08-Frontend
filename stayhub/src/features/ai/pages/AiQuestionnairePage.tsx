@@ -74,7 +74,7 @@ const AiQuestionnaireDialog: React.FC = () => {
             <div>
               <p className="travel-eyebrow leading-none">StayHub AI Assistant</p>
               <h2 className="mt-0.5 text-base font-bold text-[var(--color-navy)]">
-                Tư vấn và thiết kế tour cùng AI
+                {t("ai.aiConsultTitle")}
               </h2>
             </div>
           </div>
@@ -101,7 +101,7 @@ const AiQuestionnaireDialog: React.FC = () => {
               }`}
             >
               <MessageSquare size={14} />
-              Trò chuyện AI
+              {t("ai.aiChatTab")}
             </button>
             <button
               type="button"
@@ -113,7 +113,7 @@ const AiQuestionnaireDialog: React.FC = () => {
               }`}
             >
               <ClipboardList size={14} />
-              Khảo sát Tour
+              {t("ai.aiFormTab")}
             </button>
           </div>
         </div>

@@ -83,6 +83,7 @@ import { AiQuestionnairePage, AiPlannerModal } from "./features/ai/pages/AiQuest
 import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
 import { AdminAiConsolePage } from "./features/ai/pages/AdminAiConsolePage";
 import { AiPlannerProvider } from "./contexts/AiPlannerContext";
+import { TourAssistantChatProvider } from "./contexts/TourAssistantChatContext";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
@@ -294,6 +295,7 @@ const App: React.FC = () => {
         <AuthProvider>
           <Router>
             <ChatNotificationProvider>
+            <TourAssistantChatProvider>
             <AiPlannerProvider>
             <CustomBrandCursor />
             <AiPlannerModal />
@@ -685,6 +687,7 @@ const App: React.FC = () => {
               </Routes>
             </PasswordChangeEnforcer>
           </AiPlannerProvider>
+          </TourAssistantChatProvider>
           </ChatNotificationProvider>
           </Router>
         </AuthProvider>

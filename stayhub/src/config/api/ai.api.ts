@@ -9,6 +9,7 @@ export const AI_API = {
     RECOMMEND_FROM_PROFILE: `${AI_BASE}/tour-assistant/recommend-from-profile`,
     RECOMMEND: `${AI_BASE}/tour-assistant/recommend`,
     CHAT: `${AI_BASE}/tour-assistant/chat`,
+    INTELLIGENT_CHAT: `${AI_BASE}/intelligent-chat/chat`,
     SEARCH: `${AI_BASE}/tour-assistant/search`,
     CONSULT: `${AI_BASE}/tour-assistant/consult`,
     SIMILAR: (tourId: string | number) =>

@@ -25,9 +25,9 @@ export const IntelligentChatWizard: React.FC = () => {
   };
 
   const welcomeSuggestions = [
-    "Tôi muốn đi Đà Lạt 3 ngày gia đình",
-    "Gợi ý tour Nha Trang giá rẻ cho cặp đôi",
-    "Tư vấn đi du lịch Sa Pa mùa này",
+    t("ai.chatSuggest1"),
+    t("ai.chatSuggest2"),
+    t("ai.chatSuggest3"),
   ];
 
   const renderMessageText = (text: string) => {
@@ -93,10 +93,10 @@ export const IntelligentChatWizard: React.FC = () => {
               <Sparkles size={28} />
             </div>
             <h3 className="text-sm font-bold text-[var(--color-navy)] mb-2 uppercase tracking-wide">
-              StayHub AI Travel Assistant
+              {t("ai.chatWelcomeTitle")}
             </h3>
             <p className="text-xs text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
-              Xin chào! Hãy chia sẻ mong muốn du lịch của bạn (như điểm đến, ngày khởi hành, bạn đồng hành, ngân sách...) để tôi tìm kiếm và đề xuất các tour tốt nhất cho bạn nhé!
+              {t("ai.chatWelcomeDesc")}
             </p>
             <div className="w-full max-w-xs space-y-2">
               {welcomeSuggestions.map((s) => (
@@ -149,7 +149,7 @@ export const IntelligentChatWizard: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg">🌤️</span>
                       <h4 className="text-xs font-extrabold text-sky-900 uppercase tracking-wider">
-                        Thông tin thời tiết & tư vấn
+                        {t("ai.chatWeatherTitle")}
                       </h4>
                     </div>
                     <WeatherAdviceCard weather={msg.weatherAdvice} compact={false} />
@@ -162,7 +162,7 @@ export const IntelligentChatWizard: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <AlertCircle size={15} className="text-amber-600" />
                       <h4 className="text-xs font-extrabold text-amber-900 uppercase tracking-wider">
-                        Lưu ý văn hóa & Lời khuyên
+                        {t("ai.chatCultureTitle")}
                       </h4>
                     </div>
                     <ul className="list-disc pl-4 space-y-2 text-xs text-amber-950 font-semibold">
@@ -181,7 +181,7 @@ export const IntelligentChatWizard: React.FC = () => {
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles size={14} className="text-emerald-600" />
                       <h4 className="text-xs font-extrabold text-emerald-900 uppercase tracking-wider">
-                        Thông tin du lịch & Ẩm thực
+                        {t("ai.chatTourismTitle")}
                       </h4>
                     </div>
                     <div className="space-y-3">
@@ -202,7 +202,7 @@ export const IntelligentChatWizard: React.FC = () => {
                   <div className="space-y-3.5 max-w-[420px]">
                     <h4 className="text-xs font-extrabold text-[var(--color-navy)] uppercase tracking-wider flex items-center gap-1.5">
                       <Sparkles size={13} className="text-brand animate-pulse" />
-                      Đề xuất tour du lịch phù hợp:
+                      {t("ai.chatRecommendTitle")}
                     </h4>
                     <div className="grid gap-3.5">
                       {msg.recommendedTours.map((tour) => (
@@ -266,7 +266,7 @@ export const IntelligentChatWizard: React.FC = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
-          placeholder="Nhập yêu cầu du lịch của bạn..."
+          placeholder={t("ai.chatInputPlaceholder")}
           maxLength={2000}
           disabled={isSending}
           className="input-field flex-1 py-3 px-4 rounded-xl text-sm border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all disabled:bg-slate-50"

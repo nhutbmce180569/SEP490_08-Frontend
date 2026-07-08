@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MessageCircle, X, Send, Sparkles, Minimize2, ListChecks, ArrowLeft } from "lucide-react";
+import { X, Send, Sparkles, Minimize2, ListChecks, ArrowLeft } from "lucide-react";
 import { useTourAssistantChat } from "../hooks/useTourAssistantChat";
 import { SystemFaqBrowser } from "./SystemFaqBrowser";
 import { useTranslation } from "../../../contexts/LocaleContext";

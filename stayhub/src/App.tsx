@@ -84,6 +84,7 @@ import { AiQuestionnairePage, AiPlannerModal } from "./features/ai/pages/AiQuest
 import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
 import { AdminAiConsolePage } from "./features/ai/pages/AdminAiConsolePage";
 import { AiPlannerProvider } from "./contexts/AiPlannerContext";
+import { TourAssistantChatProvider } from "./contexts/TourAssistantChatContext";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
@@ -107,6 +108,7 @@ import { LocationTrackingPage } from "./features/social/tracking/pages/LocationT
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 import { BookingStatisticsPage } from "./features/booking/pages/BookingStatisticsPage";
+import { RevenueStatisticsPage } from "./features/booking/pages/RevenueStatisticsPage";
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
@@ -294,8 +296,9 @@ const App: React.FC = () => {
         <AuthProvider>
           <Router>
             <ChatNotificationProvider>
+            <TourAssistantChatProvider>
             <AiPlannerProvider>
-            <CustomBrandCursor />
+            {/* <CustomBrandCursor /> */}
             <AiPlannerModal />
             <ScrollToTop />
             <PasswordChangeEnforcer>
@@ -602,6 +605,14 @@ const App: React.FC = () => {
                     path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
                     element={<CustomerAnalyticsPage />}
                   />
+                  <Route
+                    path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
+                    element={<BookingStatisticsPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
+                    element={<RevenueStatisticsPage />}
+                  />
                   <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                     <Route index element={<UserList />} />
                     <Route path="create" element={<CreateUser />} />
@@ -681,6 +692,7 @@ const App: React.FC = () => {
               </Routes>
             </PasswordChangeEnforcer>
           </AiPlannerProvider>
+          </TourAssistantChatProvider>
           </ChatNotificationProvider>
           </Router>
         </AuthProvider>

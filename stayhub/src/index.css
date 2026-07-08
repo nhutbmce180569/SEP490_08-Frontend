@@ -126,30 +126,6 @@
     background: var(--selection-bg);
     color: var(--color-navy);
   }
-
-  /* Fallback cursor (no JS / text fields) — PNG logo when available */
-  @media (hover: hover) and (pointer: fine) {
-    html:not(.has-brand-cursor) {
-      cursor:
-        url("/cursors/stayhub-cursor-64.png") 20 20,
-        url("/cursors/stayhub-cursor-32.png") 16 16,
-        auto;
-    }
-  }
-}
-
-/* Custom StayHub logo pointer (desktop) */
-@media (hover: hover) and (pointer: fine) {
-  html.has-brand-cursor,
-  html.has-brand-cursor *:not(input):not(textarea):not([contenteditable="true"]) {
-    cursor: none !important;
-  }
-
-  html.has-brand-cursor input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
-  html.has-brand-cursor textarea,
-  html.has-brand-cursor [contenteditable="true"] {
-    cursor: text !important;
-  }
 }
 
 .brand-cursor {
@@ -316,7 +292,7 @@
     top: 0;
     z-index: 20;
     display: flex;
-    height: 4rem;
+    height: 72px;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
@@ -331,7 +307,7 @@
   @media (min-width: 768px) {
     .dashboard-topbar {
       padding: 0 1.5rem;
-      height: 4.25rem;
+      height: 72px;
     }
   }
 

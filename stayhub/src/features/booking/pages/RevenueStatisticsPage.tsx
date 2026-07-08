@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   BarChart3,
-  CircleDollarSign,
-  Clock3,
   RefreshCw,
   RotateCcw,
   Ticket,
+  CircleDollarSign,
+  Banknote,
+  Receipt
 } from 'lucide-react';
 import {
   DateRangeFilter,
@@ -27,17 +29,17 @@ import {
   MetricStrip,
 } from '../../platform-analytics/components/AnalyticsLayout';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { ticketTypeService } from '../../content/services/ticketType.service';
 import { useBookingStatistics } from '../hooks/useBookingStatistics';
 import type {
   BookingStatisticsGroupBy,
   CheckInStatusRatio,
-  OrdersByHour,
   RevenueTrendPoint,
 } from '../types/bookingStatistics.types';
 
 const GROUP_BY_OPTIONS: BookingStatisticsGroupBy[] = ['Day', 'Month', 'Year'];
 
-export const BookingStatisticsPage: React.FC = () => {
+export const RevenueStatisticsPage: React.FC = () => {
   const { t } = useTranslation();
   const { preset, setPreset, from, setFrom, to, setTo } = useDateRangeState();
   const [groupBy, setGroupBy] = useState<BookingStatisticsGroupBy>('Day');
@@ -54,14 +56,28 @@ export const BookingStatisticsPage: React.FC = () => {
   const statisticsQuery = useBookingStatistics(request);
   const data = statisticsQuery.data;
 
+  const { data: ticketTypesData } = useQuery({
+    queryKey: ['ticket-types-all'],
+    queryFn: () => ticketTypeService.getAll(1, 100),
+  });
+
+  const ticketTypes = useMemo(() => {
+    if (!ticketTypesData?.data) return {};
+    return ticketTypesData.data.reduce((acc, curr) => {
+      acc[curr.id] = curr.name;
+      return acc;
+    }, {} as Record<number, string>);
+  }, [ticketTypesData]);
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      {/* Header section */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="travel-eyebrow">{t('booking.statistics.eyebrow')}</p>
-          <h1 className="travel-heading text-2xl md:text-3xl">{t('booking.statistics.title')}</h1>
+          <h1 className="travel-heading text-2xl md:text-3xl">{t('booking.statistics.revenueTitle')}</h1>
           <p className="mt-1.5 max-w-2xl text-sm text-slate-500">
-            {t('booking.statistics.subtitle')}
+            {t('booking.statistics.revenueSubtitle')}
             <span className="ml-1 text-slate-400">
               {formatDate(from)} - {formatDate(to)}
             </span>
@@ -119,37 +135,66 @@ export const BookingStatisticsPage: React.FC = () => {
               onRetry={() => statisticsQuery.refetch()}
             />
           ) : (
-            <div className="space-y-5">
-              <MetricStrip
-                columns={5}
-                items={[
-                  {
-                    label: t('booking.statistics.actualRevenue'),
-                    value: formatVnd(data.metrics.totalRevenue),
-                    hint: t('booking.statistics.actualRevenueHint'),
-                  },
-                  {
-                    label: t('booking.statistics.discounts'),
-                    value: formatVnd(data.metrics.totalDiscount),
-                    hint: t('booking.statistics.discountsHint'),
-                  },
-                  {
-                    label: t('booking.statistics.refunded'),
-                    value: formatVnd(data.metrics.totalRefundAmount),
-                    hint: t('booking.statistics.refundedHint'),
-                  },
-                  {
-                    label: t('booking.statistics.orders'),
-                    value: formatNumber(data.metrics.totalOrders),
-                    hint: t('booking.statistics.ordersHint'),
-                  },
-                  {
-                    label: t('booking.statistics.ticketsSold'),
-                    value: formatNumber(data.metrics.totalTicketsSold),
-                    hint: t('booking.statistics.ticketsSoldHint'),
-                  },
-                ]}
-              />
+            <div className="space-y-6">
+              {/* Highlighted Metric Cards */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="flex flex-col gap-1 rounded-2xl border border-brand/20 bg-brand/5 p-5">
+                  <div className="flex items-center gap-2 text-brand">
+                    <CircleDollarSign className="h-5 w-5" />
+                    <span className="text-sm font-bold">{t('booking.statistics.actualRevenue')}</span>
+                  </div>
+                  <div className="mt-2 text-3xl font-black text-slate-900">
+                    {formatVnd(data.metrics.totalRevenue)}
+                  </div>
+                  <p className="text-xs font-semibold text-slate-500">
+                    {t('booking.statistics.actualRevenueHint')}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Banknote className="h-5 w-5" />
+                    <span className="text-sm font-bold">{t('booking.statistics.discounts')}</span>
+                  </div>
+                  <div className="mt-2 text-2xl font-bold text-slate-900">
+                    {formatVnd(data.metrics.totalDiscount)}
+                  </div>
+                  <p className="text-xs font-medium text-slate-500">
+                    {t('booking.statistics.discountsHint')}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <div className="flex items-center gap-2 text-rose-500">
+                    <Receipt className="h-5 w-5" />
+                    <span className="text-sm font-bold">{t('booking.statistics.refunded')}</span>
+                  </div>
+                  <div className="mt-2 text-2xl font-bold text-slate-900">
+                    {formatVnd(data.metrics.totalRefundAmount)}
+                  </div>
+                  <p className="text-xs font-medium text-slate-500">
+                    {t('booking.statistics.refundedHint')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Secondary Metrics */}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-600">{t('booking.statistics.orders')}</p>
+                    <p className="text-xs text-slate-400">{t('booking.statistics.ordersHint')}</p>
+                  </div>
+                  <span className="text-2xl font-black text-slate-800">{formatNumber(data.metrics.totalOrders)}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-5 py-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-600">{t('booking.statistics.ticketsSold')}</p>
+                    <p className="text-xs text-slate-400">{t('booking.statistics.ticketsSoldHint')}</p>
+                  </div>
+                  <span className="text-2xl font-black text-slate-800">{formatNumber(data.metrics.totalTicketsSold)}</span>
+                </div>
+              </div>
 
               <AnalyticsPanel
                 title={t('booking.statistics.revenueOverTime')}
@@ -160,25 +205,18 @@ export const BookingStatisticsPage: React.FC = () => {
                 <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} />
               </AnalyticsPanel>
 
-              <ChartGrid columns={3}>
+              <ChartGrid columns={2}>
                 <AnalyticsPanel
                   title={t('booking.statistics.salesByTicketType')}
                   subtitle={t('booking.statistics.revenueShare')}
                 >
                   <TicketTypePieChart
                     data={data.salesByTicketType.map((item) => ({
-                      label: t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
+                      label: ticketTypes[item.ticketTypeId] || t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
                       count: item.quantitySold,
                       value: item.revenue,
                     }))}
                   />
-                </AnalyticsPanel>
-
-                <AnalyticsPanel
-                  title={t('booking.statistics.goldenHours')}
-                  subtitle={t('booking.statistics.ordersByHour')}
-                >
-                  <HourlyBarChart data={data.ordersByHour} />
                 </AnalyticsPanel>
 
                 <AnalyticsPanel
@@ -188,18 +226,6 @@ export const BookingStatisticsPage: React.FC = () => {
                   <CheckInDonutChart data={data.checkInRatio} />
                 </AnalyticsPanel>
               </ChartGrid>
-
-              <AnalyticsPanel
-                title={t('booking.statistics.topCancellationReasons')}
-                subtitle={t('booking.statistics.cancellationReasonsSubtitle')}
-              >
-                <HorizontalReasonBars
-                  data={data.topCancellationReasons.map((item) => ({
-                    label: item.reason,
-                    count: item.count,
-                  }))}
-                />
-              </AnalyticsPanel>
             </div>
           )}
         </div>
@@ -212,8 +238,7 @@ const BookingStatisticsSkeleton = () => (
   <div className="space-y-5">
     <LoadingPanel height="h-24" />
     <LoadingPanel height="h-80" />
-    <div className="grid gap-5 lg:grid-cols-3">
-      <LoadingPanel height="h-72" />
+    <div className="grid gap-5 lg:grid-cols-2">
       <LoadingPanel height="h-72" />
       <LoadingPanel height="h-72" />
     </div>
@@ -247,6 +272,12 @@ const RevenueLineChart: React.FC<{
     <div>
       <div className="h-[260px] w-full">
         <svg viewBox={`0 0 ${width} ${height}`} className="h-full w-full" role="img">
+          <defs>
+            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#0068E0" stopOpacity={0.2} />
+              <stop offset="95%" stopColor="#0068E0" stopOpacity={0} />
+            </linearGradient>
+          </defs>
           {Array.from({ length: 5 }).map((_, index) => {
             const y = padding + (index / 4) * (height - padding * 2);
             const value = maxRevenue - (index / 4) * maxRevenue;
@@ -269,8 +300,7 @@ const RevenueLineChart: React.FC<{
 
           <path
             d={`${linePath} L ${points[points.length - 1].x.toFixed(2)} ${height - padding} L ${points[0].x.toFixed(2)} ${height - padding} Z`}
-            fill="#0068E0"
-            opacity="0.1"
+            fill="url(#colorRevenue)"
           />
           <path
             d={linePath}
@@ -278,10 +308,10 @@ const RevenueLineChart: React.FC<{
             stroke="#0068E0"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth="3"
+            strokeWidth="3.5"
           />
           {points.map((point) => (
-            <circle key={point.period} cx={point.x} cy={point.y} r="4" fill="#0068E0" />
+            <circle key={point.period} cx={point.x} cy={point.y} r="5" fill="#fff" stroke="#0068E0" strokeWidth="2" />
           ))}
         </svg>
       </div>
@@ -340,39 +370,6 @@ const TicketTypePieChart: React.FC<{
   );
 };
 
-const HourlyBarChart: React.FC<{ data: OrdersByHour[] }> = ({ data }) => {
-  const { t } = useTranslation();
-  const hours = Array.from({ length: 24 }, (_, hour) => ({
-    hour,
-    orderCount: data.find((item) => item.hour === hour)?.orderCount ?? 0,
-  }));
-  const max = Math.max(...hours.map((item) => item.orderCount), 1);
-
-  if (data.length === 0) return <EmptyChart icon={<Clock3 className="h-5 w-5" />} />;
-
-  return (
-    <div>
-      <div className="flex h-52 items-end gap-1.5">
-        {hours.map((item) => (
-          <div key={item.hour} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-            <div
-              className="w-full rounded-t-md bg-brand transition-all"
-              style={{ height: `${Math.max(6, (item.orderCount / max) * 180)}px` }}
-              title={t('booking.statistics.hourOrdersTitle', {
-                hour: item.hour,
-                count: item.orderCount,
-              })}
-            />
-            {item.hour % 4 === 0 && (
-              <span className="text-[10px] font-bold text-slate-400">{item.hour}</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
 const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) => {
   const { t } = useTranslation();
   const total = data.reduce((sum, item) => sum + item.ticketCount, 0);
@@ -427,36 +424,6 @@ const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) =
           color: CHART_COLORS[index % CHART_COLORS.length],
         }))}
       />
-    </div>
-  );
-};
-
-const HorizontalReasonBars: React.FC<{
-  data: Array<{ label: string; count: number }>;
-}> = ({ data }) => {
-  const max = Math.max(...data.map((item) => item.count), 1);
-
-  if (data.length === 0) return <EmptyChart icon={<CircleDollarSign className="h-5 w-5" />} />;
-
-  return (
-    <div className="space-y-3">
-      {data.map((item, index) => (
-        <div key={`${item.label}-${index}`}>
-          <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-            <span className="min-w-0 truncate font-semibold text-slate-700">{item.label}</span>
-            <span className="shrink-0 font-bold text-slate-500">{formatNumber(item.count)}</span>
-          </div>
-          <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${(item.count / max) * 100}%`,
-                backgroundColor: CHART_COLORS[index % CHART_COLORS.length],
-              }}
-            />
-          </div>
-        </div>
-      ))}
     </div>
   );
 };
@@ -534,4 +501,4 @@ function normalizeCheckInStatus(status: string, t: (key: string) => string) {
     : t('booking.statistics.notCheckedIn');
 }
 
-export default BookingStatisticsPage;
+export default RevenueStatisticsPage;

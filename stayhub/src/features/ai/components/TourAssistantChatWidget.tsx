@@ -3,12 +3,13 @@ import { MessageCircle, X, Send, Sparkles, Minimize2, ListChecks, ArrowLeft } fr
 import { useTourAssistantChat } from "../hooks/useTourAssistantChat";
 import { SystemFaqBrowser } from "./SystemFaqBrowser";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { useTourAssistantChatState } from "../../../contexts/TourAssistantChatContext";
 
 type ChatView = "chat" | "faq";
 
 export const TourAssistantChatWidget = () => {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const { isOpen: open, close: setOpenFalse } = useTourAssistantChatState();
   const [view, setView] = useState<ChatView>("chat");
   const [input, setInput] = useState("");
   const { messages, isSending, sendMessage } = useTourAssistantChat();
@@ -41,25 +42,12 @@ export const TourAssistantChatWidget = () => {
   };
 
   const handleClose = () => {
-    setOpen(false);
+    setOpenFalse();
     setView("chat");
   };
 
   return (
     <>
-      {!open && (
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="ai-fab fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full px-5 py-3.5 text-sm font-bold text-white transition-transform hover:scale-105"
-          aria-label={t("ai.openAssistant")}
-        >
-          <MessageCircle size={20} />
-          <span className="hidden sm:inline">{t("ai.assistantLabel")}</span>
-          <Sparkles size={16} className="opacity-90" />
-        </button>
-      )}
-
       {open && (
         <div className="ai-chat-panel fixed bottom-6 right-6 z-50 flex h-[min(80vh,560px)] w-[min(100vw-2rem,400px)] flex-col overflow-hidden rounded-3xl">
           <div className="ai-surface-header flex shrink-0 items-center justify-between px-4 py-3 text-white">

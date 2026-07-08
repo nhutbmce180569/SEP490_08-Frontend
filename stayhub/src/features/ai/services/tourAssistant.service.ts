@@ -12,6 +12,8 @@ import type {
   TourPreferenceQuestionnaire,
   TourRecommendationItem,
   TourSearchResultItem,
+  IntelligentChatRequest,
+  IntelligentChatResponse,
 } from "../types/tourAssistant";
 
 export const getAiHealth = () =>
@@ -33,6 +35,9 @@ export const getPersonalizedRecommend = (top = 8) =>
 
 export const postChat = (body: ChatRequest) =>
   apiClient.post<ChatResponse>(AI_API.TOUR_ASSISTANT.CHAT, body);
+
+export const postIntelligentChat = (body: IntelligentChatRequest) =>
+  apiClient.post<IntelligentChatResponse>(AI_API.TOUR_ASSISTANT.INTELLIGENT_CHAT, body);
 
 export const postSemanticSearch = (body: NaturalLanguageSearchRequest) =>
   apiClient.post<TourSearchResultItem[]>(AI_API.TOUR_ASSISTANT.SEARCH, body);

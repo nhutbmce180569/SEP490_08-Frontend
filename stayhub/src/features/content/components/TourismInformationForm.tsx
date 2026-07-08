@@ -247,6 +247,38 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
         },
       },
       {
+        name: "latitude",
+        label: t("content.latitude") || "Vĩ độ (Latitude)",
+        type: "text",
+        placeholder: "Ví dụ: 10.0588",
+        icon: <Navigation className="h-4 w-4" />,
+        colSpan: 1,
+        validate: (value) => {
+          if (value === undefined || value === null || value === "") return undefined;
+          const num = Number(value);
+          if (Number.isNaN(num) || num < -90 || num > 90) {
+            return t("content.latitudeInvalid") || "Vĩ độ phải là số từ -90 đến 90.";
+          }
+          return undefined;
+        }
+      },
+      {
+        name: "longitude",
+        label: t("content.longitude") || "Kinh độ (Longitude)",
+        type: "text",
+        placeholder: "Ví dụ: 104.0355",
+        icon: <Navigation className="h-4 w-4" />,
+        colSpan: 1,
+        validate: (value) => {
+          if (value === undefined || value === null || value === "") return undefined;
+          const num = Number(value);
+          if (Number.isNaN(num) || num < -180 || num > 180) {
+            return t("content.longitudeInvalid") || "Kinh độ phải là số từ -180 đến 180.";
+          }
+          return undefined;
+        }
+      },
+      {
         name: "sourceName",
         label: t("content.sourceName"),
         type: "text",

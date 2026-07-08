@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
-import { Users } from "lucide-react";
+<<<<<<< HEAD
+import { Users, Navigation } from "lucide-react";
+=======
+import { Users, ArrowLeft } from "lucide-react";
+>>>>>>> ed3c36022014b95ec62085bc8b6a5699027a3d47
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -19,6 +23,7 @@ interface LiveLocation {
 
 export const ScheduleTrackingPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
 
@@ -26,6 +31,7 @@ export const ScheduleTrackingPage: React.FC = () => {
     useGetScheduleLiveLocations(scheduleIdNumber);
 
   const [locations, setLocations] = useState<LiveLocation[]>([]);
+  const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const mapRef = useRef<MapRef | null>(null);
   const hasFlyRef = useRef(false);
   const token = localStorage.getItem("accessToken");
@@ -141,6 +147,15 @@ export const ScheduleTrackingPage: React.FC = () => {
 
   return (
     <div className="relative h-[85vh] w-full overflow-hidden rounded-2xl bg-slate-100">
+      {/* Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-md transition-colors hover:bg-white"
+        aria-label={t("common.back") || "Back"}
+      >
+        <ArrowLeft className="h-5 w-5 text-slate-700" />
+      </button>
+
       {/* Badge số người online */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/60">
@@ -202,7 +217,40 @@ export const ScheduleTrackingPage: React.FC = () => {
             </div>
           </Marker>
         ))}
+        {myLocation && (
+          <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
+            <div className="h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-md ring-4 ring-blue-500/30"></div>
+          </Marker>
+        )}
       </Map>
+
+      {/* Floating Buttons */}
+      <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-3">
+        {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
+          <button
+            onClick={() => {
+              if (myLocation) {
+                mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 });
+              } else {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setMyLocation({ lat: latitude, lng: longitude });
+                    mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+                  },
+                  (err) => {
+                    console.warn("Lỗi định vị:", err);
+                  }
+                );
+              }
+            }}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-slate-700 shadow-lg transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            title="Vị trí của bạn"
+          >
+            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

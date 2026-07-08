@@ -51,15 +51,26 @@ export const QRCheckinPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl py-4 px-4 sm:px-6">
-      {/* NÚT BACK */}
-      <button
-        onClick={() => navigate(-1)}
-        className="group mb-4 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#0068E0] hover:ring-[#0068E0]/30 outline-none"
-      >
-        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-        {t("booking.backToDashboard")}
-      </button>
+    <div className="mx-auto max-w-5xl py-4 px-4 sm:px-6 space-y-6">
+      {/* Header section */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="travel-eyebrow">{t("staff.assignedSchedulesEyebrow")}</p>
+          <h1 className="travel-heading text-2xl md:text-3xl">
+            {t("booking.ticketCheckIn")}
+          </h1>
+          <p className="mt-1.5 max-w-2xl text-sm text-slate-500">
+            {t("booking.scanOrEnter")}
+          </p>
+        </div>
+        <button
+          onClick={() => navigate(-1)}
+          className="group inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#0068E0] hover:ring-[#0068E0]/30 outline-none"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          {t("booking.backToDashboard")}
+        </button>
+      </div>
 
       {/* Căn items-start để cột phải không bị kéo giãn chiều cao vô cớ */}
       <div className="grid gap-5 lg:grid-cols-12 items-start">
@@ -67,42 +78,25 @@ export const QRCheckinPage: React.FC = () => {
             CỘT TRÁI: KHU VỰC QUÉT MÃ (Chiếm 7 phần)
         ============================================================== */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm">
-            
-            {/* Tiêu đề (Gọn lại trên 1 hàng) */}
-            <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#0068E0]">
-                <ScanLine className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-xl font-black text-slate-900 leading-tight">
-                  {t("booking.ticketCheckIn")}
-                </h1>
-                <p className="text-xs text-slate-500 font-medium">
-                  {t("booking.scanOrEnter")}
-                </p>
-              </div>
-            </div>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
 
             {/* Segmented Control: Camera vs Manual */}
             <div className="mb-5 flex rounded-xl bg-slate-100/80 p-1 ring-1 ring-slate-200/50">
               <button
                 onClick={() => setScanMode("camera")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all duration-300 ${
-                  scanMode === "camera"
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all duration-300 ${scanMode === "camera"
                     ? "bg-white text-[#0068E0] shadow-md shadow-slate-200"
                     : "text-slate-500 hover:text-slate-800"
-                }`}
+                  }`}
               >
                 <QrCode className="h-4 w-4" /> {t("booking.cameraScan")}
               </button>
               <button
                 onClick={() => setScanMode("manual")}
-                className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all duration-300 ${
-                  scanMode === "manual"
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all duration-300 ${scanMode === "manual"
                     ? "bg-white text-[#0068E0] shadow-md shadow-slate-200"
                     : "text-slate-500 hover:text-slate-800"
-                }`}
+                  }`}
               >
                 <Keyboard className="h-4 w-4" /> {t("booking.manualEntry")}
               </button>
@@ -203,7 +197,7 @@ export const QRCheckinPage: React.FC = () => {
             </div>
 
             <div className="p-5 flex flex-col items-center justify-center text-center">
-              
+
               {/* TRẠNG THÁI CHỜ */}
               {!lastResult ? (
                 <div className="text-slate-400 flex flex-col items-center animate-in fade-in py-8">
@@ -218,91 +212,91 @@ export const QRCheckinPage: React.FC = () => {
                     Đưa mã QR vào khung ngắm camera để bắt đầu check-in
                   </p>
                 </div>
-              ) : 
-              
-              /* TRẠNG THÁI THÀNH CÔNG */
-              lastResult.status === "success" ? (
-                <div className="w-full animate-in slide-in-from-bottom-4 fade-in duration-300">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]">
-                    <CheckCircle2 className="h-7 w-7" />
-                  </div>
-                  <h4 className="text-xl font-black text-slate-900 mb-1">
-                    {t("booking.checkInValid")}
-                  </h4>
-                  <p className="text-xs font-bold text-emerald-600 mb-5">
-                    {lastResult.message}
-                  </p>
+              ) :
 
-                  {/* THIẾT KẾ DẠNG VÉ (TICKET STYLE) */}
-                  <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm text-left overflow-hidden">
-                    <div className="px-4 py-3 bg-slate-50/50 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border border-blue-200/50">
-                          <User className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
-                            Hành khách / Passenger
-                          </p>
-                          <p className="truncate font-black text-slate-800 text-base">
-                            {lastResult.ticketData?.attendeeName || t("booking.anonymous")}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Badge trạng thái check-in */}
-                      {lastResult.ticketData?.checkInStatus && (
-                        <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
-                          {lastResult.ticketData.checkInStatus}
-                        </span>
-                      )}
+                /* TRẠNG THÁI THÀNH CÔNG */
+                lastResult.status === "success" ? (
+                  <div className="w-full animate-in slide-in-from-bottom-4 fade-in duration-300">
+                    <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 mb-3 shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)]">
+                      <CheckCircle2 className="h-7 w-7" />
                     </div>
-
-                    {/* Vạch đứt */}
-                    <div className="relative flex items-center justify-between px-1">
-                       <div className="absolute left-[-8px] top-[-8px] h-4 w-4 rounded-full bg-slate-50 border border-slate-200 z-10" />
-                       <div className="w-full border-t-[1.5px] border-dashed border-slate-200 mx-1" />
-                       <div className="absolute right-[-8px] top-[-8px] h-4 w-4 rounded-full bg-slate-50 border border-slate-200 z-10" />
-                    </div>
-
-                    <div className="px-4 py-3 grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1 mb-0.5">
-                          <Tag className="h-2.5 w-2.5" /> Loại Vé
-                        </p>
-                        <p className="truncate font-bold text-slate-700 text-sm">
-                          {lastResult.ticketData?.ticketTypeName || "N/A"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1 mb-0.5">
-                          <Hash className="h-2.5 w-2.5" /> ID Vé
-                        </p>
-                        <p className="truncate font-bold text-slate-700 text-sm">
-                          #{lastResult.ticketData?.ticketId || t("common.na")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : 
-              
-              /* TRẠNG THÁI LỖI */
-              (
-                <div className="w-full animate-in slide-in-from-bottom-4 fade-in duration-300 py-4">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600 mb-3 shadow-[0_0_20px_-5px_rgba(244,63,94,0.4)]">
-                    <XCircle className="h-7 w-7" />
-                  </div>
-                  <h4 className="text-xl font-black text-slate-900 mb-3">
-                    {t("booking.invalidTicket")}
-                  </h4>
-                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-sm">
-                    <p className="text-sm font-bold text-rose-600 leading-relaxed">
+                    <h4 className="text-xl font-black text-slate-900 mb-1">
+                      {t("booking.checkInValid")}
+                    </h4>
+                    <p className="text-xs font-bold text-emerald-600 mb-5">
                       {lastResult.message}
                     </p>
+
+                    {/* THIẾT KẾ DẠNG VÉ (TICKET STYLE) */}
+                    <div className="relative bg-white rounded-2xl border border-slate-200 shadow-sm text-left overflow-hidden">
+                      <div className="px-4 py-3 bg-slate-50/50 flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 border border-blue-200/50">
+                            <User className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
+                              Hành khách / Passenger
+                            </p>
+                            <p className="truncate font-black text-slate-800 text-base">
+                              {lastResult.ticketData?.attendeeName || t("booking.anonymous")}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Badge trạng thái check-in */}
+                        {lastResult.ticketData?.checkInStatus && (
+                          <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200">
+                            {lastResult.ticketData.checkInStatus}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Vạch đứt */}
+                      <div className="relative flex items-center justify-between px-1">
+                        <div className="absolute left-[-8px] top-[-8px] h-4 w-4 rounded-full bg-slate-50 border border-slate-200 z-10" />
+                        <div className="w-full border-t-[1.5px] border-dashed border-slate-200 mx-1" />
+                        <div className="absolute right-[-8px] top-[-8px] h-4 w-4 rounded-full bg-slate-50 border border-slate-200 z-10" />
+                      </div>
+
+                      <div className="px-4 py-3 grid grid-cols-2 gap-3">
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1 mb-0.5">
+                            <Tag className="h-2.5 w-2.5" /> Loại Vé
+                          </p>
+                          <p className="truncate font-bold text-slate-700 text-sm">
+                            {lastResult.ticketData?.ticketTypeName || "N/A"}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1 mb-0.5">
+                            <Hash className="h-2.5 w-2.5" /> ID Vé
+                          </p>
+                          <p className="truncate font-bold text-slate-700 text-sm">
+                            #{lastResult.ticketData?.ticketId || t("common.na")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              )}
+                ) :
+
+                  /* TRẠNG THÁI LỖI */
+                  (
+                    <div className="w-full animate-in slide-in-from-bottom-4 fade-in duration-300 py-4">
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 text-rose-600 mb-3 shadow-[0_0_20px_-5px_rgba(244,63,94,0.4)]">
+                        <XCircle className="h-7 w-7" />
+                      </div>
+                      <h4 className="text-xl font-black text-slate-900 mb-3">
+                        {t("booking.invalidTicket")}
+                      </h4>
+                      <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-sm">
+                        <p className="text-sm font-bold text-rose-600 leading-relaxed">
+                          {lastResult.message}
+                        </p>
+                      </div>
+                    </div>
+                  )}
             </div>
           </div>
         </div>

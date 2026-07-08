@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, X, Loader2 } from 'lucide-react';
+import { Heart, MessageCircle, X, Loader2, Flag } from 'lucide-react';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useAddComment, useUpdateComment, useDeleteComment } from '../hooks/useMoments';
 import type { Moment } from '../types/moment.type';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { reportContent } from '../services/momentService';
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -21,21 +22,42 @@ interface MomentModalProps {
   isLiked: boolean;
   likeCount: number;
   onToggleLike: () => void;
+  onReportSuccess?: (momentId: number) => void;
 }
 
 export const MomentModal: React.FC<MomentModalProps> = ({ 
-  moment, isOpen, onClose, isLiked, likeCount, onToggleLike 
+  moment, isOpen, onClose, isLiked, likeCount, onToggleLike, onReportSuccess
 }) => {
   const { user } = useContext(AuthContext);
   const { mutate: addComment, isPending: isAdding } = useAddComment();
   const { mutate: updateComment, isPending: isUpdating } = useUpdateComment();
   const { mutate: deleteComment, isPending: isDeleting } = useDeleteComment();
-  const { warning, error } = useToast();
+  const { warning, error, success } = useToast();
   const { t } = useTranslation();
   
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState('');
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('Spam');
+  const [reportDetails, setReportDetails] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  const handleSendReport = async () => {
+    setIsSubmittingReport(true);
+    try {
+      await reportContent('Moment', moment.id, reportReason as any, reportDetails.trim() || undefined);
+      success("Đã gửi báo cáo vi phạm thành công");
+      setIsReportModalOpen(false);
+      onReportSuccess?.(moment.id);
+      onClose(); // đóng modal chi tiết để bài ẩn đi
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || "Gửi báo cáo thất bại.";
+      error(msg);
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
   
   const allComments = moment.comments || (moment as any).momentComments || [];
   const [visibleCount, setVisibleCount] = useState(10);
@@ -66,10 +88,16 @@ export const MomentModal: React.FC<MomentModalProps> = ({
 
     addComment(
       { momentId: moment.id, userId: Number(currentUserId), content: newComment.trim() },
-      { onSuccess: () => {
+      { 
+        onSuccess: () => {
           setNewComment('');
           if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-      }}
+        },
+        onError: (err: any) => {
+          const msg = err.response?.data?.message || err.message || "Không thể gửi bình luận.";
+          error(msg);
+        }
+      }
     );
   };
 
@@ -130,11 +158,26 @@ export const MomentModal: React.FC<MomentModalProps> = ({
         </div>
 
         <div className="w-full md:w-[400px] flex flex-col h-full bg-white">
-          <div className="flex items-center gap-3 p-4 border-b border-slate-100 shrink-0">
-            <div className="h-8 w-8 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-              <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs" fallbackText={userFullName.charAt(0)} />
+          <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
+                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs" fallbackText={userFullName.charAt(0)} />
+              </div>
+              <span className="text-sm font-bold text-slate-900">{userFullName}</span>
             </div>
-            <span className="text-sm font-bold text-slate-900">{userFullName}</span>
+            {!isOwner && (
+              <button 
+                onClick={() => {
+                  setReportReason('Spam');
+                  setReportDetails('');
+                  setIsReportModalOpen(true);
+                }} 
+                className="text-slate-400 hover:text-amber-500 transition-colors p-2" 
+                title="Báo cáo vi phạm"
+              >
+                <Flag className="h-5 w-5" />
+              </button>
+            )}
           </div>
 
           <div 
@@ -254,6 +297,65 @@ export const MomentModal: React.FC<MomentModalProps> = ({
           </div>
         </div>
       </div>
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-[100000] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Báo cáo Khoảnh khắc</h3>
+            <p className="text-xs text-slate-500 mb-4">Chọn lý do báo cáo vi phạm tiêu chuẩn cộng đồng.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Lý do</label>
+                <select 
+                  value={reportReason} 
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 focus:outline-none focus:border-brand"
+                >
+                  <option value="Spam">Spam (Rác / Quảng cáo)</option>
+                  <option value="Hate Speech">Ngôn từ kích động thù hận</option>
+                  <option value="Harassment">Quấy rối / Đe dọa</option>
+                  <option value="Violence">Bạo lực / Máu me</option>
+                  <option value="Other">Lý do khác</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Chi tiết (Không bắt buộc)</label>
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Nhập thêm chi tiết vi phạm..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 h-20 focus:outline-none focus:border-brand resize-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                disabled={isSubmittingReport}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSendReport}
+                disabled={isSubmittingReport}
+                className="flex-1 bg-brand hover:bg-brand-hover text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmittingReport ? (
+                  <>
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Gửi...
+                  </>
+                ) : (
+                  "Gửi báo cáo"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

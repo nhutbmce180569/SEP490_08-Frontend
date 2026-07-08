@@ -99,10 +99,11 @@ export const getMyFootprints = async (): Promise<{ lat: number; lng: number }[]>
 // MOI: heatmap realtime tu LocationLogs (giong mobile), weight = so lan qua o luoi.
 export const getHeatmap = async (
   scheduleId: number | null,
+  type: string = "online",
   days: number = 90
 ): Promise<{ lat: number; lng: number; weight: number }[]> => {
   const scheduleQuery = scheduleId ? `scheduleId=${scheduleId}&` : "";
-  const raw: any = await apiClient.get<any>(`/locations/heatmap?${scheduleQuery}days=${days}`);
+  const raw: any = await apiClient.get<any>(`/locations/heatmap?${scheduleQuery}type=${type}&days=${days}`);
   return extractList(raw).map((p: any) => ({
     lat: Number(p.lat ?? p.Lat),
     lng: Number(p.lng ?? p.Lng),
@@ -149,3 +150,47 @@ export const deleteComment = (commentId: number, userId: number): Promise<void> 
 export const deleteMoment = (momentId: number, userId: number): Promise<void> => {
   return apiClient.delete<void>(`${MOMENT_API_URL}/${momentId}?userId=${userId}`);
 };
+
+export interface ContentReport {
+  id: number;
+  reporterId: number;
+  contentType: 'Moment' | 'Comment';
+  targetId: number;
+  reason: string;
+  details?: string;
+  status: string;
+  createdAt: string;
+  resolvedBy?: number;
+  resolvedAt?: string;
+  contentText?: string;
+  contentImageUrl?: string;
+  reporterName?: string;
+  reporterEmail?: string;
+}
+
+export const reportContent = (
+  contentType: 'Moment' | 'Comment',
+  targetId: number,
+  reason: string,
+  details?: string
+): Promise<any> => {
+  return apiClient.post<any>("/moderation/report", {
+    contentType,
+    targetId,
+    reason,
+    details,
+  });
+};
+
+export const getPendingReports = async (): Promise<ContentReport[]> => {
+  const raw: any = await apiClient.get<any>("/moderation/reports");
+  return extractList(raw);
+};
+
+export const resolveReport = (
+  reportId: number,
+  action: 'Approve' | 'Reject' | 'Dismiss'
+): Promise<any> => {
+  return apiClient.post<any>(`/moderation/reports/${reportId}/resolve?action=${action}`);
+};
+

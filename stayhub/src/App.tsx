@@ -297,7 +297,7 @@ const App: React.FC = () => {
             <ChatNotificationProvider>
             <TourAssistantChatProvider>
             <AiPlannerProvider>
-            <CustomBrandCursor />
+            {/* <CustomBrandCursor /> */}
             <AiPlannerModal />
             <ScrollToTop />
             <PasswordChangeEnforcer>

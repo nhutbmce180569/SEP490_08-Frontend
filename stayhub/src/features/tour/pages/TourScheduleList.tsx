@@ -81,20 +81,32 @@ export const TourScheduleList: React.FC = () => {
   const columns: Column<TourSchedule>[] = useMemo(
     () => [
       {
-        header: t("tour.tourIdCol"),
-        render: (item) => (
-          <span className="font-semibold text-slate-800">#{item.tourId}</span>
-        ),
-        className: "w-[120px]",
+        header: "",
+        className: "w-24",
+        render: (item) =>
+          item.tour?.imageUrl ? (
+            <img
+              src={item.tour.imageUrl}
+              alt={item.tour?.name ?? ""}
+              className="h-14 w-20 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="flex h-14 w-20 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+              <span className="text-xs font-medium">No Image</span>
+            </div>
+          ),
       },
       {
         header: t("tour.tourNameCol"),
+        className: "min-w-[280px]",
         render: (item) => (
-          <span className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
-            {item.tour?.name ?? "-"}
-          </span>
+          <div>
+            <div className="font-semibold text-slate-900">{item.tour?.name ?? "-"}</div>
+            <div className="text-sm text-slate-500">
+              ID: {item.tourId}
+            </div>
+          </div>
         ),
-        className: "min-w-[180px]",
       },
       {
         header: t("tour.departureReturn"),

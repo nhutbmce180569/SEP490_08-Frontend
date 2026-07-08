@@ -136,7 +136,8 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
       },
       onError: (err: any) => {
         console.error("LỖI UPLOAD:", err.response?.data);
-        showError(t("social.momentPostError"));
+        const msg = err.response?.data?.message || t("social.momentPostError");
+        showError(msg);
       }
     });
   };

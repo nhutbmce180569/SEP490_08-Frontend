@@ -3,6 +3,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   avatarUrl?: string | null;
+  roleNames?: string[];
 }
 
 export interface PaginatedResult<T> {

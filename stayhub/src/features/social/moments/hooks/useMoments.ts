@@ -35,10 +35,10 @@ export const useGetMyFootprints = () => {
 };
 
 // Heatmap realtime tu LocationLogs (giong mobile). Chi fetch khi lop heatmap bat.
-export const useGetHeatmap = (scheduleId: number | null, enabled: boolean = true) => {
+export const useGetHeatmap = (scheduleId: number | null, type: string = "online", enabled: boolean = true) => {
   return useQuery({
-    queryKey: [...momentQueryKeys.all, "heatmap", scheduleId ?? "global"],
-    queryFn: () => getHeatmap(scheduleId),
+    queryKey: [...momentQueryKeys.all, "heatmap", scheduleId ?? "global", type],
+    queryFn: () => getHeatmap(scheduleId, type),
     enabled,
     // Du lieu di chuyen thay doi lien tuc -> lam tuoi dinh ky.
     refetchInterval: enabled ? 30000 : false,

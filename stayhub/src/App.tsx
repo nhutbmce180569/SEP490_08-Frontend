@@ -47,6 +47,7 @@ import { TourDetail } from "./features/tour/pages/TourDetail";
 import { UpdateTour } from "./features/tour/pages/UpdateTour";
 import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
 import PartnerDashboard from "./pages/PartnerDashboard";
+import ModerationDashboard from "./pages/ModerationDashboard";
 // Components dành cho Quản lý nội dung (Admin)
 import { CategoryList } from "./features/content/pages/CategoryList";
 import { CreateCategory } from "./features/content/pages/CreateCategory";
@@ -552,6 +553,10 @@ const App: React.FC = () => {
                   <Route
                     path={childPath(PATH.MANAGER.PAYOUT)}
                     element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.MODERATION)}
+                    element={<ModerationDashboard />}
                   />
                 </Route>
               </Route>

@@ -8,6 +8,7 @@ import {
   Star,
   Ticket,
   TicketPercent,
+  ShieldAlert,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -74,6 +75,11 @@ export const DashboardLayout = () => {
             label: t("manager.reviews"),
             to: PATH.MANAGER.REVIEWS,
             icon: <Star className={iconClass} />,
+          },
+          {
+            label: t("manager.moderation") || "Kiểm duyệt nội dung",
+            to: PATH.MANAGER.MODERATION,
+            icon: <ShieldAlert className={iconClass} />,
           },
         ],
       },

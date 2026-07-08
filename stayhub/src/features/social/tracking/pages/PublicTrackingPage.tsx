@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetPublicLocation } from "../hooks/useLocationTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -15,6 +15,7 @@ export const PublicTrackingPage: React.FC = () => {
   const { data, isError, isLoading } = useGetPublicLocation(token || "");
 
   const [liveLocation, setLiveLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [targetName, setTargetName] = useState<string>("");
   const mapRef = useRef<MapRef | null>(null);
 
@@ -48,7 +49,7 @@ export const PublicTrackingPage: React.FC = () => {
   // Tự động Fly bản đồ khi vị trí thay đổi
   useEffect(() => {
     if (mapRef.current && liveLocation) {
-      mapRef.current.flyTo({ center: [liveLocation.lng, liveLocation.lat], duration: 1000 });
+      mapRef.current.flyTo({ center: [liveLocation.lng, liveLocation.lat], zoom: 16, duration: 1000 });
     }
   }, [liveLocation]);
 
@@ -110,7 +111,54 @@ export const PublicTrackingPage: React.FC = () => {
             </div>
           </Marker>
         )}
+        {myLocation && (
+          <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
+            <div className="h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-md ring-4 ring-blue-500/30"></div>
+          </Marker>
+        )}
       </Map>
+
+      {/* Floating Buttons */}
+      <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-3">
+        {/* Zoom to shared location */}
+        {liveLocation && (
+          <button
+            onClick={() => {
+              mapRef.current?.flyTo({ center: [liveLocation.lng, liveLocation.lat], zoom: 16, duration: 1000 });
+            }}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-slate-700 shadow-lg transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            title="Vị trí người chia sẻ"
+          >
+            <MapPin className="h-5 w-5 text-brand fill-current" />
+          </button>
+        )}
+
+        {/* Zoom to my GPS location */}
+        {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
+          <button
+            onClick={() => {
+              if (myLocation) {
+                mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 });
+              } else {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setMyLocation({ lat: latitude, lng: longitude });
+                    mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+                  },
+                  (err) => {
+                    console.warn("Lỗi định vị:", err);
+                  }
+                );
+              }
+            }}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-slate-700 shadow-lg transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            title="Vị trí của bạn"
+          >
+            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

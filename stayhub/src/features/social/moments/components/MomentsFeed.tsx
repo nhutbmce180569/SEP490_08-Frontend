@@ -23,8 +23,17 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
   const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'feed' | 'map'>('feed');
   const [isReplayActive, setIsReplayActive] = useState(false);
+  const [reportedMomentIds, setReportedMomentIds] = useState<number[]>([]);
 
   const moments = useMemo(() => data?.pages.flat() || [], [data]);
+
+  const filteredMoments = useMemo(() => {
+    return moments.filter((m: any) => !reportedMomentIds.includes(m.id || m.Id));
+  }, [moments, reportedMomentIds]);
+
+  const handleReportSuccess = useCallback((momentId: number) => {
+    setReportedMomentIds(prev => [...prev, momentId]);
+  }, []);
 
   const selectedMoment = useMemo(
     () => moments.find((m: any) => m.id === selectedMomentId),
@@ -146,7 +155,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-24">
-                {moments.map((moment: any) => (
+                {filteredMoments.map((moment: any) => (
                   <div
                     key={moment.id || moment.Id}
                     onClick={() => setSelectedMomentId(moment.id || moment.Id)}
@@ -209,6 +218,7 @@ export const MomentsFeed: React.FC<MomentsFeedProps> = ({ scheduleId }) => {
           isLiked={isLiked}
           likeCount={likeCount}
           onToggleLike={handleToggleLike}
+          onReportSuccess={handleReportSuccess}
         />
       )}
     </div>

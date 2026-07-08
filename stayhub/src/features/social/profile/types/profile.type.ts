@@ -5,6 +5,7 @@ export interface UserProfile {
   gender?: string | null;
   dateOfBirth?: string | null;
   createdAt?: string | null;
+  roles?: string[];
 }
 
 export interface UserMoment {

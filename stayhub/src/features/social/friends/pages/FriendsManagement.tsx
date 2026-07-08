@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { UserCheck, UserX, Clock, Search, Loader2, MessageCircle, UserPlus } from 'lucide-react';
 import { 
   useGetFriendships, 
@@ -18,9 +18,16 @@ import { useNavigate } from 'react-router-dom';
 import { PATH } from '../../../../config/routes/route';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
+import { AuthContext } from '../../../../contexts/AuthContext';
 
 export const FriendsManagement: React.FC = () => {
   const { t } = useTranslation();
+  const { user: currentUser } = useContext(AuthContext);
+  const userRoles = currentUser?.roles 
+    ? (Array.isArray(currentUser.roles) ? currentUser.roles : [currentUser.roles]) 
+    : [];
+  const currentUserIsStaffOrAdmin = userRoles.includes("Admin") || userRoles.includes("Manager") || userRoles.includes("Staff");
+
   const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'add'>('friends');
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -359,22 +366,37 @@ export const FriendsManagement: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleSendRequest(user?.id)}
-                      disabled={isSending}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      {t('social.addFriend')}
-                    </button>
-                    <button
-                      onClick={() => handleCreateChat(user?.id)}
-                      disabled={isCreatingChat}
-                      className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg hover:bg-slate-200 transition-colors disabled:opacity-50"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                      {t('social.message')}
-                    </button>
+                    {!(friends.some((f: any) => (f.friendId || f.FriendId) === user?.id)) && (
+                      <button
+                        onClick={() => handleSendRequest(user?.id)}
+                        disabled={isSending}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50 shrink-0"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        {t('social.addFriend')}
+                      </button>
+                    )}
+                    {(() => {
+                      const isFriend = friends.some((f: any) => (f.friendId || f.FriendId) === user?.id);
+                      const targetIsStaffOrAdmin = user?.roleNames?.includes("Admin") || user?.roleNames?.includes("Manager") || user?.roleNames?.includes("Staff");
+                      const canChat = isFriend || targetIsStaffOrAdmin || currentUserIsStaffOrAdmin;
+
+                      return (
+                        <button
+                          onClick={() => canChat && handleCreateChat(user?.id)}
+                          disabled={isCreatingChat || !canChat}
+                          className={`flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-lg transition-colors shrink-0 ${
+                            canChat
+                              ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                              : "bg-slate-50 text-slate-300 cursor-not-allowed"
+                          }`}
+                          title={!canChat ? "Chỉ được nhắn tin với bạn bè, Staff, Manager hoặc Admin" : ""}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          {t('social.message')}
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               )})}

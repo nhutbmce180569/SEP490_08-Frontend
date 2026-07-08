@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
-import { Users } from "lucide-react";
+import { Users, ArrowLeft } from "lucide-react";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -19,6 +19,7 @@ interface LiveLocation {
 
 export const ScheduleTrackingPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { scheduleId } = useParams<{ scheduleId: string }>();
   const scheduleIdNumber = Number(scheduleId);
 
@@ -141,6 +142,15 @@ export const ScheduleTrackingPage: React.FC = () => {
 
   return (
     <div className="relative h-[85vh] w-full overflow-hidden rounded-2xl bg-slate-100">
+      {/* Back button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-md backdrop-blur-md transition-colors hover:bg-white"
+        aria-label={t("common.back") || "Back"}
+      >
+        <ArrowLeft className="h-5 w-5 text-slate-700" />
+      </button>
+
       {/* Badge số người online */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/60">

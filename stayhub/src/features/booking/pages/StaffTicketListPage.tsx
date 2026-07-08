@@ -148,8 +148,8 @@ export const StaffTicketListPage: React.FC = () => {
               {ticket.orderId
                 ? t("booking.orderNumberShort", { id: ticket.orderId })
                 : t("booking.orderDetailNumberShort", {
-                    id: ticket.orderDetailId,
-                  })}
+                  id: ticket.orderDetailId,
+                })}
             </div>
           </div>
         ),
@@ -192,178 +192,175 @@ export const StaffTicketListPage: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200/60 bg-white">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <Ticket className="text-[#0068E0]" size={24} />
-          <div>
-            <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              {t("booking.ticketManagement")}
-            </h2>
-            <p className="text-sm text-slate-500">
-              {t("booking.ticketManagementDesc")}
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header section */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-[15px] font-bold leading-tight text-slate-900">
+            {t("booking.ticketManagement")}
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {t("booking.ticketManagementDesc")}
+          </p>
         </div>
+
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {/* Ticket Search Bar */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white sm:w-64">
-            <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 transition-colors focus-within:border-[#0068E0] focus-within:bg-white sm:w-64">
+            <Search className="h-4 w-4 shrink-0 text-slate-400" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("booking.searchAttendeePlaceholder")}
-              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+              className="w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
             />
           </div>
 
-          {/* 💥 Ticket Filter Dropdown */}
+          {/* Ticket Filter Dropdown */}
           <div className="relative">
             <select
               value={checkInStatus}
               onChange={(e) => setCheckInStatus(e.target.value)}
-              className="h-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-3 pr-8 text-sm font-semibold text-slate-700 outline-none cursor-pointer hover:border-slate-300 hover:bg-white transition-colors"
+              className="h-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-4 pr-10 text-sm font-bold text-slate-700 outline-none cursor-pointer hover:border-slate-300 transition-colors"
             >
               <option value="all">{t("common.allStatus") || "All Status"}</option>
               <option value="CheckedIn">Checked In</option>
               <option value="Pending">Pending</option>
               <option value="Cancelled">Cancelled</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           </div>
 
           <ActionButton
             variant="primary"
             onClick={() => refetchTickets()}
-            className="gap-2 px-4 py-2 text-sm"
+            className="gap-2 px-4 py-2 text-sm h-full"
           >
             {t("common.refresh")}
           </ActionButton>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
-        <div className="grid gap-6 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]">
-          {/* Sidebar Schedule */}
-          <div className="space-y-4 min-w-0 rounded-3xl border border-slate-100 bg-slate-50 p-5">
-            <div className="rounded-3xl bg-white p-4 shadow-sm flex flex-col h-full">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-                {t("booking.selectSchedule")}
-              </h2>
+      <div className="grid gap-6 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] items-start">
+            {/* Sidebar Schedule */}
+            <div className="space-y-4 min-w-0 rounded-3xl border border-slate-100 bg-slate-50 p-5">
+              <div className="rounded-3xl bg-white p-4 shadow-sm flex flex-col h-full">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  {t("booking.selectSchedule")}
+                </h2>
 
-              <div className="mt-3 flex gap-2">
-                <div className="flex-1 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-brand focus-within:bg-white">
-                  <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                  <input
-                    value={scheduleSearch}
-                    onChange={(e) => setScheduleSearch(e.target.value)}
-                    placeholder={t("booking.searchSchedulePlaceholder")}
-                    className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-                  />
-                </div>
-                <div className="relative">
-                  <select
-                    value={upcomingOnly ? "upcoming" : "all"}
-                    onChange={(e) => setUpcomingOnly(e.target.value === "upcoming")}
-                    className="h-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 outline-none cursor-pointer"
-                  >
-                    <option value="upcoming">{t("tour.upcomingOnly")}</option>
-                    <option value="all">{t("tour.showAll")}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-3 flex-1 overflow-y-auto pr-2">
-                {schedulesLoading ? (
-                  <div className="space-y-3">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />
-                    ))}
+                <div className="mt-3 flex gap-2">
+                  <div className="flex-1 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-brand focus-within:bg-white">
+                    <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    <input
+                      value={scheduleSearch}
+                      onChange={(e) => setScheduleSearch(e.target.value)}
+                      placeholder={t("booking.searchSchedulePlaceholder")}
+                      className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+                    />
                   </div>
-                ) : schedules.length === 0 ? (
-                  <div className="text-center py-6 text-sm text-slate-500">
-                    {t("booking.noSchedulesAssigned")}
-                  </div>
-                ) : (
-                  schedules.map((schedule) => (
-                    <button
-                      key={schedule.scheduleId}
-                      onClick={() => setSelectedScheduleId(schedule.scheduleId)}
-                      className={`w-full rounded-2xl border px-4 py-3.5 text-left transition ${selectedScheduleId === schedule.scheduleId ? "border-[#0068E0] bg-blue-50/30 shadow-sm" : "border-slate-100 bg-slate-50 hover:border-slate-200"}`}
+                  <div className="relative">
+                    <select
+                      value={upcomingOnly ? "upcoming" : "all"}
+                      onChange={(e) => setUpcomingOnly(e.target.value === "upcoming")}
+                      className="h-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-700 outline-none cursor-pointer"
                     >
-                      <div className="text-sm font-semibold truncate">
-                        {schedule.tourName || `Schedule #${schedule.scheduleId}`}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-1">
-                        {new Date(schedule.departureDate).toLocaleDateString("vi-VN")} - {new Date(schedule.returnDate).toLocaleDateString("vi-VN")}
-                      </p>
-                    </button>
-                  ))
-                )}
-              </div>
+                      <option value="upcoming">{t("tour.upcomingOnly")}</option>
+                      <option value="all">{t("tour.showAll")}</option>
+                    </select>
+                  </div>
+                </div>
 
-              <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-100">
-                <ActionButton
-                  variant="secondary"
-                  onClick={() => setSchedulePage((p) => Math.max(1, p - 1))}
-                  disabled={schedulePage === 1}
-                  className="p-2"
-                >
-                  <ChevronLeft size={16} />
-                </ActionButton>
-                <span className="text-xs font-semibold text-slate-600">
-                  {schedulePage} / {totalPages}
-                </span>
-                <ActionButton
-                  variant="secondary"
-                  onClick={() => setSchedulePage((p) => Math.min(totalPages, p + 1))}
-                  disabled={schedulePage >= totalPages}
-                  className="p-2"
-                >
-                  <ChevronRight size={16} />
-                </ActionButton>
+                <div className="mt-4 space-y-3 flex-1 overflow-y-auto pr-2">
+                  {schedulesLoading ? (
+                    <div className="space-y-3">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="h-16 animate-pulse rounded-2xl bg-slate-100" />
+                      ))}
+                    </div>
+                  ) : schedules.length === 0 ? (
+                    <div className="text-center py-6 text-sm text-slate-500">
+                      {t("booking.noSchedulesAssigned")}
+                    </div>
+                  ) : (
+                    schedules.map((schedule) => (
+                      <button
+                        key={schedule.scheduleId}
+                        onClick={() => setSelectedScheduleId(schedule.scheduleId)}
+                        className={`w-full rounded-2xl border px-4 py-3.5 text-left transition ${selectedScheduleId === schedule.scheduleId ? "border-[#0068E0] bg-blue-50/30 shadow-sm" : "border-slate-100 bg-slate-50 hover:border-slate-200"}`}
+                      >
+                        <div className="text-sm font-semibold truncate">
+                          {schedule.tourName || `Schedule #${schedule.scheduleId}`}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                          {new Date(schedule.departureDate).toLocaleDateString("vi-VN")} - {new Date(schedule.returnDate).toLocaleDateString("vi-VN")}
+                        </p>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-4 mt-4 border-t border-slate-100">
+                  <ActionButton
+                    variant="secondary"
+                    onClick={() => setSchedulePage((p) => Math.max(1, p - 1))}
+                    disabled={schedulePage === 1}
+                    className="p-2"
+                  >
+                    <ChevronLeft size={16} />
+                  </ActionButton>
+                  <span className="text-xs font-semibold text-slate-600">
+                    {schedulePage} / {totalPages}
+                  </span>
+                  <ActionButton
+                    variant="secondary"
+                    onClick={() => setSchedulePage((p) => Math.min(totalPages, p + 1))}
+                    disabled={schedulePage >= totalPages}
+                    className="p-2"
+                  >
+                    <ChevronRight size={16} />
+                  </ActionButton>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Main Table Area */}
-          <div className="space-y-4 min-w-0">
-            <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm min-w-0">
-              <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">
-                    {t("booking.ticketListTitle")}
-                  </p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {selectedSchedule
-                      ? t("booking.showingTicketsFor", { id: selectedSchedule.scheduleId })
-                      : t("booking.selectScheduleToView")}
-                  </p>
+            {/* Main Table Area */}
+            <div className="space-y-4 min-w-0">
+              <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm min-w-0">
+                <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {t("booking.ticketListTitle")}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {selectedSchedule
+                        ? t("booking.showingTicketsFor", { id: selectedSchedule.scheduleId })
+                        : t("booking.selectScheduleToView")}
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+                    {t("booking.checkedCount", {
+                      count: tickets.filter(
+                        (ticket) =>
+                          ticket.checkInStatus === "Checked" ||
+                          ticket.checkInStatus === "CheckedIn",
+                      ).length,
+                    })}
+                  </div>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-                  {t("booking.checkedCount", {
-                    count: tickets.filter(
-                      (ticket) =>
-                        ticket.checkInStatus === "Checked" ||
-                        ticket.checkInStatus === "CheckedIn",
-                    ).length,
-                  })}
-                </div>
-              </div>
-              <div className="overflow-x-auto min-w-0">
-                {/* 💥 Trực tiếp truyền tickets thay vì filteredTickets */}
-                <Table
-                  data={tickets}
-                  columns={columns}
-                  isLoading={ticketsLoading}
-                  emptyMessage={
-                    selectedSchedule
-                      ? t("booking.noTicketsForDeparture")
-                      : t("booking.chooseScheduleToView")
-                  }
-                />
-              </div>
+                <div className="overflow-x-auto min-w-0">
+                  {/* 💥 Trực tiếp truyền tickets thay vì filteredTickets */}
+                  <Table
+                    data={tickets}
+                    columns={columns}
+                    isLoading={ticketsLoading}
+                    emptyMessage={
+                      selectedSchedule
+                        ? t("booking.noTicketsForDeparture")
+                        : t("booking.chooseScheduleToView")
+                    }
+                  />
             </div>
           </div>
         </div>

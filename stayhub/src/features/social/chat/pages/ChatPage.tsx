@@ -20,6 +20,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { useToast } from '../../../../contexts/ToastContext';
 import { createPortal } from 'react-dom';
 
 // ============ COMPONENT: Add Member Modal ============
@@ -173,6 +174,7 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
 // ============ MAIN COMPONENT: ChatPage ============
 export const ChatPage: React.FC = () => {
   const { t } = useTranslation();
+  const { success, error, warning } = useToast();
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [textValue, setTextValue] = useState<string>('');
   const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null);
@@ -280,8 +282,10 @@ const { mutate: mutateMarkAsRead } = useMutation({
       await sendMessage(textValue.trim());
       setTextValue('');
       queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
-    } catch (error) {
-      console.error("Error sending message", error);
+    } catch (err: any) {
+      console.error("Error sending message", err);
+      const msg = err?.message || err || t('social.failedToSendMessage');
+      error(typeof msg === 'string' ? msg : t('social.unknownSystemError'));
     }
   };
 
@@ -296,6 +300,10 @@ const { mutate: mutateMarkAsRead } = useMutation({
           queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
         }
       },
+      onError: (err: any) => {
+        const msg = err.response?.data?.message || err.response?.data || t('social.failedToStartChat');
+        error(typeof msg === 'string' ? msg : t('social.unknownSystemError'));
+      }
     });
   };
 

@@ -1,11 +1,12 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Trash2, Globe, Users, Lock } from "lucide-react";
+import { Heart, MessageCircle, Trash2, Globe, Users, Lock, Flag } from "lucide-react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { useToggleReaction, useDeleteMoment } from "../hooks/useMoments";
 import { MomentModal } from "./MomentModal";
 import type { Moment } from "../types/moment.type";
+import { reportContent } from "../services/momentService";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -58,11 +59,32 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(reactionList.length);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('Spam');
+  const [reportDetails, setReportDetails] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  const handleSendReport = async () => {
+    setIsSubmittingReport(true);
+    try {
+      await reportContent('Moment', moment.id, reportReason as any, reportDetails.trim() || undefined);
+      success("Đã gửi báo cáo vi phạm thành công");
+      setIsReportModalOpen(false);
+      setIsHidden(true);
+    } catch (err: any) {
+      error(err.message || "Gửi báo cáo thất bại.");
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
 
   useEffect(() => {
     setIsLiked(initialIsLiked);
     setLikeCount(reactionList.length);
   }, [initialIsLiked, reactionList.length]);
+
+  if (isHidden) return null;
 
   const handleLike = useCallback((e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -128,9 +150,13 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
             </div>
           </div>
           
-          {isOwner && (
+          {isOwner ? (
             <button onClick={handleDeleteMoment} disabled={isDeleting} className="text-slate-400 hover:text-red-500 transition-colors p-2">
               <Trash2 className="h-4 w-4" />
+            </button>
+          ) : (
+            <button onClick={() => setIsReportModalOpen(true)} className="text-slate-400 hover:text-amber-500 transition-colors p-2" title="Báo cáo vi phạm">
+              <Flag className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -180,6 +206,65 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
           </div>
         </div>
       </div>
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Báo cáo Khoảnh khắc</h3>
+            <p className="text-xs text-slate-500 mb-4">Chọn lý do báo cáo vi phạm tiêu chuẩn cộng đồng.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Lý do</label>
+                <select 
+                  value={reportReason} 
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 focus:outline-none focus:border-brand"
+                >
+                  <option value="Spam">Spam (Rác / Quảng cáo)</option>
+                  <option value="Hate Speech">Ngôn từ kích động thù hận</option>
+                  <option value="Harassment">Quấy rối / Đe dọa</option>
+                  <option value="Violence">Bạo lực / Máu me</option>
+                  <option value="Other">Lý do khác</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Chi tiết (Không bắt buộc)</label>
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Nhập thêm chi tiết vi phạm..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 h-20 focus:outline-none focus:border-brand resize-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                disabled={isSubmittingReport}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSendReport}
+                disabled={isSubmittingReport}
+                className="flex-1 bg-brand hover:bg-brand-hover text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmittingReport ? (
+                  <>
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Gửi...
+                  </>
+                ) : (
+                  "Gửi báo cáo"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {isModalOpen && (
         <MomentModal 
           moment={moment} 

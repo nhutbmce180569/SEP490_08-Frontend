@@ -5,7 +5,8 @@ import {
   getPendingRequests,
   respondToRequest,
   deleteFriendship,
-  getPaginatedFriendList
+  getPaginatedFriendList,
+  getFriendshipStatus
 } from "../services/friendService";
 
 export const friendQueryKeys = {
@@ -13,6 +14,7 @@ export const friendQueryKeys = {
   lists: () => [...friendQueryKeys.all, "list"] as const,
   pending: () => [...friendQueryKeys.all, "pending"] as const,
   paginated: (page: number) => [...friendQueryKeys.all, "paginated", page] as const,
+  status: (targetUserId: string | number) => [...friendQueryKeys.all, "status", String(targetUserId)] as const,
 };
 
 export const useGetFriendships = () => {
@@ -35,7 +37,7 @@ export const useSendFriendRequest = () => {
   return useMutation({
     mutationFn: sendRequest,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: friendQueryKeys.pending() });
+      queryClient.invalidateQueries({ queryKey: friendQueryKeys.all });
     },
   });
 };
@@ -45,8 +47,7 @@ export const useRespondToRequest = () => {
   return useMutation({
     mutationFn: respondToRequest,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: friendQueryKeys.pending() });
+      queryClient.invalidateQueries({ queryKey: friendQueryKeys.all });
     },
   });
 };
@@ -56,7 +57,7 @@ export const useDeleteFriendship = () => {
   return useMutation({
     mutationFn: deleteFriendship,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: friendQueryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: friendQueryKeys.all });
     },
   });
 };
@@ -65,5 +66,13 @@ export const useGetPaginatedFriendList = (page: number = 1, pageSize: number = 1
   return useQuery({
     queryKey: friendQueryKeys.paginated(page),
     queryFn: () => getPaginatedFriendList(page, pageSize),
+  });
+};
+
+export const useGetFriendshipStatus = (targetUserId: string | number | undefined) => {
+  return useQuery({
+    queryKey: friendQueryKeys.status(targetUserId ?? 0),
+    queryFn: () => getFriendshipStatus(targetUserId ?? 0),
+    enabled: !!targetUserId,
   });
 };

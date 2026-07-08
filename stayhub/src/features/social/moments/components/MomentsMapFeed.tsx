@@ -60,8 +60,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [dynamicFootprints, setDynamicFootprints] = useState<any[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [heatmapType, setHeatmapType] = useState<'online' | 'moments'>('online');
   // Heatmap lay tu LocationLogs (giong mobile); chi fetch khi bat lop heatmap.
-  const { data: heatmapData } = useGetHeatmap(scheduleId, showHeatmap);
+  const { data: heatmapData } = useGetHeatmap(scheduleId, heatmapType, showHeatmap);
   const [isNightMode, setIsNightMode] = useState(false);
   const [dockState, setDockState] = useState<'collapsed' | 'expanded'>('expanded');
   
@@ -80,6 +81,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [friendLocations, setFriendLocations] = useState<any[]>([]);
   const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(() => {
+    return localStorage.getItem("share_my_location") === "true";
+  });
 
   // --- TIMELINE REPLAY STATES ---
   const [isReplayMode, setIsReplayMode] = useState(false);
@@ -150,8 +154,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     };
   }, [showLiveLocations]);
 
-  // --- 🔴 ĐÃ MỞ LẠI: HOOK 2 - PING GPS CỦA CHÍNH MÌNH LÊN SERVER ---
   useEffect(() => {
+    if (!isSharingLocation) {
+      setMyLocation(null);
+      return;
+    }
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -173,7 +180,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       );
       return () => navigator.geolocation.clearWatch(watchId);
     }
-  }, [scheduleId]);
+  }, [scheduleId, isSharingLocation]);
 
   // --- MAPBOX HANDLERS ---
   const updateBounds = useCallback(() => {
@@ -787,6 +794,21 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   </div>
                 </div>
 
+                {/* Chia sẻ vị trí của tôi */}
+                <div onClick={() => {
+                  const newVal = !isSharingLocation;
+                  setIsSharingLocation(newVal);
+                  localStorage.setItem("share_my_location", newVal ? "true" : "false");
+                }} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl transition-colors ${isSharingLocation ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}><MapPin className="w-5 h-5" /></div>
+                    <span className="text-sm font-bold text-slate-800">Share My Location</span>
+                  </div>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${isSharingLocation ? 'bg-red-500' : 'bg-slate-300'}`}>
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${isSharingLocation ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+                  </div>
+                </div>
+
                 {/* Dấu chân (Fog of War) */}
                 <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
@@ -799,14 +821,41 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Heatmap (Social Energy) */}
-                <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
-                    <span className="text-sm font-bold text-slate-800">Social Energy</span>
+                <div>
+                  <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
+                      <span className="text-sm font-bold text-slate-800">Social Energy</span>
+                    </div>
+                    <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showHeatmap ? 'bg-orange-500' : 'bg-slate-300'}`}>
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+                    </div>
                   </div>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showHeatmap ? 'bg-orange-500' : 'bg-slate-300'}`}>
-                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
-                  </div>
+
+                  {showHeatmap && (
+                    <div className="mt-1.5 flex gap-1.5 px-4 pb-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setHeatmapType('online'); }}
+                        className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all border ${
+                          heatmapType === 'online'
+                            ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm'
+                            : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100/50'
+                        }`}
+                      >
+                        Online Users
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setHeatmapType('moments'); }}
+                        className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all border ${
+                          heatmapType === 'moments'
+                            ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm'
+                            : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100/50'
+                        }`}
+                      >
+                        Popular Moments
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -833,13 +882,29 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
       {/* Nút Điều hướng Nhanh (Góc dưới phải) */}
       <div className="absolute bottom-28 right-4 z-20 flex flex-col gap-3">
-        {myLocation && (
+        {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
           <button
-            onClick={(e) => { e.stopPropagation(); mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 }); }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (myLocation) {
+                mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 });
+              } else {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setMyLocation({ lat: latitude, lng: longitude });
+                    mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+                  },
+                  (err) => {
+                    console.warn("Lỗi định vị:", err);
+                  }
+                );
+              }
+            }}
+            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-lg border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none"
             title="Vị trí của bạn"
           >
-            <Navigation className="h-5 w-5" />
+            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
           </button>
         )}
         {tourStops && tourStops.length > 0 && (

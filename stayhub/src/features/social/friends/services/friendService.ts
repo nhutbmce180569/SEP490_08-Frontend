@@ -67,3 +67,8 @@ export const getPaginatedFriendList = async (page = 1, pageSize = 10): Promise<a
   const response = await apiClient.get<any>(`${FRIEND_API_URL}/list?page=${page}&pageSize=${pageSize}`);
   return response.data ?? response;
 };
+
+export const getFriendshipStatus = async (targetUserId: string | number): Promise<any> => {
+  const response = await apiClient.get<any>(`${FRIEND_API_URL}/status/${targetUserId}`);
+  return response.data ?? response;
+};

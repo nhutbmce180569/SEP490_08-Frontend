@@ -1,14 +1,25 @@
-import React from 'react';
-import { useParams } from 'react-router-dom';
-import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff } from 'lucide-react';
+import React, { useContext, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus } from 'lucide-react';
 import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
 import { getImg } from '../../../../config/api/api';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { AuthContext } from '../../../../contexts/AuthContext';
+import { useGetFriendshipStatus, useSendFriendRequest, useRespondToRequest, useDeleteFriendship } from '../../friends/hooks/useFriends';
+import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
+import { useToast } from '../../../../contexts/ToastContext';
+import { PATH } from '../../../../config/routes/route';
+import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 
 export const SocialProfile: React.FC = () => {
   const { t, locale } = useTranslation();
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { success, error } = useToast();
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
+  const { user: currentUser } = useContext(AuthContext);
+  
   const { 
     data: profile, 
     isLoading: isProfileLoading, 
@@ -20,6 +31,12 @@ export const SocialProfile: React.FC = () => {
     isLoading: isMomentsLoading, 
     error: momentsError 
   } = useGetUserMoments(id || '');
+
+  const { data: friendshipStatus, isLoading: isStatusLoading } = useGetFriendshipStatus(id);
+  const { mutate: sendFriendRequest } = useSendFriendRequest();
+  const { mutate: respondToRequest } = useRespondToRequest();
+  const { mutate: deleteFriend } = useDeleteFriendship();
+  const { mutate: createChat } = useCreateChatRoom();
 
   const dateLocale = locale === 'vi' ? 'vi-VN' : 'en-US';
 
@@ -56,6 +73,172 @@ export const SocialProfile: React.FC = () => {
     }
   };
 
+  const handleUnfriend = () => {
+    if (friendshipStatus?.id) {
+      deleteFriend(friendshipStatus.id, {
+        onSuccess: () => {
+          success(t("social.removedFromFriends"));
+          setIsConfirmOpen(false);
+        },
+        onError: () => {
+          error(t("social.failedToUnfriend"));
+        }
+      });
+    }
+  };
+
+  const renderProfileActions = () => {
+    if (currentUser && String(currentUser.id) === String(id)) {
+      return null;
+    }
+
+    if (isStatusLoading) {
+      return <div className="h-10 w-24 bg-slate-100 animate-pulse rounded-xl"></div>;
+    }
+
+    const status = friendshipStatus?.status || friendshipStatus?.Status || 'None';
+    const requesterId = friendshipStatus?.requesterId || friendshipStatus?.RequesterId;
+
+    const userRoles = currentUser?.roles 
+      ? (Array.isArray(currentUser.roles) ? currentUser.roles : [currentUser.roles]) 
+      : [];
+    const currentUserIsStaffOrAdmin = userRoles.includes("Admin") || userRoles.includes("Manager") || userRoles.includes("Staff");
+    const targetIsStaffOrAdmin = profile?.roles?.includes("Admin") || profile?.roles?.includes("Manager") || profile?.roles?.includes("Staff");
+    const canChat = status === 'Accepted' || targetIsStaffOrAdmin || currentUserIsStaffOrAdmin;
+
+    const renderChatButton = () => {
+      if (!canChat) return null;
+      return (
+        <button
+          onClick={() => {
+            createChat(Number(id), {
+              onSuccess: (newRoom) => {
+                const roomId = newRoom?.data?.id || newRoom?.data?.Id || newRoom?.id || newRoom?.Id;
+                if (roomId) {
+                  navigate(`${PATH.CUSTOMER.SOCIAL_CHAT}?roomId=${roomId}`);
+                } else {
+                  error(t('social.couldNotGetChatRoom'));
+                }
+              },
+              onError: (err: any) => {
+                const msg = err.response?.data?.message || err.response?.data || t('social.errorCreatingChatRoom');
+                error(typeof msg === 'string' ? msg : t('social.unknownSystemError'));
+              },
+            });
+          }}
+          className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
+        >
+          <MessageCircle className="h-4 w-4" />
+          {t("social.message")}
+        </button>
+      );
+    };
+
+    if (status === 'None') {
+      return (
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button
+            onClick={() => {
+              sendFriendRequest(
+                { receiverId: Number(id) },
+                {
+                  onSuccess: () => success(t("social.friendRequestSent")),
+                  onError: (err: any) => {
+                    const msg = err.response?.data?.message || err.response?.data || t("social.failedToSendRequest");
+                    error(typeof msg === 'string' ? msg : t("social.unknownSystemError"));
+                  }
+                }
+              );
+            }}
+            className="flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
+          >
+            <UserPlus className="h-4 w-4" />
+            {t("social.addFriend")}
+          </button>
+          {renderChatButton()}
+        </div>
+      );
+    }
+
+    if (status === 'Pending') {
+      const isOutgoing = String(requesterId) === String(currentUser?.id);
+
+      if (isOutgoing) {
+        return (
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              disabled
+              className="flex items-center gap-2 rounded-xl bg-slate-100 border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-400 cursor-not-allowed"
+            >
+              <Clock className="h-4 w-4" />
+              {t("social.requestSent") || "Đã gửi lời mời"}
+            </button>
+            {renderChatButton()}
+          </div>
+        );
+      } else {
+        return (
+          <div className="flex items-center gap-2.5 shrink-0">
+            <button
+              onClick={() => {
+                respondToRequest(
+                  { requestId: friendshipStatus.id, isAccepted: true },
+                  {
+                    onSuccess: () => success(t("social.friendRequestAccepted")),
+                    onError: (err: any) => {
+                      const msg = err.response?.data?.message || err.response?.data || t("social.unknownSystemError");
+                      error(typeof msg === 'string' ? msg : t("social.unknownSystemError"));
+                    }
+                  }
+                );
+              }}
+              className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
+            >
+              <UserCheck className="h-4 w-4" />
+              {t("social.accept")}
+            </button>
+            <button
+              onClick={() => {
+                respondToRequest(
+                  { requestId: friendshipStatus.id, isAccepted: false },
+                  {
+                    onSuccess: () => success(t("social.friendRequestDeclined")),
+                    onError: (err: any) => {
+                      const msg = err.response?.data?.message || err.response?.data || t("social.unknownSystemError");
+                      error(typeof msg === 'string' ? msg : t("social.unknownSystemError"));
+                    }
+                  }
+                );
+              }}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all"
+            >
+              <UserX className="h-4 w-4" />
+              {t("social.decline")}
+            </button>
+            {renderChatButton()}
+          </div>
+        );
+      }
+    }
+
+    if (status === 'Accepted') {
+      return (
+        <div className="flex items-center gap-2.5 shrink-0">
+          {renderChatButton()}
+          <button
+            onClick={() => setIsConfirmOpen(true)}
+            className="flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all"
+          >
+            <UserX className="h-4 w-4" />
+            {t("social.unfriend")}
+          </button>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
       <div className="mb-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -77,22 +260,26 @@ export const SocialProfile: React.FC = () => {
             </div>
           </div>
           
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">{profile.fullName}</h1>
-            <div className="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-500">
-              {profile.gender && (
-                <div className="flex items-center gap-1.5">
-                  <User className="h-4 w-4 text-slate-400" />
-                  {profile.gender}
-                </div>
-              )}
-              {profile.createdAt && (
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4 text-slate-400" />
-                  {t('social.joinedSince', { date: new Date(profile.createdAt).toLocaleDateString(dateLocale) })}
-                </div>
-              )}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">{profile.fullName}</h1>
+              <div className="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-500">
+                {profile.gender && (
+                  <div className="flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-slate-400" />
+                    {profile.gender}
+                  </div>
+                )}
+                {profile.createdAt && (
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4 text-slate-400" />
+                    {t('social.joinedSince', { date: new Date(profile.createdAt).toLocaleDateString(dateLocale) })}
+                  </div>
+                )}
+              </div>
             </div>
+            
+            {renderProfileActions()}
           </div>
         </div>
       </div>
@@ -152,6 +339,17 @@ export const SocialProfile: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleUnfriend}
+        title={t("social.unfriend")}
+        message={t("social.confirmUnfriend")}
+        confirmText={t("common.confirm") || "Xác nhận"}
+        cancelText={t("common.cancel") || "Hủy"}
+        variant="warning"
+      />
     </div>
   );
 };

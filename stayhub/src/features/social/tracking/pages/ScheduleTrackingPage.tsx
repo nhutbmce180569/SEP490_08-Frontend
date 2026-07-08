@@ -3,7 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
+<<<<<<< HEAD
+import { Users, Navigation } from "lucide-react";
+=======
 import { Users, ArrowLeft } from "lucide-react";
+>>>>>>> ed3c36022014b95ec62085bc8b6a5699027a3d47
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -27,6 +31,7 @@ export const ScheduleTrackingPage: React.FC = () => {
     useGetScheduleLiveLocations(scheduleIdNumber);
 
   const [locations, setLocations] = useState<LiveLocation[]>([]);
+  const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const mapRef = useRef<MapRef | null>(null);
   const hasFlyRef = useRef(false);
   const token = localStorage.getItem("accessToken");
@@ -212,7 +217,40 @@ export const ScheduleTrackingPage: React.FC = () => {
             </div>
           </Marker>
         ))}
+        {myLocation && (
+          <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
+            <div className="h-4 w-4 rounded-full border-2 border-white bg-blue-500 shadow-md ring-4 ring-blue-500/30"></div>
+          </Marker>
+        )}
       </Map>
+
+      {/* Floating Buttons */}
+      <div className="absolute bottom-6 right-6 z-10 flex flex-col gap-3">
+        {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
+          <button
+            onClick={() => {
+              if (myLocation) {
+                mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 });
+              } else {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setMyLocation({ lat: latitude, lng: longitude });
+                    mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+                  },
+                  (err) => {
+                    console.warn("Lỗi định vị:", err);
+                  }
+                );
+              }
+            }}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-slate-200/80 bg-white/95 text-slate-700 shadow-lg transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            title="Vị trí của bạn"
+          >
+            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

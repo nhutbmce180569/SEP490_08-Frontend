@@ -55,11 +55,10 @@ export const QRCheckinPage: React.FC = () => {
       {/* Header section */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="travel-eyebrow">{t("staff.assignedSchedulesEyebrow")}</p>
-          <h1 className="travel-heading text-2xl md:text-3xl">
+          <h2 className="text-[15px] font-bold leading-tight text-slate-900">
             {t("booking.ticketCheckIn")}
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-slate-500">
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
             {t("booking.scanOrEnter")}
           </p>
         </div>
@@ -85,8 +84,8 @@ export const QRCheckinPage: React.FC = () => {
               <button
                 onClick={() => setScanMode("camera")}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all duration-300 ${scanMode === "camera"
-                    ? "bg-white text-[#0068E0] shadow-md shadow-slate-200"
-                    : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-[#0068E0] shadow-md shadow-slate-200"
+                  : "text-slate-500 hover:text-slate-800"
                   }`}
               >
                 <QrCode className="h-4 w-4" /> {t("booking.cameraScan")}
@@ -94,8 +93,8 @@ export const QRCheckinPage: React.FC = () => {
               <button
                 onClick={() => setScanMode("manual")}
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2 text-sm font-bold transition-all duration-300 ${scanMode === "manual"
-                    ? "bg-white text-[#0068E0] shadow-md shadow-slate-200"
-                    : "text-slate-500 hover:text-slate-800"
+                  ? "bg-white text-[#0068E0] shadow-md shadow-slate-200"
+                  : "text-slate-500 hover:text-slate-800"
                   }`}
               >
                 <Keyboard className="h-4 w-4" /> {t("booking.manualEntry")}

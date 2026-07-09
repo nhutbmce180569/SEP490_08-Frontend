@@ -416,7 +416,15 @@ export const SocialProfile: React.FC = () => {
 
       {selectedMoment && (
         <MomentModal
-          moment={selectedMoment}
+          moment={{
+            ...selectedMoment,
+            userId: profile?.id || Number(id),
+            user: {
+              id: profile?.id || Number(id),
+              fullName: profile?.fullName || t("tour.anonymousCustomer"),
+              avatarUrl: profile?.avatarUrl,
+            }
+          } as any}
           isOpen={!!selectedMoment}
           onClose={() => setSelectedMomentId(null)}
           isLiked={isLiked}

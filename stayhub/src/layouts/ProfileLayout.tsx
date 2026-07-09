@@ -21,6 +21,19 @@ import { useTranslation } from "../contexts/LocaleContext";
 import { useAiPlanner } from "../contexts/AiPlannerContext";
 import { UserAvatar } from "../components/ui/UserAvatar";
 
+
+const navItems = [
+  { labelKey: "nav.profile", path: PATH.CUSTOMER.PROFILE, icon: User },
+  { labelKey: "nav.friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
+  { labelKey: "nav.messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
+  { labelKey: "nav.myBookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
+  { labelKey: "nav.wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
+  { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
+  { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
+  { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles, openPlanner: true },
+  { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
+];
+
 export const ProfileLayout = () => {
   const { user } = useContext(AuthContext);
   const { t } = useTranslation();
@@ -55,26 +68,6 @@ export const ProfileLayout = () => {
   return (
     <div className="account-shell">
       <div className="page-container account-shell-inner">
-        <div className="account-welcome glass-card mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
-          <div className="flex items-center gap-4">
-            <UserAvatar name={displayName} avatarUrl={avatarUrl} size="lg" />
-            <div className="min-w-0">
-              <p className="travel-eyebrow">{t("nav.yourSpace")}</p>
-              <h1 className="travel-heading truncate text-xl md:text-2xl">
-                {t("nav.welcomeBack", { name: displayName.split(" ")[0] })}
-              </h1>
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
-                <Compass className="h-4 w-4 shrink-0 text-brand" aria-hidden />
-                {t("nav.manageTrips")}
-              </p>
-            </div>
-          </div>
-          {activeItem && (
-            <div className="rounded-2xl bg-brand-light/60 px-4 py-2.5 text-sm font-semibold text-brand">
-              {activeItem ? t(activeItem.labelKey) : null}
-            </div>
-          )}
-        </div>
 
         <nav
           className="account-mobile-nav custom-scrollbar mb-6 flex gap-2 overflow-x-auto pb-1 md:hidden"
@@ -96,10 +89,9 @@ export const ProfileLayout = () => {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
-                  `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${
-                    isActive
-                      ? "bg-brand text-white shadow-md shadow-brand/25"
-                      : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80"
+                  `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${isActive
+                    ? "bg-brand text-white shadow-md shadow-brand/25"
+                    : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80"
                   }`
                 }
               >
@@ -137,8 +129,7 @@ export const ProfileLayout = () => {
                       key={item.path}
                       to={item.path}
                       className={({ isActive }) =>
-                        `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${
-                          isActive ? "nav-item-active" : "nav-item-inactive"
+                        `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${isActive ? "nav-item-active" : "nav-item-inactive"
                         }`
                       }
                     >

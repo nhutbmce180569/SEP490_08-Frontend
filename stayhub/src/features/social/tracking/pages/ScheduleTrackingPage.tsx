@@ -4,7 +4,6 @@ import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
 import { Users, Navigation, ArrowLeft } from "lucide-react";
-
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -129,7 +128,7 @@ export const ScheduleTrackingPage: React.FC = () => {
 
     return () => {
       isCancelled = true;
-      connection.stop().catch(() => {});
+      connection.stop().catch(() => { });
     };
   }, [scheduleIdNumber]);
 

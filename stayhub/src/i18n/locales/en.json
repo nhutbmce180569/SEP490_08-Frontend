@@ -96,6 +96,7 @@
     "myProfile": "My Profile",
     "profileSubtitle": "Manage your personal details and how we can reach you",
     "accountVerified": "Account Verified",
+    "viewProfile": "View Profile",
     "profileUpdated": "Profile updated successfully!",
     "profileUpdateFailed": "Failed to update profile.",
     "savingChanges": "Saving changes...",

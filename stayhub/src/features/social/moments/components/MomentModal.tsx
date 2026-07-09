@@ -65,13 +65,13 @@ export const MomentModal: React.FC<MomentModalProps> = ({
   const [visibleCount, setVisibleCount] = useState(10);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const currentUserId = user ? (user.id || (user as any).Id) : null;
-  const momentUserId = (moment as any).userId || moment.user?.id || (moment as any).User?.Id;
-  const isOwner = String(momentUserId) === String(currentUserId);
+  const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || null;
+  const momentUserId = (moment as any).userId ?? (moment as any).UserId ?? moment.user?.id ?? (moment as any).User?.id ?? (moment as any).User?.Id;
+  const isOwner = currentUserId !== null && momentUserId !== undefined && String(momentUserId) === String(currentUserId);
   
   // Aggressively check all possible avatar properties from AuthContext
-  const currentUserAvatar = (user as any)?.avatarUrl || (user as any)?.AvatarUrl || (user as any)?.avatar || (user as any)?.picture;
-  const momentUserAvatar = moment.user?.avatarUrl || (moment.user as any)?.AvatarUrl;
+  const currentUserAvatar = user?.avatarUrl || user?.AvatarUrl || (user as any)?.avatar || (user as any)?.picture;
+  const momentUserAvatar = moment.user?.avatarUrl ?? (moment.user as any)?.AvatarUrl ?? (moment as any).User?.avatarUrl ?? (moment as any).User?.AvatarUrl;
   const displayAvatar = isOwner ? (currentUserAvatar || momentUserAvatar) : momentUserAvatar;
 
   useEffect(() => {
@@ -139,15 +139,27 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     }
   };
 
-  const userFullName = moment.user?.fullName || t("tour.anonymousCustomer");
+  const userFullName = moment.user?.fullName ?? (moment as any).User?.fullName ?? (moment as any).User?.FullName ?? t("tour.anonymousCustomer");
   const visibleComments = allComments.slice(0, visibleCount);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8">
-      <button onClick={onClose} className="absolute top-6 right-6 z-[10000] text-white hover:text-slate-300 p-2">
-        <X className="h-8 w-8" />
+    <div 
+      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8"
+      onClick={(e) => {
+        // Đóng modal khi click ra ngoài vùng xám (backdrop)
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <button 
+        onClick={onClose} 
+        className="absolute top-6 right-6 z-[10000] flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/75 hover:text-slate-200 p-2.5 border border-white/10 shadow-lg transition-all active:scale-95 cursor-pointer"
+        title="Đóng"
+      >
+        <X className="h-6 w-6" />
       </button>
-
+ 
       <div className="flex flex-col md:flex-row w-full max-w-5xl h-[90vh] md:h-[80vh] bg-white rounded-md overflow-hidden shadow-2xl">
         <div className="flex-1 bg-black flex items-center justify-center h-64 md:h-full border-r border-slate-200">
           <img 
@@ -158,7 +170,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
             className="w-full h-full object-contain" 
           />
         </div>
-
+ 
         <div className="w-full md:w-[400px] flex flex-col h-full bg-white">
           <div className="flex items-center justify-between p-4 border-b border-slate-100 shrink-0">
             <div className="flex items-center gap-3">
@@ -167,19 +179,30 @@ export const MomentModal: React.FC<MomentModalProps> = ({
               </div>
               <span className="text-sm font-bold text-slate-900">{userFullName}</span>
             </div>
-            {!isOwner && (
+            
+            <div className="flex items-center gap-1.5">
+              {!isOwner && (
+                <button 
+                  onClick={() => {
+                    setReportReason('Spam');
+                    setReportDetails('');
+                    setIsReportModalOpen(true);
+                  }} 
+                  className="text-slate-400 hover:text-amber-500 transition-colors p-2 cursor-pointer" 
+                  title="Báo cáo vi phạm"
+                >
+                  <Flag className="h-5 w-5" />
+                </button>
+              )}
+              {/* Nút đóng phụ trực quan ngay trong header */}
               <button 
-                onClick={() => {
-                  setReportReason('Spam');
-                  setReportDetails('');
-                  setIsReportModalOpen(true);
-                }} 
-                className="text-slate-400 hover:text-amber-500 transition-colors p-2" 
-                title="Báo cáo vi phạm"
+                onClick={onClose}
+                className="text-slate-400 hover:text-slate-700 transition-colors p-2 cursor-pointer"
+                title="Đóng"
               >
-                <Flag className="h-5 w-5" />
+                <X className="h-5 w-5" />
               </button>
-            )}
+            </div>
           </div>
 
           <div 

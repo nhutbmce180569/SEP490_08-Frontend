@@ -30,7 +30,6 @@ const navItems = [
   { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
   { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles, openPlanner: true },
   { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
-  { labelKey: "nav.settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
 ];
 
 export const ProfileLayout = () => {

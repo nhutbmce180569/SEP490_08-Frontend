@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Camera, Save, Mail, Phone, Calendar, User, ShieldCheck } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Camera, Save, Mail, Phone, Calendar, User, ShieldCheck, Globe } from 'lucide-react';
 import { ActionButton } from '../../../components/home/ActionButton';
 import { AuthContext } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -10,6 +11,7 @@ import { useTranslation } from '../../../contexts/LocaleContext';
 
 export const Profile: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user } = useContext(AuthContext);
   const { success, error: showError } = useToast();
   const { handleUpdateProfile, isUpdating } = useProfile();
@@ -83,6 +85,14 @@ export const Profile: React.FC = () => {
             <ShieldCheck size={18} />
             {t('auth.accountVerified')}
           </div>
+          <button
+            type="button"
+            onClick={() => navigate(`/social/profile/${user?.id || user?.Id}`)}
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+          >
+            <Globe size={16} />
+            <span>Xem trang cá nhân</span>
+          </button>
         </div>
       </div>
 

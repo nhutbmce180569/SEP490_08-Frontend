@@ -280,9 +280,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   useEffect(() => {
     if (onReplayStateChange) {
-      onReplayStateChange(isReplayActive);
+      onReplayStateChange(isReplayMode);
     }
-  }, [isReplayActive, onReplayStateChange]);
+  }, [isReplayMode, onReplayStateChange]);
 
   // --- COLLISION AVOIDANCE LOGIC (FRIENDS & ME) ---
   const visualFriendLocations = useMemo(() => {

@@ -3,7 +3,8 @@ import { useParams } from "react-router-dom";
 import Map, { Marker, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import * as signalR from "@microsoft/signalr";
-import { Users, Navigation } from "lucide-react";
+import { Users, Navigation, ArrowLeft } from "lucide-react";
+
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useGetScheduleLiveLocations } from "../hooks/useScheduleTracking";
 import { useTranslation } from "../../../../contexts/LocaleContext";

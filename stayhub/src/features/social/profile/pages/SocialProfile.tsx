@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useMemo, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus } from 'lucide-react';
+import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus, Settings } from 'lucide-react';
 import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
 import { getImg } from '../../../../config/api/api';
 import { useTranslation } from '../../../../contexts/LocaleContext';
@@ -10,6 +10,8 @@ import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
 import { useToast } from '../../../../contexts/ToastContext';
 import { PATH } from '../../../../config/routes/route';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
+import { MomentModal } from '../../moments/components/MomentModal';
+import { useToggleReaction } from '../../moments/hooks/useMoments';
 
 export const SocialProfile: React.FC = () => {
   const { t, locale } = useTranslation();
@@ -39,6 +41,55 @@ export const SocialProfile: React.FC = () => {
   const { mutate: createChat } = useCreateChatRoom();
 
   const dateLocale = locale === 'vi' ? 'vi-VN' : 'en-US';
+
+  const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
+  const { mutate: toggleReaction } = useToggleReaction();
+
+  const selectedMoment = useMemo(
+    () => moments?.find((m: any) => (m.id ?? m.Id) === selectedMomentId),
+    [moments, selectedMomentId]
+  );
+
+  const currentUserId = currentUser ? (currentUser.id || (currentUser as any).Id) : null;
+  
+  const initialIsLiked = useMemo(() => {
+    if (!selectedMoment || !currentUserId) return false;
+    const reactionList = selectedMoment.reactions || (selectedMoment as any).momentReactions || [];
+    return reactionList.some((r: any) => 
+      (r.isLike === true || r.IsLike === true) && String(r.userId || r.UserId) === String(currentUserId)
+    );
+  }, [selectedMoment, currentUserId]);
+
+  const initialLikeCount = useMemo(() => {
+    if (!selectedMoment) return 0;
+    const reactionList = selectedMoment.reactions || (selectedMoment as any).momentReactions || [];
+    return reactionList.length;
+  }, [selectedMoment]);
+
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
+
+  useEffect(() => {
+    setIsLiked(initialIsLiked);
+    setLikeCount(initialLikeCount);
+  }, [initialIsLiked, initialLikeCount]);
+
+  const handleToggleLike = useCallback(() => {
+    if (!selectedMoment) return;
+    if (!currentUser || !currentUserId) { error("Vui lòng đăng nhập."); return; }
+    
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikeCount((prev: number) => newIsLiked ? prev + 1 : prev - 1);
+    
+    toggleReaction({ momentId: Number(selectedMoment.id), userId: Number(currentUserId), isLike: newIsLiked }, {
+      onError: () => { 
+        setIsLiked(!newIsLiked); 
+        setLikeCount(initialLikeCount); 
+        error(t("social.failedReactMoment") || "Lỗi tương tác."); 
+      }
+    });
+  }, [selectedMoment, currentUser, currentUserId, isLiked, toggleReaction, initialLikeCount, error, t]);
 
   if (isProfileLoading) {
     return (
@@ -88,8 +139,16 @@ export const SocialProfile: React.FC = () => {
   };
 
   const renderProfileActions = () => {
-    if (currentUser && String(currentUser.id) === String(id)) {
-      return null;
+    if (currentUser && String(currentUser.id || (currentUser as any).Id) === String(id)) {
+      return (
+        <button
+          onClick={() => navigate(PATH.CUSTOMER.PROFILE)}
+          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"
+        >
+          <Settings className="h-4 w-4" />
+          <span>Chỉnh sửa hồ sơ</span>
+        </button>
+      );
     }
 
     if (isStatusLoading) {
@@ -304,7 +363,11 @@ export const SocialProfile: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
             {moments.map((moment) => (
-              <div key={moment.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
+              <div 
+                key={moment.id} 
+                onClick={() => setSelectedMomentId(Number(moment.id))}
+                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
+              >
                 <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
                   <img 
                     src={getImg(moment.imageUrl)} 
@@ -312,7 +375,7 @@ export const SocialProfile: React.FC = () => {
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute right-3 top-3 z-10">
-                    {renderPrivacyBadge(moment.privacy)}
+                    {renderPrivacyBadge(moment.privacy || 'Public')}
                   </div>
                   
                   {moment.caption && (
@@ -350,6 +413,17 @@ export const SocialProfile: React.FC = () => {
         cancelText={t("common.cancel") || "Hủy"}
         variant="warning"
       />
+
+      {selectedMoment && (
+        <MomentModal
+          moment={selectedMoment}
+          isOpen={!!selectedMoment}
+          onClose={() => setSelectedMomentId(null)}
+          isLiked={isLiked}
+          likeCount={likeCount}
+          onToggleLike={handleToggleLike}
+        />
+      )}
     </div>
   );
 };

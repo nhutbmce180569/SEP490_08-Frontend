@@ -245,44 +245,9 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 };
 // Wrapper để hứng ID từ URL và truyền vào MomentsFeed
 const MomentsRouteWrapper = () => {
-  const { t } = useTranslation();
-  const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
-  
-  // Gọi hook lấy danh sách Tour mà bạn đã fix thành công lúc trước
-  const { data: schedules } = useGetEligibleSchedules();
-
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
-      {/* KHU VỰC ĐIỀU HƯỚNG & LỌC */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800">{t("app.momentsCommunityTitle")}</h2>
-          <p className="text-sm text-slate-500 font-medium">{t("app.momentsCommunitySubtitle")}</p>
-        </div>
-
-  
-        <div className="relative">
-          <select 
-            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
-            onChange={(e) => setSelectedSchedule(e.target.value ? Number(e.target.value) : null)}
-            value={selectedSchedule || ""}
-          >
-            <option value="">🌍 {t("app.allTripsGlobal")}</option>
-            {schedules?.map(s => (
-              <option key={s.scheduleId} value={s.scheduleId}>
-                📍 {s.tourName}
-              </option>
-            ))}
-          </select>
-          {/* Mũi tên trỏ xuống của Select */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-          </div>
-        </div>
-      </div>
-
-    
-      <MomentsFeed key={selectedSchedule || 'global-map'} scheduleId={selectedSchedule as any} />
+    <div className="w-full h-[calc(100vh-80px)] overflow-hidden">
+      <MomentsFeed />
     </div>
   );
 };
@@ -413,15 +378,13 @@ const App: React.FC = () => {
                     />
                     </Route>
                    
-                    
-                    <Route path="/social/moments"
-                     element={<MomentsRouteWrapper />} />
-
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_CHAT}
                       element={<ChatPage />}
                     />
                   </Route>
+
+                  <Route path="/social/moments" element={<MomentsRouteWrapper />} />
                 </Route>
               </Route>
 

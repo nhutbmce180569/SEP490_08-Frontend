@@ -1,11 +1,12 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
-import { Heart, MessageCircle, X, Loader2, Flag } from 'lucide-react';
+import { Heart, MessageCircle, X, Loader2, Flag, Send } from 'lucide-react';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useAddComment, useUpdateComment, useDeleteComment } from '../hooks/useMoments';
 import type { Moment } from '../types/moment.type';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { reportContent } from '../services/momentService';
+import { ShareTargetModal } from '../../chat/component/ShareTargetModal';
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -42,6 +43,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
   const [reportReason, setReportReason] = useState('Spam');
   const [reportDetails, setReportDetails] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const handleSendReport = async () => {
     setIsSubmittingReport(true);
@@ -268,6 +270,13 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                   <Heart className={`h-7 w-7 transition-transform active:scale-75 ${isLiked ? "fill-rose-500 text-rose-500" : "text-slate-900"}`} />
                 </button>
                 <MessageCircle className="h-7 w-7 text-slate-900" />
+                <button 
+                  onClick={() => setShowShareModal(true)} 
+                  className="text-slate-900 hover:text-brand transition-colors cursor-pointer"
+                  title="Chia sẻ qua Tin nhắn"
+                >
+                  <Send className="h-6 w-6 -rotate-45" />
+                </button>
               </div>
               <div className="text-sm font-bold text-slate-900">{t("social.momentLikesCount", { count: likeCount })}</div>
             </div>
@@ -355,6 +364,14 @@ export const MomentModal: React.FC<MomentModalProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {showShareModal && (
+        <ShareTargetModal
+          onClose={() => setShowShareModal(false)}
+          shareContent={`[MomentShare:${JSON.stringify({ id: moment.id, imageUrl: moment.imageUrl, caption: moment.caption })}]`}
+          successMessage="Đã chia sẻ khoảnh khắc qua tin nhắn!"
+        />
       )}
     </div>
   );

@@ -9,6 +9,7 @@ import {
   addComment,
   updateComment,
   deleteComment,
+  getMomentById,
 } from "../services/momentService";
 
 export const momentQueryKeys = {
@@ -121,5 +122,13 @@ export const useDeleteMoment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
     },
+  });
+};
+
+export const useGetMomentById = (momentId: number | null) => {
+  return useQuery({
+    queryKey: [...momentQueryKeys.all, "detail", momentId],
+    queryFn: () => getMomentById(momentId!),
+    enabled: momentId !== null,
   });
 };

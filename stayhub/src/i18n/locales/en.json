@@ -156,6 +156,7 @@
   },
   "nav": {
     "profile": "Profile",
+    "socialProfile": "Social Profile",
     "friends": "Friends",
     "messages": "Messages",
     "myBookings": "My bookings",

@@ -6,6 +6,7 @@ import {
   Gift,
   Image,
   Layers,
+  Map,
   PieChart,
   Ticket,
   Users,
@@ -56,6 +57,11 @@ export const AdminLayout = () => {
       {
         title: t("admin.tourContent"),
         items: [
+          {
+            label: t("admin.tours") || "Tour Management",
+            to: PATH.ADMIN.TOUR_MODERATION,
+            icon: <Map className={iconClass} />,
+          },
           {
             label: t("admin.banners"),
             to: PATH.ADMIN.BANNER_MANAGEMENT,

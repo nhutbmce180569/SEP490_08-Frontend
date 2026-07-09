@@ -79,12 +79,14 @@ export const getAllToursForAdmin = async (
   page: number = 1,
   pageSize: number = 10,
   searchTerm?: string,
+  managerId?: number,
 ): Promise<PaginatedResponse<Tour>> => {
   return await apiClient.get<PaginatedResponse<Tour>>(TOURS_API.GET_BY_ADMIN, {
     params: {
       page,
       pageSize,
       searchTerm: searchTerm || undefined,
+      managerId: managerId || undefined,
     },
   });
 };
@@ -111,6 +113,13 @@ export const updateTourStatusByAdmin = async (
   status: string,
 ): Promise<void> => {
   await apiClient.put(TOURS_API.UPDATE_STATUS(id), { status });
+};
+
+export const changeTourManager = async (
+  id: string | number,
+  managerId: string | number,
+): Promise<void> => {
+  await apiClient.put(TOURS_API.CHANGE_MANAGER(id), { managerId });
 };
 
 export const tourService = {

@@ -46,6 +46,7 @@ import { CreateTour } from "./features/tour/pages/CreateTour";
 import { TourDetail } from "./features/tour/pages/TourDetail";
 import { UpdateTour } from "./features/tour/pages/UpdateTour";
 import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
+import { AdminTourList } from "./features/tour/pages/AdminTourList";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import ModerationDashboard from "./pages/ModerationDashboard";
 // Components dành cho Quản lý nội dung (Admin)
@@ -624,7 +625,7 @@ const App: React.FC = () => {
                     element={mock("app.titles.partnerApprovals", "app.mockPartnerApprovals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
-                    <Route index element={mock("app.titles.tours", "app.mockTours", "app.sectionAdmin")} />
+                    <Route index element={<AdminTourList />} />
                     <Route
                       path=":id"
                       element={mock("app.titles.adminTourDetail", "app.mockAdminTourDetail", "app.sectionAdmin")}

@@ -121,7 +121,7 @@ const AiQuestionnaireDialog: React.FC = () => {
         {/* Scrollable body */}
         <div className="flex-1 overflow-hidden flex flex-col bg-[var(--surface-dashboard)]">
           {activeTab === "chat" ? (
-            <IntelligentChatWizard />
+            <IntelligentChatWizard onSwitchToForm={() => setActiveTab("form")} />
           ) : (
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               {isLoading ? (

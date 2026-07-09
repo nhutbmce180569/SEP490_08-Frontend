@@ -1,3 +1,5 @@
+import type { Moment } from "../../moments/types/moment.type";
+
 export interface UserProfile {
   id: string | number;
   fullName: string;
@@ -8,13 +10,6 @@ export interface UserProfile {
   roles?: string[];
 }
 
-export interface UserMoment {
-  id: string | number;
+export interface UserMoment extends Moment {
   scheduleId?: number | null;
-  imageUrl: string;
-  caption?: string | null;
-  lat?: number | null;
-  lng?: number | null;
-  privacy: 'Public' | 'Friend' | 'Private';
-  createdAt?: string | null;
 }

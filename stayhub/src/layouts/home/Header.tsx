@@ -33,6 +33,9 @@ import { WishlistHeaderButton } from "../../features/wishlist/customer/component
 import { getSearchSuggestions } from "../../hooks/useSearchTours";
 import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { useTourAssistantChatState } from "../../contexts/TourAssistantChatContext";
+import { useQuery } from "@tanstack/react-query";
+import { chatService } from "../../features/social/chat/services/chatService";
+import { useChatNotification } from "../../features/social/chat/component/ChatNotificationContext";
 
 
 export default function Header() {
@@ -43,6 +46,13 @@ export default function Header() {
   const { user, logout: contextLogout } = useContext(AuthContext);
   const { open: openAiPlanner } = useAiPlanner();
   const { toggle: toggleTourAssistantChat } = useTourAssistantChatState();
+  const { isPopoverOpen, setIsPopoverOpen } = useChatNotification();
+  const { data: chatRooms = [] } = useQuery({
+    queryKey: ['chatRooms'],
+    queryFn: chatService.getChatRooms,
+    enabled: !!user,
+  });
+  const unreadChatCount = chatRooms.reduce((acc: number, r: any) => acc + (r.unreadCount || 0), 0);
 
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
   const pendingCount = Array.isArray(pendingRequests) ? pendingRequests.length : 0;
@@ -432,6 +442,20 @@ export default function Header() {
 
           {user ? (
             <>
+              <button
+                type="button"
+                onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+                className={`icon-btn relative hover:bg-brand-light/40 ${isPopoverOpen ? 'text-brand bg-brand-light/20' : 'text-slate-600 dark:text-slate-300'}`}
+                title={t("nav.messages") || "Tin nhắn"}
+              >
+                <MessageCircle className="h-5 w-5" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </button>
+
               <NotificationBell />
 
               <div className="relative ml-0.5" ref={userMenuRef}>

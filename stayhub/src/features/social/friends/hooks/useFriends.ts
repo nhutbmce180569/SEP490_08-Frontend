@@ -6,13 +6,15 @@ import {
   respondToRequest,
   deleteFriendship,
   getPaginatedFriendList,
-  getFriendshipStatus
+  getFriendshipStatus,
+  getSentRequests
 } from "../services/friendService";
 
 export const friendQueryKeys = {
   all: ["friends"] as const,
   lists: () => [...friendQueryKeys.all, "list"] as const,
   pending: () => [...friendQueryKeys.all, "pending"] as const,
+  sent: () => [...friendQueryKeys.all, "sent"] as const,
   paginated: (page: number) => [...friendQueryKeys.all, "paginated", page] as const,
   status: (targetUserId: string | number) => [...friendQueryKeys.all, "status", String(targetUserId)] as const,
 };
@@ -74,5 +76,12 @@ export const useGetFriendshipStatus = (targetUserId: string | number | undefined
     queryKey: friendQueryKeys.status(targetUserId ?? 0),
     queryFn: () => getFriendshipStatus(targetUserId ?? 0),
     enabled: !!targetUserId,
+  });
+};
+
+export const useGetSentRequests = () => {
+  return useQuery({
+    queryKey: friendQueryKeys.sent(),
+    queryFn: getSentRequests,
   });
 };

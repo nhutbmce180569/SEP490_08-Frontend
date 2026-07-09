@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Sparkles,
   Compass,
+  Globe,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -19,6 +20,7 @@ import { AuthContext } from "../contexts/AuthContext";
 import { useTranslation } from "../contexts/LocaleContext";
 import { useAiPlanner } from "../contexts/AiPlannerContext";
 import { UserAvatar } from "../components/ui/UserAvatar";
+
 
 const navItems = [
   { labelKey: "nav.profile", path: PATH.CUSTOMER.PROFILE, icon: User },
@@ -38,6 +40,22 @@ export const ProfileLayout = () => {
   const location = useLocation();
   const { open: openAiPlanner } = useAiPlanner();
   const openPlanner = () => openAiPlanner(location.pathname);
+
+  const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
+
+  const navItems = [
+    { labelKey: "nav.profile", path: PATH.CUSTOMER.PROFILE, icon: User },
+    { labelKey: "nav.socialProfile", path: `/social/profile/${currentUserId}`, icon: Globe },
+    { labelKey: "nav.friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
+    { labelKey: "nav.messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
+    { labelKey: "nav.myBookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
+    { labelKey: "nav.wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
+    { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
+    { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
+    { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles, openPlanner: true },
+    { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
+    { labelKey: "nav.settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
+  ];
 
   const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;

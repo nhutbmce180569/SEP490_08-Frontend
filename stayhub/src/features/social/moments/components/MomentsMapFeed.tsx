@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect, useContext } 
 import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
-import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame } from "lucide-react";
+import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Download } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
 import { useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
@@ -255,6 +255,24 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     return events;
   }, [moments, tourStops, isSpecificTour]);
 
+  const handleDownloadTimeline = useCallback(() => {
+    if (timelineEvents.length === 0) return;
+    try {
+      const dataStr = JSON.stringify(timelineEvents, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `stayhub_timeline_${scheduleId || "general"}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download timeline", err);
+    }
+  }, [timelineEvents, scheduleId]);
+
   // --- STATE TRANSITION LOGIC ---
   const isReplayActive = isReplayMode && dockState === 'expanded' && isSpecificTour && (
     isPlaying || (currentEventIndex > 0 && currentEventIndex < timelineEvents.length - 1)
@@ -262,9 +280,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   useEffect(() => {
     if (onReplayStateChange) {
-      onReplayStateChange(isReplayActive);
+      onReplayStateChange(isReplayMode);
     }
-  }, [isReplayActive, onReplayStateChange]);
+  }, [isReplayMode, onReplayStateChange]);
 
   // --- COLLISION AVOIDANCE LOGIC (FRIENDS & ME) ---
   const visualFriendLocations = useMemo(() => {
@@ -1017,6 +1035,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                             <Play className="w-4 h-4 ml-0.5 fill-current" />
                          </button>
                        )}
+                       <button onClick={handleDownloadTimeline} title="Download Timeline" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                          <Download className="w-4 h-4" />
+                       </button>
                        <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
                           <X className="w-5 h-5" />
                        </button>
@@ -1062,6 +1083,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                       </div>
                    </div>
                    <div className="flex items-center gap-3">
+                     <button onClick={handleDownloadTimeline} title="Download Timeline" className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
+                        <Download className="w-4 h-4" />
+                     </button>
                      <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-10 h-10 bg-slate-900 text-white rounded-full shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
                         {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
                      </button>

@@ -1,4 +1,5 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Camera, Save, Mail, Phone, Calendar, User, ShieldCheck } from 'lucide-react';
 import { ActionButton } from '../../../components/home/ActionButton';
 import { AuthContext } from '../../../contexts/AuthContext';
@@ -10,6 +11,7 @@ import { useTranslation } from '../../../contexts/LocaleContext';
 
 export const Profile: React.FC = () => {
   const { t } = useTranslation();
+  const location = useLocation();
   const { user } = useContext(AuthContext);
   const { success, error: showError } = useToast();
   const { handleUpdateProfile, isUpdating } = useProfile();
@@ -68,9 +70,10 @@ export const Profile: React.FC = () => {
       showError(err.response?.data?.message || err.message || t('auth.profileUpdateFailed'));
     }
   };
+  const isDashboard = location.pathname.includes('/manager') || location.pathname.includes('/staff') || location.pathname.includes('/admin');
 
   return (
-    <div>
+    <div className={isDashboard ? "glass-card p-6 md:p-8" : ""}>
       <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-extrabold text-slate-900">

@@ -129,7 +129,7 @@ export const ScheduleTrackingPage: React.FC = () => {
 
     return () => {
       isCancelled = true;
-      connection.stop().catch(() => {});
+      connection.stop().catch(() => { });
     };
   }, [scheduleIdNumber]);
 

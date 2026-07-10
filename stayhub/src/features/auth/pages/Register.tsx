@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowRight, Phone, Calendar, Users } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useRegister } from "../hooks/useRegister";
@@ -8,9 +8,18 @@ import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField, authInputClass } from "../components/AuthFormField";
 import { PATH } from "../../../config/routes/route";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 export default function Register() {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate(PATH.PUBLIC.HOME, { replace: true });
+    }
+  }, [user, navigate]);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",

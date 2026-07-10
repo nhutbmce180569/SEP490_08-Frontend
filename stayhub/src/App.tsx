@@ -14,6 +14,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { CustomBrandCursor } from "./components/ui/CustomBrandCursor";
 import { PATH } from "./config/routes/route";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
+import GuestRoute from "./contexts/GuestRoute";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -269,17 +270,19 @@ const App: React.FC = () => {
             <ScrollToTop />
             <PasswordChangeEnforcer>
               <Routes>
-              <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
-              <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+              <Route element={<GuestRoute />}>
+                <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
+                <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+                <Route
+                  path={PATH.PUBLIC.FORGOT_PASSWORD}
+                  element={<ForgotPassword />}
+                />
+                <Route
+                  path={PATH.PUBLIC.RESET_PASSWORD}
+                  element={<ResetPassword />}
+                />
+              </Route>
               <Route path="/track/:token" element={<PublicTrackingPage />} />
-              <Route
-                path={PATH.PUBLIC.FORGOT_PASSWORD}
-                element={<ForgotPassword />}
-              />
-              <Route
-                path={PATH.PUBLIC.RESET_PASSWORD}
-                element={<ResetPassword />}
-              />
               <Route element={<AuthenticatedRoute />}>
                 <Route
                   path={PATH.PUBLIC.CHANGE_PASSWORD}

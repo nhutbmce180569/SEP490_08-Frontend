@@ -198,5 +198,6 @@
   "momentDeleteFailed": "Failed to delete moment.",
   "momentViewAllComments": "View all {{count}} comments",
   "anonymous": "Anonymous",
-  "privacyLabel": "Privacy: {{privacy}}"
+  "privacyLabel": "Privacy: {{privacy}}",
+  "report": "Report"
 }

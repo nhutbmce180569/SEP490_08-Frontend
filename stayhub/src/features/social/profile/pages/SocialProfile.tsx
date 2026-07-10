@@ -1,4 +1,4 @@
-import React, { useContext, useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus, Settings } from 'lucide-react';
 import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
@@ -11,7 +11,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import { PATH } from '../../../../config/routes/route';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { MomentModal } from '../../moments/components/MomentModal';
-import { useToggleReaction } from '../../moments/hooks/useMoments';
+import { useToggleReaction, useGetMomentById } from '../../moments/hooks/useMoments';
 
 export const SocialProfile: React.FC = () => {
   const { t, locale } = useTranslation();
@@ -44,27 +44,48 @@ export const SocialProfile: React.FC = () => {
 
   const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
   const { mutate: toggleReaction } = useToggleReaction();
+  const { data: fetchedMoment } = useGetMomentById(selectedMomentId);
 
-  const selectedMoment = useMemo(
-    () => moments?.find((m: any) => (m.id ?? m.Id) === selectedMomentId),
-    [moments, selectedMomentId]
-  );
+  // Progressive lazy loading to handle huge datasets of photos safely in the DOM
+  const [visibleCount, setVisibleCount] = useState(12);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [id]);
+
+  const lastElementRef = useCallback((node: HTMLDivElement | null) => {
+    if (isMomentsLoading) return;
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && moments && visibleCount < moments.length) {
+        setVisibleCount(prev => prev + 12);
+      }
+    });
+
+    if (node) observerRef.current.observe(node);
+  }, [isMomentsLoading, visibleCount, moments]);
+
+  const visibleMoments = useMemo(() => {
+    return (moments || []).slice(0, visibleCount);
+  }, [moments, visibleCount]);
 
   const currentUserId = currentUser ? (currentUser.id || (currentUser as any).Id) : null;
   
   const initialIsLiked = useMemo(() => {
-    if (!selectedMoment || !currentUserId) return false;
-    const reactionList = selectedMoment.reactions || (selectedMoment as any).momentReactions || [];
+    if (!fetchedMoment || !currentUserId) return false;
+    const reactionList = fetchedMoment.reactions || [];
     return reactionList.some((r: any) => 
       (r.isLike === true || r.IsLike === true) && String(r.userId || r.UserId) === String(currentUserId)
     );
-  }, [selectedMoment, currentUserId]);
+  }, [fetchedMoment, currentUserId]);
 
   const initialLikeCount = useMemo(() => {
-    if (!selectedMoment) return 0;
-    const reactionList = selectedMoment.reactions || (selectedMoment as any).momentReactions || [];
+    if (!fetchedMoment) return 0;
+    const reactionList = fetchedMoment.reactions || [];
     return reactionList.length;
-  }, [selectedMoment]);
+  }, [fetchedMoment]);
 
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -75,21 +96,21 @@ export const SocialProfile: React.FC = () => {
   }, [initialIsLiked, initialLikeCount]);
 
   const handleToggleLike = useCallback(() => {
-    if (!selectedMoment) return;
+    if (!fetchedMoment) return;
     if (!currentUser || !currentUserId) { error("Vui lòng đăng nhập."); return; }
     
     const newIsLiked = !isLiked;
     setIsLiked(newIsLiked);
     setLikeCount((prev: number) => newIsLiked ? prev + 1 : prev - 1);
     
-    toggleReaction({ momentId: Number(selectedMoment.id), userId: Number(currentUserId), isLike: newIsLiked }, {
+    toggleReaction({ momentId: Number(fetchedMoment.id), userId: Number(currentUserId), isLike: newIsLiked }, {
       onError: () => { 
         setIsLiked(!newIsLiked); 
         setLikeCount(initialLikeCount); 
         error(t("social.failedReactMoment") || "Lỗi tương tác."); 
       }
     });
-  }, [selectedMoment, currentUser, currentUserId, isLiked, toggleReaction, initialLikeCount, error, t]);
+  }, [fetchedMoment, currentUser, currentUserId, isLiked, toggleReaction, initialLikeCount, error, t]);
 
   if (isProfileLoading) {
     return (
@@ -362,43 +383,47 @@ export const SocialProfile: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {moments.map((moment) => (
-              <div 
-                key={moment.id} 
-                onClick={() => setSelectedMomentId(Number(moment.id))}
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
-              >
-                <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-                  <img 
-                    src={getImg(moment.imageUrl)} 
-                    alt={moment.caption || t('social.travelMoment')} 
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute right-3 top-3 z-10">
-                    {renderPrivacyBadge(moment.privacy || 'Public')}
+            {visibleMoments.map((moment, idx) => {
+              const isLast = idx === visibleMoments.length - 1;
+              return (
+                <div 
+                  key={moment.id} 
+                  ref={isLast ? lastElementRef : undefined}
+                  onClick={() => setSelectedMomentId(Number(moment.id))}
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+                    <img 
+                      src={getImg(moment.imageUrl)} 
+                      alt={moment.caption || t('social.travelMoment')} 
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute right-3 top-3 z-10">
+                      {renderPrivacyBadge(moment.privacy || 'Public')}
+                    </div>
+                    
+                    {moment.caption && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-opacity">
+                        <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm">{moment.caption}</p>
+                        {moment.createdAt && (
+                          <p className="mt-1.5 text-[11px] font-bold text-white/60">
+                            {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   
-                  {moment.caption && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-opacity">
-                      <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm">{moment.caption}</p>
-                      {moment.createdAt && (
-                        <p className="mt-1.5 text-[11px] font-bold text-white/60">
-                          {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
-                        </p>
-                      )}
+                  {!moment.caption && moment.createdAt && (
+                    <div className="px-4 py-3">
+                      <p className="text-xs font-semibold text-slate-400">
+                        {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
+                      </p>
                     </div>
                   )}
                 </div>
-                
-                {!moment.caption && moment.createdAt && (
-                  <div className="px-4 py-3">
-                    <p className="text-xs font-semibold text-slate-400">
-                      {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -414,23 +439,24 @@ export const SocialProfile: React.FC = () => {
         variant="warning"
       />
 
-      {selectedMoment && (
+      {fetchedMoment && (
         <MomentModal
-          moment={{
-            ...selectedMoment,
-            userId: profile?.id || Number(id),
-            user: {
-              id: profile?.id || Number(id),
-              fullName: profile?.fullName || t("tour.anonymousCustomer"),
-              avatarUrl: profile?.avatarUrl,
-            }
-          } as any}
-          isOpen={!!selectedMoment}
+          moment={fetchedMoment}
+          isOpen={!!selectedMomentId}
           onClose={() => setSelectedMomentId(null)}
           isLiked={isLiked}
           likeCount={likeCount}
           onToggleLike={handleToggleLike}
         />
+      )}
+
+      {selectedMomentId !== null && !fetchedMoment && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
+            <Loader2 className="h-8 w-8 animate-spin text-brand" />
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Loading moment...</span>
+          </div>
+        </div>
       )}
     </div>
   );

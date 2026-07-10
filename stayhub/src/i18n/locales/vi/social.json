@@ -198,5 +198,6 @@
   "momentDeleteFailed": "Không thể xóa khoảnh khắc.",
   "momentViewAllComments": "Xem tất cả {{count}} bình luận",
   "anonymous": "Ẩn danh",
-  "privacyLabel": "Quyền riêng tư: {{privacy}}"
+  "privacyLabel": "Quyền riêng tư: {{privacy}}",
+  "report": "Báo cáo"
 }

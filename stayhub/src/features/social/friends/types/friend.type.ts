@@ -12,6 +12,7 @@ export interface FriendshipResponse {
   friendId: number;
   friendName: string;
   friendAvatarUrl?: string | null;
+  friendEmail?: string;
   status: string;
 }
 

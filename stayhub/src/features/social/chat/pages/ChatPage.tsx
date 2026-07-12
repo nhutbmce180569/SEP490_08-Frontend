@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useContext, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useContext, useMemo, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatService } from '../services/chatService';
 import { useChatSignalR, useCreateChatRoom } from '../hooks/useChatSignalR';
@@ -15,13 +15,16 @@ import {
   X,
   Search,
   SquarePen,
-  Users
+  Users,
+  Camera,
+  MapPin
 } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { createPortal } from 'react-dom';
+import { useShareLocation } from '../../tracking/hooks/useLocationTracking';
 
 // ============ COMPONENT: Add Member Modal ============
 interface AddMemberModalProps {
@@ -174,6 +177,7 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
 // ============ MAIN COMPONENT: ChatPage ============
 export const ChatPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { success, error, warning } = useToast();
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [textValue, setTextValue] = useState<string>('');
@@ -219,6 +223,23 @@ export const ChatPage: React.FC = () => {
   });
 
   const { messages: realtimeMessages, sendMessage, isConnected, setMessages: setRealtimeMessages } = useChatSignalR(selectedRoomId);
+
+  const { mutate: shareLocation, isPending: isSharingLocation } = useShareLocation();
+
+  const handleShareLocationInChat = useCallback(() => {
+    if (!selectedRoomId || !isConnected) return;
+    shareLocation(undefined, {
+      onSuccess: (token) => {
+        const shareContent = `📍 Vị trí hiện tại của tôi: [LocationShare:${JSON.stringify({ token })}]`;
+        sendMessage(shareContent);
+        success("Đã gửi vị trí của bạn!");
+        queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
+      },
+      onError: () => {
+        error("Không thể chia sẻ vị trí.");
+      }
+    });
+  }, [selectedRoomId, isConnected, shareLocation, sendMessage, success, error, queryClient]);
 
   const handleSelectRoom = (roomId: number) => {
     setSelectedRoomId(roomId);
@@ -449,8 +470,65 @@ const { mutate: mutateMarkAsRead } = useMutation({
                               </div>
                             )}
                             <div className={`relative px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed shadow-sm w-auto ${isMe ? 'bg-brand text-white rounded-br-none' : 'bg-white border border-slate-200/60 text-slate-800 rounded-bl-none'}`}>
-                              {!isMe && <div className="text-[10px] font-black text-brand mb-0.5 uppercase tracking-wide">{msg.senderName}</div>}
-                              <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>
+                              {!isMe && <div className="text-[10px] font-black text-brand mb-1 uppercase tracking-wide">{msg.senderName}</div>}
+                              
+                              {msg.content.startsWith('[MomentShare:') ? (() => {
+                                try {
+                                  const jsonStr = msg.content.substring(13, msg.content.length - 1);
+                                  const { id, imageUrl, caption } = JSON.parse(jsonStr);
+                                  return (
+                                    <div 
+                                      onClick={() => navigate(`/social/moments?momentId=${id}`)}
+                                      className="flex flex-col rounded-2xl overflow-hidden border border-slate-800 shadow-lg cursor-pointer hover:scale-[1.02] hover:border-brand/40 transition-all max-w-[240px] bg-slate-900 text-white mt-1"
+                                    >
+                                      <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-800/80 text-[10px] font-black uppercase tracking-wider text-slate-300">
+                                        <Camera className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                                        <span>Khoảnh khắc</span>
+                                      </div>
+                                      <div className="w-full aspect-[4/5] bg-slate-950 overflow-hidden relative">
+                                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                                      </div>
+                                      {caption && (
+                                        <div className="p-3 text-[11px] font-bold line-clamp-2 bg-slate-900 text-slate-100 leading-normal">
+                                          {caption}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                } catch (e) {
+                                  return <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>;
+                                }
+                              })() : msg.content.includes('[LocationShare:') ? (() => {
+                                try {
+                                  const match = msg.content.match(/\[LocationShare:({.*?})\]/);
+                                  if (match) {
+                                    const { token } = JSON.parse(match[1]);
+                                    return (
+                                      <div 
+                                        onClick={() => window.open(`/track/${token}`, '_blank')}
+                                        className={`flex flex-col rounded-2xl overflow-hidden border shadow-md cursor-pointer hover:scale-[1.02] transition-all p-3.5 max-w-[240px] mt-1 ${
+                                          isMe ? 'bg-blue-950 text-white border-blue-900' : 'bg-slate-50 text-slate-800 border-slate-200'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <div className="relative flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                                          </div>
+                                          <span className="text-[10px] font-black uppercase tracking-widest">Vị trí trực tiếp</span>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Bấm để theo dõi lộ trình di chuyển trực tuyến của tôi.</p>
+                                        <span className="text-[10px] font-bold py-1.5 bg-brand text-white rounded-xl text-center shadow-sm">Xem vị trí</span>
+                                      </div>
+                                    );
+                                  }
+                                } catch (e) {
+                                  return <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>;
+                                }
+                                return <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>;
+                              })() : (
+                                <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>
+                              )}
                               {hoveredMessageId === msg.id && (
                                 <div className="absolute -bottom-8 right-0 flex gap-1 bg-white border border-slate-200 rounded-full p-1 shadow-md z-30">
                                   <button className="p-1 hover:bg-slate-100 rounded-full transition-colors"><SmilePlus className="w-3.5 h-3.5 text-slate-600" /></button>
@@ -470,7 +548,28 @@ const { mutate: mutateMarkAsRead } = useMutation({
 
                 <div className="p-4 bg-white/75 backdrop-blur-[30px] border-t border-slate-200/60 z-20 shadow-lg">
                   <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-                    <input type="text" value={textValue} onChange={(e) => setTextValue(e.target.value)} placeholder={t('social.typeMessage')} className="flex-1 bg-slate-100/80 backdrop-blur-sm border border-transparent rounded-full px-5 py-2.5 text-sm focus:outline-none focus:bg-white focus:border-slate-300 focus:ring-4 focus:ring-brand/10 transition-all text-slate-800 placeholder-slate-400 shadow-inner" />
+                    <div className="flex-1 flex items-center bg-slate-100/80 backdrop-blur-sm border border-transparent rounded-full px-5 py-1 focus-within:bg-white focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-brand/10 transition-all shadow-inner">
+                      <input 
+                        type="text" 
+                        value={textValue} 
+                        onChange={(e) => setTextValue(e.target.value)} 
+                        placeholder={t('social.typeMessage')} 
+                        className="flex-1 bg-transparent py-2.5 text-sm focus:outline-none text-slate-800 placeholder-slate-400" 
+                      />
+                      <button
+                        type="button"
+                        onClick={handleShareLocationInChat}
+                        disabled={isSharingLocation}
+                        className="p-1.5 text-slate-400 hover:text-brand transition-colors cursor-pointer flex-none ml-2"
+                        title="Chia sẻ vị trí hiện tại"
+                      >
+                        {isSharingLocation ? (
+                          <Loader2 className="w-4 h-4 text-brand animate-spin" />
+                        ) : (
+                          <MapPin className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
                     <button type="submit" disabled={!textValue.trim() || !isConnected} className="p-3 bg-brand hover:bg-brand-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-full transition-all flex items-center justify-center shrink-0 shadow-lg shadow-brand/20 active:scale-95 cursor-pointer"><Send className="w-4 h-4" /></button>
                   </form>
                 </div>

@@ -86,6 +86,18 @@ export const getMomentFeed = async (
   return extractList(raw).map(mapMoment);
 };
 
+export const getMomentById = async (momentId: number): Promise<Moment | null> => {
+  try {
+    const raw: any = await apiClient.get<any>(`${MOMENT_API_URL}/${momentId}`);
+    const data = raw?.data ?? raw;
+    if (!data) return null;
+    return mapMoment(data);
+  } catch (err) {
+    console.error("Lỗi lấy chi tiết moment:", err);
+    return null;
+  }
+};
+
 // FIX: footprint lay tu LocationLogs (di chuyen) qua /locations/footprints,
 // KHONG phai tu anh (/moments/my-footprints). Khop voi mobile.
 export const getMyFootprints = async (): Promise<{ lat: number; lng: number }[]> => {

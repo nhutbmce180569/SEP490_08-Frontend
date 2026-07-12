@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
@@ -7,6 +7,7 @@ import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
 import {
   getOtpCooldownStorageKey,
   usePersistentCountdown,
@@ -16,9 +17,17 @@ const OTP_COOLDOWN_SECONDS = 60;
 
 export default function ForgotPassword() {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate(PATH.PUBLIC.HOME, { replace: true });
+    }
+  }, [user, navigate]);
+
   const [email, setEmail] = useState("");
   const { handleForgotPasswordSubmit, isSubmitting } = useForgotPassword();
-  const navigate = useNavigate();
   const {
     isActive: isCooldownActive,
     startCountdown,

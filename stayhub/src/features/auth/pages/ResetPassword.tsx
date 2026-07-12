@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Mail, Lock, KeyRound, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
@@ -8,6 +8,7 @@ import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
 import {
   getOtpCooldownStorageKey,
   usePersistentCountdown,
@@ -17,8 +18,16 @@ const OTP_COOLDOWN_SECONDS = 60;
 
 export default function ResetPassword() {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate(PATH.PUBLIC.HOME, { replace: true });
+    }
+  }, [user, navigate]);
+
   const prefilledEmail = location.state?.email || "";
 
   const [formData, setFormData] = useState({

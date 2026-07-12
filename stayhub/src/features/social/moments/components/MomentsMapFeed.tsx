@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect, useContext } 
 import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
-import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame } from "lucide-react";
+import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
 import { useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
@@ -14,6 +14,7 @@ import { ShareLocationButton } from "../../tracking/components/ShareLocationButt
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { getStoredLocale } from "../../../../i18n";
 import { AuthContext } from "../../../../contexts/AuthContext";
+import { useToast } from "../../../../contexts/ToastContext";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -37,6 +38,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const { t } = useTranslation();
   const locale = getStoredLocale();
   const { user } = useContext(AuthContext);
+  const { success, error: toastError } = useToast();
+
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
   if (!apiKey) {
@@ -213,6 +219,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const timelineEvents = useMemo(() => {
     // Rule: Timeline Replay must NEVER combine events from unrelated tours.
     if (!isSpecificTour) return [];
+    if (!moments) return [];
 
     const events: any[] = [];
     
@@ -255,6 +262,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     return events;
   }, [moments, tourStops, isSpecificTour]);
 
+
+
   // --- STATE TRANSITION LOGIC ---
   const isReplayActive = isReplayMode && dockState === 'expanded' && isSpecificTour && (
     isPlaying || (currentEventIndex > 0 && currentEventIndex < timelineEvents.length - 1)
@@ -262,9 +271,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   useEffect(() => {
     if (onReplayStateChange) {
-      onReplayStateChange(isReplayActive);
+      onReplayStateChange(isReplayMode);
     }
-  }, [isReplayActive, onReplayStateChange]);
+  }, [isReplayMode, onReplayStateChange]);
 
   // --- COLLISION AVOIDANCE LOGIC (FRIENDS & ME) ---
   const visualFriendLocations = useMemo(() => {
@@ -314,12 +323,85 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     if (!isPlaying || timelineEvents.length === 0) return;
     if (currentEventIndex >= timelineEvents.length - 1) {
        setIsPlaying(false);
+       if (isRecording) {
+         stopRecording();
+       }
        return;
     }
     const interval = 3000 / playbackSpeed;
     const timer = setTimeout(() => setCurrentEventIndex(prev => prev + 1), interval);
     return () => clearTimeout(timer);
-  }, [isPlaying, currentEventIndex, timelineEvents.length, playbackSpeed]);
+  }, [isPlaying, currentEventIndex, timelineEvents.length, playbackSpeed, isRecording]);
+
+  // Sync isPlaying with recording state (auto-stop recording if playback is paused/interrupted)
+  useEffect(() => {
+    if (!isPlaying && isRecording) {
+      stopRecording();
+    }
+  }, [isPlaying, isRecording]);
+
+  // Recording helper functions
+  const startRecording = () => {
+    if (timelineEvents.length === 0) return;
+    
+    setCurrentEventIndex(0);
+    recordedChunksRef.current = [];
+    
+    const canvas = document.querySelector('.mapboxgl-canvas') as HTMLCanvasElement;
+    if (!canvas) {
+      toastError("Mapbox canvas element not found");
+      return;
+    }
+
+    try {
+      const stream = canvas.captureStream(30); // 30 FPS
+      let options = { mimeType: 'video/webm; codecs=vp9' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm' };
+      }
+      
+      const recorder = new MediaRecorder(stream, options);
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `stayhub_journey_${scheduleId || "general"}.webm`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        success("Journey video downloaded successfully!");
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      setIsPlaying(true);
+      setIsReplayMode(true);
+      setDockState('expanded');
+      
+      success("Ghi hình hành trình bắt đầu...");
+    } catch (err) {
+      console.error("Failed to start recording", err);
+      toastError("Ghi hình thất bại.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    setIsPlaying(false);
+  };
 
   // Cinematic camera movement
   useEffect(() => {
@@ -494,19 +576,22 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         style={{ width: "100%", height: "100%" }}
         onClick={handleMapClick}
         attributionControl={false}
+        preserveDrawingBuffer={true}
       >
         <style>{`
           .glass-panel {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.08);
           }
           .glass-panel-dark {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 8px 32px 0 rgba(0, 0, 0, 0.2);
           }
           .glass-button {
             background: rgba(255, 255, 255, 0.9);
@@ -1017,6 +1102,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                             <Play className="w-4 h-4 ml-0.5 fill-current" />
                          </button>
                        )}
+                       {isRecording ? (
+                          <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
+                             <span className="w-3 h-3 bg-white rounded-sm"></span>
+                          </button>
+                        ) : (
+                          <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                             <Film className="w-4 h-4" />
+                          </button>
+                        )}
                        <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
                           <X className="w-5 h-5" />
                        </button>
@@ -1062,6 +1156,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                       </div>
                    </div>
                    <div className="flex items-center gap-3">
+                     {isRecording ? (
+                        <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
+                           <span className="w-3 h-3 bg-white rounded-sm"></span>
+                        </button>
+                      ) : (
+                        <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
+                           <Film className="w-4 h-4" />
+                        </button>
+                      )}
                      <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-10 h-10 bg-slate-900 text-white rounded-full shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
                         {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
                      </button>

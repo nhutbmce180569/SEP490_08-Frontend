@@ -1,6 +1,6 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus } from 'lucide-react';
+import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus, Settings } from 'lucide-react';
 import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
 import { getImg } from '../../../../config/api/api';
 import { useTranslation } from '../../../../contexts/LocaleContext';
@@ -10,6 +10,8 @@ import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
 import { useToast } from '../../../../contexts/ToastContext';
 import { PATH } from '../../../../config/routes/route';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
+import { MomentModal } from '../../moments/components/MomentModal';
+import { useToggleReaction, useGetMomentById } from '../../moments/hooks/useMoments';
 
 export const SocialProfile: React.FC = () => {
   const { t, locale } = useTranslation();
@@ -39,6 +41,76 @@ export const SocialProfile: React.FC = () => {
   const { mutate: createChat } = useCreateChatRoom();
 
   const dateLocale = locale === 'vi' ? 'vi-VN' : 'en-US';
+
+  const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
+  const { mutate: toggleReaction } = useToggleReaction();
+  const { data: fetchedMoment } = useGetMomentById(selectedMomentId);
+
+  // Progressive lazy loading to handle huge datasets of photos safely in the DOM
+  const [visibleCount, setVisibleCount] = useState(12);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [id]);
+
+  const lastElementRef = useCallback((node: HTMLDivElement | null) => {
+    if (isMomentsLoading) return;
+    if (observerRef.current) observerRef.current.disconnect();
+
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && moments && visibleCount < moments.length) {
+        setVisibleCount(prev => prev + 12);
+      }
+    });
+
+    if (node) observerRef.current.observe(node);
+  }, [isMomentsLoading, visibleCount, moments]);
+
+  const visibleMoments = useMemo(() => {
+    return (moments || []).slice(0, visibleCount);
+  }, [moments, visibleCount]);
+
+  const currentUserId = currentUser ? (currentUser.id || (currentUser as any).Id) : null;
+  
+  const initialIsLiked = useMemo(() => {
+    if (!fetchedMoment || !currentUserId) return false;
+    const reactionList = fetchedMoment.reactions || [];
+    return reactionList.some((r: any) => 
+      (r.isLike === true || r.IsLike === true) && String(r.userId || r.UserId) === String(currentUserId)
+    );
+  }, [fetchedMoment, currentUserId]);
+
+  const initialLikeCount = useMemo(() => {
+    if (!fetchedMoment) return 0;
+    const reactionList = fetchedMoment.reactions || [];
+    return reactionList.length;
+  }, [fetchedMoment]);
+
+  const [isLiked, setIsLiked] = useState(initialIsLiked);
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
+
+  useEffect(() => {
+    setIsLiked(initialIsLiked);
+    setLikeCount(initialLikeCount);
+  }, [initialIsLiked, initialLikeCount]);
+
+  const handleToggleLike = useCallback(() => {
+    if (!fetchedMoment) return;
+    if (!currentUser || !currentUserId) { error("Vui lòng đăng nhập."); return; }
+    
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikeCount((prev: number) => newIsLiked ? prev + 1 : prev - 1);
+    
+    toggleReaction({ momentId: Number(fetchedMoment.id), userId: Number(currentUserId), isLike: newIsLiked }, {
+      onError: () => { 
+        setIsLiked(!newIsLiked); 
+        setLikeCount(initialLikeCount); 
+        error(t("social.failedReactMoment") || "Lỗi tương tác."); 
+      }
+    });
+  }, [fetchedMoment, currentUser, currentUserId, isLiked, toggleReaction, initialLikeCount, error, t]);
 
   if (isProfileLoading) {
     return (
@@ -88,8 +160,16 @@ export const SocialProfile: React.FC = () => {
   };
 
   const renderProfileActions = () => {
-    if (currentUser && String(currentUser.id) === String(id)) {
-      return null;
+    if (currentUser && String(currentUser.id || (currentUser as any).Id) === String(id)) {
+      return (
+        <button
+          onClick={() => navigate(PATH.CUSTOMER.PROFILE)}
+          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"
+        >
+          <Settings className="h-4 w-4" />
+          <span>Chỉnh sửa hồ sơ</span>
+        </button>
+      );
     }
 
     if (isStatusLoading) {
@@ -303,39 +383,47 @@ export const SocialProfile: React.FC = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-            {moments.map((moment) => (
-              <div key={moment.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md">
-                <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
-                  <img 
-                    src={getImg(moment.imageUrl)} 
-                    alt={moment.caption || t('social.travelMoment')} 
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute right-3 top-3 z-10">
-                    {renderPrivacyBadge(moment.privacy)}
+            {visibleMoments.map((moment, idx) => {
+              const isLast = idx === visibleMoments.length - 1;
+              return (
+                <div 
+                  key={moment.id} 
+                  ref={isLast ? lastElementRef : undefined}
+                  onClick={() => setSelectedMomentId(Number(moment.id))}
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden bg-slate-100">
+                    <img 
+                      src={getImg(moment.imageUrl)} 
+                      alt={moment.caption || t('social.travelMoment')} 
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <div className="absolute right-3 top-3 z-10">
+                      {renderPrivacyBadge(moment.privacy || 'Public')}
+                    </div>
+                    
+                    {moment.caption && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-opacity">
+                        <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm">{moment.caption}</p>
+                        {moment.createdAt && (
+                          <p className="mt-1.5 text-[11px] font-bold text-white/60">
+                            {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   
-                  {moment.caption && (
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-opacity">
-                      <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm">{moment.caption}</p>
-                      {moment.createdAt && (
-                        <p className="mt-1.5 text-[11px] font-bold text-white/60">
-                          {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
-                        </p>
-                      )}
+                  {!moment.caption && moment.createdAt && (
+                    <div className="px-4 py-3">
+                      <p className="text-xs font-semibold text-slate-400">
+                        {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
+                      </p>
                     </div>
                   )}
                 </div>
-                
-                {!moment.caption && moment.createdAt && (
-                  <div className="px-4 py-3">
-                    <p className="text-xs font-semibold text-slate-400">
-                      {new Date(moment.createdAt).toLocaleDateString(dateLocale)}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -350,6 +438,26 @@ export const SocialProfile: React.FC = () => {
         cancelText={t("common.cancel") || "Hủy"}
         variant="warning"
       />
+
+      {fetchedMoment && (
+        <MomentModal
+          moment={fetchedMoment}
+          isOpen={!!selectedMomentId}
+          onClose={() => setSelectedMomentId(null)}
+          isLiked={isLiked}
+          likeCount={likeCount}
+          onToggleLike={handleToggleLike}
+        />
+      )}
+
+      {selectedMomentId !== null && !fetchedMoment && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
+            <Loader2 className="h-8 w-8 animate-spin text-brand" />
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Loading moment...</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

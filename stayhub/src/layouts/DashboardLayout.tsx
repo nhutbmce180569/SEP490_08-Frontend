@@ -81,6 +81,11 @@ export const DashboardLayout = () => {
             to: PATH.MANAGER.MODERATION,
             icon: <ShieldAlert className={iconClass} />,
           },
+          {
+            label: t("manager.trendPrediction") || "Dự báo Tour Hot",
+            to: PATH.MANAGER.TREND_PREDICTION,
+            icon: <LayoutDashboard className={iconClass} />,
+          },
         ],
       },
     ],

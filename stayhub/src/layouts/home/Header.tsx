@@ -10,7 +10,8 @@ import {
   Users,
   Search,
   ShoppingBag,
-  Info,
+  Sparkles,
+  MessageCircle,
 } from "lucide-react";
 
 import { ActionButton } from "../../components/home/ActionButton";
@@ -30,6 +31,11 @@ import { useGetPendingRequests } from "../../features/social/friends/hooks/useFr
 import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
 import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
 import { getSearchSuggestions } from "../../hooks/useSearchTours";
+import { useAiPlanner } from "../../contexts/AiPlannerContext";
+import { useTourAssistantChatState } from "../../contexts/TourAssistantChatContext";
+import { useQuery } from "@tanstack/react-query";
+import { chatService } from "../../features/social/chat/services/chatService";
+import { useChatNotification } from "../../features/social/chat/component/ChatNotificationContext";
 
 
 export default function Header() {
@@ -38,6 +44,15 @@ export default function Header() {
   const { success } = useToast();
   const { t } = useTranslation();
   const { user, logout: contextLogout } = useContext(AuthContext);
+  const { open: openAiPlanner } = useAiPlanner();
+  const { toggle: toggleTourAssistantChat } = useTourAssistantChatState();
+  const { isPopoverOpen, setIsPopoverOpen } = useChatNotification();
+  const { data: chatRooms = [] } = useQuery({
+    queryKey: ['chatRooms'],
+    queryFn: chatService.getChatRooms,
+    enabled: !!user,
+  });
+  const unreadChatCount = chatRooms.reduce((acc: number, r: any) => acc + (r.unreadCount || 0), 0);
 
   const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
   const pendingCount = Array.isArray(pendingRequests) ? pendingRequests.length : 0;
@@ -179,88 +194,127 @@ export default function Header() {
             />
           </Link>
 
-          <div ref={searchBarRef} className="search-bar-glass hidden relative max-w-md flex-1 lg:flex items-center">
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              onFocus={() => query.trim() && setShowSuggestions(true)}
-              placeholder={t("header.searchPlaceholder")}
-              className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400 pr-2"
-              aria-label={t("header.searchLabel")}
-            />
+          {pathname !== PATH.PUBLIC.HOME && (
+            <div ref={searchBarRef} className="search-bar-glass hidden relative max-w-md flex-1 lg:flex items-center">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                onFocus={() => query.trim() && setShowSuggestions(true)}
+                placeholder={t("header.searchPlaceholder")}
+                className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400 pr-2"
+                aria-label={t("header.searchLabel")}
+              />
+              <button
+                type="button"
+                onClick={handleSearch}
+                className="p-1 rounded-full hover:bg-slate-200/60 transition-colors"
+                aria-label={t("common.search")}
+              >
+                <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+              </button>
+              {showSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
+                  {isSuggestionsLoading ? (
+                    <div className="p-4 text-center text-sm text-slate-500">{t("common.loading")}</div>
+                  ) : suggestions.length > 0 ? (
+                    <ul className="py-1">
+                      {suggestions.map((suggestion, index) => (
+                        <li key={index}>
+                          <Link
+                            to={`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(suggestion)}`}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 !no-underline"
+                            onClick={() => {
+                              setQuery(suggestion);
+                              setShowSuggestions(false);
+                            }}
+                          >
+                            <Search className="h-4 w-4 text-slate-400" />
+                            <span
+                              dangerouslySetInnerHTML={{
+                                __html: suggestion.replace(
+                                  new RegExp(`(${query})`, 'gi'),
+                                  '<strong class="font-bold text-brand">$1</strong>'
+                                ),
+                              }}
+                            />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="p-4 text-center text-sm text-slate-500">{t("tour.noToursFound")}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Main Navigation Links */}
+          <nav className="hidden xl:flex items-center gap-6 ml-6 shrink-0">
+            <Link
+              to={PATH.PUBLIC.TOURS}
+              className={`text-sm font-semibold transition-colors !no-underline ${
+                pathname === PATH.PUBLIC.TOURS
+                  ? "text-brand"
+                  : "text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand"
+              }`}
+            >
+              {t("header.browseTours")}
+            </Link>
+            
             <button
               type="button"
-              onClick={handleSearch}
-              className="p-1 rounded-full hover:bg-slate-200/60 transition-colors"
-              aria-label={t("common.search")}
+              onClick={() => openAiPlanner(pathname)}
+              className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand transition-colors"
             >
-              <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+              <Sparkles size={14} className="text-brand animate-pulse" />
+              <span>{t("header.aiGuide")}</span>
             </button>
-            {showSuggestions && (
-              <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
-                {isSuggestionsLoading ? (
-                  <div className="p-4 text-center text-sm text-slate-500">{t("common.loading")}</div>
-                ) : suggestions.length > 0 ? (
-                  <ul className="py-1">
-                    {suggestions.map((suggestion, index) => (
-                      <li key={index}>
-                        <Link
-                          to={`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(suggestion)}`}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 !no-underline"
-                          onClick={() => {
-                            setQuery(suggestion);
-                            setShowSuggestions(false);
-                          }}
-                        >
-                          <Search className="h-4 w-4 text-slate-400" />
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: suggestion.replace(
-                                new RegExp(`(${query})`, 'gi'),
-                                '<strong class="font-bold text-brand">$1</strong>'
-                              ),
-                            }}
-                          />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <div className="p-4 text-center text-sm text-slate-500">{t("tour.noToursFound")}</div>
-                )}
-              </div>
+
+            {user && (
+              <>
+                <Link
+                  to="/social/moments"
+                  className={`text-sm font-semibold transition-colors !no-underline ${
+                    pathname === "/social/moments"
+                      ? "text-brand"
+                      : "text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand"
+                  }`}
+                >
+                  {t("header.moments")}
+                </Link>
+                <Link
+                  to={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                  className={`text-sm font-semibold transition-colors !no-underline ${
+                    pathname === PATH.CUSTOMER.SOCIAL_FRIENDS
+                      ? "text-brand"
+                      : "text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand"
+                  }`}
+                >
+                  {t("header.friends")}
+                </Link>
+              </>
             )}
-          </div>
+          </nav>
         </div>
 
         {/* Actions: discovery → social → preferences → account */}
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          <button
-            type="button"
-            className="icon-btn lg:hidden"
-            aria-label="Search"
-            onClick={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
-          >
-            <Search className="h-5 w-5" />
-          </button>
-
-          <Link
-            to={PATH.PUBLIC.ABOUT}
-            className={`hidden items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition-colors md:inline-flex !no-underline ${
-              pathname === PATH.PUBLIC.ABOUT
-                ? "bg-brand-light text-brand"
-                : "text-slate-600 hover:bg-brand-light/40 hover:text-brand"
-            }`}
-            title={t("header.aboutUsTitle")}
-          >
-            <Info className="h-4 w-4" />
-            <span>{t("header.aboutUs")}</span>
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {pathname !== PATH.PUBLIC.HOME && (
+            <button
+              type="button"
+              className="icon-btn lg:hidden"
+              aria-label="Search"
+              onClick={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          )}
 
           <button
             type="button"
-            className="icon-btn hidden sm:inline-flex"
+            className="icon-btn xl:hidden hidden sm:inline-flex"
             aria-label="Browse tours"
             title={t("header.browseTours")}
             onClick={() => navigate(PATH.PUBLIC.TOURS)}
@@ -285,7 +339,7 @@ export default function Header() {
               <button
                 type="button"
                 onClick={() => navigate("/social/moments")}
-                className="icon-btn"
+                className="icon-btn xl:hidden"
                 title={t("header.moments")}
                 aria-label={t("header.moments")}
               >
@@ -361,6 +415,46 @@ export default function Header() {
               </div>
 
               <WishlistHeaderButton />
+            </>
+          ) : null}
+
+          {/* Grouped Language & Currency Switcher (Traveloka style) */}
+          <div className="hidden md:flex items-center gap-1.5 border border-slate-200/80 bg-white/70 dark:border-slate-800 dark:bg-slate-900/60 rounded-full px-2.5 py-1 backdrop-blur-sm shadow-sm select-none">
+            <LanguageSwitcher variant="icon" className="!p-0 !h-auto !w-auto text-xs font-bold text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand bg-transparent border-none shadow-none" />
+            <span className="text-slate-300 dark:text-slate-700 text-sm">|</span>
+            <CurrencyToggle className="!border-none !bg-transparent !p-0 !shadow-none !m-0" />
+          </div>
+
+          {/* AI Planner Icon Button (Mobile/Tablet) */}
+          <button
+            type="button"
+            onClick={() => openAiPlanner(pathname)}
+            className="lg:hidden icon-btn text-brand hover:bg-brand-light/40 relative"
+            title={t("header.aiGuideTitle")}
+            aria-label={t("header.aiGuideTitle")}
+          >
+            <Sparkles className="h-5 w-5" />
+            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
+            </span>
+          </button>
+
+          {user ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsPopoverOpen(!isPopoverOpen)}
+                className={`icon-btn relative hover:bg-brand-light/40 ${isPopoverOpen ? 'text-brand bg-brand-light/20' : 'text-slate-600 dark:text-slate-300'}`}
+                title={t("nav.messages") || "Tin nhắn"}
+              >
+                <MessageCircle className="h-5 w-5" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </button>
 
               <NotificationBell />
 
@@ -368,90 +462,96 @@ export default function Header() {
                 <button
                   type="button"
                   onClick={() => setShowUserMenu((v) => !v)}
-                  className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-brand-light/40 md:pr-3"
+                  className="flex items-center justify-center rounded-full p-0.5 transition-colors hover:bg-brand-light/40 ring-2 ring-transparent hover:ring-brand-light"
                   aria-expanded={showUserMenu}
                   aria-haspopup="menu"
                 >
                   <UserAvatar name={displayName} avatarUrl={avatarUrl} size="md" />
-                  <span className="hidden max-w-[140px] truncate text-sm font-semibold text-navy xl:inline">
-                    {displayName}
-                  </span>
                 </button>
 
                 {showUserMenu && (
                   <div
-                    className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-56 p-1.5"
+                    className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-64 p-2"
                     role="menu"
                   >
                     <div className="border-b border-slate-100/80 px-3 py-2.5">
                       <p className="truncate text-sm font-bold text-navy">{displayName}</p>
                       <p className="truncate text-xs text-slate-500">{user?.email || user?.Email}</p>
                     </div>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        navigate(PATH.CUSTOMER.PROFILE);
-                        setShowUserMenu(false);
-                      }}
-                      className="menu-item"
-                    >
-                      <User className="h-4 w-4" />
-                      {t("header.myProfile")}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        navigate(PATH.CUSTOMER.WISHLIST);
-                        setShowUserMenu(false);
-                      }}
-                      className="menu-item"
-                    >
-                      <Heart className="h-4 w-4" />
-                      {t("header.wishlist")}
-                    </button>
-                    {!isSocialLogin && (
+
+                    <div className="py-1">
                       <button
                         type="button"
                         role="menuitem"
                         onClick={() => {
-                          navigate(PATH.PUBLIC.CHANGE_PASSWORD);
+                          navigate(PATH.CUSTOMER.PROFILE);
                           setShowUserMenu(false);
                         }}
                         className="menu-item"
                       >
-                        <Lock className="h-4 w-4" />
-                        {t("header.changePassword")}
+                        <User className="h-4 w-4" />
+                        {t("header.myProfile")}
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowLogoutConfirm(true);
-                        setShowUserMenu(false);
-                      }}
-                      className="menu-item menu-item-danger"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      {t("header.signOut")}
-                    </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          navigate(PATH.CUSTOMER.WISHLIST);
+                          setShowUserMenu(false);
+                        }}
+                        className="menu-item"
+                      >
+                        <Heart className="h-4 w-4" />
+                        {t("header.wishlist")}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          toggleTourAssistantChat();
+                        }}
+                        className="menu-item"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        {t("ai.openAssistant")}
+                      </button>
+                      {!isSocialLogin && (
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            navigate(PATH.PUBLIC.CHANGE_PASSWORD);
+                            setShowUserMenu(false);
+                          }}
+                          className="menu-item"
+                        >
+                          <Lock className="h-4 w-4" />
+                          {t("header.changePassword")}
+                        </button>
+                      )}
+                    </div>
 
-                    {/* Settings Group */}
-                    <div className="mt-1.5 border-t border-slate-100/80 bg-slate-50/50 -mx-1.5 -mb-1.5 p-3 rounded-b-xl flex flex-col gap-2.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-500">Language</span>
-                        <LanguageSwitcher />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-500">Currency</span>
-                        <CurrencyToggle className="inline-flex" />
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-slate-500">Theme</span>
-                        <ThemeToggle variant="menu" className="flex-1 ml-4" />
-                      </div>
+                    <div className="border-t border-slate-100/80 px-3 py-2">
+                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        {t("common.theme") || "Theme Mode"}
+                      </p>
+                      <ThemeToggle variant="menu" className="w-full" />
+                    </div>
+
+                    <div className="border-t border-slate-100/80 pt-1.5">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setShowLogoutConfirm(true);
+                          setShowUserMenu(false);
+                        }}
+                        className="menu-item menu-item-danger"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        {t("header.signOut")}
+                      </button>
                     </div>
                   </div>
                 )}
@@ -459,10 +559,6 @@ export default function Header() {
             </>
           ) : (
             <>
-              <CurrencyToggle />
-              <LanguageSwitcher />
-              <ThemeToggle />
-
               <ActionButton
                 variant="ghost"
                 onClick={() => navigate(PATH.PUBLIC.REGISTER)}

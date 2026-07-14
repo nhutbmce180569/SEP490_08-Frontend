@@ -1,10 +1,14 @@
 {
   "friendsManagement": "Quản lý bạn bè",
   "myFriends": "Bạn bè của tôi",
-  "requests": "Lời mời",
+  "requests": "Lời mời nhận",
+  "sentRequests": "Lời mời đã gửi",
   "findFriends": "Tìm bạn bè",
   "noFriendsYet": "Bạn chưa thêm bạn bè nào.",
   "noPendingRequests": "Không có lời mời kết bạn đang chờ.",
+  "noSentRequests": "Chưa gửi lời mời kết bạn nào.",
+  "cancelRequest": "Hủy yêu cầu",
+  "requestSent": "Đã gửi yêu cầu",
   "message": "Nhắn tin",
   "unfriend": "Hủy kết bạn",
   "accept": "Chấp nhận",
@@ -194,5 +198,6 @@
   "momentDeleteFailed": "Không thể xóa khoảnh khắc.",
   "momentViewAllComments": "Xem tất cả {{count}} bình luận",
   "anonymous": "Ẩn danh",
-  "privacyLabel": "Quyền riêng tư: {{privacy}}"
+  "privacyLabel": "Quyền riêng tư: {{privacy}}",
+  "report": "Báo cáo"
 }

@@ -14,6 +14,7 @@ export const TOURS_API = {
   UPDATE: (id: string | number) => `${FULL_API}/tours/${id}`,
   ACTIVE_TOUR: (id: string | number) => `${FULL_API}/Tours/active/${id}`,
   UPDATE_STATUS: (id: string | number) => `${FULL_API}/tours/${id}/status`,
+  CHANGE_MANAGER: (id: string | number) => `${FULL_API}/tours/${id}/manager`,
   DELETE: (id: string | number) => `${FULL_API}/tours/${id}`,
 
   // Itineraries

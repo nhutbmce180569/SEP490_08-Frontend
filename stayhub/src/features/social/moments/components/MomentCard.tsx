@@ -1,11 +1,13 @@
 import React, { useContext, useState, useEffect, useCallback } from "react";
-import { Heart, MessageCircle, Trash2, Globe, Users, Lock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Heart, MessageCircle, Trash2, Globe, Users, Lock, Flag, MoreVertical } from "lucide-react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { useToggleReaction, useDeleteMoment } from "../hooks/useMoments";
 import { MomentModal } from "./MomentModal";
 import type { Moment } from "../types/moment.type";
+import { reportContent } from "../services/momentService";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -58,11 +60,33 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(reactionList.length);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('Spam');
+  const [reportDetails, setReportDetails] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  const handleSendReport = async () => {
+    setIsSubmittingReport(true);
+    try {
+      await reportContent('Moment', moment.id, reportReason as any, reportDetails.trim() || undefined);
+      success("Report submitted successfully");
+      setIsReportModalOpen(false);
+      setIsHidden(true);
+    } catch (err: any) {
+      error(err.message || "Failed to submit report.");
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
 
   useEffect(() => {
     setIsLiked(initialIsLiked);
     setLikeCount(reactionList.length);
   }, [initialIsLiked, reactionList.length]);
+
+  if (isHidden) return null;
 
   const handleLike = useCallback((e?: React.MouseEvent) => {
     if (e) e.preventDefault();
@@ -90,17 +114,17 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
 
   const handleDeleteMoment = useCallback(() => {
     if (isDeleting) return;
-    if (window.confirm(t("social.momentConfirmDelete"))) {
+    if (window.confirm("Are you sure you want to delete this moment? This action cannot be undone.")) {
       deleteMoment(
         { momentId: moment.id, userId: Number(currentUserId) },
         {
-          onSuccess: () => success(t("social.momentDeleteSuccess")),
-          onError: () => error(t("social.momentDeleteFailed"))
+          onSuccess: () => success("Moment deleted successfully"),
+          onError: () => error("Failed to delete moment")
         }
       );
     }
 
-  }, [currentUserId, deleteMoment, isDeleting, moment.id, success, error, t]);
+  }, [currentUserId, deleteMoment, isDeleting, moment.id, success, error]);
 
 
   const userFullName = moment.user?.fullName || t("social.anonymous");
@@ -119,20 +143,69 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
       <div className="mx-auto w-full max-w-[450px] shrink-0 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2rem] shadow-sm mb-4 pb-3 overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-              <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100" fallbackText={userFullName.charAt(0)} />
-            </div>
+            {momentUserId ? (
+              <Link to={`/social/profile/${momentUserId}`} className="h-8 w-8 shrink-0 !rounded-full overflow-hidden bg-slate-100 border border-slate-200 hover:opacity-85 transition-opacity">
+                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100" fallbackText={userFullName.charAt(0)} />
+              </Link>
+            ) : (
+              <div className="h-8 w-8 shrink-0 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
+                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100" fallbackText={userFullName.charAt(0)} />
+              </div>
+            )}
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-slate-900 leading-tight">{userFullName}</span>
+              {momentUserId ? (
+                <Link to={`/social/profile/${momentUserId}`} className="text-sm font-semibold text-slate-900 leading-tight hover:underline hover:text-brand transition-all">
+                  {userFullName}
+                </Link>
+              ) : (
+                <span className="text-sm font-semibold text-slate-900 leading-tight">{userFullName}</span>
+              )}
               {moment.locationName && <span className="text-[11px] text-slate-500 leading-tight mt-0.5">{moment.locationName}</span>}
             </div>
           </div>
           
-          {isOwner && (
-            <button onClick={handleDeleteMoment} disabled={isDeleting} className="text-slate-400 hover:text-red-500 transition-colors p-2">
-              <Trash2 className="h-4 w-4" />
+          <div className="relative">
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Options"
+            >
+              <MoreVertical className="h-4 w-4" />
             </button>
-          )}
+            
+            {isMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsMenuOpen(false)} />
+                <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50 text-left animate-in fade-in slide-in-from-top-1 duration-100">
+                  {isOwner ? (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleDeleteMoment();
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setReportReason('Spam');
+                        setReportDetails('');
+                        setIsReportModalOpen(true);
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                    >
+                      <Flag className="w-3 h-3" />
+                      Report
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         <div 
@@ -157,7 +230,14 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
           <div className="text-sm font-bold text-slate-900 mb-1">{t("social.momentLikesCount", { count: likeCount })}</div>
           {moment.caption && (
             <div className="text-sm text-slate-800 leading-relaxed">
-              <span className="font-bold mr-2">{userFullName}</span>{moment.caption}
+              {momentUserId ? (
+                <Link to={`/social/profile/${momentUserId}`} className="font-bold mr-2 hover:underline hover:text-brand transition-all">
+                  {userFullName}
+                </Link>
+              ) : (
+                <span className="font-bold mr-2">{userFullName}</span>
+              )}
+              {moment.caption}
             </div>
           )}
           
@@ -180,6 +260,65 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
           </div>
         </div>
       </div>
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 text-left">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Report Moment</h3>
+            <p className="text-xs text-slate-500 mb-4">Select a reason for reporting this moment for community standards violations.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Reason</label>
+                <select 
+                  value={reportReason} 
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 focus:outline-none focus:border-brand"
+                >
+                  <option value="Spam">Spam (Garbage / Ads)</option>
+                  <option value="Hate Speech">Hate Speech</option>
+                  <option value="Harassment">Harassment / Threat</option>
+                  <option value="Violence">Violence / Gore</option>
+                  <option value="Other">Other Reason</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Details (Optional)</label>
+                <textarea
+                  value={reportDetails}
+                  onChange={(e) => setReportDetails(e.target.value)}
+                  placeholder="Enter more details about the violation..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 h-20 focus:outline-none focus:border-brand resize-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsReportModalOpen(false)}
+                disabled={isSubmittingReport}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendReport}
+                disabled={isSubmittingReport}
+                className="flex-1 bg-brand hover:bg-brand-hover text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmittingReport ? (
+                  <>
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Submit Report"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {isModalOpen && (
         <MomentModal 
           moment={moment} 

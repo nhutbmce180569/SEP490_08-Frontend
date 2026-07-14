@@ -2,10 +2,10 @@ import React, { useState, useRef, useCallback, useMemo, useEffect, useContext } 
 import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
-import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame } from "lucide-react";
+import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
-import { useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
+import { useGetScheduleLiveLocations, useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
 import { MomentCard } from "./MomentCard"; 
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
@@ -14,6 +14,7 @@ import { ShareLocationButton } from "../../tracking/components/ShareLocationButt
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { getStoredLocale } from "../../../../i18n";
 import { AuthContext } from "../../../../contexts/AuthContext";
+import { useToast } from "../../../../contexts/ToastContext";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -37,6 +38,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const { t } = useTranslation();
   const locale = getStoredLocale();
   const { user } = useContext(AuthContext);
+  const { success, error: toastError } = useToast();
+
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
   if (!apiKey) {
@@ -47,6 +53,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const { data: moments, isLoading: isMomentsLoading } = useGetMomentFeed(scheduleId);
   const { data: footprints } = useGetMyFootprints();
   const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleId);
+  const { data: scheduleLocations } = useGetScheduleLiveLocations(scheduleId ?? 0);
 
   const mapRef = useRef<MapRef | null>(null);
   const [viewState, setViewState] = useState({
@@ -60,8 +67,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [dynamicFootprints, setDynamicFootprints] = useState<any[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [heatmapType, setHeatmapType] = useState<'online' | 'moments'>('online');
   // Heatmap lay tu LocationLogs (giong mobile); chi fetch khi bat lop heatmap.
-  const { data: heatmapData } = useGetHeatmap(scheduleId, showHeatmap);
+  const { data: heatmapData } = useGetHeatmap(scheduleId, heatmapType, showHeatmap);
   const [isNightMode, setIsNightMode] = useState(false);
   const [dockState, setDockState] = useState<'collapsed' | 'expanded'>('expanded');
   
@@ -78,8 +86,12 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
   
   const [friendLocations, setFriendLocations] = useState<any[]>([]);
+  const [scheduleMemberLocations, setScheduleMemberLocations] = useState<any[]>([]);
   const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
+  const [isSharingLocation, setIsSharingLocation] = useState<boolean>(() => {
+    return localStorage.getItem("share_my_location") === "true";
+  });
 
   // --- TIMELINE REPLAY STATES ---
   const [isReplayMode, setIsReplayMode] = useState(false);
@@ -108,6 +120,25 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     let connection: signalR.HubConnection;
 
     const initLocationService = async () => {
+      // Manager & Staff do not have friendship features, so prevent querying friends or connecting to friendship hub
+      const savedUser = localStorage.getItem("user");
+      let isStaffOrManager = false;
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          const roles = parsed.roles || parsed.Roles || [];
+          if (Array.isArray(roles)) {
+            isStaffOrManager = roles.includes("Manager") || roles.includes("Staff") || roles.includes("Admin");
+          } else if (typeof roles === "string") {
+            isStaffOrManager = roles === "Manager" || roles === "Staff" || roles === "Admin";
+          }
+        } catch {}
+      }
+
+      if (isStaffOrManager) {
+        return;
+      }
+
       try {
         const initialFriends = await locationService.getLiveFriends();
         setFriendLocations(initialFriends?.data || initialFriends || []);
@@ -150,8 +181,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     };
   }, [showLiveLocations]);
 
-  // --- 🔴 ĐÃ MỞ LẠI: HOOK 2 - PING GPS CỦA CHÍNH MÌNH LÊN SERVER ---
   useEffect(() => {
+    if (!isSharingLocation) {
+      setMyLocation(null);
+      return;
+    }
     if ("geolocation" in navigator) {
       const watchId = navigator.geolocation.watchPosition(
         (pos) => {
@@ -173,7 +207,75 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       );
       return () => navigator.geolocation.clearWatch(watchId);
     }
+  }, [scheduleId, isSharingLocation]);
+
+  // Sync scheduleLocations data from API polling
+  useEffect(() => {
+    setScheduleMemberLocations([]);
   }, [scheduleId]);
+
+  useEffect(() => {
+    if (!scheduleLocations || scheduleLocations.length === 0) return;
+    setScheduleMemberLocations((prev) => {
+      const merged = [...prev];
+      scheduleLocations.forEach((incoming: any) => {
+        const idx = merged.findIndex((p) => p.userId === incoming.userId);
+        if (idx >= 0) {
+          merged[idx] = { ...merged[idx], ...incoming };
+        } else {
+          merged.push(incoming);
+        }
+      });
+      return merged;
+    });
+  }, [scheduleLocations]);
+
+  // Real-time schedule tracking SignalR Hub
+  useEffect(() => {
+    if (scheduleId <= 0 || !showLiveLocations) return;
+
+    const token = localStorage.getItem("accessToken");
+    const hubUrl = token
+      ? `${SIGNALR_HUB_BASE}/tracking?access_token=${token}`
+      : `${SIGNALR_HUB_BASE}/tracking`;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl)
+      .withAutomaticReconnect()
+      .build();
+
+    let isCancelled = false;
+
+    connection
+      .start()
+      .then(async () => {
+        if (isCancelled) return;
+        await connection.invoke("JoinTourTrackingGroup", scheduleId);
+
+        connection.on("ReceiveTourLocationUpdate", (update: any) => {
+          if (isCancelled) return;
+          console.log("[DEBUG] SignalR Moments map tour push:", update);
+          setScheduleMemberLocations((prev) => {
+            const next = [...prev];
+            const idx = next.findIndex((item) => item.userId === update.userId);
+            if (idx >= 0) {
+              next[idx] = { ...next[idx], ...update };
+            } else {
+              next.push(update);
+            }
+            return next;
+          });
+        });
+      })
+      .catch((err) => {
+        console.warn("[SignalR] Tour tracking not available in Moments:", err);
+      });
+
+    return () => {
+      isCancelled = true;
+      connection.stop().catch(() => {});
+    };
+  }, [scheduleId, showLiveLocations]);
 
   // --- MAPBOX HANDLERS ---
   const updateBounds = useCallback(() => {
@@ -206,6 +308,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const timelineEvents = useMemo(() => {
     // Rule: Timeline Replay must NEVER combine events from unrelated tours.
     if (!isSpecificTour) return [];
+    if (!moments) return [];
 
     const events: any[] = [];
     
@@ -248,6 +351,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     return events;
   }, [moments, tourStops, isSpecificTour]);
 
+
+
   // --- STATE TRANSITION LOGIC ---
   const isReplayActive = isReplayMode && dockState === 'expanded' && isSpecificTour && (
     isPlaying || (currentEventIndex > 0 && currentEventIndex < timelineEvents.length - 1)
@@ -255,9 +360,23 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   useEffect(() => {
     if (onReplayStateChange) {
-      onReplayStateChange(isReplayActive);
+      onReplayStateChange(isReplayMode);
     }
-  }, [isReplayActive, onReplayStateChange]);
+  }, [isReplayMode, onReplayStateChange]);
+
+  const userRole = useMemo(() => {
+    if (!user) return "Customer";
+    const roles = user.roles || user.Roles || [];
+    if (Array.isArray(roles)) {
+      if (roles.includes("Manager")) return "Manager";
+      if (roles.includes("Staff")) return "Staff";
+      if (roles.includes("Admin")) return "Manager";
+    } else if (typeof roles === "string") {
+      if (roles === "Manager" || roles === "Admin") return "Manager";
+      if (roles === "Staff") return "Staff";
+    }
+    return "Customer";
+  }, [user]);
 
   // --- COLLISION AVOIDANCE LOGIC (FRIENDS & ME) ---
   const visualFriendLocations = useMemo(() => {
@@ -274,7 +393,45 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       placed.push({ lat: myLocation.lat, lng: myLocation.lng });
     }
 
-    friendLocations.forEach(friend => {
+    const allPeople: any[] = [];
+    if (scheduleId && scheduleId > 0) {
+      // Tour tracking mode: show schedule members (filtered by backend role-based permissions)
+      scheduleMemberLocations.forEach((loc) => {
+        // Exclude current user (since they are already drawn as the blue myLocation beacon)
+        if (user?.id && String(loc.userId) === String(user.id)) {
+          return;
+        }
+        if (!allPeople.some((p) => String(p.userId) === String(loc.userId))) {
+          allPeople.push(loc);
+        }
+      });
+
+      // Customer also sees their online friends!
+      if (userRole === "Customer") {
+        friendLocations.forEach((loc) => {
+          if (user?.id && String(loc.userId) === String(user.id)) {
+            return;
+          }
+          if (!allPeople.some((p) => String(p.userId) === String(loc.userId))) {
+            allPeople.push(loc);
+          }
+        });
+      }
+    } else {
+      // Global mode: only show online friends (ONLY for Customers, Manager/Staff have no friends)
+      if (userRole === "Customer") {
+        friendLocations.forEach((loc) => {
+          if (user?.id && String(loc.userId) === String(user.id)) {
+            return;
+          }
+          if (!allPeople.some((p) => String(p.userId) === String(loc.userId))) {
+            allPeople.push(loc);
+          }
+        });
+      }
+    }
+
+    allPeople.forEach(friend => {
       const fLat = Number(friend.lat ?? friend.Lat);
       const fLng = Number(friend.lng ?? friend.Lng);
       if (isNaN(fLat) || isNaN(fLng)) return;
@@ -300,19 +457,92 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     });
 
     return result;
-  }, [friendLocations, myLocation, discreteZoom]);
+  }, [friendLocations, scheduleMemberLocations, scheduleId, myLocation, discreteZoom, user?.id, userRole]);
 
   // Playback loop
   useEffect(() => {
     if (!isPlaying || timelineEvents.length === 0) return;
     if (currentEventIndex >= timelineEvents.length - 1) {
        setIsPlaying(false);
+       if (isRecording) {
+         stopRecording();
+       }
        return;
     }
     const interval = 3000 / playbackSpeed;
     const timer = setTimeout(() => setCurrentEventIndex(prev => prev + 1), interval);
     return () => clearTimeout(timer);
-  }, [isPlaying, currentEventIndex, timelineEvents.length, playbackSpeed]);
+  }, [isPlaying, currentEventIndex, timelineEvents.length, playbackSpeed, isRecording]);
+
+  // Sync isPlaying with recording state (auto-stop recording if playback is paused/interrupted)
+  useEffect(() => {
+    if (!isPlaying && isRecording) {
+      stopRecording();
+    }
+  }, [isPlaying, isRecording]);
+
+  // Recording helper functions
+  const startRecording = () => {
+    if (timelineEvents.length === 0) return;
+    
+    setCurrentEventIndex(0);
+    recordedChunksRef.current = [];
+    
+    const canvas = document.querySelector('.mapboxgl-canvas') as HTMLCanvasElement;
+    if (!canvas) {
+      toastError("Mapbox canvas element not found");
+      return;
+    }
+
+    try {
+      const stream = canvas.captureStream(30); // 30 FPS
+      let options = { mimeType: 'video/webm; codecs=vp9' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options = { mimeType: 'video/webm' };
+      }
+      
+      const recorder = new MediaRecorder(stream, options);
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `stayhub_journey_${scheduleId || "general"}.webm`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        success("Journey video downloaded successfully!");
+      };
+
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecording(true);
+      setIsPlaying(true);
+      setIsReplayMode(true);
+      setDockState('expanded');
+      
+      success("Ghi hình hành trình bắt đầu...");
+    } catch (err) {
+      console.error("Failed to start recording", err);
+      toastError("Ghi hình thất bại.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+    setIsPlaying(false);
+  };
 
   // Cinematic camera movement
   useEffect(() => {
@@ -487,19 +717,22 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         style={{ width: "100%", height: "100%" }}
         onClick={handleMapClick}
         attributionControl={false}
+        preserveDrawingBuffer={true}
       >
         <style>{`
           .glass-panel {
-            background: rgba(255, 255, 255, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.15), 0 8px 32px 0 rgba(0, 0, 0, 0.08);
           }
           .glass-panel-dark {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 8px 32px 0 rgba(0, 0, 0, 0.2);
           }
           .glass-button {
             background: rgba(255, 255, 255, 0.9);
@@ -677,16 +910,27 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             {showLiveLocations && visualFriendLocations.map((friend: any) => {
               const fLat = friend.visualLat;
               const fLng = friend.visualLng;
+              const isStaff = friend.role === "Staff";
+              const markerColor = isStaff ? "bg-emerald-500" : "bg-green-500";
+              const pingColor = isStaff ? "bg-emerald-400" : "bg-green-400";
 
               return (
                 <Marker key={`friend-${friend.userId}`} longitude={fLng} latitude={fLat} anchor="bottom">
                   <div className="relative flex flex-col items-center justify-center transition-all duration-500 group pointer-events-auto cursor-pointer hover:-translate-y-2">
-                    <div className="absolute inset-0 bg-green-400 rounded-full opacity-20 animate-ping w-16 h-16 -left-2 -top-2 pointer-events-none"></div>
+                    <div className={`absolute inset-0 ${pingColor} rounded-full opacity-20 animate-ping w-16 h-16 -left-2 -top-2 pointer-events-none`}></div>
                     <div className="relative z-10">
-                      <div className="w-12 h-12 rounded-full border-[3px] border-white overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.2)] bg-slate-100">
-                        <SafeImage src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-emerald-500 text-white font-bold text-lg" fallbackText={friend.fullName?.charAt(0)} />
+                      <div 
+                        className="w-12 h-12 rounded-full border-[3px] overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.2)] bg-slate-100"
+                        style={{ borderColor: isStaff ? "#10b981" : "#ffffff" }}
+                      >
+                        <SafeImage src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover" fallbackClassName={`w-full h-full flex items-center justify-center ${isStaff ? 'bg-emerald-500' : 'bg-green-500'} text-white font-bold text-lg`} fallbackText={friend.fullName?.charAt(0)} />
                       </div>
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm z-20"></div>
+                      <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 ${markerColor} border-2 border-white rounded-full shadow-sm z-20`}></div>
+                      {isStaff && (
+                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow z-30 uppercase tracking-wide border border-white">
+                          STAFF
+                        </span>
+                      )}
                     </div>
                     <div className="mt-1.5 px-2.5 py-0.5 glass-panel text-slate-800 text-[11px] font-bold rounded-full whitespace-nowrap shadow-sm opacity-90 group-hover:opacity-100 transition-opacity">
                       {friend.fullName}
@@ -787,6 +1031,21 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   </div>
                 </div>
 
+                {/* Chia sẻ vị trí của tôi */}
+                <div onClick={() => {
+                  const newVal = !isSharingLocation;
+                  setIsSharingLocation(newVal);
+                  localStorage.setItem("share_my_location", newVal ? "true" : "false");
+                }} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-xl transition-colors ${isSharingLocation ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}><MapPin className="w-5 h-5" /></div>
+                    <span className="text-sm font-bold text-slate-800">Share My Location</span>
+                  </div>
+                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${isSharingLocation ? 'bg-red-500' : 'bg-slate-300'}`}>
+                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${isSharingLocation ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+                  </div>
+                </div>
+
                 {/* Dấu chân (Fog of War) */}
                 <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
@@ -799,14 +1058,41 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Heatmap (Social Energy) */}
-                <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
-                    <span className="text-sm font-bold text-slate-800">Social Energy</span>
+                <div>
+                  <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
+                      <span className="text-sm font-bold text-slate-800">Social Energy</span>
+                    </div>
+                    <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showHeatmap ? 'bg-orange-500' : 'bg-slate-300'}`}>
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+                    </div>
                   </div>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showHeatmap ? 'bg-orange-500' : 'bg-slate-300'}`}>
-                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
-                  </div>
+
+                  {showHeatmap && (
+                    <div className="mt-1.5 flex gap-1.5 px-4 pb-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setHeatmapType('online'); }}
+                        className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all border ${
+                          heatmapType === 'online'
+                            ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm'
+                            : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100/50'
+                        }`}
+                      >
+                        Online Users
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setHeatmapType('moments'); }}
+                        className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all border ${
+                          heatmapType === 'moments'
+                            ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm'
+                            : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100/50'
+                        }`}
+                      >
+                        Popular Moments
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -833,13 +1119,29 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
       {/* Nút Điều hướng Nhanh (Góc dưới phải) */}
       <div className="absolute bottom-28 right-4 z-20 flex flex-col gap-3">
-        {myLocation && (
+        {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
           <button
-            onClick={(e) => { e.stopPropagation(); mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 }); }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (myLocation) {
+                mapRef.current?.flyTo({ center: [myLocation.lng, myLocation.lat], zoom: 16, duration: 1000 });
+              } else {
+                navigator.geolocation.getCurrentPosition(
+                  (pos) => {
+                    const { latitude, longitude } = pos.coords;
+                    setMyLocation({ lat: latitude, lng: longitude });
+                    mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 16, duration: 1000 });
+                  },
+                  (err) => {
+                    console.warn("Lỗi định vị:", err);
+                  }
+                );
+              }
+            }}
+            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-lg border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none"
             title="Vị trí của bạn"
           >
-            <Navigation className="h-5 w-5" />
+            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
           </button>
         )}
         {tourStops && tourStops.length > 0 && (
@@ -952,6 +1254,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                             <Play className="w-4 h-4 ml-0.5 fill-current" />
                          </button>
                        )}
+                       {isRecording ? (
+                          <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
+                             <span className="w-3 h-3 bg-white rounded-sm"></span>
+                          </button>
+                        ) : (
+                          <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                             <Film className="w-4 h-4" />
+                          </button>
+                        )}
                        <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
                           <X className="w-5 h-5" />
                        </button>
@@ -997,6 +1308,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                       </div>
                    </div>
                    <div className="flex items-center gap-3">
+                     {isRecording ? (
+                        <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
+                           <span className="w-3 h-3 bg-white rounded-sm"></span>
+                        </button>
+                      ) : (
+                        <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
+                           <Film className="w-4 h-4" />
+                        </button>
+                      )}
                      <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-10 h-10 bg-slate-900 text-white rounded-full shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
                         {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
                      </button>

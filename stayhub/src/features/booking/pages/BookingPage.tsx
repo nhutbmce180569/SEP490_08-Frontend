@@ -255,6 +255,8 @@ export const BookingPage: React.FC = () => {
   const [isCountryLoading, setIsCountryLoading] = useState(false);
   const [isNationalityOptionsOpen, setIsNationalityOptionsOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isAgreedToTerms, setIsAgreedToTerms] = useState(false);
+  const [isTermsPolicyOpen, setIsTermsPolicyOpen] = useState(false);
 
   const errorHandledRef = useRef(false);
   const passengerSequenceRef = useRef(0);
@@ -601,6 +603,11 @@ export const BookingPage: React.FC = () => {
 
   const handlePaymentClick = () => {
     setHasAttemptedSubmit(true);
+
+    if (!isAgreedToTerms) {
+      showError(t("booking.cancellationTermsRequired"));
+      return;
+    }
 
     if (new Date(schedule.departureDate).getTime() < currentTime) {
       showError(t("booking.departureExpired"));
@@ -1135,6 +1142,29 @@ export const BookingPage: React.FC = () => {
                     </div>
                   </div>
 
+                  <div className="mb-4 flex items-start gap-2.5 rounded-xl border border-slate-100 bg-slate-50/50 p-3">
+                    <input
+                      type="checkbox"
+                      id="cancellation-terms-checkbox"
+                      checked={isAgreedToTerms}
+                      onChange={(e) => setIsAgreedToTerms(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand cursor-pointer"
+                    />
+                    <label
+                      htmlFor="cancellation-terms-checkbox"
+                      className="text-xs font-medium leading-relaxed text-slate-600 select-none cursor-pointer"
+                    >
+                      {t("booking.agreeToCancellationTerms")}{" "}
+                      <button
+                        type="button"
+                        onClick={() => setIsTermsPolicyOpen(true)}
+                        className="font-bold text-brand hover:underline"
+                      >
+                        {t("booking.cancellationPolicy") || "Chính sách hủy"}
+                      </button>
+                    </label>
+                  </div>
+
                   <ActionButton
                     variant="primary"
                     onClick={handlePaymentClick}
@@ -1443,6 +1473,30 @@ export const BookingPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Passenger Info section */}
+                <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+                  <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <Users size={16} className="text-slate-500" />
+                    {t("booking.passengerDetails") || "Thông tin hành khách"}
+                  </h4>
+                  <div className="max-h-[150px] overflow-y-auto space-y-3 pr-1 divide-y divide-slate-100">
+                    {tickets.map((ticket, idx) => (
+                      <div key={ticket.passengerKey || idx} className="text-xs text-slate-600 pt-2.5 first:pt-0">
+                        <div className="flex justify-between font-semibold text-slate-800">
+                          <span>{idx + 1}. {ticket.attendeeName}</span>
+                          <span className="text-slate-500">{ticket.ticketTypeName}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 mt-1 text-[11px] text-slate-500">
+                          <div>{t("booking.idPassport")}: <span className="font-medium text-slate-700">{ticket.idCard}</span></div>
+                          <div>{t("booking.dob")}: <span className="font-medium text-slate-700">{ticket.dateOfBirth ? new Date(ticket.dateOfBirth).toLocaleDateString() : ""}</span></div>
+                          <div>{t("booking.genderLabel")}: <span className="font-medium text-slate-700">{ticket.gender}</span></div>
+                          <div>{t("booking.nationalityCol")}: <span className="font-medium text-slate-700">{ticket.nationality}</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-3 rounded-2xl border border-slate-100 bg-white p-4">
                   {ticketSummary.map((item) => (
                     <div
@@ -1470,7 +1524,8 @@ export const BookingPage: React.FC = () => {
                     <div className="flex justify-between text-sm">
                       <span className="font-medium text-rose-600">{t("booking.discount")}</span>
                       <span className="font-bold text-rose-600">
-                        -<MoneyDisplay amountVnd={appliedVoucher.discountAmount} compact />
+                        -
+                        <MoneyDisplay amountVnd={appliedVoucher.discountAmount} compact />
                       </span>
                     </div>
                   )}
@@ -1483,11 +1538,19 @@ export const BookingPage: React.FC = () => {
                 </div>
 
                 {appliedVoucher && (
-                  <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                    <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
-                    <p className="text-xs font-medium leading-relaxed text-amber-800">
-                      {t("booking.voucherLossWarning")}
-                    </p>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                      <AlertTriangle className="h-5 w-5 shrink-0 text-amber-500" />
+                      <p className="text-xs font-medium leading-relaxed text-amber-800">
+                        {t("booking.voucherLossWarning")}
+                      </p>
+                    </div>
+                    <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+                      <AlertTriangle className="h-5 w-5 shrink-0 text-rose-500" />
+                      <p className="text-xs font-bold leading-relaxed text-rose-800">
+                        {t("booking.cancellationWarningVoucherNote")}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1507,6 +1570,61 @@ export const BookingPage: React.FC = () => {
                 >
                   {t("booking.confirmAndPay", { provider: paymentProviderLabel })}
                 </ActionButton>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      {isTermsPolicyOpen &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={() => setIsTermsPolicyOpen(false)}
+          >
+            <div
+              className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="border-b border-slate-100 bg-slate-50 px-6 py-4 flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-950">
+                  {t("booking.cancellationPolicy") || "Chính sách hủy và hoàn tiền"}
+                </h3>
+                <button
+                  onClick={() => setIsTermsPolicyOpen(false)}
+                  className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="p-6 space-y-4 text-sm text-slate-600 leading-relaxed">
+                <p className="font-semibold text-slate-800">
+                  {t("booking.refundPolicyTitle")}
+                </p>
+                <ul className="list-disc pl-5 space-y-2">
+                  <li>
+                    {t("booking.refund7Days")}
+                  </li>
+                  <li>
+                    {t("booking.refund3To7Days")}
+                  </li>
+                  <li>
+                    {t("booking.refundUnder3Days")}
+                  </li>
+                </ul>
+                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 text-xs text-amber-800">
+                  <span className="font-bold block mb-1">{t("booking.voucherWarningTitle")}</span>
+                  {t("booking.voucherWarningDetail")}
+                </div>
+              </div>
+              <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsTermsPolicyOpen(false)}
+                  className="rounded-xl bg-brand px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-hover"
+                >
+                  {t("booking.gotIt")}
+                </button>
               </div>
             </div>
           </div>,

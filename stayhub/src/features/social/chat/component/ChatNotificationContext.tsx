@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ChatMessage } from "../types/chat.type";
+import { GlobalChatPopover } from "./GlobalChatPopover";
 
 interface NotificationItem {
   id: string;
@@ -24,18 +25,29 @@ interface ChatNotificationContextType {
   notifications: NotificationItem[];
   dismissNotification: (id: string) => void;
   handleNotificationClick: (roomId: number, notifId: string) => void;
+  isPopoverOpen: boolean;
+  setIsPopoverOpen: (open: boolean) => void;
+  activeRoomId: number | null;
+  setActiveRoomId: (id: number | null) => void;
 }
 
 export const ChatNotificationContext = createContext<ChatNotificationContextType>({
   notifications: [],
   dismissNotification: () => {},
   handleNotificationClick: () => {},
+  isPopoverOpen: false,
+  setIsPopoverOpen: () => {},
+  activeRoomId: null,
+  setActiveRoomId: () => {},
 });
 
 export const useChatNotification = () => useContext(ChatNotificationContext);
 
 export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
+
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -51,8 +63,9 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
 
   const handleNotificationClick = useCallback((roomId: number, notifId: string) => {
     dismissNotification(notifId);
-    navigate(`/chat?roomId=${roomId}`);
-  }, [dismissNotification, navigate]);
+    setActiveRoomId(roomId);
+    setIsPopoverOpen(true);
+  }, [dismissNotification]);
 
   // Handler to "intercept" changes from the new Global event from Backend
   const handleGlobalNotification = useCallback((savedMessage: ChatMessage) => {
@@ -191,7 +204,15 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
   }, [handleGlobalNotification]);
 
   return (
-    <ChatNotificationContext.Provider value={{ notifications, dismissNotification, handleNotificationClick }}>
+    <ChatNotificationContext.Provider value={{ 
+      notifications, 
+      dismissNotification, 
+      handleNotificationClick,
+      isPopoverOpen,
+      setIsPopoverOpen,
+      activeRoomId,
+      setActiveRoomId
+    }}>
       {children}
       <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3 pointer-events-none px-4 w-full max-w-sm">
         <AnimatePresence>
@@ -210,6 +231,8 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
           ))}
         </AnimatePresence>
       </div>
+
+      <GlobalChatPopover />
     </ChatNotificationContext.Provider>
   );
 };

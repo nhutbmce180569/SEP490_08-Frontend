@@ -8,6 +8,8 @@ import {
   Star,
   Ticket,
   TicketPercent,
+  ShieldAlert,
+  MapPin,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -50,6 +52,11 @@ export const DashboardLayout = () => {
             to: PATH.MANAGER.SCHEDULE_MANAGEMENT,
             icon: <CalendarDays className={iconClass} />,
           },
+          {
+            label: t("manager.locations") || "Bản đồ định vị",
+            to: PATH.MANAGER.LOCATIONS,
+            icon: <MapPin className={iconClass} />,
+          },
         ],
       },
       {
@@ -74,6 +81,16 @@ export const DashboardLayout = () => {
             label: t("manager.reviews"),
             to: PATH.MANAGER.REVIEWS,
             icon: <Star className={iconClass} />,
+          },
+          {
+            label: t("manager.moderation") || "Kiểm duyệt nội dung",
+            to: PATH.MANAGER.MODERATION,
+            icon: <ShieldAlert className={iconClass} />,
+          },
+          {
+            label: t("manager.trendPrediction") || "Dự báo Tour Hot",
+            to: PATH.MANAGER.TREND_PREDICTION,
+            icon: <LayoutDashboard className={iconClass} />,
           },
         ],
       },

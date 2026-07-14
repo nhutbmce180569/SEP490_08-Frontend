@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Loader2, Flag, Trash2, MoreVertical } from 'lucide-react';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
-import { useAddComment } from '../hooks/useMoments';
+import { useAddComment, useDeleteComment } from '../hooks/useMoments';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { reportContent } from '../services/momentService';
 
 // Avatar nho cho comment: hien anh, fallback ve chu cai dau.
 const CommentAvatar = ({ src, name }: { src?: string | null; name: string }) => {
@@ -33,46 +35,151 @@ export const CommentSection = ({ momentId, comments }: any) => {
   const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const { mutate: addComment, isPending } = useAddComment();
+  const { mutate: deleteComment } = useDeleteComment();
   const [newComment, setNewComment] = useState('');
-  const { warning } = useToast();
+  const { warning, success, error } = useToast();
+
+  const [hiddenCommentIds, setHiddenCommentIds] = useState<number[]>([]);
+  const [reportingCommentId, setReportingCommentId] = useState<number | null>(null);
+  const [openMenuCommentId, setOpenMenuCommentId] = useState<number | null>(null);
+  const [commentReason, setCommentReason] = useState('Spam');
+  const [commentDetails, setCommentDetails] = useState('');
+  const [isSubmittingCommentReport, setIsSubmittingCommentReport] = useState(false);
 
   const currentUserAvatar =
     (user as any)?.avatarUrl || (user as any)?.AvatarUrl ||
     (user as any)?.avatar || (user as any)?.picture;
   const currentUserId = user ? (user.id || (user as any).Id) : null;
 
+  const handleDeleteComment = (commentId: number) => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      deleteComment(
+        { commentId, userId: Number(currentUserId) },
+        {
+          onSuccess: () => {
+            success("Comment deleted successfully");
+          },
+          onError: () => {
+            error("Failed to delete comment");
+          }
+        }
+      );
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || isPending) return;
-    if (!user) { warning(t("social.pleaseLogIn")); return; }
+    if (!user) { warning("Please log in to comment"); return; }
 
     addComment(
       { momentId, userId: Number(currentUserId), content: newComment.trim() },
-      { onSuccess: () => setNewComment('') }
+      { 
+        onSuccess: () => setNewComment(''),
+        onError: (err: any) => {
+          const msg = err.response?.data?.message || err.message || "Failed to submit comment.";
+          error(msg);
+        }
+      }
     );
+  };
+
+  const handleSendCommentReport = async () => {
+    if (!reportingCommentId) return;
+    setIsSubmittingCommentReport(true);
+    try {
+      await reportContent('Comment', reportingCommentId, commentReason as any, commentDetails.trim() || undefined);
+      success("Report submitted successfully");
+      setHiddenCommentIds(prev => [...prev, reportingCommentId]);
+      setReportingCommentId(null);
+    } catch (err: any) {
+      error(err.message || "Failed to submit report.");
+    } finally {
+      setIsSubmittingCommentReport(false);
+    }
   };
 
   return (
     <div className="flex flex-col px-4 pt-2">
       <div className="flex flex-col gap-2 mb-2">
-        {comments.map((c: any) => {
-          const fullName =
-            c.user?.fullName || c.userName || t("common.anonymous");
-          const isOwner =
-            String(c.userId || c.user?.id) === String(currentUserId);
-          const avatar =
-            (isOwner && currentUserAvatar) ||
-            c.user?.avatarUrl || c.avatarUrl;
-          return (
-            <div key={c.id} className="flex items-start gap-2 text-sm">
-              <CommentAvatar src={avatar} name={fullName} />
-              <div className="leading-relaxed">
-                <span className="font-bold mr-2">{fullName}</span>
-                <span className="text-slate-700">{c.text || c.comment}</span>
+        {comments
+          .filter((c: any) => !hiddenCommentIds.includes(c.id))
+          .map((c: any) => {
+            const fullName =
+              c.user?.fullName || c.userName || t("common.anonymous");
+            const isOwner =
+              String(c.userId || c.user?.id) === String(currentUserId);
+            const avatar =
+              (isOwner && currentUserAvatar) ||
+              c.user?.avatarUrl || c.avatarUrl;
+            const commentUserId = c.userId || c.user?.id;
+            return (
+              <div key={c.id} className="flex items-center justify-between gap-2 text-sm group relative">
+                <div className="flex items-start gap-2">
+                  {commentUserId ? (
+                    <Link to={`/social/profile/${commentUserId}`} className="hover:opacity-85 transition-opacity shrink-0">
+                      <CommentAvatar src={avatar} name={fullName} />
+                    </Link>
+                  ) : (
+                    <CommentAvatar src={avatar} name={fullName} />
+                  )}
+                  <div className="leading-relaxed pr-6">
+                    {commentUserId ? (
+                      <Link to={`/social/profile/${commentUserId}`} className="font-bold mr-2 hover:underline hover:text-brand transition-all">
+                        {fullName}
+                      </Link>
+                    ) : (
+                      <span className="font-bold mr-2">{fullName}</span>
+                    )}
+                    <span className="text-slate-700">{c.text || c.comment}</span>
+                  </div>
+                </div>
+                
+                <div className="relative shrink-0">
+                  <button
+                    onClick={() => setOpenMenuCommentId(openMenuCommentId === c.id ? null : c.id)}
+                    className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-all p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+                    title="Options"
+                  >
+                    <MoreVertical className="w-3.5 h-3.5" />
+                  </button>
+                  
+                  {openMenuCommentId === c.id && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setOpenMenuCommentId(null)} />
+                      <div className="absolute right-0 mt-1 w-28 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg py-1 z-50 text-left animate-in fade-in slide-in-from-top-1 duration-100">
+                        {isOwner ? (
+                          <button
+                            onClick={() => {
+                              setOpenMenuCommentId(null);
+                              handleDeleteComment(c.id);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Delete
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              setOpenMenuCommentId(null);
+                              setCommentReason('Spam');
+                              setCommentDetails('');
+                              setReportingCommentId(c.id);
+                            }}
+                            className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-colors"
+                          >
+                            <Flag className="w-3 h-3" />
+                            Report
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       <form onSubmit={handleSubmit} className="flex items-center gap-3 py-2 border-t border-slate-100">
@@ -98,6 +205,66 @@ export const CommentSection = ({ momentId, comments }: any) => {
           )}
         </button>
       </form>
+
+      {reportingCommentId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Report Comment</h3>
+            <p className="text-xs text-slate-500 mb-4">Select a reason for reporting this comment for community standards violations.</p>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Reason</label>
+                <select 
+                  value={commentReason} 
+                  onChange={(e) => setCommentReason(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 focus:outline-none focus:border-brand"
+                >
+                  <option value="Spam">Spam (Garbage / Ads)</option>
+                  <option value="Hate Speech">Hate Speech</option>
+                  <option value="Harassment">Harassment / Threat</option>
+                  <option value="Violence">Violence / Gore</option>
+                  <option value="Other">Other Reason</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Details (Optional)</label>
+                <textarea
+                  value={commentDetails}
+                  onChange={(e) => setCommentDetails(e.target.value)}
+                  placeholder="Enter more details about the violation..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 h-20 focus:outline-none focus:border-brand resize-none"
+                />
+              </div>
+            </div>
+            
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setReportingCommentId(null)}
+                disabled={isSubmittingCommentReport}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendCommentReport}
+                disabled={isSubmittingCommentReport}
+                className="flex-1 bg-brand hover:bg-brand-hover text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmittingCommentReport ? (
+                  <>
+                    <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Submit Report"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

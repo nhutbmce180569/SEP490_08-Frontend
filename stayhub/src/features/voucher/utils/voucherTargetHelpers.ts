@@ -1,6 +1,6 @@
 import type { DateRangeParams } from '../../customer-analytics/types/customerAnalytics.types';
 import type { VoucherTargetValue } from '../components/VoucherTargetEditor';
-import type { RevenuePeriod, TopCustomerVoucherAssignmentDTO } from '../types/voucher';
+import type { TopCustomerVoucherAssignmentDTO } from '../types/voucher';
 
 export const getRevenuePeriodRange = (assignment: TopCustomerVoucherAssignmentDTO): DateRangeParams => {
   const now = new Date();

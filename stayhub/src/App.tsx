@@ -14,6 +14,7 @@ import ScrollToTop from "./components/ScrollToTop";
 import { CustomBrandCursor } from "./components/ui/CustomBrandCursor";
 import { PATH } from "./config/routes/route";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
+import GuestRoute from "./contexts/GuestRoute";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ToastProvider } from "./contexts/ToastContext";
 import { AdminLayout } from "./layouts/AdminLayout";
@@ -46,7 +47,9 @@ import { CreateTour } from "./features/tour/pages/CreateTour";
 import { TourDetail } from "./features/tour/pages/TourDetail";
 import { UpdateTour } from "./features/tour/pages/UpdateTour";
 import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
+import { AdminTourList } from "./features/tour/pages/AdminTourList";
 import PartnerDashboard from "./pages/PartnerDashboard";
+import ModerationDashboard from "./pages/ModerationDashboard";
 // Components dành cho Quản lý nội dung (Admin)
 import { CategoryList } from "./features/content/pages/CategoryList";
 import { CreateCategory } from "./features/content/pages/CreateCategory";
@@ -83,6 +86,7 @@ import { AiQuestionnairePage, AiPlannerModal } from "./features/ai/pages/AiQuest
 import { AiRecommendationsPage } from "./features/ai/pages/AiRecommendationsPage";
 import { AdminAiConsolePage } from "./features/ai/pages/AdminAiConsolePage";
 import { AiPlannerProvider } from "./contexts/AiPlannerContext";
+import { TourAssistantChatProvider } from "./contexts/TourAssistantChatContext";
 import { BookingPage } from "./features/booking/pages/BookingPage";
 import { MyBookingsPage } from "./features/booking/pages/MyBookingsPage";
 import { OrderDetailPage } from "./features/booking/pages/OrderDetailPage";
@@ -107,9 +111,11 @@ import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPag
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
 import { LocationTrackingPage } from "./features/social/tracking/pages/LocationTrackingPage";
+import { ManagerLocationsPage } from "./features/social/tracking/pages/ManagerLocationsPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 import { BookingStatisticsPage } from "./features/booking/pages/BookingStatisticsPage";
+import { RevenueStatisticsPage } from "./features/booking/pages/RevenueStatisticsPage";
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
@@ -122,6 +128,7 @@ import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
 import NotificationListPage from "./features/system/pages/Notificationlistpage";
 import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
+import { TrendPredictionPage } from "./features/ai/pages/TrendPredictionPage";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -246,44 +253,9 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 };
 // Wrapper để hứng ID từ URL và truyền vào MomentsFeed
 const MomentsRouteWrapper = () => {
-  const { t } = useTranslation();
-  const [selectedSchedule, setSelectedSchedule] = useState<number | null>(null);
-  
-  // Gọi hook lấy danh sách Tour mà bạn đã fix thành công lúc trước
-  const { data: schedules } = useGetEligibleSchedules();
-
   return (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-8">
-      {/* KHU VỰC ĐIỀU HƯỚNG & LỌC */}
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-        <div>
-          <h2 className="text-2xl font-black text-slate-800">{t("app.momentsCommunityTitle")}</h2>
-          <p className="text-sm text-slate-500 font-medium">{t("app.momentsCommunitySubtitle")}</p>
-        </div>
-
-  
-        <div className="relative">
-          <select 
-            className="appearance-none bg-slate-50 border border-slate-200 text-slate-700 font-semibold py-2.5 pl-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand cursor-pointer"
-            onChange={(e) => setSelectedSchedule(e.target.value ? Number(e.target.value) : null)}
-            value={selectedSchedule || ""}
-          >
-            <option value="">🌍 {t("app.allTripsGlobal")}</option>
-            {schedules?.map(s => (
-              <option key={s.scheduleId} value={s.scheduleId}>
-                📍 {s.tourName}
-              </option>
-            ))}
-          </select>
-          {/* Mũi tên trỏ xuống của Select */}
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-          </div>
-        </div>
-      </div>
-
-    
-      <MomentsFeed key={selectedSchedule || 'global-map'} scheduleId={selectedSchedule as any} />
+    <div className="w-full h-[calc(100vh-80px)] overflow-hidden">
+      <MomentsFeed />
     </div>
   );
 };
@@ -297,23 +269,26 @@ const App: React.FC = () => {
         <AuthProvider>
           <Router>
             <ChatNotificationProvider>
+            <TourAssistantChatProvider>
             <AiPlannerProvider>
-            <CustomBrandCursor />
+            {/* <CustomBrandCursor /> */}
             <AiPlannerModal />
             <ScrollToTop />
             <PasswordChangeEnforcer>
               <Routes>
-              <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
-              <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+              <Route element={<GuestRoute />}>
+                <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
+                <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+                <Route
+                  path={PATH.PUBLIC.FORGOT_PASSWORD}
+                  element={<ForgotPassword />}
+                />
+                <Route
+                  path={PATH.PUBLIC.RESET_PASSWORD}
+                  element={<ResetPassword />}
+                />
+              </Route>
               <Route path="/track/:token" element={<PublicTrackingPage />} />
-              <Route
-                path={PATH.PUBLIC.FORGOT_PASSWORD}
-                element={<ForgotPassword />}
-              />
-              <Route
-                path={PATH.PUBLIC.RESET_PASSWORD}
-                element={<ResetPassword />}
-              />
               <Route element={<AuthenticatedRoute />}>
                 <Route
                   path={PATH.PUBLIC.CHANGE_PASSWORD}
@@ -413,15 +388,13 @@ const App: React.FC = () => {
                     />
                     </Route>
                    
-                    
-                    <Route path="/social/moments"
-                     element={<MomentsRouteWrapper />} />
-
                     <Route
                       path={PATH.CUSTOMER.SOCIAL_CHAT}
                       element={<ChatPage />}
                     />
                   </Route>
+
+                  <Route path="/social/moments" element={<MomentsRouteWrapper />} />
                 </Route>
               </Route>
 
@@ -557,6 +530,23 @@ const App: React.FC = () => {
                     path={childPath(PATH.MANAGER.PAYOUT)}
                     element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
                   />
+                  <Route
+                    path={childPath(PATH.MANAGER.MODERATION)}
+                    element={<ModerationDashboard />}
+                  />
+                  <Route
+// <<<<<<< HEAD
+                    path={childPath(PATH.MANAGER.LOCATIONS)}
+                    element={<ManagerLocationsPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.TRACK_SCHEDULE_LOCATIONS())}
+                    element={<ScheduleTrackingPage />}
+// =======
+//                     path={childPath(PATH.MANAGER.TREND_PREDICTION)}
+//                     element={<TrendPredictionPage />}
+// >>>>>>> a534724c3182f585d814ac2b03791b31cad51abd
+                  />
                 </Route>
               </Route>
 
@@ -601,6 +591,14 @@ const App: React.FC = () => {
                     path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
                     element={<CustomerAnalyticsPage />}
                   />
+                  <Route
+                    path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
+                    element={<BookingStatisticsPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
+                    element={<RevenueStatisticsPage />}
+                  />
                   <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                     <Route index element={<UserList />} />
                     <Route path="create" element={<CreateUser />} />
@@ -612,7 +610,7 @@ const App: React.FC = () => {
                     element={mock("app.titles.partnerApprovals", "app.mockPartnerApprovals", "app.sectionAdmin")}
                   />
                   <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
-                    <Route index element={mock("app.titles.tours", "app.mockTours", "app.sectionAdmin")} />
+                    <Route index element={<AdminTourList />} />
                     <Route
                       path=":id"
                       element={mock("app.titles.adminTourDetail", "app.mockAdminTourDetail", "app.sectionAdmin")}
@@ -685,6 +683,7 @@ const App: React.FC = () => {
               </Routes>
             </PasswordChangeEnforcer>
           </AiPlannerProvider>
+          </TourAssistantChatProvider>
           </ChatNotificationProvider>
           </Router>
         </AuthProvider>

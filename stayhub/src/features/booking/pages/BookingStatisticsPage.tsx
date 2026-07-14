@@ -98,11 +98,10 @@ export const BookingStatisticsPage: React.FC = () => {
                   key={option}
                   type="button"
                   onClick={() => setGroupBy(option)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                    groupBy === option
-                      ? 'bg-brand text-white shadow-sm'
-                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                  }`}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${groupBy === option
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                    }`}
                 >
                   {t(groupByLabelKey(option))}
                 </button>

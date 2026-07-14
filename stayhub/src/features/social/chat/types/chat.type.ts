@@ -8,6 +8,9 @@ export interface ChatRoom {
   isPinned?: boolean;
   isMuted?: boolean;
   isGroupChat?: boolean;
+  isOnline?: boolean;
+  lastMessageCreatedAt?: string;
+  otherParticipantId?: number;
 }
 
 export interface ChatMessage {

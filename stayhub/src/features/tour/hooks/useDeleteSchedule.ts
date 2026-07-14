@@ -1,15 +1,10 @@
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useToast } from "../../../contexts/ToastContext";
-import { useTranslation } from "../../../contexts/LocaleContext";
-import { getApiErrorMessage } from "../../content/utils/apiError";
 import { useTourSchedule } from "./useTourSchedule";
 
 export const useDeleteSchedule = () => {
-  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { error: showError } = useToast();
 
   const {
     currentSchedule: schedule,

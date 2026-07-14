@@ -247,3 +247,25 @@ export interface AiHealthResponse {
 }
 
 export type QuestionnaireFormValues = Record<string, unknown>;
+
+export interface IntelligentChatMessage {
+  role: "user" | "model" | "function";
+  content: string;
+}
+
+export interface IntelligentChatRequest {
+  message: string;
+  sessionId?: string;
+  history?: IntelligentChatMessage[];
+}
+
+export interface IntelligentChatResponse {
+  sessionId: string;
+  reply: string;
+  recommendedTours: TourRecommendationItem[];
+  weatherAdvice?: WeatherAdvice;
+  culturalFacts: CulturalFact[];
+  tourismInsights: TourismInsight[];
+  suggestedQuestions: string[];
+}
+

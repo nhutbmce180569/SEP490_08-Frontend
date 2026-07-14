@@ -6,6 +6,7 @@ import {
   Gift,
   Image,
   Layers,
+  Map,
   PieChart,
   Ticket,
   Users,
@@ -37,6 +38,11 @@ export const AdminLayout = () => {
             to: PATH.ADMIN.CUSTOMER_ANALYTICS,
             icon: <BarChart3 className={iconClass} />,
           },
+          {
+            label: t("admin.revenueStatistics"),
+            to: PATH.ADMIN.REVENUE_STATISTICS,
+            icon: <PieChart className={iconClass} />,
+          },
         ],
       },
       {
@@ -52,6 +58,11 @@ export const AdminLayout = () => {
       {
         title: t("admin.tourContent"),
         items: [
+          {
+            label: t("admin.tours") || "Tour Management",
+            to: PATH.ADMIN.TOUR_MODERATION,
+            icon: <Map className={iconClass} />,
+          },
           {
             label: t("admin.banners"),
             to: PATH.ADMIN.BANNER_MANAGEMENT,

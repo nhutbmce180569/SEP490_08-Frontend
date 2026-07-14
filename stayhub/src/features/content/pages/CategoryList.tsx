@@ -9,6 +9,8 @@ import { getImg } from "../../../config/api/api";
 import { useChangeCategoryStatus } from "../hooks/useChangeCategoryStatus";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
+import { useCategorySignalR } from "../hooks/useCategorySignalR";
+
 const PAGE_SIZE = 5;
 
 export const CategoryList: React.FC = () => {
@@ -16,8 +18,10 @@ export const CategoryList: React.FC = () => {
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
 
-  const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete } = useCategories(PAGE_SIZE, keyword);
-  const { executeStatusChange, updatingId } = useChangeCategoryStatus();
+  const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete, refetch } = useCategories(PAGE_SIZE, keyword);
+  const { executeStatusChange, updatingId } = useChangeCategoryStatus(refetch);
+
+  useCategorySignalR(refetch);
 
   useEffect(() => {
     const timer = setTimeout(() => {

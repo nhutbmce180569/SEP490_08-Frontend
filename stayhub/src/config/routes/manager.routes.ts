@@ -20,6 +20,8 @@ export const MANAGER_ROUTES = {
   CUSTOMER_ANALYTICS: '/manager/customer-analytics',
   BOOKING_STATISTICS: '/manager/booking-statistics',
   PAYOUT: '/manager/payout',
+  MODERATION: '/manager/moderation',
+  TREND_PREDICTION: '/manager/trend-prediction',
 
   // Dynamic Routes & Delete Confirms
   TOUR_DETAIL: (id: string | number = ':id') => `/manager/tours/${id}`,
@@ -45,5 +47,6 @@ export const MANAGER_ROUTES = {
   DELETE_SCHEDULE: (id: string | number = ':id') => `/manager/schedules/${id}/delete`,
   EDIT_SCHEDULE: (id: string | number = ':id') => `/manager/schedules/edit/${id}`,
   CREATE_SCHEDULE: (tourId?: string | number) => tourId ? `/manager/schedules/create?tourId=${tourId}` : `/manager/schedules/create`,
-  
+  LOCATIONS: '/manager/locations',
+  TRACK_SCHEDULE_LOCATIONS: (scheduleId: string | number = ':scheduleId') => `/manager/locations/${scheduleId}`,
 } as const;

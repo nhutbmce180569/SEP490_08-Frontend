@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useLogin } from "../hooks/useLogin";
@@ -7,9 +7,20 @@ import { SocialAuthButtons } from "../components/SocialAuthButtons";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
+import { PATH } from "../../../config/routes/route";
 
 export default function Login() {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) {
+      navigate(PATH.PUBLIC.HOME, { replace: true });
+    }
+  }, [user, navigate]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

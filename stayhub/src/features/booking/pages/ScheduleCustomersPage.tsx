@@ -147,30 +147,30 @@ export const ScheduleCustomersPage: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl border border-slate-200/60 bg-white">
-      {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <Users className="text-[#0068E0]" size={24} />
-          <div>
-            <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              {t("booking.scheduleCustomerCenter")}
-            </h2>
-            <p className="text-sm text-slate-500">{t("booking.scheduleCustomerDesc")}</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header section */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <h2 className="text-[15px] font-bold leading-tight text-slate-900">
+            {t("booking.scheduleCustomerCenter")}
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {t("booking.scheduleCustomerDesc")}
+          </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 sm:w-72">
-          <Search className="h-3.5 w-3.5 text-slate-400" />
+
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 transition-colors focus-within:border-[#0068E0] focus-within:bg-white sm:w-72">
+          <Search className="h-4 w-4 shrink-0 text-slate-400" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t("booking.searchCustomerPlaceholder")}
-            className="w-full bg-transparent text-sm outline-none"
+            className="w-full bg-transparent text-sm font-medium text-slate-700 outline-none placeholder:text-slate-400"
           />
         </div>
       </div>
 
-      <div className="p-6 grid gap-6 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] items-start">
         {/* Sidebar Schedule */}
         <div className="space-y-4 min-w-0 rounded-3xl border border-slate-100 bg-slate-50 p-5">
           <div className="rounded-3xl bg-white p-4 shadow-sm flex flex-col h-full">
@@ -214,11 +214,10 @@ export const ScheduleCustomersPage: React.FC = () => {
                   <button
                     key={s.scheduleId}
                     onClick={() => setSelectedScheduleId(s.scheduleId)}
-                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                      selectedScheduleId === s.scheduleId
+                    className={`w-full rounded-2xl border px-4 py-3 text-left transition ${selectedScheduleId === s.scheduleId
                         ? "border-[#0068E0] bg-blue-50/30"
                         : "border-slate-100 bg-slate-50"
-                    }`}
+                      }`}
                   >
                     <div className="text-sm font-semibold truncate">{s.tourName}</div>
                     <p className="text-xs text-slate-500 mt-1">

@@ -18,8 +18,6 @@ export const getFriendships = async (): Promise<FriendshipResponse[]> => {
   const resBody = response.data ?? response;
   const list = Array.isArray(resBody) ? resBody : (resBody?.data || []);
 
-  if (list.length > 0) console.log("🔍 RAW FRIEND DTO FROM C#:", list[0]);
-
   return list.map((item: any) => ({
     id: item.id || item.Id || item.friendId || 0,
     friendId: item.friendId || item.FriendId || 0,
@@ -35,12 +33,12 @@ export const getPendingRequests = async (): Promise<PendingRequestResponse[]> =>
   const resBody = response.data ?? response;
   const list = Array.isArray(resBody) ? resBody : (resBody?.data || []);
 
-  if (list.length > 0) console.log("🔍 RAW PENDING DTO FROM C#:", list[0]);
-
+  // Backend trả về FriendshipResponseDto: id = friendship ID (dùng để respond/unfriend)
+  // friendId = user ID của người gửi yêu cầu
   return list.map((item: any) => ({
-    // Lấy friendId làm ID để gửi API Accept/Decline
-    id: item.id || item.friendId || item.requestId || 0,
-    senderId: item.senderId || item.friendId || 0,
+    // requestId phải là friendship ID (item.id), KHÔNG phải friendId
+    id: item.id || item.Id || 0,
+    senderId: item.friendId || item.FriendId || item.requesterId || 0,
     senderName: item.fullName || item.senderName || "Ẩn danh (Do DB thiếu tên)",
     senderAvatarUrl: item.avatarUrl || item.AvatarUrl || item.senderAvatarUrl || item.SenderAvatarUrl || item.user?.avatarUrl || item.user?.AvatarUrl || item.sender?.avatarUrl || item.sender?.AvatarUrl || null,
     createdAt: item.createdAt || new Date().toISOString(),
@@ -63,7 +61,43 @@ export const deleteFriendship = async (id: number): Promise<void> => {
   return response.data ?? response;
 };
 
-export const getPaginatedFriendList = async (page = 1, pageSize = 10): Promise<any> => {
+export const getPaginatedFriendList = async (page = 1, pageSize = 10): Promise<{ data: FriendshipResponse[]; total: number }> => {
   const response = await apiClient.get<any>(`${FRIEND_API_URL}/list?page=${page}&pageSize=${pageSize}`);
+  const resBody = response.data ?? response;
+  const paginationData = resBody?.data;
+  const rawList = Array.isArray(paginationData?.data) ? paginationData.data : [];
+  const total = paginationData?.total ?? 0;
+
+  const mappedList = rawList.map((item: any) => ({
+    id: item.id || item.Id || item.friendId || 0,
+    friendId: item.friendId || item.FriendId || 0,
+    friendName: item.fullName || item.FullName || item.friendName || item.FriendName || "Ẩn danh",
+    friendAvatarUrl: item.avatarUrl || item.AvatarUrl || item.friendAvatarUrl || item.FriendAvatarUrl || null,
+    friendEmail: item.email || item.Email || item.friendEmail || item.FriendEmail || "",
+    status: item.status || item.Status || "Friend",
+  }));
+
+  return {
+    data: mappedList,
+    total: total,
+  };
+};
+
+export const getFriendshipStatus = async (targetUserId: string | number): Promise<any> => {
+  const response = await apiClient.get<any>(`${FRIEND_API_URL}/status/${targetUserId}`);
   return response.data ?? response;
+};
+
+export const getSentRequests = async (): Promise<PendingRequestResponse[]> => {
+  const response = await apiClient.get<any>(`${FRIEND_API_URL}/sent`);
+  const resBody = response.data ?? response;
+  const list = Array.isArray(resBody) ? resBody : (resBody?.data || []);
+
+  return list.map((item: any) => ({
+    id: item.id || item.friendId || item.requestId || 0,
+    senderId: item.friendId || item.receiverId || 0,
+    senderName: item.fullName || item.receiverName || "Ẩn danh (Do DB thiếu tên)",
+    senderAvatarUrl: item.avatarUrl || item.AvatarUrl || item.receiverAvatarUrl || item.ReceiverAvatarUrl || null,
+    createdAt: item.createdAt || new Date().toISOString(),
+  }));
 };

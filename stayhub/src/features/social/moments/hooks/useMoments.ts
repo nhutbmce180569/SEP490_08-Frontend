@@ -9,20 +9,22 @@ import {
   addComment,
   updateComment,
   deleteComment,
+  getMomentById,
 } from "../services/momentService";
 
 export const momentQueryKeys = {
   all: ["moments"] as const,
   // Đổi thành number | null. Nếu null, gán chuỗi "global" để React Query phân biệt cache
   feed: (scheduleId: number | null) => [...momentQueryKeys.all, "feed", scheduleId ?? "global"] as const,
+  infiniteFeed: (scheduleId: number | null) => [...momentQueryKeys.all, "infiniteFeed", scheduleId ?? "global"] as const,
   footprints: () => [...momentQueryKeys.all, "footprints"] as const,
 };
 
-// 👉 Cho phép scheduleId nhận giá trị null
+// 👉 Cho phép scheduleId nhận giá trị null. Nạp nhiều hơn (ví dụ 100) để bản đồ vẽ đầy đủ các marker
 export const useGetMomentFeed = (scheduleId: number | null) => {
   return useQuery({
     queryKey: momentQueryKeys.feed(scheduleId),
-    queryFn: () => getMomentFeed(scheduleId),
+    queryFn: () => getMomentFeed(scheduleId, 0, 100),
     // BỎ DÒNG enabled: !!scheduleId Ở ĐÂY để cho phép gọi API khi null
   });
 };
@@ -35,10 +37,10 @@ export const useGetMyFootprints = () => {
 };
 
 // Heatmap realtime tu LocationLogs (giong mobile). Chi fetch khi lop heatmap bat.
-export const useGetHeatmap = (scheduleId: number | null, enabled: boolean = true) => {
+export const useGetHeatmap = (scheduleId: number | null, type: string = "online", enabled: boolean = true) => {
   return useQuery({
-    queryKey: [...momentQueryKeys.all, "heatmap", scheduleId ?? "global"],
-    queryFn: () => getHeatmap(scheduleId),
+    queryKey: [...momentQueryKeys.all, "heatmap", scheduleId ?? "global", type],
+    queryFn: () => getHeatmap(scheduleId, type),
     enabled,
     // Du lieu di chuyen thay doi lien tuc -> lam tuoi dinh ky.
     refetchInterval: enabled ? 30000 : false,
@@ -48,7 +50,7 @@ export const useGetHeatmap = (scheduleId: number | null, enabled: boolean = true
 // 👉 Cho phép scheduleId nhận giá trị null
 export const useInfiniteMomentFeed = (scheduleId: number | null, pageSize: number = 5) => {
   return useInfiniteQuery({
-    queryKey: momentQueryKeys.feed(scheduleId),
+    queryKey: momentQueryKeys.infiniteFeed(scheduleId),
     queryFn: ({ pageParam = 0 }) => getMomentFeed(scheduleId, pageParam, pageSize),
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
@@ -121,5 +123,13 @@ export const useDeleteMoment = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
     },
+  });
+};
+
+export const useGetMomentById = (momentId: number | null) => {
+  return useQuery({
+    queryKey: [...momentQueryKeys.all, "detail", momentId],
+    queryFn: () => getMomentById(momentId!),
+    enabled: momentId !== null,
   });
 };

@@ -13,7 +13,6 @@ import {
   X,
   Users,
   ChevronRight,
-  Heart,
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,

@@ -5,7 +5,7 @@ import useSupercluster from "use-supercluster";
 import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
-import { useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
+import { useGetScheduleLiveLocations, useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
 import { MomentCard } from "./MomentCard"; 
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
@@ -53,6 +53,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const { data: moments, isLoading: isMomentsLoading } = useGetMomentFeed(scheduleId);
   const { data: footprints } = useGetMyFootprints();
   const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleId);
+  const { data: scheduleLocations } = useGetScheduleLiveLocations(scheduleId ?? 0);
 
   const mapRef = useRef<MapRef | null>(null);
   const [viewState, setViewState] = useState({
@@ -85,6 +86,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
   
   const [friendLocations, setFriendLocations] = useState<any[]>([]);
+  const [scheduleMemberLocations, setScheduleMemberLocations] = useState<any[]>([]);
   const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
   const [isMapReady, setIsMapReady] = useState(false);
   const [isSharingLocation, setIsSharingLocation] = useState<boolean>(() => {
@@ -118,6 +120,25 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     let connection: signalR.HubConnection;
 
     const initLocationService = async () => {
+      // Manager & Staff do not have friendship features, so prevent querying friends or connecting to friendship hub
+      const savedUser = localStorage.getItem("user");
+      let isStaffOrManager = false;
+      if (savedUser) {
+        try {
+          const parsed = JSON.parse(savedUser);
+          const roles = parsed.roles || parsed.Roles || [];
+          if (Array.isArray(roles)) {
+            isStaffOrManager = roles.includes("Manager") || roles.includes("Staff") || roles.includes("Admin");
+          } else if (typeof roles === "string") {
+            isStaffOrManager = roles === "Manager" || roles === "Staff" || roles === "Admin";
+          }
+        } catch {}
+      }
+
+      if (isStaffOrManager) {
+        return;
+      }
+
       try {
         const initialFriends = await locationService.getLiveFriends();
         setFriendLocations(initialFriends?.data || initialFriends || []);
@@ -187,6 +208,74 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       return () => navigator.geolocation.clearWatch(watchId);
     }
   }, [scheduleId, isSharingLocation]);
+
+  // Sync scheduleLocations data from API polling
+  useEffect(() => {
+    setScheduleMemberLocations([]);
+  }, [scheduleId]);
+
+  useEffect(() => {
+    if (!scheduleLocations || scheduleLocations.length === 0) return;
+    setScheduleMemberLocations((prev) => {
+      const merged = [...prev];
+      scheduleLocations.forEach((incoming: any) => {
+        const idx = merged.findIndex((p) => p.userId === incoming.userId);
+        if (idx >= 0) {
+          merged[idx] = { ...merged[idx], ...incoming };
+        } else {
+          merged.push(incoming);
+        }
+      });
+      return merged;
+    });
+  }, [scheduleLocations]);
+
+  // Real-time schedule tracking SignalR Hub
+  useEffect(() => {
+    if (scheduleId <= 0 || !showLiveLocations) return;
+
+    const token = localStorage.getItem("accessToken");
+    const hubUrl = token
+      ? `${SIGNALR_HUB_BASE}/tracking?access_token=${token}`
+      : `${SIGNALR_HUB_BASE}/tracking`;
+
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(hubUrl)
+      .withAutomaticReconnect()
+      .build();
+
+    let isCancelled = false;
+
+    connection
+      .start()
+      .then(async () => {
+        if (isCancelled) return;
+        await connection.invoke("JoinTourTrackingGroup", scheduleId);
+
+        connection.on("ReceiveTourLocationUpdate", (update: any) => {
+          if (isCancelled) return;
+          console.log("[DEBUG] SignalR Moments map tour push:", update);
+          setScheduleMemberLocations((prev) => {
+            const next = [...prev];
+            const idx = next.findIndex((item) => item.userId === update.userId);
+            if (idx >= 0) {
+              next[idx] = { ...next[idx], ...update };
+            } else {
+              next.push(update);
+            }
+            return next;
+          });
+        });
+      })
+      .catch((err) => {
+        console.warn("[SignalR] Tour tracking not available in Moments:", err);
+      });
+
+    return () => {
+      isCancelled = true;
+      connection.stop().catch(() => {});
+    };
+  }, [scheduleId, showLiveLocations]);
 
   // --- MAPBOX HANDLERS ---
   const updateBounds = useCallback(() => {
@@ -275,6 +364,20 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     }
   }, [isReplayMode, onReplayStateChange]);
 
+  const userRole = useMemo(() => {
+    if (!user) return "Customer";
+    const roles = user.roles || user.Roles || [];
+    if (Array.isArray(roles)) {
+      if (roles.includes("Manager")) return "Manager";
+      if (roles.includes("Staff")) return "Staff";
+      if (roles.includes("Admin")) return "Manager";
+    } else if (typeof roles === "string") {
+      if (roles === "Manager" || roles === "Admin") return "Manager";
+      if (roles === "Staff") return "Staff";
+    }
+    return "Customer";
+  }, [user]);
+
   // --- COLLISION AVOIDANCE LOGIC (FRIENDS & ME) ---
   const visualFriendLocations = useMemo(() => {
     const zoom = discreteZoom;
@@ -290,7 +393,45 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       placed.push({ lat: myLocation.lat, lng: myLocation.lng });
     }
 
-    friendLocations.forEach(friend => {
+    const allPeople: any[] = [];
+    if (scheduleId && scheduleId > 0) {
+      // Tour tracking mode: show schedule members (filtered by backend role-based permissions)
+      scheduleMemberLocations.forEach((loc) => {
+        // Exclude current user (since they are already drawn as the blue myLocation beacon)
+        if (user?.id && String(loc.userId) === String(user.id)) {
+          return;
+        }
+        if (!allPeople.some((p) => String(p.userId) === String(loc.userId))) {
+          allPeople.push(loc);
+        }
+      });
+
+      // Customer also sees their online friends!
+      if (userRole === "Customer") {
+        friendLocations.forEach((loc) => {
+          if (user?.id && String(loc.userId) === String(user.id)) {
+            return;
+          }
+          if (!allPeople.some((p) => String(p.userId) === String(loc.userId))) {
+            allPeople.push(loc);
+          }
+        });
+      }
+    } else {
+      // Global mode: only show online friends (ONLY for Customers, Manager/Staff have no friends)
+      if (userRole === "Customer") {
+        friendLocations.forEach((loc) => {
+          if (user?.id && String(loc.userId) === String(user.id)) {
+            return;
+          }
+          if (!allPeople.some((p) => String(p.userId) === String(loc.userId))) {
+            allPeople.push(loc);
+          }
+        });
+      }
+    }
+
+    allPeople.forEach(friend => {
       const fLat = Number(friend.lat ?? friend.Lat);
       const fLng = Number(friend.lng ?? friend.Lng);
       if (isNaN(fLat) || isNaN(fLng)) return;
@@ -316,7 +457,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     });
 
     return result;
-  }, [friendLocations, myLocation, discreteZoom]);
+  }, [friendLocations, scheduleMemberLocations, scheduleId, myLocation, discreteZoom, user?.id, userRole]);
 
   // Playback loop
   useEffect(() => {
@@ -769,16 +910,27 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             {showLiveLocations && visualFriendLocations.map((friend: any) => {
               const fLat = friend.visualLat;
               const fLng = friend.visualLng;
+              const isStaff = friend.role === "Staff";
+              const markerColor = isStaff ? "bg-emerald-500" : "bg-green-500";
+              const pingColor = isStaff ? "bg-emerald-400" : "bg-green-400";
 
               return (
                 <Marker key={`friend-${friend.userId}`} longitude={fLng} latitude={fLat} anchor="bottom">
                   <div className="relative flex flex-col items-center justify-center transition-all duration-500 group pointer-events-auto cursor-pointer hover:-translate-y-2">
-                    <div className="absolute inset-0 bg-green-400 rounded-full opacity-20 animate-ping w-16 h-16 -left-2 -top-2 pointer-events-none"></div>
+                    <div className={`absolute inset-0 ${pingColor} rounded-full opacity-20 animate-ping w-16 h-16 -left-2 -top-2 pointer-events-none`}></div>
                     <div className="relative z-10">
-                      <div className="w-12 h-12 rounded-full border-[3px] border-white overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.2)] bg-slate-100">
-                        <SafeImage src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-emerald-500 text-white font-bold text-lg" fallbackText={friend.fullName?.charAt(0)} />
+                      <div 
+                        className="w-12 h-12 rounded-full border-[3px] overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.2)] bg-slate-100"
+                        style={{ borderColor: isStaff ? "#10b981" : "#ffffff" }}
+                      >
+                        <SafeImage src={friend.avatarUrl} alt={friend.fullName} className="w-full h-full object-cover" fallbackClassName={`w-full h-full flex items-center justify-center ${isStaff ? 'bg-emerald-500' : 'bg-green-500'} text-white font-bold text-lg`} fallbackText={friend.fullName?.charAt(0)} />
                       </div>
-                      <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-white rounded-full shadow-sm z-20"></div>
+                      <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 ${markerColor} border-2 border-white rounded-full shadow-sm z-20`}></div>
+                      {isStaff && (
+                        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow z-30 uppercase tracking-wide border border-white">
+                          STAFF
+                        </span>
+                      )}
                     </div>
                     <div className="mt-1.5 px-2.5 py-0.5 glass-panel text-slate-800 text-[11px] font-bold rounded-full whitespace-nowrap shadow-sm opacity-90 group-hover:opacity-100 transition-opacity">
                       {friend.fullName}

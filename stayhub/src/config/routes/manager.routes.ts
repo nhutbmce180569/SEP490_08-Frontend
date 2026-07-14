@@ -21,6 +21,7 @@ export const MANAGER_ROUTES = {
   BOOKING_STATISTICS: '/manager/booking-statistics',
   PAYOUT: '/manager/payout',
   MODERATION: '/manager/moderation',
+  TREND_PREDICTION: '/manager/trend-prediction',
 
   // Dynamic Routes & Delete Confirms
   TOUR_DETAIL: (id: string | number = ':id') => `/manager/tours/${id}`,

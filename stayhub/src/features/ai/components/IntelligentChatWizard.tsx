@@ -5,7 +5,11 @@ import { AiTourRecommendationCard } from "./AiTourRecommendationCard";
 import { WeatherAdviceCard } from "./WeatherAdviceCard";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
-export const IntelligentChatWizard: React.FC = () => {
+interface IntelligentChatWizardProps {
+  onSwitchToForm?: () => void;
+}
+
+export const IntelligentChatWizard: React.FC<IntelligentChatWizardProps> = ({ onSwitchToForm }) => {
   const { t } = useTranslation();
   const { messages, isSending, sendMessage } = useIntelligentChat();
   const [input, setInput] = useState("");
@@ -85,19 +89,60 @@ export const IntelligentChatWizard: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full flex-1 bg-[var(--surface-dashboard)] overflow-hidden">
+      {/* Top Suggestion Banner */}
+      {messages.length > 0 && onSwitchToForm && (
+        <div className="bg-gradient-to-r from-brand/5 to-indigo-500/5 border-b border-slate-200 px-4 py-2 flex items-center justify-between text-[11px] text-slate-700 font-semibold shrink-0">
+          <span className="flex items-center gap-1.5">
+            <span className="text-[10px]">💡</span>
+            Bạn có thể chuyển sang điền Form bất cứ lúc nào để có đề xuất ngay.
+          </span>
+          <button
+            type="button"
+            onClick={onSwitchToForm}
+            className="text-brand hover:underline font-black text-[11px]"
+          >
+            Mở Form khảo sát →
+          </button>
+        </div>
+      )}
+
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-5 custom-scrollbar space-y-5">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
+          <div className="flex flex-col items-center justify-center min-h-full text-center px-4 py-6">
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-light text-brand mb-4 animate-bounce">
               <Sparkles size={28} />
             </div>
             <h3 className="text-sm font-bold text-[var(--color-navy)] mb-2 uppercase tracking-wide">
               {t("ai.chatWelcomeTitle")}
             </h3>
-            <p className="text-xs text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
+            <p className="text-xs text-[var(--text-muted)] max-w-sm mb-5 leading-relaxed">
               {t("ai.chatWelcomeDesc")}
             </p>
+
+            {onSwitchToForm && (
+              <div className="w-full max-w-xs mb-5 bg-gradient-to-tr from-brand/5 to-indigo-500/5 border border-brand/20 rounded-2xl p-4 shadow-sm text-left transition-all hover:border-brand/35">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-lg bg-brand-light text-brand text-xs">
+                    ⚡
+                  </span>
+                  <h4 className="text-xs font-black text-[var(--color-navy)] uppercase tracking-wider">
+                    Nhận đề xuất nhanh
+                  </h4>
+                </div>
+                <p className="text-[10px] text-[var(--text-muted)] font-medium leading-normal mb-3">
+                  Điền Form khảo sát ngắn (100% miễn phí, không tốn tài nguyên chat, trả kết quả tức thì).
+                </p>
+                <button
+                  type="button"
+                  onClick={onSwitchToForm}
+                  className="w-full py-2 px-3 text-xs font-bold text-white bg-brand rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-brand/10 flex items-center justify-center gap-1.5"
+                >
+                  Chuyển sang điền Form khảo sát
+                </button>
+              </div>
+            )}
+
             <div className="w-full max-w-xs space-y-2">
               {welcomeSuggestions.map((s) => (
                 <button

@@ -124,6 +124,7 @@ import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
 import NotificationListPage from "./features/system/pages/Notificationlistpage";
 import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
+import { TrendPredictionPage } from "./features/ai/pages/TrendPredictionPage";
 const queryClient = new QueryClient();
 
 const MockPage: React.FC<{ titleKey: string; descKey: string; sectionKey?: string }> = ({
@@ -530,12 +531,17 @@ const App: React.FC = () => {
                     element={<ModerationDashboard />}
                   />
                   <Route
+// <<<<<<< HEAD
                     path={childPath(PATH.MANAGER.LOCATIONS)}
                     element={<ManagerLocationsPage />}
                   />
                   <Route
                     path={childPath(PATH.MANAGER.TRACK_SCHEDULE_LOCATIONS())}
                     element={<ScheduleTrackingPage />}
+// =======
+//                     path={childPath(PATH.MANAGER.TREND_PREDICTION)}
+//                     element={<TrendPredictionPage />}
+// >>>>>>> a534724c3182f585d814ac2b03791b31cad51abd
                   />
                 </Route>
               </Route>

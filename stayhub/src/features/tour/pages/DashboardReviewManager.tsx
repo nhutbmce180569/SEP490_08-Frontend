@@ -14,10 +14,12 @@ import {
   ChevronDown,
   Search,
   X,
+  Wand2,
 } from "lucide-react";
 import { useReview } from "../hooks/useReview";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
+import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { useToast } from "../../../contexts/ToastContext";
 import { AuthContext } from "../../../contexts/AuthContext";
 import type { Review } from "../types/review";
@@ -133,7 +135,6 @@ const AdminReviewCard: React.FC<{
       className={`overflow-hidden rounded-2xl border transition-all ${review.isHidden ? "border-rose-200 bg-rose-50/30" : "border-slate-200 bg-white"}`}
     >
       <div className="p-5">
-        {/* HEADER REVIEW CÓ AVATAR VÀ TÊN */}
         <div className="mb-4 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-lg uppercase border border-indigo-200">
@@ -179,24 +180,26 @@ const AdminReviewCard: React.FC<{
             </div>
           </div>
 
-          <ActionButton
-            variant="secondary"
-            onClick={handleToggleHide}
-            disabled={isSubmitting}
-            className={`h-8 w-8 ${review.isHidden ? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" : "text-rose-500 hover:bg-rose-50 hover:text-rose-600"}`}
-            title={
-              review.isHidden ? t("tour.unhideReview") : t("tour.hideReview")
-            }
-          >
-            {review.isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
-          </ActionButton>
+          <div className="flex items-center gap-2">
+
+            <ActionButton
+              variant="secondary"
+              onClick={handleToggleHide}
+              disabled={isSubmitting}
+              className={`h-8 w-8 ${review.isHidden ? "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700" : "text-rose-500 hover:bg-rose-50 hover:text-rose-600"}`}
+              title={
+                review.isHidden ? t("tour.unhideReview") : t("tour.hideReview")
+              }
+            >
+              {review.isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
+            </ActionButton>
+          </div>
         </div>
 
         <p className="text-sm leading-relaxed text-slate-700 pl-[56px]">
           {review.comment}
         </p>
 
-        {/* KHU VỰC TRẢ LỜI */}
         <div className="mt-4 border-t border-slate-100 pt-4 pl-[56px]">
           {existingReply && !isEditing ? (
             <div className="relative rounded-xl bg-slate-50 p-4 border border-slate-100">
@@ -340,17 +343,114 @@ const AdminReviewCard: React.FC<{
   );
 };
 
-// ==========================================
-// COMPONENT 2: TRANG QUẢN LÝ CHÍNH
-// ==========================================
+const TourSentimentBadge: React.FC<{ tourId: number }> = ({ tourId }) => {
+  const { t } = useTranslation();
+  const { analyzeReview } = useReview();
+  const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
+  const [result, setResult] = useState<{ sentiment: string; confidence: number; reason: string } | null>(null);
+
+  const handleAnalyzeTour = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (status === "loading") return;
+
+    setStatus("loading");
+    try {
+      const { reviewService } = await import("../services/review.service");
+      const res = await reviewService.getReviewsByTourAdmin(tourId, { page: 1, pageSize: 50 });
+      const reviews = res.data || [];
+
+      if (reviews.length === 0) {
+        setStatus("done");
+        setResult({ sentiment: "Neutral", confidence: 1, reason: t("tour.noReviewToAnalyze") || "Tour chưa có đánh giá nào." });
+        return;
+      }
+
+      const comments = reviews.filter(r => r.comment).map(r => `- ${r.rating} sao: ${r.comment}`).join("\n");
+      const avgRating = reviews.reduce((sum, r) => sum + (r.rating || 5), 0) / reviews.length;
+
+      if (!comments.trim()) {
+        setStatus("done");
+        setResult({ sentiment: avgRating >= 4 ? "Good" : avgRating <= 2 ? "Bad" : "Neutral", confidence: 1, reason: t("tour.reasonByAverageStar") || "Dựa vào số sao trung bình (không có chữ)." });
+        return;
+      }
+
+      const aiResult = await analyzeReview(comments, Math.round(avgRating));
+      setResult(aiResult);
+      setStatus("done");
+    } catch (err) {
+      console.error(err);
+      setStatus("idle");
+    }
+  };
+
+  useEffect(() => {
+    setStatus("idle");
+    setResult(null);
+  }, [tourId]);
+
+  if (status === "idle") {
+    return (
+      <div className="w-full">
+        <button 
+          onClick={handleAnalyzeTour}
+          className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 hover:from-indigo-100 hover:to-violet-100 transition-all border-b border-indigo-100/50"
+          title={t("tour.analyzeTourOverall") || "Phân tích chất lượng tổng thể của Tour"}
+        >
+          <Wand2 size={16} className="text-indigo-500" />
+          <span className="text-sm font-semibold">{t("tour.analyzeTourOverall") || "Phân tích toàn bộ đánh giá Tour bằng AI"}</span>
+        </button>
+      </div>
+    );
+  }
+
+  if (status === "loading") {
+    return (
+      <div className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-slate-50 text-slate-500 border-b border-slate-200">
+        <Loader2 size={16} className="animate-spin" /> 
+        <span className="text-sm font-medium">{t("tour.analyzingTour") || "Đang tổng hợp và phân tích đánh giá..."}</span>
+      </div>
+    );
+  }
+
+  if (!result) return null;
+
+  return (
+    <div className={`w-full px-5 py-4 border-b flex flex-col gap-2 ${
+      result.sentiment === "Good" ? "bg-emerald-50/50 border-emerald-100" :
+      result.sentiment === "Neutral" ? "bg-amber-50/50 border-amber-100" :
+      "bg-rose-50/50 border-rose-100"
+    }`}>
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+          <Wand2 size={14} className="text-indigo-400" /> {t("tour.aiJudgment") || "AI Nhận định:"}
+        </span>
+        <span className={`text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1 ${
+          result.sentiment === "Good" ? "bg-emerald-100 text-emerald-700" :
+          result.sentiment === "Neutral" ? "bg-amber-100 text-amber-700" :
+          "bg-rose-100 text-rose-700"
+        }`}>
+          {result.sentiment === "Good" ? <Star size={14} className="fill-current" /> :
+           result.sentiment === "Bad" ? <X size={14} strokeWidth={3} /> : null}
+          {result.sentiment}
+        </span>
+      </div>
+      <p className="text-sm text-slate-700 leading-relaxed mt-1">
+        {result.reason}
+      </p>
+    </div>
+  );
+};
+
 export const DashboardReviewManager: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const [tours, setTours] = useState<any[]>([]);
   const [isToursLoading, setIsToursLoading] = useState(true);
   const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
+  
+  const [tourPage, setTourPage] = useState(1);
+  const [hasMoreTours, setHasMoreTours] = useState(true);
 
-  // 💥 STATE CHO BỘ LỌC VÀ INFINITE SCROLL
   const [reviewPage, setReviewPage] = useState(1);
   const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [dateSortOrder, setDateSortOrder] = useState<"newest" | "oldest">(
@@ -380,17 +480,22 @@ export const DashboardReviewManager: React.FC = () => {
     return () => clearTimeout(timer);
   }, [tourSearch]);
 
+  // Reset page when search changes
+  useEffect(() => {
+    setTourPage(1);
+  }, [debouncedTourSearch]);
+
   // 1. Tải danh sách Tour
   useEffect(() => {
     const fetchTours = async () => {
-      setIsToursLoading(true);
+      if (tourPage === 1) setIsToursLoading(true);
       try {
         const res = await getToursByManager(
-          1,
+          tourPage,
           50,
           debouncedTourSearch || undefined,
         );
-        const tourList = res.data;
+        const tourList = res.data || [];
         const roles = Array.isArray(user?.roles)
           ? user.roles
           : user?.roles
@@ -402,10 +507,22 @@ export const DashboardReviewManager: React.FC = () => {
           ? tourList
           : tourList.filter((tour: any) => tour.canEdit);
 
-        setTours(manageableTours);
-        if (manageableTours.length > 0 && !selectedTourId) {
-          setSelectedTourId(manageableTours[0].id);
+        if (tourPage === 1) {
+          setTours(manageableTours);
+          if (manageableTours.length > 0 && !selectedTourId) {
+            setSelectedTourId(manageableTours[0].id);
+          }
+        } else {
+          setTours((prev) => {
+            const existingIds = new Set(prev.map((t) => t.id));
+            const newTours = manageableTours.filter(
+              (t: any) => !existingIds.has(t.id),
+            );
+            return [...prev, ...newTours];
+          });
         }
+
+        setHasMoreTours(tourList.length === 50);
       } catch (error) {
         console.error("Failed to fetch tours", error);
       } finally {
@@ -413,7 +530,7 @@ export const DashboardReviewManager: React.FC = () => {
       }
     };
     fetchTours();
-  }, [debouncedTourSearch, user?.roles]);
+  }, [debouncedTourSearch, user?.roles, tourPage]);
 
   // 2. Reset Filter và Danh sách Review khi đổi TourId
   useEffect(() => {
@@ -587,13 +704,13 @@ export const DashboardReviewManager: React.FC = () => {
                       : "bg-white border-transparent hover:bg-slate-50 hover:border-slate-200"
                   }`}
                 >
-                  <div className="flex items-center gap-3 overflow-hidden">
+                  <div className="flex items-start gap-3 overflow-hidden w-full">
                     <div
                       className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${selectedTourId === tour.id ? "bg-indigo-500 text-white" : "bg-slate-100 text-slate-500"}`}
                     >
                       <Map size={18} />
                     </div>
-                    <div className="truncate">
+                    <div className="flex-1 min-w-0">
                       <h4
                         className={`truncate text-sm font-bold ${selectedTourId === tour.id ? "text-indigo-900" : "text-slate-700"}`}
                       >
@@ -610,6 +727,15 @@ export const DashboardReviewManager: React.FC = () => {
                   )}
                 </button>
               ))}
+
+              {hasMoreTours && !isToursLoading && (
+                <button
+                  onClick={() => setTourPage((p) => p + 1)}
+                  className="w-full mt-2 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors"
+                >
+                  {t("common.loadMore") || "Tải thêm"}
+                </button>
+              )}
             </div>
           ) : (
             <div className="text-center p-5 text-sm text-slate-500">
@@ -632,7 +758,7 @@ export const DashboardReviewManager: React.FC = () => {
           </div>
 
           {/* 💥 BỘ LỌC SAO VÀ NGÀY */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <select
                 value={ratingFilter === null ? "" : ratingFilter}
@@ -677,6 +803,8 @@ export const DashboardReviewManager: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {selectedTourId && <TourSentimentBadge tourId={selectedTourId} />}
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/30 relative">
           {!selectedTourId ? (

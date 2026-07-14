@@ -15,5 +15,7 @@
   "finance": "Finance",
   "partnerDashboard": "Manager dashboard",
   "partner": "Manager",
-  "moderation": "Content Moderation"
+  "moderation": "Content Moderation",
+  "locations": "Location Tracking",
+  "trendPrediction": "Tour Trend Prediction"
 }

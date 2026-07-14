@@ -27,6 +27,9 @@ export const AI_API = {
     STATUS: `${AI_BASE}/training/status`,
     RETRAIN: `${AI_BASE}/training/retrain`,
   },
+  REVIEW_ANALYSIS: {
+    ANALYZE: `${AI_BASE}/review-analysis/analyze`,
+  },
   EVALUATION: {
     BASELINES: `${AI_BASE}/evaluation/baselines`,
     RUN: `${AI_BASE}/evaluation/run`,

@@ -260,6 +260,15 @@ export const useReview = () => {
     [],
   );
 
+  const analyzeReview = async (reviewText: string, starRating: number) => {
+    try {
+      return await reviewService.analyzeReview(reviewText, starRating);
+    } catch (err: any) {
+      console.error("Error analyzing review:", err);
+      throw err;
+    }
+  };
+
   return {
     reviews,
     totalCount,
@@ -278,5 +287,6 @@ export const useReview = () => {
     toggleHideReview,
     fetchReviewsForAdmin,
     fetchReviewsForManager,
+    analyzeReview,
   };
 };

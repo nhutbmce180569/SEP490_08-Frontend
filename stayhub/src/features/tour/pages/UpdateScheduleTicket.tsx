@@ -17,6 +17,7 @@ import {
   getScheduleTicketTypeId,
 } from "../utils/tourScheduleTicket";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { usePromotions } from "../../promotion/hooks/usePromotions";
 
 export const UpdateScheduleTicket: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +27,9 @@ export const UpdateScheduleTicket: React.FC = () => {
   const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById } =
     useTourSchedule();
 
+  const { data: promotionsData, isLoading: isLoadingPromotions } = usePromotions({ status: "Active" });
+  const activePromotions = promotionsData?.data || [];
+
   const [ticket, setTicket] = React.useState<TourScheduleTicket | null>(null);
   const [ticketTypes, setTicketTypes] = React.useState<ReadTicketTypeDTO[]>([]);
   const [selectedTicketType, setSelectedTicketType] =
@@ -33,6 +37,7 @@ export const UpdateScheduleTicket: React.FC = () => {
   const [ticketTypeId, setTicketTypeId] = React.useState("");
   const [price, setPrice] = React.useState("");
   const [quantity, setQuantity] = React.useState("");
+  const [promotionId, setPromotionId] = React.useState("");
   const [isActive, setIsActive] = React.useState(true);
   const [note, setNote] = React.useState("");
   const [isFetching, setIsFetching] = React.useState(true);
@@ -74,6 +79,7 @@ export const UpdateScheduleTicket: React.FC = () => {
           const capacity = getScheduleTicketCapacity(ticketData);
           return capacity === null ? "" : String(capacity);
         });
+        setPromotionId(ticketData.promotion?.id ? String(ticketData.promotion.id) : "");
         setIsActive(ticketData.isActive ?? true);
         setNote(ticketData.note ?? "");
       } catch (err: unknown) {
@@ -141,6 +147,7 @@ export const UpdateScheduleTicket: React.FC = () => {
           parsedQuantity,
           isActive,
           note,
+          promotionId ? Number(promotionId) : null,
         ),
       );
       success(t("tour.scheduleTicketUpdated"));
@@ -306,6 +313,29 @@ export const UpdateScheduleTicket: React.FC = () => {
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
               placeholder={t("tour.internalNotePlaceholder")}
             />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Promotion <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <div className="relative">
+              <select
+                value={promotionId}
+                onChange={(event) => setPromotionId(event.target.value)}
+                disabled={isLoadingPromotions || isSubmitting}
+                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <option value="">
+                  {isLoadingPromotions ? "Loading promotions..." : "No promotion"}
+                </option>
+                {activePromotions.map((promo) => (
+                  <option key={promo.id} value={promo.id}>
+                    {promo.code} - {promo.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">

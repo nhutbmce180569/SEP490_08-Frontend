@@ -189,5 +189,9 @@
     "contact": "Liên hệ",
     "terms": "Điều khoản dịch vụ",
     "privacy": "Chính sách bảo mật"
+  },
+  "admin": {
+    "promotionManagement": "Khuyến mãi",
+    "voucherManagement": "Quản lý Voucher"
   }
 }

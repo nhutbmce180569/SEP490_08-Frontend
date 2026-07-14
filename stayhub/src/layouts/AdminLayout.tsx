@@ -10,6 +10,7 @@ import {
   PieChart,
   Ticket,
   Users,
+  BadgePercent,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -101,6 +102,11 @@ export const AdminLayout = () => {
             label: t("admin.voucherManagement"),
             to: PATH.ADMIN.SYSTEM_VOUCHERS,
             icon: <Gift className={iconClass} />,
+          },
+          {
+            label: t("admin.promotionManagement") || "Promotions",
+            to: PATH.ADMIN.SYSTEM_PROMOTIONS,
+            icon: <BadgePercent className={iconClass} />,
           },
         ],
       },

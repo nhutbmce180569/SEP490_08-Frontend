@@ -107,6 +107,7 @@ import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPag
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
 import { ScheduleTrackingPage } from "./features/social/tracking/pages/ScheduleTrackingPage";
 import { LocationTrackingPage } from "./features/social/tracking/pages/LocationTrackingPage";
+import { ManagerLocationsPage } from "./features/social/tracking/pages/ManagerLocationsPage";
 import { CustomerAnalyticsPage } from "./features/customer-analytics/pages/CustomerAnalyticsPage";
 import { PlatformAnalyticsPage } from "./features/platform-analytics/pages/PlatformAnalyticsPage";
 import { BookingStatisticsPage } from "./features/booking/pages/BookingStatisticsPage";
@@ -530,8 +531,17 @@ const App: React.FC = () => {
                     element={<ModerationDashboard />}
                   />
                   <Route
-                    path={childPath(PATH.MANAGER.TREND_PREDICTION)}
-                    element={<TrendPredictionPage />}
+// <<<<<<< HEAD
+                    path={childPath(PATH.MANAGER.LOCATIONS)}
+                    element={<ManagerLocationsPage />}
+                  />
+                  <Route
+                    path={childPath(PATH.MANAGER.TRACK_SCHEDULE_LOCATIONS())}
+                    element={<ScheduleTrackingPage />}
+// =======
+//                     path={childPath(PATH.MANAGER.TREND_PREDICTION)}
+//                     element={<TrendPredictionPage />}
+// >>>>>>> a534724c3182f585d814ac2b03791b31cad51abd
                   />
                 </Route>
               </Route>

@@ -9,6 +9,7 @@ import {
   Ticket,
   TicketPercent,
   ShieldAlert,
+  MapPin,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -50,6 +51,11 @@ export const DashboardLayout = () => {
             label: t("manager.schedules"),
             to: PATH.MANAGER.SCHEDULE_MANAGEMENT,
             icon: <CalendarDays className={iconClass} />,
+          },
+          {
+            label: t("manager.locations") || "Bản đồ định vị",
+            to: PATH.MANAGER.LOCATIONS,
+            icon: <MapPin className={iconClass} />,
           },
         ],
       },

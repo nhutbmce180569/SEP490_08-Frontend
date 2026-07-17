@@ -560,6 +560,11 @@
   "cloneDayFromTour": "Sao chép Ngày {{day}}",
   "cloneFromTourPrompt": "Bạn muốn bắt đầu nhanh? Sao chép toàn bộ lịch trình từ tour gốc.",
   "cloneFromTour": "Sao chép từ Tour",
+  "analyzeTourOverall": "Phân tích toàn bộ đánh giá Tour bằng AI",
+  "analyzingTour": "Đang tổng hợp và phân tích đánh giá...",
+  "aiJudgment": "AI Nhận định:",
+  "noReviewToAnalyze": "Tour chưa có đánh giá nào.",
+  "reasonByAverageStar": "Dựa vào số sao trung bình (không có chữ).",
   "error": {
     "noItinerariesToClone": "Tour này không có lịch trình để sao chép.",
     "cloneFailed": "Đã xảy ra lỗi khi sao chép lịch trình.",

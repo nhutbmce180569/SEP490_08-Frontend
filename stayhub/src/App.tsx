@@ -72,7 +72,7 @@ import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
 import { TourScheduleList } from "./features/tour/pages/TourScheduleList";
 import { TourScheduleDetail } from "./features/tour/pages/TourScheduleDetail";
 import { AssignedSchedulesPage } from "./features/tour/pages/AssignedSchedulesPage";
-import {CreateEditSchedule} from "./features/tour/pages/CreateEditSchedule";
+import { CreateEditSchedule } from "./features/tour/pages/CreateEditSchedule";
 import { CreateScheduleItinerary } from "./features/tour/pages/CreateScheduleItinerary";
 import { UpdateScheduleItinerary } from "./features/tour/pages/UpdateScheduleItinerary";
 import { DeleteScheduleItinerary } from "./features/tour/pages/DeleteScheduleItinerary";
@@ -102,6 +102,10 @@ import { CreateVoucher } from "./features/voucher/pages/CreateVoucher";
 import { UpdateVoucher } from "./features/voucher/pages/UpdateVoucher";
 import { VoucherDetail } from "./features/voucher/pages/VoucherDetail";
 import { MyVouchersPage } from "./features/voucher/customer/pages/MyVouchersPage";
+
+import { AdminPromotionList } from "./features/promotion/pages/AdminPromotionList";
+import { CreatePromotion } from "./features/promotion/pages/CreatePromotion";
+import { UpdatePromotion } from "./features/promotion/pages/UpdatePromotion";
 
 import { MyWishlistPage } from "./features/wishlist/customer/pages/MyWishlistPage";
 import { PublicTrackingPage } from "./features/social/tracking/pages/PublicTrackingPage";
@@ -260,426 +264,430 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <CurrencyProvider>
-      <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <Router>
-            <ChatNotificationProvider>
-            <TourAssistantChatProvider>
-            <AiPlannerProvider>
-            {/* <CustomBrandCursor /> */}
-            <AiPlannerModal />
-            <ScrollToTop />
-            <PasswordChangeEnforcer>
-              <Routes>
-              <Route element={<GuestRoute />}>
-                <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
-                <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
-                <Route
-                  path={PATH.PUBLIC.FORGOT_PASSWORD}
-                  element={<ForgotPassword />}
-                />
-                <Route
-                  path={PATH.PUBLIC.RESET_PASSWORD}
-                  element={<ResetPassword />}
-                />
-              </Route>
-              <Route path="/track/:token" element={<PublicTrackingPage />} />
-              <Route element={<AuthenticatedRoute />}>
-                <Route
-                  path={PATH.PUBLIC.CHANGE_PASSWORD}
-                  element={<ChangePassword />}
-                />
-              </Route>
-              <Route
-                path={PATH.PUBLIC.UNAUTHORIZED}
-                element={<Unauthorized />}
-              />
+        <ThemeProvider>
+          <ToastProvider>
+            <AuthProvider>
+              <Router>
+                <ChatNotificationProvider>
+                  <TourAssistantChatProvider>
+                    <AiPlannerProvider>
+                      {/* <CustomBrandCursor /> */}
+                      <AiPlannerModal />
+                      <ScrollToTop />
+                      <PasswordChangeEnforcer>
+                        <Routes>
+                          <Route element={<GuestRoute />}>
+                            <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
+                            <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
+                            <Route
+                              path={PATH.PUBLIC.FORGOT_PASSWORD}
+                              element={<ForgotPassword />}
+                            />
+                            <Route
+                              path={PATH.PUBLIC.RESET_PASSWORD}
+                              element={<ResetPassword />}
+                            />
+                          </Route>
+                          <Route path="/track/:token" element={<PublicTrackingPage />} />
+                          <Route element={<AuthenticatedRoute />}>
+                            <Route
+                              path={PATH.PUBLIC.CHANGE_PASSWORD}
+                              element={<ChangePassword />}
+                            />
+                          </Route>
+                          <Route
+                            path={PATH.PUBLIC.UNAUTHORIZED}
+                            element={<Unauthorized />}
+                          />
 
-              <Route element={<MainLayout />}>
-                <Route path={PATH.PUBLIC.HOME} element={<Home />} />
-                <Route path={PATH.PUBLIC.TOURS} element={<TourSearch />} />
-                <Route
-                  path={PATH.PUBLIC.TOUR_SEARCH}
-                  element={<TourSearch />}
-                />
-                <Route
-                  path={PATH.PUBLIC.TOUR_DETAIL()}
-                  element={<PublicTourDetail />}
-                />
-                <Route
-                  path={PATH.PUBLIC.AI_ASSISTANT}
-                  element={<AiQuestionnairePage />}
-                />
-                <Route
-                  path={PATH.PUBLIC.AI_RECOMMENDATIONS}
-                  element={<AiRecommendationsPage />}
-                />
-                <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
-                <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
-                <Route path={PATH.PUBLIC.ABOUT} element={<AboutPage />} />
-                <Route
-                  path={PATH.PUBLIC.NHUT_PORTFOLIO}
-                  element={<NhutPortfolioPage />}
-                />
-                <Route path={PATH.PUBLIC.INFO()} element={<PublicInfoPage />} />
-                <Route
-                  path={PATH.CUSTOMER.CHECKOUT()}
-                  element={<BookingPage />}
-                />
-                {/* <Route
+                          <Route element={<MainLayout />}>
+                            <Route path={PATH.PUBLIC.HOME} element={<Home />} />
+                            <Route path={PATH.PUBLIC.TOURS} element={<TourSearch />} />
+                            <Route
+                              path={PATH.PUBLIC.TOUR_SEARCH}
+                              element={<TourSearch />}
+                            />
+                            <Route
+                              path={PATH.PUBLIC.TOUR_DETAIL()}
+                              element={<PublicTourDetail />}
+                            />
+                            <Route
+                              path={PATH.PUBLIC.AI_ASSISTANT}
+                              element={<AiQuestionnairePage />}
+                            />
+                            <Route
+                              path={PATH.PUBLIC.AI_RECOMMENDATIONS}
+                              element={<AiRecommendationsPage />}
+                            />
+                            <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
+                            <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
+                            <Route path={PATH.PUBLIC.ABOUT} element={<AboutPage />} />
+                            <Route
+                              path={PATH.PUBLIC.NHUT_PORTFOLIO}
+                              element={<NhutPortfolioPage />}
+                            />
+                            <Route path={PATH.PUBLIC.INFO()} element={<PublicInfoPage />} />
+                            <Route
+                              path={PATH.CUSTOMER.CHECKOUT()}
+                              element={<BookingPage />}
+                            />
+                            {/* <Route
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
                 /> */}
-                <Route path="/social/profile/:id" element={<SocialProfile />} />
+                            <Route path="/social/profile/:id" element={<SocialProfile />} />
 
-                {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
-                <Route element={<ProtectedRoute />}>
-                  <Route
-                    path="/chat"
-                    element={<Navigate to={PATH.CUSTOMER.SOCIAL_CHAT} replace />}
-                  />
-                  <Route element={<ProfileLayout />}>
-                    <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
-                    <Route path={PATH.CUSTOMER.UPDATE_PROFILE} element={<Profile />} />
-                    <Route
-                    element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}
-                    >
-                      <Route
-                        path={PATH.CUSTOMER.MY_BOOKINGS}
-                        element={<MyBookingsPage />}
-                      />
-                       <Route
-                      path={PATH.CUSTOMER.BOOKING_DETAIL()}
-                      element={<OrderDetailPage />}
-                    />
-                    <Route
-                      path={PATH.CUSTOMER.REQUEST_CANCELLATION()}
-                      element={<CreateCancellationRequestPage />}
-                    />
-                    <Route
-                      path={PATH.CUSTOMER.WISHLIST}
-                      element={<MyWishlistPage />}
-                    />
-                    <Route
-                      path={PATH.CUSTOMER.VOUCHERS}
-                      element={<MyVouchersPage />}
-                    />
-                    <Route
-                      path={PATH.CUSTOMER.MY_REVIEWS}
-                      element={<MyReviewsPage />}
-                    />
-                    <Route
-                      path={PATH.CUSTOMER.SETTINGS}
-                      element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
-                    />
-                    <Route
-                      path={PATH.CUSTOMER.NOTIFICATIONS}
-                      element={<NotificationListPage />}
-                    />
-                    
-                    <Route
-                      path={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                      element={<FriendsManagement />}
-                    />
-                    </Route>
-                   
-                    <Route
-                      path={PATH.CUSTOMER.SOCIAL_CHAT}
-                      element={<ChatPage />}
-                    />
-                  </Route>
+                            {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
+                            <Route element={<ProtectedRoute />}>
+                              <Route
+                                path="/chat"
+                                element={<Navigate to={PATH.CUSTOMER.SOCIAL_CHAT} replace />}
+                              />
+                              <Route element={<ProfileLayout />}>
+                                <Route path={PATH.CUSTOMER.PROFILE} element={<Profile />} />
+                                <Route path={PATH.CUSTOMER.UPDATE_PROFILE} element={<Profile />} />
+                                <Route
+                                  element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}
+                                >
+                                  <Route
+                                    path={PATH.CUSTOMER.MY_BOOKINGS}
+                                    element={<MyBookingsPage />}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.BOOKING_DETAIL()}
+                                    element={<OrderDetailPage />}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.REQUEST_CANCELLATION()}
+                                    element={<CreateCancellationRequestPage />}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.WISHLIST}
+                                    element={<MyWishlistPage />}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.VOUCHERS}
+                                    element={<MyVouchersPage />}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.MY_REVIEWS}
+                                    element={<MyReviewsPage />}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.SETTINGS}
+                                    element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
+                                  />
+                                  <Route
+                                    path={PATH.CUSTOMER.NOTIFICATIONS}
+                                    element={<NotificationListPage />}
+                                  />
 
-                  <Route path="/social/moments" element={<MomentsRouteWrapper />} />
-                </Route>
-              </Route>
+                                  <Route
+                                    path={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                                    element={<FriendsManagement />}
+                                  />
+                                </Route>
 
-              {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
-              <Route
-                element={<ProtectedRoute allowedRoles={["MANAGER", "ADMIN"]} />}
-              >
-                <Route
-                  path={PATH.MANAGER.DASHBOARD}
-                  element={<DashboardLayout />}
-                >
-                  <Route index element={<PartnerDashboard />} />
-                  <Route path={childPath(PATH.MANAGER.PROFILE)} element={<Profile />} />
-                  <Route
-                    path={childPath(PATH.MANAGER.MY_TOURS)}
-                    element={<TourList />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CREATE_TOUR)}
-                    element={<CreateTour />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.TOUR_DETAIL())}
-                    element={<TourDetail />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.EDIT_TOUR())}
-                    element={<UpdateTour />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.DELETE_TOUR())}
-                    element={<DeleteTourConfirm />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CREATE_ITINERARY())}
-                    element={<CreateItinerary />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.EDIT_ITINERARY())}
-                    element={<UpdateItinerary />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.DELETE_ITINERARY())}
-                    element={<DeleteItineraryConfirm />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
-                    element={<TourScheduleList />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
-                    element={<CreateEditSchedule />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
-                    element={<TourScheduleDetail />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
-                    element={<CreateEditSchedule />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
-                    element={<DeleteTourSchedule/>}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
-                    element={<CreateScheduleItinerary />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
-                    element={<UpdateScheduleItinerary />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
-                    element={<DeleteScheduleItinerary />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CREATE_SCHEDULE_TICKET())}
-                    element={<CreateScheduleTicket />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.EDIT_SCHEDULE_TICKET())}
-                    element={<UpdateScheduleTicket />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.DELETE_SCHEDULE_TICKET())}
-                    element={<DeleteScheduleTicket />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}
-                    element={mock("app.titles.scheduleOrders", "app.mockScheduleOrders", "app.sectionPartner")}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.SCHEDULE_CHECKIN())}
-                    element={mock("app.titles.scheduleCheckin", "app.mockScheduleCheckin", "app.sectionPartner")}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.BOOKING_MANAGEMENT)}
-                    element={mock("app.titles.bookingManagement", "app.mockBookingManagement", "app.sectionPartner")}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CHECK_IN)}
-                    element={mock("app.titles.checkin", "app.mockCheckin", "app.sectionPartner")}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CANCELLATION_REQUESTS)}
-                    element={<CancellationListPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.PROCESS_CANCELLATION())}
-                    element={<ProcessCancellationPage />}
-                  />
-                  <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
-                    <Route index element={<ManagerVoucherList />} />
-                    <Route path="create" element={<CreateVoucher />} />
-                    <Route path=":id/edit" element={<UpdateVoucher />} />
-                    <Route path=":id" element={<VoucherDetail />} />
-                  </Route>
-                  <Route
-                    path={childPath(PATH.MANAGER.REVIEWS)}
-                    element={<DashboardReviewManager />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.CUSTOMER_ANALYTICS)}
-                    element={<CustomerAnalyticsPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.BOOKING_STATISTICS)}
-                    element={<BookingStatisticsPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.PAYOUT)}
-                    element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.MODERATION)}
-                    element={<ModerationDashboard />}
-                  />
-                  <Route
-// <<<<<<< HEAD
-                    path={childPath(PATH.MANAGER.LOCATIONS)}
-                    element={<ManagerLocationsPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.MANAGER.TRACK_SCHEDULE_LOCATIONS())}
-                    element={<ScheduleTrackingPage />}
-// =======
-//                     path={childPath(PATH.MANAGER.TREND_PREDICTION)}
-//                     element={<TrendPredictionPage />}
-// >>>>>>> a534724c3182f585d814ac2b03791b31cad51abd
-                  />
-                </Route>
-              </Route>
+                                <Route
+                                  path={PATH.CUSTOMER.SOCIAL_CHAT}
+                                  element={<ChatPage />}
+                                />
+                              </Route>
 
-              <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
-                <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
-                  <Route index element={<AssignedSchedulesPage />} />
-                  <Route path={childPath(PATH.STAFF.PROFILE)} element={<Profile />} />
-                  
-                  {/* UC-49: Assigned Schedules */}
-                  <Route path={childPath(PATH.STAFF.SCHEDULES)} element={<AssignedSchedulesPage />} />
-                  <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<StaffTourScheduleDetail />} />
+                              <Route path="/social/moments" element={<MomentsRouteWrapper />} />
+                            </Route>
+                          </Route>
 
-                  {/* UC-50: QR Check-In */}
-                  <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={<QRCheckinPage />} />
-                  <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("app.titles.processCheckin", "app.mockProcessCheckin", "app.sectionStaff")} />
+                          {/* Phân hệ dành cho Điều hành viên (Tour Operator / Manager) */}
+                          <Route
+                            element={<ProtectedRoute allowedRoles={["MANAGER", "ADMIN"]} />}
+                          >
+                            <Route
+                              path={PATH.MANAGER.DASHBOARD}
+                              element={<DashboardLayout />}
+                            >
+                              <Route index element={<PartnerDashboard />} />
+                              <Route path={childPath(PATH.MANAGER.PROFILE)} element={<Profile />} />
+                              <Route
+                                path={childPath(PATH.MANAGER.MY_TOURS)}
+                                element={<TourList />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CREATE_TOUR)}
+                                element={<CreateTour />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.TOUR_DETAIL())}
+                                element={<TourDetail />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.EDIT_TOUR())}
+                                element={<UpdateTour />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.DELETE_TOUR())}
+                                element={<DeleteTourConfirm />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CREATE_ITINERARY())}
+                                element={<CreateItinerary />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.EDIT_ITINERARY())}
+                                element={<UpdateItinerary />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.DELETE_ITINERARY())}
+                                element={<DeleteItineraryConfirm />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
+                                element={<TourScheduleList />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CREATE_SCHEDULE())}
+                                element={<CreateEditSchedule />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.SCHEDULE_DETAIL())}
+                                element={<TourScheduleDetail />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.EDIT_SCHEDULE())}
+                                element={<CreateEditSchedule />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.DELETE_SCHEDULE())}
+                                element={<DeleteTourSchedule />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY())}
+                                element={<CreateScheduleItinerary />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY())}
+                                element={<UpdateScheduleItinerary />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.DELETE_SCHEDULE_ITINERARY())}
+                                element={<DeleteScheduleItinerary />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CREATE_SCHEDULE_TICKET())}
+                                element={<CreateScheduleTicket />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.EDIT_SCHEDULE_TICKET())}
+                                element={<UpdateScheduleTicket />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.DELETE_SCHEDULE_TICKET())}
+                                element={<DeleteScheduleTicket />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.SCHEDULE_ORDERS())}
+                                element={mock("app.titles.scheduleOrders", "app.mockScheduleOrders", "app.sectionPartner")}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.SCHEDULE_CHECKIN())}
+                                element={mock("app.titles.scheduleCheckin", "app.mockScheduleCheckin", "app.sectionPartner")}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.BOOKING_MANAGEMENT)}
+                                element={mock("app.titles.bookingManagement", "app.mockBookingManagement", "app.sectionPartner")}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CHECK_IN)}
+                                element={mock("app.titles.checkin", "app.mockCheckin", "app.sectionPartner")}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CANCELLATION_REQUESTS)}
+                                element={<CancellationListPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.PROCESS_CANCELLATION())}
+                                element={<ProcessCancellationPage />}
+                              />
+                              <Route path={childPath(PATH.MANAGER.VOUCHERS)}>
+                                <Route index element={<ManagerVoucherList />} />
+                                <Route path="create" element={<CreateVoucher />} />
+                                <Route path=":id/edit" element={<UpdateVoucher />} />
+                                <Route path=":id" element={<VoucherDetail />} />
+                              </Route>
+                              <Route
+                                path={childPath(PATH.MANAGER.REVIEWS)}
+                                element={<DashboardReviewManager />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.CUSTOMER_ANALYTICS)}
+                                element={<CustomerAnalyticsPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.BOOKING_STATISTICS)}
+                                element={<BookingStatisticsPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.PAYOUT)}
+                                element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.MODERATION)}
+                                element={<ModerationDashboard />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.LOCATIONS)}
+                                element={<ManagerLocationsPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.TRACK_SCHEDULE_LOCATIONS())}
+                                element={<ScheduleTrackingPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.MANAGER.TREND_PREDICTION)}
+                                element={<TrendPredictionPage />}
+                              />
+                            </Route>
+                          </Route>
 
-                  {/* UC-51: Tickets */}
-                  <Route path={childPath(PATH.STAFF.TICKETS)} element={<StaffTicketListPage />} />
-                  <Route path={childPath(PATH.STAFF.TICKET_DETAIL())} element={mock("app.titles.ticketDetails", "app.mockTicketDetails", "app.sectionStaff")} />
+                          <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
+                            <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
+                              <Route index element={<AssignedSchedulesPage />} />
+                              <Route path={childPath(PATH.STAFF.PROFILE)} element={<Profile />} />
 
-                  {/* UC-52: Track Locations */}
-                  <Route path={childPath(PATH.STAFF.LOCATIONS)} element={<LocationTrackingPage />} />
-                  <Route path={childPath(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS())} element={<ScheduleTrackingPage />} />
+                              {/* UC-49: Assigned Schedules */}
+                              <Route path={childPath(PATH.STAFF.SCHEDULES)} element={<AssignedSchedulesPage />} />
+                              <Route path={childPath(PATH.STAFF.SCHEDULE_DETAIL())} element={<StaffTourScheduleDetail />} />
 
-                  {/* UC-53: Customers */}
-                  <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={<ScheduleCustomersPage />} />
-                  <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={<ScheduleCustomersPage />} />
+                              {/* UC-50: QR Check-In */}
+                              <Route path={childPath(PATH.STAFF.QR_CHECKIN)} element={<QRCheckinPage />} />
+                              <Route path={childPath(PATH.STAFF.QR_CHECKIN_SCAN())} element={mock("app.titles.processCheckin", "app.mockProcessCheckin", "app.sectionStaff")} />
 
-                </Route>
-              </Route>
+                              {/* UC-51: Tickets */}
+                              <Route path={childPath(PATH.STAFF.TICKETS)} element={<StaffTicketListPage />} />
+                              <Route path={childPath(PATH.STAFF.TICKET_DETAIL())} element={mock("app.titles.ticketDetails", "app.mockTicketDetails", "app.sectionStaff")} />
 
-              {/* Phân hệ Quản trị viên cấp cao (Admin) */}
-              <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
-                <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
-                  <Route index element={<Navigate to={PATH.ADMIN.PLATFORM_ANALYTICS} replace />} />
-                  <Route path={childPath(PATH.ADMIN.PROFILE)} element={<Profile />} />
-                  <Route
-                    path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}
-                    element={<PlatformAnalyticsPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
-                    element={<CustomerAnalyticsPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
-                    element={<BookingStatisticsPage />}
-                  />
-                  <Route
-                    path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
-                    element={<RevenueStatisticsPage />}
-                  />
-                  <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
-                    <Route index element={<UserList />} />
-                    <Route path="create" element={<CreateUser />} />
-                    <Route path=":id/edit" element={<UpdateUser />} />
-                    <Route path=":id/delete" element={<DeleteUserConfirm />} />
-                  </Route>
-                  <Route
-                    path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
-                    element={mock("app.titles.partnerApprovals", "app.mockPartnerApprovals", "app.sectionAdmin")}
-                  />
-                  <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
-                    <Route index element={<AdminTourList />} />
-                    <Route
-                      path=":id"
-                      element={mock("app.titles.adminTourDetail", "app.mockAdminTourDetail", "app.sectionAdmin")}
-                    />
-                  </Route>
-                  <Route
-                    path={childPath(PATH.ADMIN.REPORT_MODERATION)}
-                    element={mock("app.titles.violationReports", "app.mockViolationReports", "app.sectionAdmin")}
-                  />
-                  <Route
-                    path={childPath(PATH.ADMIN.WITHDRAWALS)}
-                    element={mock("app.titles.withdrawals", "app.mockWithdrawals", "app.sectionAdmin")}
-                  />
-                  <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
-                    <Route index element={<AdminVoucherList />} />
+                              {/* UC-52: Track Locations */}
+                              <Route path={childPath(PATH.STAFF.LOCATIONS)} element={<LocationTrackingPage />} />
+                              <Route path={childPath(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS())} element={<ScheduleTrackingPage />} />
 
-                    <Route path="create" element={<CreateVoucher />} />
-                    <Route path=":id/edit" element={<UpdateVoucher />} />
-                    <Route path=":id" element={<VoucherDetail />} />
-                  </Route>
-                  <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
-                    <Route index element={<BannerList />} />
-                    <Route path="create" element={<CreateBanner />} />
-                    <Route path=":id/edit" element={<UpdateBanner />} />
-                    <Route
-                      path=":id/delete"
-                      element={<DeleteBannerConfirm />}
-                    />
-                  </Route>
-                  <Route path={childPath(PATH.ADMIN.TICKET_TYPE_MANAGEMENT)}>
-                    <Route index element={<TicketTypeList />} />
-                    <Route path="create" element={<CreateTicketType />} />
-                    <Route path=":id/edit" element={<UpdateTicketType />} />
-                  </Route>
-                  <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
-                    <Route index element={<CategoryList />} />
-                    <Route path="create" element={<CreateCategory />} />
-                    <Route path=":id/edit" element={<UpdateCategory />} />
-                    <Route
-                      path=":id/delete"
-                      element={<DeleteCategoryConfirm />}
-                    />
-                  </Route>
-                  <Route path={childPath(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT)}>
-                    <Route index element={<TourismInformationList />} />
-                    <Route path="create" element={<CreateTourismInformation />} />
-                    <Route path=":id/edit" element={<UpdateTourismInformation />} />
-                    <Route path=":id" element={<TourismInformationDetail />} />
-                  </Route>
-                  <Route
-                    path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
-                    element={mock("app.titles.systemSettings", "app.mockSystemSettings", "app.sectionAdmin")}
-                  />
-                  <Route
-                    path={childPath(PATH.ADMIN.AI_CONSOLE)}
-                    element={<AdminAiConsolePage />}
-                  />
-                </Route>
-              </Route>
+                              {/* UC-53: Customers */}
+                              <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={<ScheduleCustomersPage />} />
+                              <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={<ScheduleCustomersPage />} />
 
-              <Route
-                path="*"
-                element={mock("app.titles.notFound", "app.mock404", "app.sectionSystem")}
-              />
-              </Routes>
-            </PasswordChangeEnforcer>
-          </AiPlannerProvider>
-          </TourAssistantChatProvider>
-          </ChatNotificationProvider>
-          </Router>
-        </AuthProvider>
-      </ToastProvider>
-      </ThemeProvider>
+                            </Route>
+                          </Route>
+
+                          {/* Phân hệ Quản trị viên cấp cao (Admin) */}
+                          <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                            <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
+                              <Route index element={<Navigate to={PATH.ADMIN.PLATFORM_ANALYTICS} replace />} />
+                              <Route path={childPath(PATH.ADMIN.PROFILE)} element={<Profile />} />
+                              <Route
+                                path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}
+                                element={<PlatformAnalyticsPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
+                                element={<CustomerAnalyticsPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
+                                element={<BookingStatisticsPage />}
+                              />
+                              <Route
+                                path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
+                                element={<RevenueStatisticsPage />}
+                              />
+                              <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
+                                <Route index element={<UserList />} />
+                                <Route path="create" element={<CreateUser />} />
+                                <Route path=":id/edit" element={<UpdateUser />} />
+                                <Route path=":id/delete" element={<DeleteUserConfirm />} />
+                              </Route>
+                              <Route
+                                path={childPath(PATH.ADMIN.PARTNER_APPROVAL)}
+                                element={mock("app.titles.partnerApprovals", "app.mockPartnerApprovals", "app.sectionAdmin")}
+                              />
+                              <Route path={childPath(PATH.ADMIN.TOUR_MODERATION)}>
+                                <Route index element={<AdminTourList />} />
+                                <Route
+                                  path=":id"
+                                  element={mock("app.titles.adminTourDetail", "app.mockAdminTourDetail", "app.sectionAdmin")}
+                                />
+                              </Route>
+                              <Route
+                                path={childPath(PATH.ADMIN.REPORT_MODERATION)}
+                                element={mock("app.titles.violationReports", "app.mockViolationReports", "app.sectionAdmin")}
+                              />
+                              <Route
+                                path={childPath(PATH.ADMIN.WITHDRAWALS)}
+                                element={mock("app.titles.withdrawals", "app.mockWithdrawals", "app.sectionAdmin")}
+                              />
+                              <Route path={childPath(PATH.ADMIN.SYSTEM_VOUCHERS)}>
+                                <Route index element={<AdminVoucherList />} />
+
+                                <Route path="create" element={<CreateVoucher />} />
+                                <Route path=":id/edit" element={<UpdateVoucher />} />
+                                <Route path=":id" element={<VoucherDetail />} />
+                              </Route>
+                              <Route path={childPath(PATH.ADMIN.SYSTEM_PROMOTIONS)}>
+                                <Route index element={<AdminPromotionList />} />
+                                <Route path="create" element={<CreatePromotion />} />
+                                <Route path=":id/edit" element={<UpdatePromotion />} />
+                              </Route>
+                              <Route path={childPath(PATH.ADMIN.BANNER_MANAGEMENT)}>
+                                <Route index element={<BannerList />} />
+                                <Route path="create" element={<CreateBanner />} />
+                                <Route path=":id/edit" element={<UpdateBanner />} />
+                                <Route
+                                  path=":id/delete"
+                                  element={<DeleteBannerConfirm />}
+                                />
+                              </Route>
+                              <Route path={childPath(PATH.ADMIN.TICKET_TYPE_MANAGEMENT)}>
+                                <Route index element={<TicketTypeList />} />
+                                <Route path="create" element={<CreateTicketType />} />
+                                <Route path=":id/edit" element={<UpdateTicketType />} />
+                              </Route>
+                              <Route path={childPath(PATH.ADMIN.CATEGORY_MANAGEMENT)}>
+                                <Route index element={<CategoryList />} />
+                                <Route path="create" element={<CreateCategory />} />
+                                <Route path=":id/edit" element={<UpdateCategory />} />
+                                <Route
+                                  path=":id/delete"
+                                  element={<DeleteCategoryConfirm />}
+                                />
+                              </Route>
+                              <Route path={childPath(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT)}>
+                                <Route index element={<TourismInformationList />} />
+                                <Route path="create" element={<CreateTourismInformation />} />
+                                <Route path=":id/edit" element={<UpdateTourismInformation />} />
+                                <Route path=":id" element={<TourismInformationDetail />} />
+                              </Route>
+                              <Route
+                                path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
+                                element={mock("app.titles.systemSettings", "app.mockSystemSettings", "app.sectionAdmin")}
+                              />
+                              <Route
+                                path={childPath(PATH.ADMIN.AI_CONSOLE)}
+                                element={<AdminAiConsolePage />}
+                              />
+                            </Route>
+                          </Route>
+
+                          <Route
+                            path="*"
+                            element={mock("app.titles.notFound", "app.mock404", "app.sectionSystem")}
+                          />
+                        </Routes>
+                      </PasswordChangeEnforcer>
+                    </AiPlannerProvider>
+                  </TourAssistantChatProvider>
+                </ChatNotificationProvider>
+              </Router>
+            </AuthProvider>
+          </ToastProvider>
+        </ThemeProvider>
       </CurrencyProvider>
     </QueryClientProvider>
   );

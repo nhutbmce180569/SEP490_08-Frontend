@@ -439,6 +439,23 @@ export const TourScheduleDetail: React.FC = () => {
                       const availableQuantity = getScheduleTicketAvailable(ticket) ?? 0;
                       const isActive = ticket.isActive ?? true;
 
+                      let displayPrice = ticket.price;
+                      let hasDiscount = false;
+                      if (ticket.promotion && ticket.price != null && ticket.promotion.discountValue) {
+                        const p = Number(ticket.price);
+                        let discountAmount = 0;
+                        if (ticket.promotion.discountType === "PERCENTAGE") {
+                          discountAmount = p * (ticket.promotion.discountValue / 100);
+                          if (ticket.promotion.maxDiscountAmount && discountAmount > ticket.promotion.maxDiscountAmount) {
+                            discountAmount = ticket.promotion.maxDiscountAmount;
+                          }
+                        } else {
+                          discountAmount = ticket.promotion.discountValue;
+                        }
+                        displayPrice = Math.max(0, p - discountAmount);
+                        hasDiscount = true;
+                      }
+
                       return (
                         <tr
                           key={ticket.id}
@@ -462,9 +479,23 @@ export const TourScheduleDetail: React.FC = () => {
                             </div>
                           </td>
                           <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-2 font-semibold text-emerald-600">
-                              <Banknote className="h-4 w-4" />
-                              {formatTicketCurrency(ticket.price)}
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2 font-semibold text-emerald-600">
+                                <Banknote className="h-4 w-4" />
+                                {formatTicketCurrency(displayPrice)}
+                              </div>
+                              {hasDiscount && (
+                                <div className="text-xs font-medium text-slate-400 line-through pl-6">
+                                  {formatTicketCurrency(ticket.price)}
+                                </div>
+                              )}
+                              {ticket.promotion && (
+                                <div className="pl-6">
+                                  <span className="inline-block rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                                    {ticket.promotion.code}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </td>
                           <td className="px-5 py-3.5">

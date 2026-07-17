@@ -283,9 +283,7 @@ export const ManagerVoucherList: React.FC = () => {
             <option value="">{t('voucher.allStatuses')}</option>
             <option value="Active">{t('common.active')}</option>
             <option value="Inactive">{t('common.inactive')}</option>
-            <option value="Scheduled">{t('voucher.scheduled')}</option>
             <option value="Expired">{t('tour.expired')}</option>
-            <option value="Depleted">{t('voucher.depleted')}</option>
           </select>
         </div>
 

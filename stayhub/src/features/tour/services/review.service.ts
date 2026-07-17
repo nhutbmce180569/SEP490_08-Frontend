@@ -1,5 +1,6 @@
 import axios from "axios";
 import { TOURS_API } from "../../../config/api/tours.api";
+import { AI_API } from "../../../config/api/ai.api";
 import { withLanguageHeaders } from "../../../utils/httpLanguage";
 import type {
   CreateReviewReplyRequest,
@@ -141,5 +142,15 @@ export const reviewService = {
       {},
       getAuthConfig(),
     );
+  },
+
+  // ✅ Phân tích AI
+  analyzeReview: async (reviewText: string, starRating: number) => {
+    const response = await axios.post(
+      AI_API.REVIEW_ANALYSIS.ANALYZE,
+      { reviewText, starRating },
+      getAuthConfig()
+    );
+    return response.data;
   },
 };

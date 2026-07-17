@@ -53,7 +53,7 @@ export const DashboardLayout = () => {
             icon: <CalendarDays className={iconClass} />,
           },
           {
-            label: t("manager.locations") || "Bản đồ định vị",
+            label: t("manager.locations"),
             to: PATH.MANAGER.LOCATIONS,
             icon: <MapPin className={iconClass} />,
           },
@@ -83,12 +83,12 @@ export const DashboardLayout = () => {
             icon: <Star className={iconClass} />,
           },
           {
-            label: t("manager.moderation") || "Kiểm duyệt nội dung",
+            label: t("manager.moderation"),
             to: PATH.MANAGER.MODERATION,
             icon: <ShieldAlert className={iconClass} />,
           },
           {
-            label: t("manager.trendPrediction") || "Dự báo Tour Hot",
+            label: t("manager.trendPrediction"),
             to: PATH.MANAGER.TREND_PREDICTION,
             icon: <LayoutDashboard className={iconClass} />,
           },

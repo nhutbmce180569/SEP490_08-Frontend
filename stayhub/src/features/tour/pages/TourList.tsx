@@ -231,15 +231,7 @@ export const TourList: React.FC = () => {
   return (
     <div className="rounded-2xl">
       {/* Card header */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <div>
-            <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              {t("tour.tourManagement")}
-            </h2>
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
@@ -309,11 +301,13 @@ export const TourList: React.FC = () => {
             <X className="h-4 w-4" />
             {t("tour.clear")}
           </ActionButton>
+        </div>
 
+        <div className="flex items-center shrink-0 mt-3 sm:mt-0">
           <ActionButton
             variant="primary"
             onClick={handleCreate}
-            className="gap-2 px-4 py-2 text-sm"
+            className="gap-2 px-4 py-2 text-sm whitespace-nowrap"
           >
             <Plus className="h-4 w-4" />
             {t("tour.createTourBtn")}

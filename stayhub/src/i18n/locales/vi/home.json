@@ -102,5 +102,21 @@
   "durationDaysPlural": "{{count}} ngày",
   "priceFrom": "Từ",
   "flexibleDuration": "Linh hoạt",
-  "contactUs": "Liên hệ"
+  "contactUs": "Liên hệ",
+  "specialOffersEyebrow": "Khuyến Mãi Đặc Biệt",
+  "toursOnSaleTitle": "Tour Đang Sale",
+  "toursOnSaleSubtitle": "Nhanh tay đặt ngay với mức giá ưu đãi hấp dẫn",
+  "topPicksEyebrow": "Lựa Chọn Hàng Đầu",
+  "top5HotToursTitle": "Top 5 Tour Hot Nhất",
+  "top5HotToursSubtitle": "Những hành trình được yêu thích và đánh giá cao nhất bởi du khách",
+  "preparingToDepartEyebrow": "Chuẩn Bị Khởi Hành",
+  "upcomingToursTitle": "Tour Sắp Diễn Ra",
+  "upcomingToursSubtitle": "Đừng bỏ lỡ những chuyến đi tuyệt vời trong thời gian tới",
+  "exploreVietnamEyebrow": "Khám Phá Việt Nam",
+  "journey3RegionsTitle": "Hành Trình 3 Miền",
+  "journey3RegionsSubtitle": "Những điểm đến đặc sắc mang đậm dấu ấn văn hóa vùng miền",
+  "regionNorth": "Miền Bắc",
+  "regionCentral": "Miền Trung",
+  "regionSouth": "Miền Nam",
+  "noToursInRegion": "Chưa có tour nào trong khu vực này."
 }

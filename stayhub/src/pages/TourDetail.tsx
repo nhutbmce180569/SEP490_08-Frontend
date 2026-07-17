@@ -225,7 +225,23 @@ export default function PublicTourDetail() {
   }, [sortedSchedules]);
 
   const availableMonths = Object.keys(groupedSchedules);
-  const activeMonth = selectedMonth && availableMonths.includes(selectedMonth) ? selectedMonth : availableMonths[0];
+  
+  let defaultMonth = availableMonths[0];
+  if (availableMonths.length > 0) {
+    const currentMonthYear = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    if (availableMonths.includes(currentMonthYear)) {
+      defaultMonth = currentMonthYear;
+    } else {
+      const futureMonth = availableMonths.find(month => 
+        groupedSchedules[month].some(schedule => new Date(schedule.departureDate).getTime() > Date.now())
+      );
+      defaultMonth = futureMonth || availableMonths[availableMonths.length - 1];
+    }
+  }
+
+  const activeMonth = selectedMonth && availableMonths.includes(selectedMonth) 
+    ? selectedMonth 
+    : defaultMonth;
 
   const availableSchedules = useMemo(() => {
     return sortedSchedules.filter(
@@ -424,10 +440,10 @@ export default function PublicTourDetail() {
                 <Tag size={11} />
                 {category?.name ? category.name : tour.categoryId ? `${t("tour.category")} ${tour.categoryId}` : t("tour.tour")}
               </span>
-              {tour.address && (
+              {(tour.address || [tour.city, tour.country].filter(Boolean).join(", ")) && (
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
                   <MapPin size={11} />
-                  {tour.address}
+                  {tour.address || [tour.city, tour.country].filter(Boolean).join(", ")}
                 </span>
               )}
             </div>
@@ -450,7 +466,7 @@ export default function PublicTourDetail() {
                     {rating.toFixed(1)}
                   </span>
                   <span className="text-white/70 text-xs">
-                    ({t("tour.reviewsLabel", { count: reviewsCount })})
+                    {t("tour.reviewsLabel", { count: reviewsCount })}
                   </span>
                 </div>
               )}

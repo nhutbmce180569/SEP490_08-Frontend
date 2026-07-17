@@ -11,7 +11,8 @@
     "seeAll": "See all",
     "english": "English",
     "vietnamese": "Vietnamese",
-    "language": "Language"
+    "language": "Language",
+    "show": "Show"
   },
   "header": {
     "searchPlaceholder": "Search destinations, tours, or experiences...",

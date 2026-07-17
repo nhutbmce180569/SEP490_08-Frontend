@@ -9,6 +9,7 @@ import { HomeSection } from "./HomeSection";
 import { getFreeApiImage, HOME_GLASS, HOME_GLASS_MEDIA } from "./shared";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { MoneyDisplay } from "../../../features/currency/MoneyDisplay";
+import { getTourDurationDays } from "../../../features/tour/utils/tourDuration";
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -23,18 +24,24 @@ type HomeFeaturedToursProps = {
   tours: Tour[];
   isLoading: boolean;
   error: string | null;
+  title?: string;
+  subtitle?: string;
+  eyebrow?: string;
 };
 
 export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
   tours,
   isLoading,
   error,
+  title,
+  subtitle,
+  eyebrow,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
   const getTourMeta = (tour: Tour) => {
-    const days = tour.tourItineraries?.length ?? 0;
+    const days = getTourDurationDays(tour);
     const duration =
       days > 0
         ? days > 1
@@ -67,9 +74,9 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
   return (
     <HomeSection tightTop>
       <SectionHeader
-        eyebrow={t("home.editorsPicks")}
-        title={t("home.tripsTravelersBook")}
-        subtitle={t("home.featuredHandpicked")}
+        eyebrow={eyebrow || t("home.editorsPicks")}
+        title={title || t("home.tripsTravelersBook")}
+        subtitle={subtitle || t("home.featuredHandpicked")}
         showSeeAll
         onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
       />

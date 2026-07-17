@@ -20,6 +20,7 @@ import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
 import { useTranslation } from "../contexts/LocaleContext";
 import { AiSemanticSearchBar } from "../features/ai/components/AiSemanticSearchBar";
 import { getTourPriceInfo } from "../features/tour/utils/tourPrice";
+import { getTourDurationDays } from "../features/tour/utils/tourDuration";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -494,6 +495,7 @@ export default function TourSearch() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const pageSize = parseInt(searchParams.get("pageSize") || "6", 10);
   const searchTerm =
     searchParams.get("searchTerm") || searchParams.get("query") || "";
   const startDate = searchParams.get("startDate") || "";
@@ -550,7 +552,7 @@ export default function TourSearch() {
 
   const { tours, isLoading, error, totalPages } = useSearchTours(
     page,
-    6,
+    pageSize,
     searchTerm,
     startDate,
     categoryId,
@@ -674,27 +676,50 @@ export default function TourSearch() {
                 {t("tour.results")}
               </div>
 
-              {/* Sort */}
-              <div className="flex items-center gap-2.5">
-                <ArrowUpDown size={14} className="text-slate-400 shrink-0" />
-                <span className="text-sm text-slate-400 font-medium hidden sm:block">
-                  {t("tour.sortBy")}
-                </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => upd({ sortBy: e.target.value })}
-                  className="text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-3 py-2 transition-colors"
-                  style={{
-                    background: "rgba(5,7,60,0.04)",
-                    border: "1px solid rgba(5,7,60,0.08)",
-                  }}
-                >
-                  {SORT_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
+              {/* Sort & Page Size */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-slate-400 font-medium hidden sm:block">
+                    {t("common.show") || "Show"}
+                  </span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => upd({ pageSize: e.target.value, page: "1" })}
+                    className="text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-3 py-2 transition-colors"
+                    style={{
+                      background: "rgba(5,7,60,0.04)",
+                      border: "1px solid rgba(5,7,60,0.08)",
+                    }}
+                  >
+                    {[6, 12, 24, 48].map((size) => (
+                      <option key={size} value={size}>
+                        {size}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <ArrowUpDown size={14} className="text-slate-400 shrink-0" />
+                  <span className="text-sm text-slate-400 font-medium hidden sm:block">
+                    {t("tour.sortBy")}
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => upd({ sortBy: e.target.value })}
+                    className="text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-3 py-2 transition-colors"
+                    style={{
+                      background: "rgba(5,7,60,0.04)",
+                      border: "1px solid rgba(5,7,60,0.08)",
+                    }}
+                  >
+                    {SORT_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -845,7 +870,7 @@ export default function TourSearch() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {tours.map((tour) => {
-                  const days = tour.tourItineraries?.length ?? 0;
+                  const days = getTourDurationDays(tour);
                   const loc =
                     [tour.city, tour.country].filter(Boolean).join(", ") ||
                     t("tour.variousLocations");

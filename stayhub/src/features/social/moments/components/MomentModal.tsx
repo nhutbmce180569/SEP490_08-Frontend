@@ -41,6 +41,12 @@ export const MomentModal: React.FC<MomentModalProps> = ({
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
   const [editCommentText, setEditCommentText] = useState('');
+  const [localComments, setLocalComments] = useState<any[]>([]);
+
+  useEffect(() => {
+    const rawComments = moment.comments || (moment as any).momentComments || [];
+    setLocalComments(rawComments);
+  }, [moment]);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isMomentMenuOpen, setIsMomentMenuOpen] = useState(false);
   const [openMenuCommentId, setOpenMenuCommentId] = useState<number | null>(null);
@@ -100,7 +106,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     }
   };
   
-  const allComments = moment.comments || (moment as any).momentComments || [];
+  const allComments = localComments;
   const [visibleCount, setVisibleCount] = useState(10);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -130,9 +136,14 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     addComment(
       { momentId: moment.id, userId: Number(currentUserId), content: newComment.trim() },
       { 
-        onSuccess: () => {
+        onSuccess: (newCommentData) => {
           setNewComment('');
-          if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+          setLocalComments(prev => [...prev, newCommentData]);
+          if (scrollRef.current) {
+            setTimeout(() => {
+              if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            }, 50);
+          }
         },
         onError: (err: any) => {
           const msg = err.response?.data?.message || err.message || "Failed to send comment.";
@@ -147,8 +158,9 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     updateComment(
       { commentId, userId: Number(currentUserId), content: editCommentText.trim() },
       { 
-        onSuccess: () => {
+        onSuccess: (updatedCommentData) => {
           setEditingCommentId(null);
+          setLocalComments(prev => prev.map(c => c.id === commentId ? updatedCommentData : c));
         },
         onError: () => error("Failed to update comment")
       }
@@ -161,7 +173,10 @@ export const MomentModal: React.FC<MomentModalProps> = ({
       deleteComment(
         { commentId, userId: Number(currentUserId) },
         {
-          onSuccess: () => success("Comment deleted successfully"),
+          onSuccess: () => {
+            success("Comment deleted successfully");
+            setLocalComments(prev => prev.filter(c => c.id !== commentId));
+          },
           onError: () => error("Failed to delete comment")
         }
       );

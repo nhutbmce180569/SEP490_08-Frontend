@@ -113,6 +113,14 @@ export const useMapPicker = (
   const suggestionTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    return () => {
+      if (suggestionTimerRef.current) {
+        window.clearTimeout(suggestionTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     initialDataRef.current = initialData;
   }, [initialData]);
 
@@ -252,7 +260,10 @@ export const useMapPicker = (
       const end = getPlaceCoordinates(locations.end as MapPlace);
 
       try {
-        const url = `${OSRM_ROUTE_URL}/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson`;
+        const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
+        if (!apiKey) throw new Error("Mapbox access token is missing.");
+
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start.lng},${start.lat};${end.lng},${end.lat}?geometries=geojson&overview=full&access_token=${apiKey}`;
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -270,7 +281,7 @@ export const useMapPicker = (
           setIsRouteFallback(false);
         }
       } catch (error) {
-        console.error("Route drawing failed", error);
+        console.error("Route drawing failed, using straight line fallback:", error);
         if (!isCancelled) {
           setRouteCoordinates([
             [start.lng, start.lat],

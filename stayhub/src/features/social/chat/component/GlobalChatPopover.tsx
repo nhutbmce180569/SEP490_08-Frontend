@@ -52,6 +52,7 @@ export const GlobalChatPopover: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const lastMessagesLengthRef = useRef<number>(0);
 
   // Lắng nghe thay đổi của activeRoomId từ context để đổi view tương ứng
   useEffect(() => {
@@ -142,12 +143,21 @@ export const GlobalChatPopover: React.FC = () => {
     ).sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [historyMessages, realtimeMessages]);
 
-  // Tự động cuộn xuống cuối khi có tin nhắn mới
+  // Tự động cuộn xuống cuối khi có tin nhắn mới hoặc đổi phòng
   useEffect(() => {
     if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      const container = chatContainerRef.current;
+      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+      const isRoomChanged = lastMessagesLengthRef.current === 0 || allMessages.length === 0;
+      const lastMessage = allMessages[allMessages.length - 1];
+      const isMyNewMessage = lastMessage && String(lastMessage.senderId) === String(currentUserId);
+
+      if (isRoomChanged || isAtBottom || isMyNewMessage) {
+        container.scrollTop = container.scrollHeight;
+      }
     }
-  }, [allMessages, viewState]);
+    lastMessagesLengthRef.current = allMessages.length;
+  }, [allMessages, viewState, currentUserId]);
 
   // Xử lý khi click chọn phòng chat từ danh sách
   const handleSelectRoom = (roomId: number) => {

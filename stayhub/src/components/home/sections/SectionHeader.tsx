@@ -11,6 +11,7 @@ export const SectionHeader: React.FC<{
   light?: boolean;
   centered?: boolean;
   compact?: boolean;
+  actionSlot?: React.ReactNode;
 }> = ({
   eyebrow,
   title,
@@ -20,6 +21,7 @@ export const SectionHeader: React.FC<{
   light,
   centered,
   compact,
+  actionSlot,
 }) => {
   const { t } = useTranslation();
 
@@ -52,17 +54,22 @@ export const SectionHeader: React.FC<{
           </p>
         )}
       </div>
-      {showSeeAll && (
-        <button
-          type="button"
-          onClick={onSeeAll}
-          className="group inline-flex shrink-0 items-center gap-2.5 text-xs font-bold uppercase tracking-widest text-brand transition-colors hover:text-brand-hover"
-        >
-          {t("common.viewAll")}
-          <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-brand/30 bg-brand-light/50 text-brand transition-all group-hover:border-brand group-hover:bg-brand group-hover:text-white">
-            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
-          </span>
-        </button>
+      {(showSeeAll || actionSlot) && (
+        <div className="flex items-center gap-4 shrink-0 mt-4 md:mt-0">
+          {actionSlot}
+          {showSeeAll && (
+            <button
+              type="button"
+              onClick={onSeeAll}
+              className="group inline-flex shrink-0 items-center gap-2.5 text-xs font-bold uppercase tracking-widest text-brand transition-colors hover:text-brand-hover"
+            >
+              {t("common.viewAll")}
+              <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-brand/30 bg-brand-light/50 text-brand transition-all group-hover:border-brand group-hover:bg-brand group-hover:text-white">
+                <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

@@ -19,10 +19,9 @@ const STATUS_STYLES: Record<string, string> = {
   Banned: "bg-rose-50 text-rose-600",
 };
 
-const PAGE_SIZE = 5;
-
 export const AdminTourList: React.FC = () => {
   const { t } = useTranslation();
+  const [pageSize, setPageSize] = useState(5);
   
   const {
     data,
@@ -37,7 +36,7 @@ export const AdminTourList: React.FC = () => {
     categories,
     isCategoryLoading,
     refetch,
-  } = useAdminTours(PAGE_SIZE);
+  } = useAdminTours(pageSize);
 
   const [selectedTourForManagerChange, setSelectedTourForManagerChange] = useState<Tour | null>(null);
   const [selectedTourForDetail, setSelectedTourForDetail] = useState<Tour | null>(null);
@@ -247,6 +246,22 @@ export const AdminTourList: React.FC = () => {
             </select>
           </div>
 
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+            <select
+              className="bg-transparent text-sm text-slate-700 outline-none"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={5}>5 / page</option>
+              <option value={10}>10 / page</option>
+              <option value={20}>20 / page</option>
+              <option value={50}>50 / page</option>
+            </select>
+          </div>
+
           <ActionButton
             variant="secondary"
             onClick={clearFilters}
@@ -269,7 +284,7 @@ export const AdminTourList: React.FC = () => {
           keyExtractor={(item) => item.id}
           emptyMessage={t("tour.noToursFound")}
           isLoading={isLoading}
-          skeletonRows={PAGE_SIZE}
+          skeletonRows={pageSize}
         />
       )}
 
@@ -278,7 +293,7 @@ export const AdminTourList: React.FC = () => {
         currentPage={currentPage}
         totalPages={totalPages}
         totalItems={totalItems}
-        pageSize={PAGE_SIZE}
+        pageSize={pageSize}
         onPageChange={setPage}
       />
 

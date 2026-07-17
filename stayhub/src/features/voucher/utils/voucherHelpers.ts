@@ -35,9 +35,7 @@ export const toIsoDateTime = (localValue: string) => {
 export const STATUS_STYLES: Record<string, string> = {
   Active: 'bg-emerald-50 text-emerald-600',
   Inactive: 'bg-slate-100 text-slate-600',
-  Scheduled: 'bg-blue-50 text-blue-600',
   Expired: 'bg-amber-50 text-amber-600',
-  Depleted: 'bg-rose-50 text-rose-600',
 };
 
 export const CODE_PATTERN = /^[A-Za-z0-9_-]+$/;

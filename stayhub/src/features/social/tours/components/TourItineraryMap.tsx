@@ -155,6 +155,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     if (!isLoaded || !window.google) return;
 
     let intervalId: ReturnType<typeof setInterval>;
+    let isCancelled = false;
 
     const validItineraries = currentDayItineraries.filter(loc => loc.locationLat && loc.locationLng);
     if (validItineraries.length < 2) {
@@ -182,12 +183,17 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
         travelMode: window.google.maps.TravelMode.DRIVING,
       },
       (result, status) => {
+        if (isCancelled) return;
         if (status === window.google.maps.DirectionsStatus.OK && result) {
           const overviewPath = result.routes[0].overview_path;
           let currentIndex = 0;
           setAnimatedPath([]);
 
           intervalId = setInterval(() => {
+            if (isCancelled) {
+              clearInterval(intervalId);
+              return;
+            }
             if (currentIndex < overviewPath.length) {
               setAnimatedPath(prev => [...prev, overviewPath[currentIndex]]);
               currentIndex++;
@@ -202,6 +208,7 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
     );
 
     return () => {
+      isCancelled = true;
       if (intervalId) clearInterval(intervalId);
     };
   }, [currentDayItineraries, isLoaded]);

@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect, useContext } 
 import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
-import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film } from "lucide-react";
+import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film, HelpCircle } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
 import { useGetScheduleLiveLocations, useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
@@ -92,6 +92,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [isSharingLocation, setIsSharingLocation] = useState<boolean>(() => {
     return localStorage.getItem("share_my_location") === "true";
   });
+  const [selectedDay, setSelectedDay] = useState<number | 'ALL'>('ALL');
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
+  // Sliding Day Selector indicator refs and style state
+  const daySelectorContainerRef = useRef<HTMLDivElement>(null);
+  const daySelectorButtonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const [daySelectorPillStyle, setDaySelectorPillStyle] = useState<React.CSSProperties>({ opacity: 0 });
 
   // --- TIMELINE REPLAY STATES ---
   const [isReplayMode, setIsReplayMode] = useState(false);
@@ -110,14 +117,100 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   }, [footprints]);
 
   // Trích xuất dữ liệu lộ trình
-  const tourStops = useMemo(() => routeData?.waypoints || [], [routeData]);
-  const routeCoordinates = useMemo(() => routeData?.geometryCoordinates || [], [routeData]);
+  const uniqueDays = useMemo(() => {
+    if (!routeData?.waypoints) return [];
+    const days = Array.from(new Set(routeData.waypoints.map((wp: any) => wp.dayNumber).filter((d): d is number => typeof d === 'number')));
+    return days.sort((a, b) => a - b);
+  }, [routeData]);
+
+  const filteredWaypoints = useMemo(() => {
+    if (!routeData?.waypoints) return [];
+    if (selectedDay === 'ALL') return routeData.waypoints;
+    return routeData.waypoints.filter((wp: any) => wp.dayNumber === selectedDay);
+  }, [routeData, selectedDay]);
+
+  const tourStops = useMemo(() => filteredWaypoints, [filteredWaypoints]);
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([]);
+
+  // Cập nhật vị trí và kích thước của thanh trượt (sliding pill) khi chọn ngày
+  useEffect(() => {
+    const activeKey = String(selectedDay);
+    const activeBtn = daySelectorButtonRefs.current[activeKey];
+    const container = daySelectorContainerRef.current;
+    
+    if (activeBtn && container) {
+      setDaySelectorPillStyle({
+        left: `${activeBtn.offsetLeft}px`,
+        width: `${activeBtn.offsetWidth}px`,
+        height: `${activeBtn.offsetHeight}px`,
+        top: `${activeBtn.offsetTop}px`,
+        opacity: 1,
+        transition: 'all 350ms cubic-bezier(0.34, 1.56, 0.64, 1)'
+      });
+    }
+  }, [selectedDay, uniqueDays]);
+
+  useEffect(() => {
+    if (!filteredWaypoints || filteredWaypoints.length < 2 || !routeData) {
+      setRouteCoordinates([]);
+      return;
+    }
+
+    // Mapbox free tier Directions API is limited to max 25 waypoints per request
+    if (filteredWaypoints.length > 25) {
+      console.warn("Tour has > 25 stops. Falling back to straight lines (free tier compliance).");
+      setRouteCoordinates(routeData.geometryCoordinates || []);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const fetchMapboxRoute = async () => {
+      try {
+        const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
+        if (!apiKey) throw new Error("Mapbox access token is missing.");
+
+        const coordinates = filteredWaypoints
+          .map((wp: any) => `${wp.lng},${wp.lat}`)
+          .join(";");
+
+        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=geojson&overview=full&access_token=${apiKey}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Directions request failed with status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const coords = data.routes?.[0]?.geometry?.coordinates;
+        if (!Array.isArray(coords) || coords.length === 0) {
+          throw new Error("Route geometry is empty.");
+        }
+
+        if (!isCancelled) {
+          setRouteCoordinates(coords);
+        }
+      } catch (err) {
+        console.error("Mapbox Directions API failed. Falling back to straight lines:", err);
+        if (!isCancelled) {
+          setRouteCoordinates(routeData.geometryCoordinates || []);
+        }
+      }
+    };
+
+    fetchMapboxRoute();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [filteredWaypoints]);
 
   // --- 🔴 ĐÃ MỞ LẠI: HOOK 1 - KẾT NỐI SIGNALR ĐỂ XEM BẠN BÈ ---
   useEffect(() => {
     if (!showLiveLocations) return;
 
-    let connection: signalR.HubConnection;
+    let isCancelled = false;
+    let connection: signalR.HubConnection | null = null;
 
     const initLocationService = async () => {
       // Manager & Staff do not have friendship features, so prevent querying friends or connecting to friendship hub
@@ -135,19 +228,20 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         } catch {}
       }
 
-      if (isStaffOrManager) {
+      if (isStaffOrManager || isCancelled) {
         return;
       }
 
       try {
         const initialFriends = await locationService.getLiveFriends();
+        if (isCancelled) return;
         setFriendLocations(initialFriends?.data || initialFriends || []);
       } catch (err) {
         console.warn("Lỗi lấy danh sách bạn bè live:", err);
       }
 
       const token = localStorage.getItem("accessToken");
-      if (!token) return;
+      if (!token || isCancelled) return;
 
       connection = new signalR.HubConnectionBuilder()
         .withUrl(`${SIGNALR_HUB_BASE}/friendship`, {
@@ -156,28 +250,40 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         .withAutomaticReconnect()
         .build();
 
-      connection
-        .start()
-        .then(() => {
-          connection.on("ReceiveFriendLocation", (data: any) => {
-            setFriendLocations((prev) => {
-              const index = prev.findIndex((f) => f.userId === data.userId);
-              if (index !== -1) {
-                const newFriends = [...prev];
-                newFriends[index] = { ...newFriends[index], lat: data.lat, lng: data.lng, lastUpdated: data.lastUpdated };
-                return newFriends;
-              }
-              return [...prev, data];
-            });
+      try {
+        await connection.start();
+        if (isCancelled) {
+          connection.stop();
+          return;
+        }
+
+        connection.on("ReceiveFriendLocation", (data: any) => {
+          if (isCancelled) return;
+          setFriendLocations((prev) => {
+            const index = prev.findIndex((f) => f.userId === data.userId);
+            if (index !== -1) {
+              const newFriends = [...prev];
+              newFriends[index] = { ...newFriends[index], lat: data.lat, lng: data.lng, lastUpdated: data.lastUpdated };
+              return newFriends;
+            }
+            return [...prev, data];
           });
-        })
-        .catch((err) => console.warn("Error connecting to SignalR:", err));
+        });
+      } catch (err) {
+        if (!isCancelled) {
+          console.warn("Error connecting to SignalR:", err);
+        }
+      }
     };
 
     initLocationService();
 
     return () => {
-      if (connection) connection.stop();
+      isCancelled = true;
+      if (connection) {
+        connection.off("ReceiveFriendLocation");
+        connection.stop();
+      }
     };
   }, [showLiveLocations]);
 
@@ -249,7 +355,10 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     connection
       .start()
       .then(async () => {
-        if (isCancelled) return;
+        if (isCancelled) {
+          connection.stop();
+          return;
+        }
         await connection.invoke("JoinTourTrackingGroup", scheduleId);
 
         connection.on("ReceiveTourLocationUpdate", (update: any) => {
@@ -268,11 +377,14 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         });
       })
       .catch((err) => {
-        console.warn("[SignalR] Tour tracking not available in Moments:", err);
+        if (!isCancelled) {
+          console.warn("[SignalR] Tour tracking not available in Moments:", err);
+        }
       });
 
     return () => {
       isCancelled = true;
+      connection.off("ReceiveTourLocationUpdate");
       connection.stop().catch(() => {});
     };
   }, [scheduleId, showLiveLocations]);
@@ -620,6 +732,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   // --- TOUR ROUTE LINESTRING ---
   const tourRouteGeoJSON = useMemo(() => {
+    if (!routeCoordinates || routeCoordinates.length < 2) return undefined;
     return {
       type: "Feature" as const,
       properties: {},
@@ -633,6 +746,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     const momentsArray = Array.isArray(moments) ? moments : ((moments as any).pages?.flat() || []);
     return momentsArray
       .filter((m: any) => m.lat != null && m.lng != null)
+      .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .map((m: any) => {
         const userObj = m.user || {};
         return {
@@ -682,6 +796,30 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   }, [points, tourStops, isMapReady]);
 
   useEffect(() => { hasCenteredRef.current = false; }, [scheduleId]);
+
+  // Tự động căn lề / zoom camera khi đổi ngày (hiệu ứng chuyển cảnh động)
+  useEffect(() => {
+    if (isMapReady && mapRef.current && tourStops && tourStops.length > 0) {
+      const timer = setTimeout(() => {
+        if (!mapRef.current) return;
+        if (tourStops.length === 1) {
+          mapRef.current.flyTo({
+            center: [tourStops[0].lng, tourStops[0].lat],
+            zoom: 15,
+            duration: 1000
+          });
+        } else {
+          const lngs = tourStops.map((s: any) => s.lng);
+          const lats = tourStops.map((s: any) => s.lat);
+          mapRef.current.fitBounds([
+            [Math.min(...lngs), Math.min(...lats)],
+            [Math.max(...lngs), Math.max(...lats)]
+          ], { padding: 80, duration: 1000 });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDay, tourStops, isMapReady]);
 
   const { clusters, supercluster } = useSupercluster({
     points, bounds: bounds ?? undefined, zoom: viewState.zoom, options: { radius: 80, maxZoom: 19 },
@@ -914,9 +1052,20 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               const markerColor = isStaff ? "bg-emerald-500" : "bg-green-500";
               const pingColor = isStaff ? "bg-emerald-400" : "bg-green-400";
 
+              const friendMoment = points.find((p: any) => String(p.properties.userId) === String(friend.userId));
+              const momentId = friendMoment?.properties.momentId;
+
               return (
                 <Marker key={`friend-${friend.userId}`} longitude={fLng} latitude={fLat} anchor="bottom">
-                  <div className="relative flex flex-col items-center justify-center transition-all duration-500 group pointer-events-auto cursor-pointer hover:-translate-y-2">
+                  <div 
+                    className="relative flex flex-col items-center justify-center transition-all duration-500 group pointer-events-auto cursor-pointer hover:-translate-y-2"
+                    onClick={(e) => {
+                      if (momentId) {
+                        e.stopPropagation();
+                        onMarkerClick(momentId);
+                      }
+                    }}
+                  >
                     <div className={`absolute inset-0 ${pingColor} rounded-full opacity-20 animate-ping w-16 h-16 -left-2 -top-2 pointer-events-none`}></div>
                     <div className="relative z-10">
                       <div 
@@ -958,29 +1107,87 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             )}
 
           {/* Lớp Vị trí Hiện tại của Bản thân */}
-          {myLocation && (
-            <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
-              <div className="relative flex flex-col items-center justify-center pointer-events-none">
-                <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-[ping_2s_ease-in-out_infinite] w-20 h-20 -left-4 -top-4"></div>
-                <div className="absolute inset-0 bg-blue-400 rounded-full opacity-30 animate-[ping_3s_ease-in-out_infinite] w-16 h-16 -left-2 -top-2"></div>
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-full border-[3px] border-white overflow-hidden bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)] pointer-events-auto cursor-pointer hover:scale-110 transition-transform duration-300">
-                    <SafeImage src={myAvatar} alt="Me" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-blue-500 text-white font-bold text-lg" fallbackText={user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"} />
+          {myLocation && (() => {
+            const myMoment = points.find((p: any) => String(p.properties.userId) === String(user?.id));
+            const myMomentId = myMoment?.properties.momentId;
+            return (
+              <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
+                <div className="relative flex flex-col items-center justify-center pointer-events-none">
+                  <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-[ping_2s_ease-in-out_infinite] w-20 h-20 -left-4 -top-4"></div>
+                  <div className="absolute inset-0 bg-blue-400 rounded-full opacity-30 animate-[ping_3s_ease-in-out_infinite] w-16 h-16 -left-2 -top-2"></div>
+                  <div className="relative z-10">
+                    <div 
+                      className="w-12 h-12 rounded-full border-[3px] border-white overflow-hidden bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)] pointer-events-auto cursor-pointer hover:scale-110 transition-transform duration-300"
+                      onClick={(e) => {
+                        if (myMomentId) {
+                          e.stopPropagation();
+                          onMarkerClick(myMomentId);
+                        }
+                      }}
+                    >
+                      <SafeImage src={myAvatar} alt="Me" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-blue-500 text-white font-bold text-lg" fallbackText={user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"} />
+                    </div>
+                    {/* Directional Beacon Arrow */}
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rotate-45 border-r-[2px] border-b-[2px] border-white z-0 rounded-sm"></div>
                   </div>
-                  {/* Directional Beacon Arrow */}
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rotate-45 border-r-[2px] border-b-[2px] border-white z-0 rounded-sm"></div>
                 </div>
-              </div>
-            </Marker>
-          )}
+              </Marker>
+            );
+          })()}
           </>
         )}
       </Map>
 
       {/* Share Button */}
       <div className="absolute top-4 left-4 z-20">
-        <ShareLocationButton />
+        <ShareLocationButton 
+          onShareStart={() => {
+            setIsSharingLocation(true);
+            localStorage.setItem("share_my_location", "true");
+          }} 
+        />
       </div>
+
+      {uniqueDays.length > 0 && (
+        <div 
+          ref={daySelectorContainerRef}
+          className="absolute top-20 left-1/2 -translate-x-1/2 z-20 flex gap-2 glass-panel p-1.5 rounded-full shadow-lg animate-[fadeIn_0.5s_ease]"
+        >
+          {/* Sliding indicator background pill */}
+          <div 
+            className="absolute bg-gradient-to-r from-brand to-cyan-500 rounded-full shadow-[0_4px_12px_rgba(0,104,224,0.3)] pointer-events-none"
+            style={daySelectorPillStyle}
+          />
+          
+          <button
+            ref={(el) => { daySelectorButtonRefs.current['ALL'] = el; }}
+            onClick={() => setSelectedDay('ALL')}
+            style={{ transition: 'color 300ms ease, transform 300ms ease' }}
+            className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${
+              selectedDay === 'ALL'
+                ? 'text-white font-black scale-105'
+                : 'text-slate-700 hover:text-brand hover:scale-102'
+            }`}
+          >
+            {locale === 'vi' ? 'Tổng quan' : 'Overview'}
+          </button>
+          {uniqueDays.map((day) => (
+            <button
+              key={day}
+              ref={(el) => { daySelectorButtonRefs.current[String(day)] = el; }}
+              onClick={() => setSelectedDay(day)}
+              style={{ transition: 'color 300ms ease, transform 300ms ease' }}
+              className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${
+                selectedDay === day
+                  ? 'text-white font-black scale-105'
+                  : 'text-slate-700 hover:text-brand hover:scale-102'
+              }`}
+            >
+              {locale === 'vi' ? `Ngày ${day}` : `Day ${day}`}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Top Right Controls (Layers & Replay) */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-3">
@@ -1115,6 +1322,18 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             <History className="h-6 w-6" />
           </button>
         )}
+
+        {/* Nút Hướng dẫn */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsGuideOpen(true);
+          }}
+          className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none"
+          title={locale === 'vi' ? "Hướng dẫn sử dụng" : "User Guide"}
+        >
+          <HelpCircle className="h-6 w-6" />
+        </button>
       </div>
 
       {/* Nút Điều hướng Nhanh (Góc dưới phải) */}
@@ -1168,8 +1387,16 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       {/* Nút quay về ảnh mới nhất */}
       {!isReplayMode && (
         <div className="absolute bottom-6 left-4 z-20">
-          <button onClick={handleJumpToNewest} className="glass-button flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-bold text-slate-800 transition-all hover:scale-105">
-            <Navigation className="h-4 w-4 text-brand" />
+          <button 
+            onClick={handleJumpToNewest} 
+            disabled={points.length === 0}
+            className={`glass-button flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-bold transition-all ${
+              points.length === 0 
+                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70' 
+                : 'text-slate-800 hover:scale-105 active:scale-95'
+            }`}
+          >
+            <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
             {t("social.mapNewestPhoto")}
           </button>
         </div>
@@ -1343,6 +1570,66 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 <MomentCard moment={moment} />
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Hướng dẫn sử dụng bản đồ (Map Guide Modal) */}
+      {isGuideOpen && (
+        <div className="absolute inset-0 z-[100] h-full w-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsGuideOpen(false)}>
+          <div className="w-full max-w-lg glass-panel-dark text-white rounded-3xl p-6 shadow-2xl relative animate-scale-up" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={() => setIsGuideOpen(false)} 
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-black text-center mb-6 bg-gradient-to-r from-brand-light to-cyan-300 bg-clip-text text-transparent uppercase tracking-wider">
+              🗺️ {locale === 'vi' ? "Hướng dẫn sử dụng Bản đồ" : "Map Features Guide"}
+            </h3>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar text-sm leading-relaxed">
+              <div className="flex gap-4.5 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div className="p-2.5 h-10 w-10 bg-brand/20 text-brand rounded-xl flex items-center justify-center shrink-0"><MapPin className="w-5 h-5" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-100">{locale === 'vi' ? "Chia sẻ vị trí" : "Share Live Location"}</h4>
+                  <p className="text-xs text-slate-400 mt-1">{locale === 'vi' ? "Tạo và gửi liên kết (qua Chat hoặc sao chép) để bạn bè và người thân có thể theo dõi hành trình của bạn trong vòng 24 giờ." : "Generate and copy or send a live tracking link so friends and family can view your movements on the map for 24 hours."}</p>
+                </div>
+              </div>
+              <div className="flex gap-4.5 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div className="p-2.5 h-10 w-10 bg-pink-500/20 text-pink-400 rounded-xl flex items-center justify-center shrink-0"><Camera className="w-5 h-5" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-100">{locale === 'vi' ? "Khoảnh khắc & Ảnh mới nhất" : "Moments & Latest Photo"}</h4>
+                  <p className="text-xs text-slate-400 mt-1">{locale === 'vi' ? "Các bức ảnh được chụp kèm tọa độ GPS sẽ hiển thị dưới dạng ghim. Nút 'Ảnh mới nhất' giúp bạn nhảy nhanh camera đến vị trí ảnh mới được đăng." : "Photos posted with GPS tags show up as markers. The 'Latest Photo' button dynamically pans the camera to focus on the newest moment."}</p>
+                </div>
+              </div>
+              <div className="flex gap-4.5 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div className="p-2.5 h-10 w-10 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center shrink-0"><Compass className="w-5 h-5" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-100">{locale === 'vi' ? "Lộ trình theo ngày" : "Itinerary by Day"}</h4>
+                  <p className="text-xs text-slate-400 mt-1">{locale === 'vi' ? "Thanh điều hướng ngày ở phía trên cho phép bạn lọc lộ trình, danh sách điểm dừng và đường vẽ hành trình theo từng ngày cụ thể của tour." : "The top day navigation bar lets you filter route paths, stop waypoints, and polylines for each individual day of your tour schedule."}</p>
+                </div>
+              </div>
+              <div className="flex gap-4.5 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div className="p-2.5 h-10 w-10 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center shrink-0"><Layers className="w-5 h-5" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-100">{locale === 'vi' ? "Bật/Tắt Lớp Bản đồ (Layers)" : "Map Layers Menu"}</h4>
+                  <p className="text-xs text-slate-400 mt-1">{locale === 'vi' ? "Ẩn hoặc hiện các thông tin bổ sung: Lộ trình tour, Khoảnh khắc du lịch, Vị trí bạn bè trực tuyến, Dấu chân cá nhân (Fog of War) và Bản đồ nhiệt (Heatmap)." : "Show or hide specific details: Tour Route path, Check-in Moments, Live Friend Locations, Footprints (Fog of War) and Social Energy Heatmap."}</p>
+                </div>
+              </div>
+              <div className="flex gap-4.5 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div className="p-2.5 h-10 w-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center shrink-0"><History className="w-5 h-5" /></div>
+                <div>
+                  <h4 className="font-bold text-slate-100">{locale === 'vi' ? "Tua lại hành trình (Timeline Replay)" : "Timeline Replay Dock"}</h4>
+                  <p className="text-xs text-slate-400 mt-1">{locale === 'vi' ? "Nhấn nút Lịch sử ở góc phải để mở bảng điều khiển tua hành trình. Bạn có thể bấm Phát để camera bay tự động dọc các sự kiện theo đúng thứ tự thời gian." : "Click the history icon to open the timeline playback controller. Click Play to watch the camera dynamically trace and fly along stop events chronologically."}</p>
+                </div>
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsGuideOpen(false)}
+              className="mt-6 w-full py-3 bg-brand text-white font-bold rounded-2xl shadow-lg hover:bg-brand-hover active:scale-[0.98] transition-all text-center"
+            >
+              {locale === 'vi' ? "Đã hiểu" : "Got It"}
+            </button>
           </div>
         </div>
       )}

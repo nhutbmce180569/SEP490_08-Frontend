@@ -5,7 +5,11 @@ import { useToast } from "../../../../contexts/ToastContext";
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { ShareTargetModal } from "../../chat/component/ShareTargetModal";
 
-export const ShareLocationButton: React.FC = () => {
+interface ShareLocationButtonProps {
+  onShareStart?: () => void;
+}
+
+export const ShareLocationButton: React.FC<ShareLocationButtonProps> = ({ onShareStart }) => {
   const { t } = useTranslation();
   const { mutate: shareLocation, isPending } = useShareLocation();
   const { success, error } = useToast();
@@ -20,6 +24,7 @@ export const ShareLocationButton: React.FC = () => {
         const shareLink = `${window.location.origin}/track/${token}`;
         navigator.clipboard.writeText(shareLink);
         success(t("social.shareLinkCopied"));
+        onShareStart?.();
       },
       onError: () => {
         error(t("social.shareLinkFailed"));
@@ -30,6 +35,7 @@ export const ShareLocationButton: React.FC = () => {
   const handleOpenSendChat = () => {
     if (locationToken) {
       setShowChatSelect(true);
+      onShareStart?.();
       return;
     }
 
@@ -37,6 +43,7 @@ export const ShareLocationButton: React.FC = () => {
       onSuccess: (token) => {
         setLocationToken(token);
         setShowChatSelect(true);
+        onShareStart?.();
       },
       onError: () => {
         error(t("social.shareLinkFailed"));

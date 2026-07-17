@@ -78,6 +78,7 @@ export const useToggleReaction = () => {
       toggleReaction(momentId, userId, isLike),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["socialProfile"] });
     },
   });
 };
@@ -89,6 +90,7 @@ export const useAddComment = () => {
       addComment(momentId, userId, content),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["socialProfile"] });
     },
   });
 };
@@ -100,6 +102,7 @@ export const useUpdateComment = () => {
       updateComment(commentId, userId, content),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["socialProfile"] });
     },
   });
 };
@@ -111,6 +114,7 @@ export const useDeleteComment = () => {
       deleteComment(commentId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["socialProfile"] });
     },
   });
 };
@@ -122,6 +126,7 @@ export const useDeleteMoment = () => {
       deleteMoment(momentId, userId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: momentQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: ["socialProfile"] });
     },
   });
 };

@@ -180,7 +180,8 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
     return () => {
       isMounted = false;
       clearTimeout(timerId);
-      globalConnection.stop();
+      globalConnection.off("ReceiveGlobalNotification");
+      globalConnection.stop().catch(() => {});
       timeoutRefs.current.forEach(timer => clearTimeout(timer));
       timeoutRefs.current.clear();
     };

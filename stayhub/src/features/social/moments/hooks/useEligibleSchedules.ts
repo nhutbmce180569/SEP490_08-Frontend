@@ -35,9 +35,17 @@ const fetchEligibleSchedules = async (role: string, token: string | null): Promi
     let mappedTourName = item.tourName || item.TourName || item.tour?.name || item.tour?.Name || item.name || item.Name || item.title || `Tour #${scheduleId}`;
 
     const departureDate = item.departureDate || item.DepartureDate;
-    if (departureDate && (role === "Manager" || role === "Staff")) {
-      const dateStr = new Date(departureDate).toLocaleDateString("vi-VN");
-      mappedTourName = `${mappedTourName} - ${dateStr}`;
+    if (departureDate) {
+      const d = new Date(departureDate);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const dateStrWithZero = `${day}/${month}/${year}`;
+      const dateStrWithoutZero = `${d.getDate()}/${d.getMonth() + 1}/${year}`;
+
+      if (!mappedTourName.includes(dateStrWithZero) && !mappedTourName.includes(dateStrWithoutZero)) {
+        mappedTourName = `${mappedTourName} - ${dateStrWithZero}`;
+      }
     }
 
     return {

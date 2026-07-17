@@ -36,14 +36,29 @@ export const PublicTrackingPage: React.FC = () => {
       .withAutomaticReconnect()
       .build();
 
+    let isCancelled = false;
+
     connection.start().then(async () => {
+      if (isCancelled) {
+        connection.stop();
+        return;
+      }
       await connection.invoke("JoinTrackingGroup", token);
       connection.on("ReceivePublicLocation", (newLoc: { lat: number; lng: number }) => {
+        if (isCancelled) return;
         setLiveLocation({ lat: newLoc.lat, lng: newLoc.lng });
       });
-    }).catch(err => console.error("SignalR Connection Error: ", err));
+    }).catch(err => {
+      if (!isCancelled) {
+        console.error("SignalR Connection Error: ", err);
+      }
+    });
 
-    return () => { connection.stop(); };
+    return () => {
+      isCancelled = true;
+      connection.off("ReceivePublicLocation");
+      connection.stop().catch(() => {});
+    };
   }, [token, isError, data]);
 
   // Tự động Fly bản đồ khi vị trí thay đổi

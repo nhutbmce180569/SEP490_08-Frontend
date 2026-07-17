@@ -249,10 +249,32 @@ export const MomentsFeed: React.FC = () => {
                       <div className="absolute right-3.5 top-3.5 z-10">
                         {renderPrivacyBadge(moment.privacy || moment.Privacy)}
                       </div>
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent p-4 pt-16 transition-opacity">
-                        <p className="line-clamp-2 text-xs font-bold leading-relaxed text-slate-100 drop-shadow-sm group-hover:text-white">
-                          {moment.caption || moment.Caption || ""}
-                        </p>
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-4 pt-16 transition-all duration-300 group-hover:via-black/60">
+                        {(() => {
+                          const authorName = moment.user?.fullName || moment.fullName || t("tour.anonymousCustomer");
+                          const authorAvatar = moment.user?.avatarUrl || moment.avatarUrl;
+                          return (
+                            <>
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <div className="h-6 w-6 shrink-0 rounded-full overflow-hidden border border-white/20 bg-slate-200">
+                                  {authorAvatar ? (
+                                    <img src={authorAvatar} alt="Avatar" className="h-full w-full object-cover" />
+                                  ) : (
+                                    <div className="h-full w-full flex items-center justify-center font-bold text-[9px] text-white bg-brand">
+                                      {authorName.charAt(0)}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="text-[11px] font-black text-slate-100 truncate drop-shadow-sm group-hover:text-white">
+                                  {authorName}
+                                </span>
+                              </div>
+                              <p className="line-clamp-2 text-xs leading-relaxed text-slate-200 drop-shadow-sm group-hover:text-white">
+                                {moment.caption || moment.Caption || ""}
+                              </p>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   );

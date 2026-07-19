@@ -15,8 +15,8 @@ type AuthFormFieldProps = {
 
 export function authInputClass(hasError?: boolean, readOnly?: boolean, withToggle?: boolean) {
   return [
-    "input-field h-[50px] pl-12",
-    withToggle ? "pr-12" : "pr-4",
+    "input-field h-[48px] pl-11 text-sm font-medium",
+    withToggle ? "pr-11" : "pr-4",
     hasError ? "border-rose-500 focus:border-rose-500" : "",
     readOnly ? "cursor-not-allowed bg-slate-100 text-slate-500" : "",
   ]
@@ -40,12 +40,12 @@ export function AuthFormField({
   return (
     <div className="space-y-1.5">
       <div className={`flex items-center ${labelExtra ? "justify-between" : ""}`}>
-        <label className="block text-sm font-semibold text-slate-700">{label}</label>
+        <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">{label}</label>
         {labelExtra}
       </div>
 
       <div className="relative">
-        <Icon className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+        <Icon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           className={`${authInputClass(Boolean(error), readOnly, showToggle)} ${className ?? ""}`}
           readOnly={readOnly}
@@ -55,10 +55,10 @@ export function AuthFormField({
           <button
             type="button"
             onClick={onTogglePassword}
-            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-xl p-1.5 text-slate-400 outline-none transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 outline-none transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
             aria-label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
           >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         )}
       </div>

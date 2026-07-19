@@ -141,5 +141,6 @@
   "hoursAgo_plural": "{{count}} hours ago",
   "daysAgo": "{{count}} day ago",
   "daysAgo_plural": "{{count}} days ago",
-  "loadMore": "Load more"
+  "loadMore": "Load more",
+  "perPage": "/ page"
 }

@@ -15,6 +15,7 @@ interface TableProps<T> {
   keyExtractor?: (item: T, index: number) => React.Key;
   isLoading?: boolean;
   skeletonRows?: number;
+  tableClassName?: string;
 }
 
 export function Table<T>({
@@ -24,12 +25,13 @@ export function Table<T>({
   keyExtractor,
   isLoading = false,
   skeletonRows = 5,
+  tableClassName = "w-full min-w-[680px] border-collapse",
 }: TableProps<T>) {
   const { t } = useTranslation();
   const resolvedEmpty = emptyMessage ?? t("common.noData");
   return (
     <div className="table-glass overflow-x-auto">
-      <table className="w-full min-w-[680px] border-collapse">
+      <table className={tableClassName}>
         <thead>
           <tr className="border-b border-slate-100/80 bg-slate-50/70">
             {columns.map((col, idx) => (

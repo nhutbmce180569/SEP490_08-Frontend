@@ -47,11 +47,11 @@ export function ThemeToggle({ variant = "button", className = "" }: ThemeToggleP
     <button
       type="button"
       onClick={toggleTheme}
-      className={`icon-btn ${className}`}
+      className={`icon-btn flex items-center justify-center leading-none ${className}`}
       aria-label={resolvedTheme === "dark" ? t("common.themeSwitchToLight") : t("common.themeSwitchToDark")}
       title={resolvedTheme === "dark" ? t("common.themeLight") : t("common.themeDark")}
     >
-      <Icon className="h-5 w-5" />
+      <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
     </button>
   );
 }

@@ -18,7 +18,7 @@ export const CategoryList: React.FC = () => {
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
 
-  const { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete, refetch } = useCategories(PAGE_SIZE, keyword);
+  const { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, handleDelete, refetch } = useCategories(PAGE_SIZE, keyword);
   const { executeStatusChange, updatingId } = useChangeCategoryStatus(refetch);
 
   useCategorySignalR(refetch);
@@ -42,7 +42,7 @@ export const CategoryList: React.FC = () => {
     () => [
       {
         header: t("content.icon"),
-        className: "w-20",
+        className: "w-[90px] sm:w-[100px]",
         render: (cat) =>
           cat.iconUrl ? (
             <img
@@ -61,22 +61,26 @@ export const CategoryList: React.FC = () => {
       },
       {
         header: t("content.name"),
-        render: (cat) => <span className="font-semibold text-slate-800">{cat.name}</span>,
+        className: "w-[22%] sm:w-[24%]",
+        render: (cat) => <span className="font-semibold text-slate-800 block truncate" title={cat.name}>{cat.name}</span>,
       },
       {
         header: t("content.slug"),
-        render: (cat) => <span className="text-sm text-slate-500">{cat.slug}</span>,
+        className: "w-[18%] sm:w-[20%]",
+        render: (cat) => <span className="text-sm text-slate-500 block truncate" title={cat.slug}>{cat.slug}</span>,
       },
       {
         header: t("common.description"),
+        className: "w-[28%] sm:w-[30%]",
         render: (cat) => (
-          <span className="text-sm text-slate-500 max-w-[250px] truncate block" title={cat.description}>
+          <span className="text-sm text-slate-500 block w-full truncate" title={cat.description || undefined}>
             {cat.description || t("common.na")}
           </span>
         ),
       },
       {
         header: t("common.status"),
+        className: "w-[130px] sm:w-[140px]",
         render: (cat) => (
           <span
             className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -91,6 +95,7 @@ export const CategoryList: React.FC = () => {
       },
       {
         header: t("common.actions"),
+        className: "w-[120px] sm:w-[130px]",
         render: (cat) => (
           <div className="flex items-center gap-1.5">
             <ActionButton 
@@ -116,15 +121,15 @@ export const CategoryList: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t("content.categoryManagement")}</h2>
-        <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-[17px] font-bold leading-tight text-slate-900">{t("content.categoryManagement")}</h2>
+        <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm shadow-sm">
           <Plus className="h-4 w-4" /> {t("content.addCategory")}
         </ActionButton>
       </div>
 
-      <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -135,11 +140,27 @@ export const CategoryList: React.FC = () => {
             className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
           />
         </div>
+
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
+          <select
+            className="bg-transparent text-sm text-slate-700 outline-none"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            <option value={5}>5 {t("common.perPage")}</option>
+            <option value={10}>10 {t("common.perPage")}</option>
+            <option value={20}>20 {t("common.perPage")}</option>
+            <option value={50}>50 {t("common.perPage")}</option>
+          </select>
+        </div>
       </div>
 
       {isLoading ? <div className="flex justify-center p-10 text-slate-500">{t("content.loadingCategoriesList")}</div> 
         : error ? <div className="flex justify-center p-10 text-rose-500">{error}</div> 
-        : <Table data={categories} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("content.noCategoriesFound")} />}
+        : <Table data={categories} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("content.noCategoriesFound")} tableClassName="w-full min-w-[750px] border-collapse table-fixed" />}
 
       <PaginationButton currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
     </div>

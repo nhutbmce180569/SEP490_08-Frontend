@@ -26,3 +26,17 @@ export const normalizeRoles = (roles: any): string[] => {
   const rolesArray = Array.isArray(roles) ? roles : typeof roles === "string" ? [roles] : [];
   return rolesArray.map((r: string) => r.toUpperCase());
 };
+
+export const getDashboardPath = (roles: any): string => {
+  const upperRoles = normalizeRoles(roles);
+  if (upperRoles.includes("ADMIN")) {
+    return "/admin";
+  }
+  if (upperRoles.includes("MANAGER") || upperRoles.includes("OPERATOR")) {
+    return "/manager";
+  }
+  if (upperRoles.includes("STAFF")) {
+    return "/staff";
+  }
+  return "/";
+};

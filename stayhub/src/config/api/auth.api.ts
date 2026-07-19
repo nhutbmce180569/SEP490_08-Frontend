@@ -3,14 +3,15 @@ import { FULL_API } from './api';
 export const AUTH_API = {
   // Auth
   REGISTER: `${FULL_API}/auth/register`,
+  SEND_REGISTER_OTP: `${FULL_API}/auth/send-register-otp`,
   LOGIN: `${FULL_API}/auth/login`,
   GOOGLE_LOGIN: `${FULL_API}/auth/google-login`,
-  FACEBOOK_LOGIN: `${FULL_API}/auth/facebook-login`,
   EXTERNAL_LOGIN: `${FULL_API}/auth/external-login`,
   LOGOUT: `${FULL_API}/auth/logout`,
   REFRESH_TOKEN: `${FULL_API}/auth/refresh-token`,
   CHANGE_PASSWORD: `${FULL_API}/auth/change-password`,
   FORGOT_PASSWORD: `${FULL_API}/auth/forgot-password`,
+  VERIFY_RESET_OTP: `${FULL_API}/auth/verify-reset-otp`,
   RESET_PASSWORD: `${FULL_API}/auth/reset-password`,
   PROFILE: `${FULL_API}/auth/profile`,
     

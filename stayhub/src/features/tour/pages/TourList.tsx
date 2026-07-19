@@ -285,10 +285,10 @@ export const TourList: React.FC = () => {
                 setPage(1);
               }}
             >
-              <option value={5}>5 / page</option>
-              <option value={10}>10 / page</option>
-              <option value={20}>20 / page</option>
-              <option value={50}>50 / page</option>
+              <option value={5}>5 {t("common.perPage")}</option>
+              <option value={10}>10 {t("common.perPage")}</option>
+              <option value={20}>20 {t("common.perPage")}</option>
+              <option value={50}>50 {t("common.perPage")}</option>
             </select>
           </div>
 

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft } from 'lucide-react';
 import { PATH } from '../config/routes/route';
+import { getDashboardPath } from '../utils/jwt';
 import { useTranslation } from '../contexts/LocaleContext';
 
 const Unauthorized = () => {
@@ -12,25 +13,14 @@ const Unauthorized = () => {
     if (localUserStr) {
       try {
         const currentUser = JSON.parse(localUserStr);
-        const userRoles = Array.isArray(currentUser.roles)
-          ? currentUser.roles
-          : typeof currentUser.roles === "string"
-          ? [currentUser.roles]
-          : [];
-
-        const upperRoles = userRoles.map((r: string) => r.toUpperCase());
-
-        if (upperRoles.includes("ADMIN")) {
-          return navigate(PATH.ADMIN.DASHBOARD);
-        } else if (upperRoles.includes("MANAGER") || upperRoles.includes("STAFF")) {
-          return navigate(PATH.MANAGER.DASHBOARD);
-        }
+        return navigate(getDashboardPath(currentUser.roles));
       } catch (error) {
         console.error("Failed to parse user from localStorage", error);
       }
     }
     navigate(PATH.PUBLIC.HOME);
   };
+
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4">

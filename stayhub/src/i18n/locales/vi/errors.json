@@ -27,5 +27,19 @@
   "changingPassword": "Đang đổi mật khẩu...",
   "noUsersFound": "Không tìm thấy người dùng.",
   "googleLoginFailed": "Đăng nhập Google thất bại. Vui lòng thử lại.",
-  "facebookLoginFailed": "Đăng nhập Facebook thất bại. Vui lòng thử lại."
+  "facebookLoginFailed": "Đăng nhập Facebook thất bại. Vui lòng thử lại.",
+  "fullNameNoSpecialChars": "Họ và tên không được chứa ký tự đặc biệt hoặc biểu tượng.",
+  "phoneMax15Chars": "Số điện thoại tối đa 15 chữ số.",
+  "phoneInvalid": "Định dạng số điện thoại không hợp lệ.",
+  "sendingOtp": "Đang gửi mã xác nhận...",
+  "verifyRegisterOtpTitle": "Xác nhận OTP đăng ký",
+  "verifyRegisterOtpSubtitle": "Vui lòng nhập mã xác nhận 6 chữ số đã được gửi đến email của bạn để xác thực và hoàn tất đăng ký.",
+  "completeRegistrationBtn": "Hoàn tất đăng ký",
+  "completingRegistration": "Đang hoàn tất đăng ký...",
+  "backToRegister": "Quay lại chỉnh sửa thông tin",
+  "googlePhoneModalTitle": "Bổ sung số điện thoại",
+  "googlePhoneModalDesc": "Tài khoản Google của bạn là tài khoản mới. Vui lòng bổ sung số điện thoại để hoàn tất đăng ký.",
+  "googleRegisterCanceled": "Đã hủy đăng ký tài khoản mới bằng Google.",
+  "confirmAndCompleteBtn": "Xác nhận & Hoàn tất",
+  "cancelBtn": "Hủy bỏ"
 }

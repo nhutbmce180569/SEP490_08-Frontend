@@ -10,7 +10,7 @@ export const useResetPassword = () => {
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
 
-  const handleResetPasswordSubmit = async (payload: { email: string; code: string; newPassword: string }) => {
+  const handleResetPasswordSubmit = async (payload: { email: string; code?: string; resetToken?: string; newPassword: string }) => {
     setServerErrors({});
     setIsSubmitting(true);
 

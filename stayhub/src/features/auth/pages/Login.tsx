@@ -9,6 +9,7 @@ import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { PATH } from "../../../config/routes/route";
+import { getDashboardPath } from "../../../utils/jwt";
 
 export default function Login() {
   const { t } = useTranslation();
@@ -17,9 +18,10 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      navigate(PATH.PUBLIC.HOME, { replace: true });
+      navigate(getDashboardPath(user.roles), { replace: true });
     }
   }, [user, navigate]);
+
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,7 +42,7 @@ export default function Login() {
       heroSubtitle={t("auth.heroLoginDesc")}
       imageSeed="stayhub-travel"
       footer={
-        <p className="mt-10 text-center text-sm font-medium text-slate-600">
+        <p className="mt-5 text-center text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300">
           {t("auth.noAccount")}{" "}
           <Link
             to="/register"
@@ -51,9 +53,9 @@ export default function Login() {
         </p>
       }
     >
-      <form onSubmit={handleLogin} className="space-y-6">
+      <form onSubmit={handleLogin} className="space-y-5">
         {serverError && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-600">
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm font-medium text-rose-600">
             {serverError}
           </div>
         )}
@@ -81,10 +83,10 @@ export default function Login() {
           required
         />
 
-        <div className="flex items-center justify-end pt-1">
+        <div className="flex items-center justify-end pt-0.5">
           <Link
             to="/forgot-password"
-            className="text-sm font-semibold text-brand transition-colors hover:text-brand-hover !no-underline"
+            className="text-xs sm:text-sm font-semibold text-brand transition-colors hover:text-brand-hover !no-underline"
           >
             {t("auth.forgotPassword")}
           </Link>
@@ -94,14 +96,14 @@ export default function Login() {
           type="submit"
           variant="primary"
           disabled={isSubmitting}
-          className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+          className="group !mt-5 !h-[50px] !w-full gap-2 text-[15px] font-bold shadow-lg"
         >
           {isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>
 
-      <SocialAuthButtons dividerLabel="Or continue with" />
+      <SocialAuthButtons />
     </AuthLayout>
   );
 }

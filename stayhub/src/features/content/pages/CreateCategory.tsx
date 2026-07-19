@@ -17,6 +17,7 @@ export const CreateCategory: React.FC = () => {
         type: "custom",
         required: true,
         colSpan: 1,
+        maxLength: 100,
         validate: (value: any) => {
           if (!value || typeof value !== "string" || !value.trim()) {
             return t("common.fieldRequired", { label: t("content.categoryName") });
@@ -37,6 +38,7 @@ export const CreateCategory: React.FC = () => {
               className={`input-field py-2.5 pr-4 text-sm pl-10 w-full rounded-xl border border-slate-200 outline-none focus:border-brand ${
                 error ? "!border-rose-500 !bg-rose-50/30" : ""
               }`}
+              maxLength={100}
               placeholder={t("content.categoryNamePlaceholder")}
               value={value || ""}
               onChange={(e) => {
@@ -69,6 +71,7 @@ export const CreateCategory: React.FC = () => {
         icon: <Tag className="h-4 w-4" />,
         colSpan: 1,
         required: true,
+        maxLength: 100,
         validate: (value: any) => {
           if (!value || typeof value !== "string" || !value.trim()) {
             return t("common.fieldRequired", { label: "Slug" });
@@ -87,6 +90,7 @@ export const CreateCategory: React.FC = () => {
         placeholder: t("content.descriptionPlaceholder"),
         icon: <AlignLeft className="h-4 w-4" />,
         colSpan: 2,
+        maxLength: 500,
       },
       {
         name: "iconFile",

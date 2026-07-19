@@ -28,6 +28,7 @@ export const UpdateBanner: React.FC = () => {
         icon: <Type className="h-4 w-4" />,
         colSpan: 2,
         required: true,
+        maxLength: 255,
       },
       {
         name: "targetUrl",
@@ -35,6 +36,7 @@ export const UpdateBanner: React.FC = () => {
         type: "text",
         icon: <LinkIcon className="h-4 w-4" />,
         colSpan: 2,
+        maxLength: 500,
       },
       {
         name: "priority",

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as signalR from '@microsoft/signalr';
 import type { ChatMessage } from '../types/chat.type';
 import { chatService } from '../services/chatService';
+import { SIGNALR_HUB_BASE } from '../../../../config/api/api';
 
 export const useChatSignalR = (roomId: number | null) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -17,7 +18,7 @@ export const useChatSignalR = (roomId: number | null) => {
 
     // 🚀 LOCAL CHAT ROOM FLOW: Only responsible for connection and message exchange when a chat room is open
     const newConnection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:7010/hubs/chat', {
+      .withUrl(`${SIGNALR_HUB_BASE}/chat`, {
         accessTokenFactory: () => localStorage.getItem('accessToken') || localStorage.getItem('access_token') || '',
       })
       .configureLogging(signalR.LogLevel.None)

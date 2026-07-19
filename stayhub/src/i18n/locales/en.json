@@ -163,7 +163,12 @@
     "rolesLabel": "Roles",
     "none": "None",
     "unknown": "Unknown",
-    "local": "Local"
+    "local": "Local",
+    "luxuryTourExperience": "STAYHUB LUXURY TOUR EXPERIENCE",
+    "premiumJourney": "Premium Journey",
+    "absoluteSecurity": "Absolute Security",
+    "satisfiedCustomers": "100k+ Satisfied Customers",
+    "cannotEditAdmin": "Cannot modify other Admins"
   },
   "nav": {
     "profile": "Profile",

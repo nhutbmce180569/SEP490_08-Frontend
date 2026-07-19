@@ -1,5 +1,5 @@
 export const formatVnd = (amount: number) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
 
 export const formatDiscount = (discountType: string, discountValue: number) => {
   if (discountType.toLowerCase() === 'percent') {

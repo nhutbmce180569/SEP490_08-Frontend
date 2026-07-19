@@ -82,9 +82,6 @@ export const createCategory = async (
   formData.append("name", data.name);
   formData.append("slug", data.slug);
   if (data.description) formData.append("description", data.description);
-  if (data.isActive !== undefined) {
-    formData.append("isActive", data.isActive.toString());
-  }
   if (data.iconFile) formData.append("iconFile", data.iconFile);
 
   const response = await apiClient.post<ApiEnvelope<ReadCategoryDTO>>(

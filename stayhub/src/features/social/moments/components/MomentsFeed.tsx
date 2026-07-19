@@ -145,15 +145,6 @@ export const MomentsFeed: React.FC = () => {
     <div className="w-full h-full flex flex-col bg-slate-50 overflow-hidden select-none relative">
       {/* Sleek Immersive Apple-style Floating Header Bar (Light Theme) */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white/80 border border-slate-200/60 backdrop-blur-xl px-3 py-1.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 w-auto max-w-[95%] sm:max-w-max h-12">
-        {/* Left: Active Blinking Dot Status */}
-        <div className="hidden md:flex items-center gap-1.5 px-3 h-8 rounded-full bg-slate-50 border border-slate-200/60 shrink-0">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-          </span>
-          <span className="text-[10px] font-bold tracking-wider uppercase text-slate-500">Live</span>
-        </div>
-
         {/* Center Switcher Buttons (Dynamic Island Style - Dark High Contrast) */}
         <div className="flex items-center bg-black/95 p-1 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)] border border-slate-800 h-9">
           <button
@@ -181,9 +172,9 @@ export const MomentsFeed: React.FC = () => {
         </div>
 
         {/* Right Selector Filter Dropdown */}
-        <div className="relative h-8 shrink-0">
+        <div className="relative h-8 shrink-0 max-w-[95px] xs:max-w-[125px] sm:max-w-[180px] md:max-w-[260px]">
           <select
-            className="appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 text-slate-650 font-bold text-[11px] h-full pl-3 pr-8 rounded-full focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand cursor-pointer transition-colors shadow-sm"
+            className="appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 text-slate-650 font-bold text-[11px] h-full pl-3 pr-8 rounded-full focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand cursor-pointer transition-colors shadow-sm w-full truncate"
             onChange={(e) => setScheduleId(e.target.value ? Number(e.target.value) : null)}
             value={scheduleId || ""}
           >
@@ -294,24 +285,38 @@ export const MomentsFeed: React.FC = () => {
           </div>
         ) : (
           <div className="h-full w-full absolute inset-0">
-            <MomentsMapFeed scheduleId={scheduleId as any} onMarkerClick={setSelectedMomentId} onReplayStateChange={setIsReplayActive} />
+            <MomentsMapFeed 
+              scheduleId={scheduleId as any} 
+              onMarkerClick={setSelectedMomentId} 
+              onReplayStateChange={setIsReplayActive} 
+              onPostMomentClick={() => setIsCreateOpen(true)}
+            />
           </div>
         )}
       </div>
 
-      {/* Immersive FAB - Post Camera Button */}
-      <div className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out flex flex-col items-center gap-2 ${isReplayActive ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}`}>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="group relative flex items-center justify-center w-16 h-16 bg-brand text-white !rounded-full overflow-hidden shadow-[0_8px_32px_rgba(0,104,224,0.4)] border-4 border-white transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer"
-        >
-          <Camera className="w-7 h-7" />
-          <div className="absolute inset-0 rounded-full border-2 border-brand animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
-        </button>
-        <span className="whitespace-nowrap text-[10px] font-black tracking-wider uppercase text-slate-600 bg-white/90 border border-slate-200 px-3 py-1 rounded-lg backdrop-blur-md shadow-lg">
-          Post Moment
-        </span>
-      </div>
+      {/* Immersive Floating Post Camera Button (Only visible in list Feed view - Matching Screenshot) */}
+      {viewMode === 'feed' && (
+        <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out ${isReplayActive ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}`}>
+          <div 
+            onClick={() => setIsCreateOpen(true)}
+            className="group flex flex-col items-center gap-1.5 cursor-pointer select-none transition-transform duration-300 hover:scale-105 active:scale-95"
+          >
+            {/* Circular Camera Button with White Ring */}
+            <div className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand text-white border-4 border-white shadow-[0_8px_25px_rgba(0,104,224,0.4)] transition-all duration-300 group-hover:shadow-[0_12px_32px_rgba(0,104,224,0.55)] overflow-hidden">
+              <Camera className="w-6 h-6 md:w-7 md:h-7 text-white" />
+              <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
+            </div>
+
+            {/* Label Pill Card */}
+            <div className="px-3.5 py-1 rounded-xl bg-white/95 border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-md">
+              <span className="text-[10px] md:text-[11px] font-black tracking-wider uppercase text-slate-700 whitespace-nowrap">
+                {t("social.postMoment") || "POST MOMENT"}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Create Moment Modal Overlay */}
       {isCreateOpen && (

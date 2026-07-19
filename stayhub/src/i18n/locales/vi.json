@@ -164,7 +164,12 @@
     "rolesLabel": "Vai trò",
     "none": "Không có",
     "unknown": "Không rõ",
-    "local": "Cục bộ"
+    "local": "Cục bộ",
+    "luxuryTourExperience": "TRẢI NGHIỆM TOUR CAO CẤP STAYHUB",
+    "premiumJourney": "Hành Trình Đẳng Cấp",
+    "absoluteSecurity": "Bảo Mật Tuyệt Đối",
+    "satisfiedCustomers": "100k+ Khách Hài Lòng",
+    "cannotEditAdmin": "Không thể thao tác trên Quản trị viên khác"
   },
   "nav": {
     "profile": "Hồ sơ",

@@ -16,8 +16,8 @@ export const BannerList: React.FC = () => {
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
 
-  const { data, isLoading, error, setPage, handleCreate, handleEdit, handleDelete } = useBanners(keyword);
-  const { executeStatusChange, updatingId } = useChangeBannerStatus();
+  const { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, handleDelete, refetch } = useBanners(PAGE_SIZE, keyword);
+  const { executeStatusChange, updatingId } = useChangeBannerStatus(refetch);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -31,7 +31,7 @@ export const BannerList: React.FC = () => {
 
   const banners = data?.data || [];
   const totalPages = data?.totalPages || 1;
-  const currentPage = data?.currentPage || 1;
+  const currentPage = data?.page || page;
   const totalItems = data?.total || 0;
 
   const columns: Column<ReadBannerDTO>[] = useMemo(
@@ -89,6 +89,9 @@ export const BannerList: React.FC = () => {
         header: t("common.actions"),
         render: (banner) => (
           <div className="flex items-center gap-1.5">
+            <ActionButton variant="secondary" onClick={() => handleEdit(banner.id)} className="h-8 w-8" title={t("common.edit")}>
+              <Pencil className="h-3.5 w-3.5" />
+            </ActionButton>
             <ActionButton 
               variant="secondary" 
               onClick={() => executeStatusChange(banner.id, Boolean(banner.isActive))}
@@ -98,10 +101,7 @@ export const BannerList: React.FC = () => {
             >
               {banner.isActive ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
             </ActionButton>
-            <ActionButton variant="secondary" onClick={() => handleEdit(banner.id)} className="h-8 w-8">
-              <Pencil className="h-3.5 w-3.5" />
-            </ActionButton>
-            <ActionButton variant="warning" onClick={() => handleDelete(banner.id)} className="h-8 w-8">
+            <ActionButton variant="warning" onClick={() => handleDelete(banner.id)} className="h-8 w-8" title={t("common.delete")}>
               <Trash2 className="h-3.5 w-3.5" />
             </ActionButton>
           </div>
@@ -112,32 +112,47 @@ export const BannerList: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl">
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-[15px] font-bold leading-tight text-slate-900">{t("content.bannerManagement")}</h2>
-        <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
+          <div className="relative w-full sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder={t("content.searchByTitle")}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
+            <select
+              className="bg-transparent text-sm text-slate-700 outline-none"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={5}>5 {t("common.perPage")}</option>
+              <option value={10}>10 {t("common.perPage")}</option>
+              <option value={20}>20 {t("common.perPage")}</option>
+              <option value={50}>50 {t("common.perPage")}</option>
+            </select>
+          </div>
+        </div>
+
+        <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm shadow-sm shrink-0">
           <Plus className="h-4 w-4" /> {t("content.addBanner")}
         </ActionButton>
       </div>
 
-      <div className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center">
-        <div className="relative flex-1 sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder={t("content.searchByTitle")}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
-          />
-        </div>
-      </div>
-
       {isLoading ? <div className="flex justify-center p-10 text-slate-500">{t("content.loadingBanners")}</div> 
         : error ? <div className="flex justify-center p-10 text-rose-500">{error}</div> 
-        : <Table data={banners} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("content.noBannersFound")} />}
+        : <Table data={banners} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("content.noBannersFound")} tableClassName="w-full min-w-[750px] border-collapse table-fixed" />}
 
-      <PaginationButton currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} pageSize={PAGE_SIZE} onPageChange={setPage} />
+      <PaginationButton currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
     </div>
   );
 };

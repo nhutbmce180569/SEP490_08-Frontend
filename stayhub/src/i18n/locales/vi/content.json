@@ -145,5 +145,13 @@
   "locationHintAutoFill": "Tìm địa điểm, nhấp bản đồ hoặc dùng vị trí hiện tại — thành phố, quốc gia và tọa độ được điền tự động.",
   "sourceUrlInvalid": "URL nguồn phải là HTTP hoặc HTTPS hợp lệ.",
   "descriptionLabel": "Mô tả",
-  "onlyImageFilesAllowed": "Chỉ cho phép tải lên tệp hình ảnh (JPG, PNG, GIF, WebP, SVG)."
+  "onlyImageFilesAllowed": "Chỉ cho phép tải lên tệp hình ảnh (JPG, PNG, GIF, WebP, SVG).",
+  "failedToFetchBanners": "Tải danh sách banner thất bại.",
+  "bannerDeactivated": "Đã vô hiệu hóa banner thành công.",
+  "bannerActivated": "Đã kích hoạt banner thành công.",
+  "failedToChangeBannerStatus": "Đổi trạng thái banner thất bại.",
+  "categoryDeleted": "Đã xóa danh mục thành công.",
+  "failedToDeleteCategory": "Xóa danh mục thất bại.",
+  "cannotEditActive": "Không thể chỉnh sửa danh mục đang hoạt động. Vui lòng vô hiệu hóa trước.",
+  "categoryDetails": "Chi tiết danh mục"
 }

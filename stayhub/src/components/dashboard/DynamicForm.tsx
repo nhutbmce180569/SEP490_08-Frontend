@@ -398,6 +398,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
       {/* Form Container */}
       <div className="glass-card p-6 md:p-8">
+        {errors.general && (
+          <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-600">
+            {errors.general}
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {fields
             .filter((field) => (field.visible ? field.visible(formData) : true))

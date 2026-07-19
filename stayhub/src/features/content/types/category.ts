@@ -11,7 +11,6 @@ export interface CreateCategoryDTO {
   name: string;
   slug: string;
   description?: string;
-  isActive?: boolean;
   iconFile?: File | null;
 }
 

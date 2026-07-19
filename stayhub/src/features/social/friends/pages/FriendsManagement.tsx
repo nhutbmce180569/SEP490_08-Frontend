@@ -23,6 +23,8 @@ import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { PaginationButton } from '../../../../components/dashboard/PaginationButton';
 
+import { SIGNALR_HUB_BASE } from '../../../../config/api/api';
+
 export const FriendsManagement: React.FC = () => {
   const { t } = useTranslation();
   const { user: currentUser } = useContext(AuthContext);
@@ -101,7 +103,7 @@ export const FriendsManagement: React.FC = () => {
 
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7010/hubs/friendship", {
+      .withUrl(`${SIGNALR_HUB_BASE}/friendship`, {
         accessTokenFactory: () => localStorage.getItem('accessToken') || ''
       })
       .configureLogging(signalR.LogLevel.None)

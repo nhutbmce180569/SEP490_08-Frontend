@@ -63,8 +63,7 @@ export const deleteFriendship = async (id: number): Promise<void> => {
 
 export const getPaginatedFriendList = async (page = 1, pageSize = 10): Promise<{ data: FriendshipResponse[]; total: number }> => {
   const response = await apiClient.get<any>(`${FRIEND_API_URL}/list?page=${page}&pageSize=${pageSize}`);
-  const resBody = response.data ?? response;
-  const paginationData = resBody?.data;
+  const paginationData = response?.data;
   const rawList = Array.isArray(paginationData?.data) ? paginationData.data : [];
   const total = paginationData?.total ?? 0;
 

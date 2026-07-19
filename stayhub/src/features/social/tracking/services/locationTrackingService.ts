@@ -20,7 +20,7 @@ export const locationTrackingService = {
     return String(tokenStr).replace(/['"]/g, ''); 
   },
 
-  getPublicLocation: async (token: string): Promise<{ lat: number; lng: number; fullName: string }> => {
+  getPublicLocation: async (token: string): Promise<{ lat: number; lng: number; fullName: string; avatarUrl?: string | null }> => {
     const response = await axios.get(`${API_BASE_URL}/api/locations/track/${token}`, {
       headers: withLanguageHeaders(),
     });

@@ -6,6 +6,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import { useAddComment, useDeleteComment } from '../hooks/useMoments';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { reportContent } from '../services/momentService';
+import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 
 // Avatar nho cho comment: hien anh, fallback ve chu cai dau.
 const CommentAvatar = ({ src, name }: { src?: string | null; name: string }) => {
@@ -45,26 +46,36 @@ export const CommentSection = ({ momentId, comments }: any) => {
   const [commentReason, setCommentReason] = useState('Spam');
   const [commentDetails, setCommentDetails] = useState('');
   const [isSubmittingCommentReport, setIsSubmittingCommentReport] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [commentIdToDelete, setCommentIdToDelete] = useState<number | null>(null);
 
   const currentUserAvatar =
     (user as any)?.avatarUrl || (user as any)?.AvatarUrl ||
     (user as any)?.avatar || (user as any)?.picture;
   const currentUserId = user ? (user.id || (user as any).Id) : null;
 
-  const handleDeleteComment = (commentId: number) => {
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      deleteComment(
-        { commentId, userId: Number(currentUserId) },
-        {
-          onSuccess: () => {
-            success("Comment deleted successfully");
-          },
-          onError: () => {
-            error("Failed to delete comment");
-          }
+  const requestDeleteComment = (commentId: number) => {
+    setCommentIdToDelete(commentId);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const executeDeleteComment = () => {
+    if (commentIdToDelete === null) return;
+    deleteComment(
+      { commentId: commentIdToDelete, userId: Number(currentUserId) },
+      {
+        onSuccess: () => {
+          success("Comment deleted successfully");
+          setIsDeleteConfirmOpen(false);
+          setCommentIdToDelete(null);
+        },
+        onError: () => {
+          error("Failed to delete comment");
+          setIsDeleteConfirmOpen(false);
+          setCommentIdToDelete(null);
         }
-      );
-    }
+      }
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -152,7 +163,7 @@ export const CommentSection = ({ momentId, comments }: any) => {
                           <button
                             onClick={() => {
                               setOpenMenuCommentId(null);
-                              handleDeleteComment(c.id);
+                              requestDeleteComment(c.id);
                             }}
                             className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                           >
@@ -265,6 +276,17 @@ export const CommentSection = ({ momentId, comments }: any) => {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={isDeleteConfirmOpen}
+        onClose={() => {
+          setIsDeleteConfirmOpen(false);
+          setCommentIdToDelete(null);
+        }}
+        onConfirm={executeDeleteComment}
+        title="Xóa bình luận"
+        message="Bạn có chắc chắn muốn xóa bình luận này không? Thao tác này không thể hoàn tác."
+        variant="warning"
+      />
     </div>
   );
 };

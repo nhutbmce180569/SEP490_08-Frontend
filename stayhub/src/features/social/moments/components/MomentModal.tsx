@@ -8,6 +8,7 @@ import type { Moment } from '../types/moment.type';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { reportContent } from '../services/momentService';
 import { ShareTargetModal } from '../../chat/component/ShareTargetModal';
+import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -60,6 +61,10 @@ export const MomentModal: React.FC<MomentModalProps> = ({
   const [commentReportDetails, setCommentReportDetails] = useState('');
   const [isSubmittingCommentReport, setIsSubmittingCommentReport] = useState(false);
 
+  const [isDeleteCommentConfirmOpen, setIsDeleteCommentConfirmOpen] = useState(false);
+  const [commentIdToDelete, setCommentIdToDelete] = useState<number | null>(null);
+  const [isDeleteMomentConfirmOpen, setIsDeleteMomentConfirmOpen] = useState(false);
+
   const handleSendReport = async () => {
     setIsSubmittingReport(true);
     try {
@@ -90,20 +95,26 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     }
   };
 
-  const handleDeleteMoment = () => {
+  const requestDeleteMoment = () => {
+    setIsDeleteMomentConfirmOpen(true);
+  };
+
+  const executeDeleteMoment = () => {
     if (isDeletingMoment) return;
-    if (window.confirm("Are you sure you want to delete this moment? This action cannot be undone.")) {
-      deleteMoment(
-        { momentId: moment.id, userId: Number(currentUserId) },
-        {
-          onSuccess: () => {
-            success("Moment deleted successfully");
-            onClose();
-          },
-          onError: () => error("Failed to delete moment")
+    deleteMoment(
+      { momentId: moment.id, userId: Number(currentUserId) },
+      {
+        onSuccess: () => {
+          success("Moment deleted successfully");
+          setIsDeleteMomentConfirmOpen(false);
+          onClose();
+        },
+        onError: () => {
+          error("Failed to delete moment");
+          setIsDeleteMomentConfirmOpen(false);
         }
-      );
-    }
+      }
+    );
   };
   
   const allComments = localComments;
@@ -167,20 +178,29 @@ export const MomentModal: React.FC<MomentModalProps> = ({
     );
   };
 
-  const handleDeleteComment = (commentId: number) => {
-    if (isDeleting) return;
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      deleteComment(
-        { commentId, userId: Number(currentUserId) },
-        {
-          onSuccess: () => {
-            success("Comment deleted successfully");
-            setLocalComments(prev => prev.filter(c => c.id !== commentId));
-          },
-          onError: () => error("Failed to delete comment")
+  const requestDeleteComment = (commentId: number) => {
+    setCommentIdToDelete(commentId);
+    setIsDeleteCommentConfirmOpen(true);
+  };
+
+  const executeDeleteComment = () => {
+    if (commentIdToDelete === null || isDeleting) return;
+    deleteComment(
+      { commentId: commentIdToDelete, userId: Number(currentUserId) },
+      {
+        onSuccess: () => {
+          success("Comment deleted successfully");
+          setLocalComments(prev => prev.filter(c => c.id !== commentIdToDelete));
+          setIsDeleteCommentConfirmOpen(false);
+          setCommentIdToDelete(null);
+        },
+        onError: () => {
+          error("Failed to delete comment");
+          setIsDeleteCommentConfirmOpen(false);
+          setCommentIdToDelete(null);
         }
-      );
-    }
+      }
+    );
   };
 
   const handleScroll = () => {
@@ -265,7 +285,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                         <button
                           onClick={() => {
                             setIsMomentMenuOpen(false);
-                            handleDeleteMoment();
+                            requestDeleteMoment();
                           }}
                           className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                         >
@@ -406,7 +426,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                                   <button
                                     onClick={() => {
                                       setOpenMenuCommentId(null);
-                                      handleDeleteComment(c.id);
+                                      requestDeleteComment(c.id);
                                     }}
                                     className="flex w-full items-center gap-2 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors cursor-pointer"
                                   >
@@ -615,6 +635,27 @@ export const MomentModal: React.FC<MomentModalProps> = ({
           successMessage="Đã chia sẻ khoảnh khắc qua tin nhắn!"
         />
       )}
+
+      <ConfirmDialog
+        open={isDeleteCommentConfirmOpen}
+        onClose={() => {
+          setIsDeleteCommentConfirmOpen(false);
+          setCommentIdToDelete(null);
+        }}
+        onConfirm={executeDeleteComment}
+        title="Xóa bình luận"
+        message="Bạn có chắc chắn muốn xóa bình luận này không? Thao tác này không thể hoàn tác."
+        variant="warning"
+      />
+
+      <ConfirmDialog
+        open={isDeleteMomentConfirmOpen}
+        onClose={() => setIsDeleteMomentConfirmOpen(false)}
+        onConfirm={executeDeleteMoment}
+        title="Xóa khoảnh khắc"
+        message="Bạn có chắc chắn muốn xóa khoảnh khắc này không? Thao tác này không thể hoàn tác."
+        variant="warning"
+      />
     </div>
   );
 };

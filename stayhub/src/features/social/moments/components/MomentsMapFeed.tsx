@@ -2,7 +2,7 @@ import React, { useState, useRef, useCallback, useMemo, useEffect, useContext } 
 import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
-import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film, HelpCircle } from "lucide-react";
+import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
 import { useGetScheduleLiveLocations, useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
@@ -28,12 +28,14 @@ interface MomentsMapFeedProps {
   scheduleId: number;
   onMarkerClick: (momentId: number) => void;
   onReplayStateChange?: (isActive: boolean) => void;
+  onPostMomentClick?: () => void;
 }
 
 export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   scheduleId,
   onMarkerClick,
   onReplayStateChange,
+  onPostMomentClick,
 }) => {
   const { t } = useTranslation();
   const locale = getStoredLocale();
@@ -72,6 +74,23 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const { data: heatmapData } = useGetHeatmap(scheduleId, heatmapType, showHeatmap);
   const [isNightMode, setIsNightMode] = useState(false);
   const [dockState, setDockState] = useState<'collapsed' | 'expanded'>('expanded');
+  
+  const [isPostButtonHidden, setIsPostButtonHidden] = useState<boolean>(() => {
+    return localStorage.getItem("post_button_hidden") === "true";
+  });
+  const touchStartYRef = useRef<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartYRef.current = e.touches[0].clientY;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const deltaY = e.touches[0].clientY - touchStartYRef.current;
+    if (deltaY > 50) {
+      setIsPostButtonHidden(true);
+      localStorage.setItem("post_button_hidden", "true");
+    }
+  };
   
   const discreteZoom = Math.round(viewState.zoom);
 
@@ -156,13 +175,6 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       return;
     }
 
-    // Mapbox free tier Directions API is limited to max 25 waypoints per request
-    if (filteredWaypoints.length > 25) {
-      console.warn("Tour has > 25 stops. Falling back to straight lines (free tier compliance).");
-      setRouteCoordinates(routeData.geometryCoordinates || []);
-      return;
-    }
-
     let isCancelled = false;
 
     const fetchMapboxRoute = async () => {
@@ -170,28 +182,43 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         const apiKey = import.meta.env.VITE_MAPBOX_TOKEN;
         if (!apiKey) throw new Error("Mapbox access token is missing.");
 
-        const coordinates = filteredWaypoints
-          .map((wp: any) => `${wp.lng},${wp.lat}`)
-          .join(";");
+        const segmentPromises = [];
+        for (let i = 0; i < filteredWaypoints.length - 1; i++) {
+          const wpStart = filteredWaypoints[i];
+          const wpEnd = filteredWaypoints[i + 1];
 
-        const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${coordinates}?geometries=geojson&overview=full&access_token=${apiKey}`;
-        const response = await fetch(url);
+          segmentPromises.push((async () => {
+            try {
+              const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${wpStart.lng},${wpStart.lat};${wpEnd.lng},${wpEnd.lat}?geometries=geojson&overview=full&access_token=${apiKey}`;
+              const res = await fetch(url);
+              if (!res.ok) {
+                throw new Error(`Segment directions failed with status: ${res.status}`);
+              }
+              const data = await res.json();
+              const coords = data.routes?.[0]?.geometry?.coordinates;
+              if (Array.isArray(coords) && coords.length > 0) {
+                return coords;
+              }
+            } catch (err) {
+              console.warn(`Mapbox Directions failed for segment index ${i} (from ${wpStart.lng},${wpStart.lat} to ${wpEnd.lng},${wpEnd.lat}). Drawing straight line:`, err);
+            }
+            // Fallback to straight line for this segment only
+            return [
+              [wpStart.lng, wpStart.lat],
+              [wpEnd.lng, wpEnd.lat]
+            ];
+          })());
+        }
+
+        const segmentsCoords = await Promise.all(segmentPromises);
         
-        if (!response.ok) {
-          throw new Error(`Directions request failed with status: ${response.status}`);
-        }
+        if (isCancelled) return;
 
-        const data = await response.json();
-        const coords = data.routes?.[0]?.geometry?.coordinates;
-        if (!Array.isArray(coords) || coords.length === 0) {
-          throw new Error("Route geometry is empty.");
-        }
-
-        if (!isCancelled) {
-          setRouteCoordinates(coords);
-        }
+        // Flatten all segment coordinates into one single route linestring
+        const allCoords = segmentsCoords.flat();
+        setRouteCoordinates(allCoords);
       } catch (err) {
-        console.error("Mapbox Directions API failed. Falling back to straight lines:", err);
+        console.error("Mapbox Directions API failed completely. Falling back to straight lines:", err);
         if (!isCancelled) {
           setRouteCoordinates(routeData.geometryCoordinates || []);
         }
@@ -1139,7 +1166,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       </Map>
 
       {/* Share Button */}
-      <div className="absolute top-4 left-4 z-20">
+      <div className="absolute top-20 md:top-4 left-4 z-20">
         <ShareLocationButton 
           onShareStart={() => {
             setIsSharingLocation(true);
@@ -1151,7 +1178,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       {uniqueDays.length > 0 && (
         <div 
           ref={daySelectorContainerRef}
-          className="absolute top-20 left-1/2 -translate-x-1/2 z-20 flex gap-2 glass-panel p-1.5 rounded-full shadow-lg animate-[fadeIn_0.5s_ease]"
+          className="absolute top-[140px] md:top-20 left-1/2 -translate-x-1/2 z-20 flex gap-2 glass-panel p-1.5 rounded-full shadow-lg animate-[fadeIn_0.5s_ease] max-w-[90vw] overflow-x-auto"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {/* Sliding indicator background pill */}
           <div 
@@ -1190,7 +1218,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       )}
 
       {/* Top Right Controls (Layers & Replay) */}
-      <div className="absolute top-4 right-4 z-20 flex flex-col gap-3">
+      <div className="absolute top-20 md:top-4 right-4 z-20 flex flex-col gap-3">
         <div className="relative">
           <button
             onClick={(e) => { e.stopPropagation(); setIsLayerMenuOpen(!isLayerMenuOpen); }}
@@ -1306,6 +1334,21 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           )}
         </div>
 
+        {isPostButtonHidden && onPostMomentClick && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsPostButtonHidden(false);
+              localStorage.setItem("post_button_hidden", "false");
+              onPostMomentClick();
+            }}
+            className="group relative flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white border-3 border-white shadow-[0_8px_25px_rgba(0,104,224,0.35)] transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer animate-in fade-in zoom-in-50 duration-200"
+            title={t("social.postMoment") || "POST MOMENT"}
+          >
+            <Camera className="h-5.5 w-5.5 text-white" />
+          </button>
+        )}
+
         {/* Nút Timeline Replay */}
         {(!isSpecificTour || timelineEvents.length > 0) && (
           <button
@@ -1337,7 +1380,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       </div>
 
       {/* Nút Điều hướng Nhanh (Góc dưới phải) */}
-      <div className="absolute bottom-28 right-4 z-20 flex flex-col gap-3">
+      <div 
+        className={`absolute ${
+          isReplayMode 
+            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[320px]' : 'bottom-[100px]') 
+            : 'bottom-28'
+        } right-4 z-20 flex flex-col gap-3 transition-all duration-300`}
+      >
         {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
           <button
             onClick={(e) => {
@@ -1422,6 +1471,43 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
            Spacer Label
          </span>
       </div>
+
+      {/* Immersive Floating Post Moment Button (Matching Screenshot) */}
+      {onPostMomentClick && !isReplayMode && !isPostButtonHidden && (
+        <div 
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onClick={(e) => { e.stopPropagation(); onPostMomentClick(); }}
+          className="group absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-300"
+        >
+          {/* Circular Camera Button with White Ring */}
+          <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-brand text-white border-4 border-white shadow-[0_8px_25px_rgba(0,104,224,0.35)] transition-all duration-300 group-hover:shadow-[0_12px_30px_rgba(0,104,224,0.5)] overflow-hidden">
+            <Camera className="w-6.5 h-6.5 text-white" />
+            <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
+          </div>
+
+          {/* Label Pill Card */}
+          <div className="flex items-center gap-2 pl-3.5 pr-2 py-1 rounded-xl bg-white/95 border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-md">
+            <span className="text-[10px] font-black tracking-wider uppercase text-slate-700 whitespace-nowrap">
+              {t("social.postMoment") || "POST MOMENT"}
+            </span>
+            
+            <div className="h-3.5 w-[1px] bg-slate-200"></div>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPostButtonHidden(true);
+                localStorage.setItem("post_button_hidden", "true");
+              }}
+              className="flex items-center justify-center w-5 h-5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
+              title={t("social.hideButton") || (locale === 'vi' ? "Thu gọn" : "Collapse")}
+            >
+              <ChevronDown className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Timeline Replay Dock */}
       {isReplayMode && (!isSpecificTour || timelineEvents.length > 0) && (

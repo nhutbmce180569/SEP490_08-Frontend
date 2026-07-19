@@ -24,12 +24,16 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
   // 1. GỌI API LẤY DANH SÁCH CHUYẾN ĐI
   const { data: eligibleSchedules, isLoading: isSchedulesLoading } = useGetEligibleSchedules();
   
+  const ongoingSchedules = eligibleSchedules?.filter(
+    (trip: any) => trip.statusContext?.toLowerCase() === 'ongoing' || trip.StatusContext?.toLowerCase() === 'ongoing'
+  ) || [];
+
   const [selectedScheduleId, setSelectedScheduleId] = useState<string>(
-    scheduleId ? String(scheduleId) : "",
+    scheduleId ? String(scheduleId) : "0",
   );
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [caption, setCaption] = useState("");
-  const [privacy, setPrivacy] = useState<'Public' | 'Friend' | 'Private'>('Public');
+  const [privacy, setPrivacy] = useState<'Public' | 'Friend' | 'Private' | 'Tour'>('Public');
   
   // 2. TỰ ĐỘNG CHỌN CHUYẾN ĐI TRÊN CÙNG KHI CÓ DATA
   useEffect(() => {
@@ -37,10 +41,19 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
       setSelectedScheduleId(String(scheduleId));
       return;
     }
-    if (eligibleSchedules && eligibleSchedules.length > 0) {
-      setSelectedScheduleId(String(eligibleSchedules[0].scheduleId));
+    if (ongoingSchedules.length > 0) {
+      setSelectedScheduleId(String(ongoingSchedules[0].scheduleId));
+    } else {
+      setSelectedScheduleId("0");
     }
   }, [eligibleSchedules, scheduleId]);
+
+  // Reset privacy if personal moment is chosen
+  useEffect(() => {
+    if (selectedScheduleId === "0" && privacy === "Tour") {
+      setPrivacy("Public");
+    }
+  }, [selectedScheduleId, privacy]);
 
   // STATE: GPS
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
@@ -143,31 +156,6 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
   };
 
   // ==========================================
-  // XỬ LÝ EMPTY STATE (CHƯA MUA TOUR)
-  // ==========================================
-  if (!isSchedulesLoading && (!eligibleSchedules || eligibleSchedules.length === 0)) {
-    return (
-      <div className="relative w-full max-w-md mx-auto p-8 rounded-3xl bg-white text-center shadow-2xl animate-fade-in-up">
-        {onClose && (
-          <button onClick={onClose} className="absolute top-4 right-4 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition">
-            <X className="w-5 h-5" />
-          </button>
-        )}
-        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-light mb-5">
-          <MapPin className="h-10 w-10 text-brand" />
-        </div>
-        <h3 className="text-xl font-black mb-3 text-slate-800">{t("social.momentNoTripsTitle")}</h3>
-        <p className="text-sm text-slate-500 mb-8 leading-relaxed">
-          {t("social.momentNoTripsDesc")}
-        </p>
-        <button onClick={onClose} className="w-full font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 py-3.5 rounded-xl transition-all active:scale-95">
-          {t("common.confirm")}
-        </button>
-      </div>
-    );
-  }
-
-  // ==========================================
   // RENDER CAMERA & FORM CHÍNH
   // ==========================================
   return (
@@ -193,11 +181,16 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
           {isSchedulesLoading ? (
             <option className="bg-slate-800" disabled>{t("social.momentLoadingSchedules")}</option>
           ) : (
-            eligibleSchedules?.map((trip: any) => (
-              <option key={trip.scheduleId} value={trip.scheduleId} className="bg-slate-800">
-                {trip.tourName}
+            <>
+              <option value="0" className="bg-slate-800">
+                🌍 {t("social.personalMoment") || "Cá nhân (Ngoài Tour)"}
               </option>
-            ))
+              {ongoingSchedules?.map((trip: any) => (
+                <option key={trip.scheduleId} value={trip.scheduleId} className="bg-slate-800">
+                  {trip.tourName}
+                </option>
+              ))}
+            </>
           )}
         </select>
         <ChevronDown className="w-3 h-3 text-white/50 pointer-events-none" />
@@ -246,9 +239,10 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
             <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
               {[
                 { id: 'Public', icon: Globe, label: t('social.public') },
+                { id: 'Tour', icon: MapPin, label: 'Thành viên Tour' },
                 { id: 'Friend', icon: Users, label: t('social.momentPrivacyFriends') },
                 { id: 'Private', icon: Lock, label: t('social.momentPrivacyOnlyMe') }
-              ].map(opt => (
+              ].filter(opt => opt.id !== 'Tour' || selectedScheduleId !== "0").map(opt => (
                 <button
                   key={opt.id}
                   onClick={() => setPrivacy(opt.id as any)}

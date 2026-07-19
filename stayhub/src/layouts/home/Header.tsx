@@ -7,7 +7,6 @@ import {
   User,
   LayoutDashboard,
   Map,
-  Users,
   Search,
   ShoppingBag,
   Sparkles,
@@ -29,7 +28,6 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useTranslation } from "../../contexts/LocaleContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
-import { useGetPendingRequests } from "../../features/social/friends/hooks/useFriends";
 import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
 import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
 import { getSearchSuggestions } from "../../hooks/useSearchTours";
@@ -56,16 +54,12 @@ export default function Header() {
   });
   const unreadChatCount = chatRooms.reduce((acc: number, r: any) => acc + (r.unreadCount || 0), 0);
 
-  const { data: pendingRequests } = useGetPendingRequests(Boolean(user));
-  const pendingCount = Array.isArray(pendingRequests) ? pendingRequests.length : 0;
-
   const userRoles = Array.isArray(user?.roles)
     ? user.roles
     : typeof user?.roles === "string"
       ? [user.roles]
       : [];
   const upperRoles = userRoles.map((r: string) => r.toUpperCase());
-
 
   const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
@@ -76,9 +70,14 @@ export default function Header() {
     upperRoles.includes("STAFF");
 
   const handleGoToDashboard = () => {
-    navigate(getDashboardPath(userRoles));
+    if (upperRoles.includes("ADMIN")) {
+      navigate(PATH.ADMIN.DASHBOARD);
+    } else if (upperRoles.includes("MANAGER")) {
+      navigate(PATH.MANAGER.CUSTOMER_ANALYTICS);
+    } else {
+      navigate(PATH.STAFF.DASHBOARD);
+    }
   };
-
 
   const isSocialLogin =
     user?.provider === "Google" ||
@@ -95,24 +94,18 @@ export default function Header() {
   const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showFriendMenu, setShowFriendMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
   const searchBarRef = useRef<HTMLDivElement>(null);
-  const friendMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setShowUserMenu(false);
       }
-      // Thêm: Đóng gợi ý khi click ra ngoài
       if (searchBarRef.current && !searchBarRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
-      }
-      if (friendMenuRef.current && !friendMenuRef.current.contains(e.target as Node)) {
-        setShowFriendMenu(false);
       }
     };
     document.addEventListener("mousedown", onDocClick);
@@ -346,74 +339,6 @@ export default function Header() {
               >
                 <Map className="h-5 w-5" />
               </button>
-
-              <div className="relative" ref={friendMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowFriendMenu((v) => !v)}
-                  className="icon-btn relative"
-                  title={t("header.friends")}
-                  aria-label={t("header.friends")}
-                >
-                  <Users className="h-5 w-5" />
-                  {pendingCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-white">
-                      {pendingCount > 99 ? "99+" : pendingCount}
-                    </span>
-                  )}
-                </button>
-
-                {showFriendMenu && (
-                  <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 p-2">
-                    <div className="mb-1 border-b border-slate-100/80 px-3 py-2">
-                      <h3 className="text-sm font-bold text-navy">{t("header.friendRequests")}</h3>
-                    </div>
-                    <div className="custom-scrollbar max-h-64 overflow-y-auto">
-                      {pendingCount === 0 ? (
-                        <p className="p-4 text-center text-sm text-slate-500">
-                          {t("header.noNewRequests")}
-                        </p>
-                      ) : (
-                        (pendingRequests ?? [])
-                          .slice(0, 5)
-                          .map((req) => (
-                            <button
-                              key={req.id}
-                              type="button"
-                              className="flex w-full items-center gap-3 rounded-xl p-2 text-left transition-colors hover:bg-brand-light/50"
-                              onClick={() => {
-                                setShowFriendMenu(false);
-                                navigate(`/social/profile/${req.senderId}`);
-                              }}
-                            >
-                              <UserAvatar
-                                name={req.senderName}
-                                avatarUrl={req.senderAvatarUrl}
-                                size="md"
-                              />
-                              <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-navy">
-                                  {req.senderName || t("common.user")}
-                                </p>
-                                <p className="text-xs text-slate-500">{t("header.sentYouRequest")}</p>
-                              </div>
-                            </button>
-                          ))
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowFriendMenu(false);
-                        navigate(PATH.CUSTOMER.SOCIAL_FRIENDS);
-                      }}
-                      className="mt-1 w-full rounded-lg py-2 text-center text-sm font-semibold text-brand hover:bg-brand-light/60"
-                    >
-                      {t("common.seeAll")}
-                    </button>
-                  </div>
-                )}
-              </div>
 
               <WishlistHeaderButton />
             </>

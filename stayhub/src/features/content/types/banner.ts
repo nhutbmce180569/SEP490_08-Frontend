@@ -12,7 +12,6 @@ export interface CreateBannerDTO {
   imageFile: File;
   targetUrl?: string;
   priority?: number;
-  isActive?: boolean;
 }
 
 export interface UpdateBannerDTO {

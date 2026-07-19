@@ -113,7 +113,7 @@ export default function Register() {
       startCountdown();
       setStep("VERIFY_OTP");
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || "Failed to send OTP.";
+      const msg = err.response?.data?.message || err.message || t("errors.failedToSendOtp");
       showError(msg);
       if (err.response?.status === 400 && err.response.data?.errors) {
         const normalizedErrors: Record<string, string> = {};
@@ -136,10 +136,10 @@ export default function Register() {
           email: formData.email,
           fullName: formData.fullName,
         });
-        success(res?.message || "OTP resent to your email.");
+        success(res?.message || t("errors.otpResent"));
         startCountdown();
       } catch (err: any) {
-        const msg = err.response?.data?.message || err.message || "Failed to resend OTP.";
+        const msg = err.response?.data?.message || err.message || t("errors.failedToResendOtp");
         showError(msg);
       } finally {
         setIsSendingOtp(false);

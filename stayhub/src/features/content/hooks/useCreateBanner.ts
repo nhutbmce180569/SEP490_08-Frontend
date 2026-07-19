@@ -30,7 +30,6 @@ export const useCreateBanner = () => {
       imageFile: data.imageFile,
       targetUrl: data.targetUrl,
       priority: data.priority ? Number(data.priority) : 0,
-      isActive: data.isActive === "Active",
     };
     mutation.mutate(dto);
   };

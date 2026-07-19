@@ -4,6 +4,7 @@ import { ThemeToggle } from "../../../components/ui/ThemeToggle";
 import { LanguageSwitcher } from "../../../components/ui/LanguageSwitcher";
 import { PATH } from "../../../config/routes/route";
 import { MapPin, ChevronLeft, ChevronRight, Sparkles, ShieldCheck, Compass, Star } from "lucide-react";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export type AuthLayoutProps = {
   title: string;
@@ -65,6 +66,7 @@ export function AuthLayout({
   children,
   footer,
 }: AuthLayoutProps) {
+  const { t } = useTranslation();
   const [sceneIndex, setSceneIndex] = useState<number>(0);
   const currentScene = SCENIC_SCENES[sceneIndex];
 
@@ -114,7 +116,7 @@ export function AuthLayout({
           <div className="max-w-xl space-y-5 my-auto py-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-xs font-bold uppercase tracking-widest text-blue-200 backdrop-blur-md border border-white/20 shadow-sm">
               <Sparkles className="h-3.5 w-3.5 text-amber-300 animate-spin" style={{ animationDuration: '8s' }} />
-              <span>STAYHUB LUXURY TOUR EXPERIENCE</span>
+              <span>{t("auth.luxuryTourExperience")}</span>
             </div>
 
             <h1 className="text-3xl xl:text-5xl font-black tracking-tight text-white leading-[1.12] drop-shadow-md">
@@ -129,15 +131,15 @@ export function AuthLayout({
             <div className="grid grid-cols-3 gap-2.5 pt-2">
               <div className="flex items-center gap-2 rounded-xl bg-white/10 p-2.5 backdrop-blur-md border border-white/15">
                 <Compass className="h-4 w-4 text-blue-400 shrink-0" />
-                <span className="text-xs font-bold leading-tight">Hành Trình Đẳng Cấp</span>
+                <span className="text-xs font-bold leading-tight">{t("auth.premiumJourney")}</span>
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-white/10 p-2.5 backdrop-blur-md border border-white/15">
                 <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
-                <span className="text-xs font-bold leading-tight">Bảo Mật Tuyệt Đối</span>
+                <span className="text-xs font-bold leading-tight">{t("auth.absoluteSecurity")}</span>
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-white/10 p-2.5 backdrop-blur-md border border-white/15">
                 <Star className="h-4 w-4 text-amber-400 shrink-0 fill-amber-400" />
-                <span className="text-xs font-bold leading-tight">100k+ Khách Hài Lòng</span>
+                <span className="text-xs font-bold leading-tight">{t("auth.satisfiedCustomers")}</span>
               </div>
             </div>
           </div>

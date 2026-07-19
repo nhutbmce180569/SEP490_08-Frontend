@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { userService } from "../services/user.service";
 import { PATH } from "../../../config/routes/route";
 
-const PAGE_SIZE = 10;
+
 
 export type UserFilters = {
   fullName?: string;
@@ -13,11 +13,12 @@ export type UserFilters = {
 
 export const useUsers = (filters?: UserFilters) => {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
 
   const query = useQuery({
-    queryKey: ["users", page, PAGE_SIZE, filters],
-    queryFn: () => userService.filterUsers(page, PAGE_SIZE, filters?.fullName, filters?.role),
+    queryKey: ["users", page, pageSize, filters],
+    queryFn: () => userService.filterUsers(page, pageSize, filters?.fullName, filters?.role),
   });
 
   const handleCreate = () => navigate(PATH.ADMIN.CREATE_USER);
@@ -29,8 +30,9 @@ export const useUsers = (filters?: UserFilters) => {
     isLoading: query.isLoading,
     error: query.isError ? "Failed to fetch users." : null,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     setPage,
+    setPageSize,
     handleCreate,
     handleEdit,
     handleDelete,

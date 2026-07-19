@@ -55,7 +55,7 @@ import RoleIntroDashboard from "./pages/RoleIntroDashboard";
 import { CategoryList } from "./features/content/pages/CategoryList";
 import { CreateCategory } from "./features/content/pages/CreateCategory";
 import { UpdateCategory } from "./features/content/pages/UpdateCategory";
-import { DeleteCategoryConfirm } from "./features/content/pages/DeleteCategory";
+
 import { BannerList } from "./features/content/pages/BannerList";
 import { CreateBanner } from "./features/content/pages/CreateBanner";
 import { UpdateBanner } from "./features/content/pages/UpdateBanner";
@@ -655,10 +655,7 @@ const App: React.FC = () => {
                                 <Route index element={<CategoryList />} />
                                 <Route path="create" element={<CreateCategory />} />
                                 <Route path=":id/edit" element={<UpdateCategory />} />
-                                <Route
-                                  path=":id/delete"
-                                  element={<DeleteCategoryConfirm />}
-                                />
+
                               </Route>
                               <Route path={childPath(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT)}>
                                 <Route index element={<TourismInformationList />} />

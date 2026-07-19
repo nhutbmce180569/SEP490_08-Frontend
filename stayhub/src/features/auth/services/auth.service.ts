@@ -5,13 +5,14 @@ import type {
   LoginResponseDTO, 
   RegisterDTO, 
   GoogleLoginDTO, 
-  FacebookLoginDTO,
   RefreshTokenRequestDTO,
   ChangePasswordDTO,
   UserResponseDTO,
   UpdateProfileDTO,
   ForgotPasswordDTO,
-  ResetPasswordDTO
+  VerifyResetOtpDTO,
+  ResetPasswordDTO,
+  SendRegisterOtpDTO
 } from "../types/auth";
 
 // Interface định nghĩa format chung mà Backend C# trả về (Ok(new { message = "...", data = ... }))
@@ -31,6 +32,14 @@ export const login = async (data: LoginDTO): Promise<AuthApiResponse<LoginRespon
 export const forgotPassword = async (data: ForgotPasswordDTO): Promise<AuthApiResponse<any>> => {
   try {
     return await apiClient.post<AuthApiResponse<any>>(AUTH_API.FORGOT_PASSWORD, data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyResetOtp = async (data: VerifyResetOtpDTO): Promise<AuthApiResponse<{ resetToken: string }>> => {
+  try {
+    return await apiClient.post<AuthApiResponse<{ resetToken: string }>>(AUTH_API.VERIFY_RESET_OTP, data);
   } catch (error) {
     throw error;
   }
@@ -77,19 +86,19 @@ export const updateProfile = async (data: UpdateProfileDTO): Promise<AuthApiResp
   }
 };
 
-export const facebookLogin = async (data: FacebookLoginDTO): Promise<AuthApiResponse<LoginResponseDTO>> => {
-  try {
-    // Gọi endpoint Facebook Login.
-    return await apiClient.post<AuthApiResponse<LoginResponseDTO>>(AUTH_API.FACEBOOK_LOGIN, data);
-  } catch (error) {
-    throw error;
-  }
-};
 
 export const googleLogin = async (data: GoogleLoginDTO): Promise<AuthApiResponse<LoginResponseDTO>> => {
   try {
     // Dùng endpoint theo controller AuthController của backend
     return await apiClient.post<AuthApiResponse<LoginResponseDTO>>(AUTH_API.GOOGLE_LOGIN, data);
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const sendRegisterOtp = async (data: SendRegisterOtpDTO): Promise<AuthApiResponse<any>> => {
+  try {
+    return await apiClient.post<AuthApiResponse<any>>(AUTH_API.SEND_REGISTER_OTP, data);
   } catch (error) {
     throw error;
   }

@@ -50,6 +50,7 @@ import { DeleteTourConfirm } from "./features/tour/pages/DeleteTour";
 import { AdminTourList } from "./features/tour/pages/AdminTourList";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import ModerationDashboard from "./pages/ModerationDashboard";
+import RoleIntroDashboard from "./pages/RoleIntroDashboard";
 // Components dành cho Quản lý nội dung (Admin)
 import { CategoryList } from "./features/content/pages/CategoryList";
 import { CreateCategory } from "./features/content/pages/CreateCategory";
@@ -406,7 +407,8 @@ const App: React.FC = () => {
                               path={PATH.MANAGER.DASHBOARD}
                               element={<DashboardLayout />}
                             >
-                              <Route index element={<PartnerDashboard />} />
+                              <Route index element={<RoleIntroDashboard role="partner" />} />
+                              <Route path="sales-overview" element={<PartnerDashboard />} />
                               <Route path={childPath(PATH.MANAGER.PROFILE)} element={<Profile />} />
                               <Route
                                 path={childPath(PATH.MANAGER.MY_TOURS)}
@@ -551,7 +553,7 @@ const App: React.FC = () => {
 
                           <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
                             <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
-                              <Route index element={<AssignedSchedulesPage />} />
+                              <Route index element={<RoleIntroDashboard role="staff" />} />
                               <Route path={childPath(PATH.STAFF.PROFILE)} element={<Profile />} />
 
                               {/* UC-49: Assigned Schedules */}
@@ -580,7 +582,7 @@ const App: React.FC = () => {
                           {/* Phân hệ Quản trị viên cấp cao (Admin) */}
                           <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                             <Route path={PATH.ADMIN.DASHBOARD} element={<AdminLayout />}>
-                              <Route index element={<Navigate to={PATH.ADMIN.PLATFORM_ANALYTICS} replace />} />
+                              <Route index element={<RoleIntroDashboard role="admin" />} />
                               <Route path={childPath(PATH.ADMIN.PROFILE)} element={<Profile />} />
                               <Route
                                 path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}

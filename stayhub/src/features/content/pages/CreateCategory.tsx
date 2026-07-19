@@ -17,6 +17,16 @@ export const CreateCategory: React.FC = () => {
         type: "custom",
         required: true,
         colSpan: 1,
+        validate: (value: any) => {
+          if (!value || typeof value !== "string" || !value.trim()) {
+            return t("common.fieldRequired", { label: t("content.categoryName") });
+          }
+          const regex = /^[\p{L}\p{N}\s-]+$/u;
+          if (!regex.test(value)) {
+            return t("content.categoryNameNoSpecialChars");
+          }
+          return undefined;
+        },
         render: (value, onChange, error, setFormData) => (
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -55,10 +65,20 @@ export const CreateCategory: React.FC = () => {
         name: "slug",
         label: "Slug",
         type: "text",
-        placeholder: "Ví dụ: luxury-travel",
+        placeholder: t("content.slugPlaceholder"),
         icon: <Tag className="h-4 w-4" />,
         colSpan: 1,
         required: true,
+        validate: (value: any) => {
+          if (!value || typeof value !== "string" || !value.trim()) {
+            return t("common.fieldRequired", { label: "Slug" });
+          }
+          const regex = /^[a-z0-9-]+$/;
+          if (!regex.test(value)) {
+            return t("content.slugInvalidFormat");
+          }
+          return undefined;
+        },
       },
       {
         name: "description",
@@ -69,16 +89,21 @@ export const CreateCategory: React.FC = () => {
         colSpan: 2,
       },
       {
-        name: "isActive",
-        label: t("common.status"),
-        type: "select",
-        icon: <Tag className="h-4 w-4" />,
-        options: [
-          { label: t("common.active"), value: "Active" },
-          { label: t("common.inactive"), value: "Inactive" },
-        ],
+        name: "iconFile",
+        label: t("content.categoryIcon"),
+        type: "file",
+        colSpan: 2,
+        required: true,
+        validate: (value: any) => {
+          if (value instanceof File && !value.type.startsWith("image/")) {
+            return t("content.onlyImageFilesAllowed");
+          }
+          if (!value) {
+            return t("common.fieldRequired", { label: t("content.categoryIcon") });
+          }
+          return undefined;
+        },
       },
-      { name: "iconFile", label: t("content.categoryIcon"), type: "file", colSpan: 2 },
     ],
     [t],
   );
@@ -89,7 +114,7 @@ export const CreateCategory: React.FC = () => {
         title={t("content.createCategory")}
         description={t("content.createCategoryDesc")}
         fields={categoryFields}
-        initialValues={{ isActive: "Active" }}
+        initialValues={{}}
         onSubmit={handleSubmit}
         serverErrors={serverErrors}
         onCancel={handleCancel}

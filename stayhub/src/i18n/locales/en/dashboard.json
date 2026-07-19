@@ -39,9 +39,9 @@
   "delivered": "Delivered",
   "pending": "Pending",
   "rejected": "Rejected",
-  "adminDashboard": "Admin dashboard",
-  "partnerDashboard": "Manager dashboard",
-  "staffDashboard": "Staff dashboard",
+  "adminDashboard": "Role Overview (Admin)",
+  "partnerDashboard": "Role Overview (Manager)",
+  "staffDashboard": "Overview",
   "signedOutSuccess": "Signed out successfully.",
   "signOut": "Sign out",
   "signOutConfirm": "Are you sure you want to sign out of your account?",
@@ -50,5 +50,6 @@
   "adminSidebarDesc": "Centralized travel platform management.",
   "partnerSidebarDesc": "Optimize tours, schedules, and revenue.",
   "staffSubtitle": "Manage schedules, customers.",
-  "operations": "Operations"
+  "operations": "Operations",
+  "tourStaffLabel": "Tour Staff"
 }

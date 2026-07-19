@@ -5,7 +5,8 @@ import type { LoginDTO } from "../types/auth";
 import { PATH } from "../../../config/routes/route";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
-import { decodeJWT, normalizeRoles } from "../../../utils/jwt";
+import { decodeJWT, normalizeRoles, getDashboardPath } from "../../../utils/jwt";
+
 
 export const useLogin = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,15 +74,8 @@ export const useLogin = () => {
       }
 
       // Chuyển hướng theo mức độ ưu tiên của Role
-      if (upperRoles.includes("ADMIN")) {
-        navigate(PATH.ADMIN.DASHBOARD);
-      } else if (upperRoles.includes("MANAGER") || upperRoles.includes("OPERATOR")) {
-        navigate(PATH.MANAGER.BOOKING_STATISTICS);
-      } else if (upperRoles.includes("STAFF")) {
-        navigate(PATH.STAFF.DASHBOARD);
-      } else {
-        navigate(PATH.PUBLIC.HOME);
-      }
+      navigate(getDashboardPath(user?.roles));
+
     } catch (err: any) {
       console.error("Error processing Login:", err);
       const errorMessage = err.response?.data?.message || err.response?.data?.title || err.message || "Login failed. Please check your credentials.";

@@ -34,11 +34,11 @@ export function LanguageSwitcher({ variant = "pill", className = "" }: LanguageS
       <button
         type="button"
         onClick={toggleLocale}
-        className={`icon-btn ${className}`}
+        className={`icon-btn flex items-center justify-center leading-none ${className}`}
         title={t("common.language")}
         aria-label={t("common.language")}
       >
-        <span className="text-sm font-bold">{locale === "vi" ? "VI" : "EN"}</span>
+        <span className="text-xs sm:text-sm font-bold tracking-tight pt-[1px]">{locale === "vi" ? "VI" : "EN"}</span>
       </button>
     );
   }

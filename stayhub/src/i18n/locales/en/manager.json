@@ -17,5 +17,21 @@
   "partner": "Manager",
   "moderation": "Content Moderation",
   "locations": "Location Tracking",
-  "trendPrediction": "Tour Trend Prediction"
+  "trendPrediction": "Tour Trend Prediction",
+  "toursObj": "Tours",
+  "tourManagement": "Tour Management",
+  "schedules": "Schedules",
+  "scheduleManagement": "Schedule Management",
+  "locationsObj": "Locations",
+  "locationManagement": "Location Management",
+  "cancellations": "Cancellations",
+  "cancellationManagement": "Cancellation Management",
+  "vouchersObj": "Vouchers",
+  "voucherManagement": "Voucher Management",
+  "reviews": "Reviews",
+  "reviewManagement": "Review Management",
+  "moderationObj": "Moderation",
+  "moderationManagement": "Moderation Management",
+  "trendPredictionObj": "Trend Prediction",
+  "trendPredictionManagement": "Trend Prediction Management"
 }

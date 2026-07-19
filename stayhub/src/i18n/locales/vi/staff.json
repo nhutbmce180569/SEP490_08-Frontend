@@ -7,5 +7,6 @@
   "staffDashboard": "Bảng điều khiển nhân viên",
   "staffMember": "Nhân viên",
   "newScheduleAssigned": "Bạn được phân công lịch tour mới.",
-  "loggedOutSuccess": "Đăng xuất thành công."
+  "loggedOutSuccess": "Đăng xuất thành công.",
+  "tourStaff": "Nhân viên Tour"
 }

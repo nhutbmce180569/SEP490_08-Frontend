@@ -22,7 +22,9 @@ import NotificationBell from "../../features/system/components/NotificationBell"
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
 import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
 import { PATH } from "../../config/routes/route";
+import { getDashboardPath } from "../../utils/jwt";
 import { AuthContext } from "../../contexts/AuthContext";
+
 import { useTranslation } from "../../contexts/LocaleContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
@@ -61,7 +63,11 @@ export default function Header() {
 
   const displayName = user?.fullName || user?.FullName || t("common.user");
   const avatarUrl = user?.avatarUrl || user?.AvatarUrl || null;
-  const showDashboardButton = upperRoles.includes("ADMIN") || upperRoles.includes("STAFF");
+  const showDashboardButton =
+    upperRoles.includes("ADMIN") ||
+    upperRoles.includes("MANAGER") ||
+    upperRoles.includes("OPERATOR") ||
+    upperRoles.includes("STAFF");
 
   const handleGoToDashboard = () => {
     if (upperRoles.includes("ADMIN")) {

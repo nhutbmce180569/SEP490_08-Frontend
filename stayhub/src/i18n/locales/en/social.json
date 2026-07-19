@@ -140,6 +140,8 @@
   "trackingScheduleMeta": "Schedule #{{scheduleId}} • Tour #{{tourId}}",
   "trackingViewMap": "View map",
   "trackingNoSchedules": "No schedules found.",
+  "trackingNoSchedulesShort": "No schedules found",
+  "trackingSelectTour": "Select tour to track",
   "trackingNoSearchResults": "No schedules match your search.",
   "trackingCustomersWatching": "Customers being tracked",
   "trackingNoLocationsYet": "No locations shared yet.",

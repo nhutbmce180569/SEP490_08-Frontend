@@ -4,11 +4,14 @@ import { Mail, Lock, KeyRound, ArrowRight } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useResetPassword } from "../hooks/useResetPassword";
 import { useForgotPassword } from "../hooks/useForgotPassword";
+import { verifyResetOtp } from "../services/auth.service";
+import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { getDashboardPath } from "../../../utils/jwt";
 import {
   getOtpCooldownStorageKey,
   usePersistentCountdown,
@@ -21,14 +24,19 @@ export default function ResetPassword() {
   const { user } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
+  const { success, error: showError } = useToast();
 
   useEffect(() => {
     if (user) {
-      navigate(PATH.PUBLIC.HOME, { replace: true });
+      navigate(getDashboardPath(user.roles), { replace: true });
     }
   }, [user, navigate]);
 
   const prefilledEmail = location.state?.email || "";
+
+  const [step, setStep] = useState<"VERIFY_OTP" | "SET_NEW_PASSWORD">("VERIFY_OTP");
+  const [resetToken, setResetToken] = useState("");
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
   const [formData, setFormData] = useState({
     email: prefilledEmail,
@@ -73,15 +81,41 @@ export default function ResetPassword() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.code) return;
+    setIsVerifyingOtp(true);
+    setErrors({});
+    try {
+      const res = await verifyResetOtp({ email: formData.email, code: formData.code });
+      if (res?.data?.resetToken) {
+        success(res.message || t("auth.verifyOtpSuccess"));
+        setResetToken(res.data.resetToken);
+        setStep("SET_NEW_PASSWORD");
+      } else {
+        showError(t("auth.invalidOtpError"));
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || t("auth.invalidOtpError");
+      setErrors({ code: msg });
+      showError(msg);
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.newPassword !== formData.confirmPassword) {
       setErrors((prev) => ({ ...prev, confirmPassword: t("errors.passwordsNoMatch") }));
       return;
     }
 
-    const { confirmPassword, ...payload } = formData;
-    await handleResetPasswordSubmit(payload);
+    await handleResetPasswordSubmit({
+      email: formData.email,
+      resetToken: resetToken,
+      newPassword: formData.newPassword,
+    });
   };
 
   const handleResendCode = async () => {
@@ -97,8 +131,16 @@ export default function ResetPassword() {
 
   return (
     <AuthLayout
-      title={t("auth.resetTitle")}
-      subtitle={t("auth.resetSubtitleLong")}
+      title={
+        step === "VERIFY_OTP"
+          ? t("auth.verifyOtpTitle")
+          : t("auth.setNewPasswordTitle")
+      }
+      subtitle={
+        step === "VERIFY_OTP"
+          ? t("auth.verifyOtpSubtitle")
+          : t("auth.setNewPasswordSubtitle")
+      }
       heroTitle={t("auth.resetHeroTitle")}
       heroSubtitle={t("auth.resetHeroDesc")}
       imageSeed="stayhub-reset"
@@ -113,82 +155,102 @@ export default function ResetPassword() {
         </div>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <AuthFormField
-          label={t("errors.emailAddress")}
-          name="email"
-          type="email"
-          icon={Mail}
-          value={formData.email}
-          readOnly
-          placeholder={t("errors.emailPlaceholder")}
-          error={errors.email}
-          required
-        />
+      {step === "VERIFY_OTP" ? (
+        <form onSubmit={handleVerifyOtp} className="space-y-5">
+          <AuthFormField
+            label={t("errors.emailAddress")}
+            name="email"
+            type="email"
+            icon={Mail}
+            value={formData.email}
+            readOnly
+            placeholder={t("errors.emailPlaceholder")}
+            error={errors.email}
+            required
+          />
 
-        <AuthFormField
-          label={t("auth.verificationCode")}
-          name="code"
-          type="text"
-          icon={KeyRound}
-          value={formData.code}
-          onChange={handleChange}
-          placeholder={t("auth.enterResetCode")}
-          error={errors.code}
-          labelExtra={
-            <button
-              type="button"
-              onClick={handleResendCode}
-              disabled={isResending || isSubmitting || countdown > 0}
-              className="text-xs font-bold text-brand outline-none transition-colors hover:text-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isResending
-                ? t("auth.resending")
-                : countdown > 0
-                  ? t("auth.resendCodeCountdown", { count: countdown })
-                  : t("auth.resendCode")}
-            </button>
-          }
-          required
-        />
+          <AuthFormField
+            label={t("auth.verificationCode")}
+            name="code"
+            type="text"
+            icon={KeyRound}
+            value={formData.code}
+            onChange={handleChange}
+            placeholder={t("auth.enterResetCode")}
+            error={errors.code}
+            labelExtra={
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={isResending || isVerifyingOtp || countdown > 0}
+                className="text-xs font-bold text-brand outline-none transition-colors hover:text-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {isResending
+                  ? t("auth.resending")
+                  : countdown > 0
+                    ? t("auth.resendCodeCountdown", { count: countdown })
+                    : t("auth.resendCode")}
+              </button>
+            }
+            required
+          />
 
-        <AuthFormField
-          label={t("auth.newPassword")}
-          name="newPassword"
-          type={showPassword ? "text" : "password"}
-          icon={Lock}
-          value={formData.newPassword}
-          onChange={handleChange}
-          placeholder={t("auth.newPasswordPlaceholder")}
-          error={errors.newPassword}
-          showToggle
-          showPassword={showPassword}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-          required
-        />
+          <ActionButton
+            type="submit"
+            variant="primary"
+            disabled={isVerifyingOtp || !formData.code}
+            className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+          >
+            {isVerifyingOtp
+              ? t("auth.verifyingOtp")
+              : t("auth.verifyOtpBtn")}
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </ActionButton>
+        </form>
+      ) : (
+        <form onSubmit={handleResetSubmit} className="space-y-5">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-3.5 text-xs font-medium text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300">
+            {t("auth.otpVerifiedBanner")} <span className="font-bold">{formData.email}</span>.
+          </div>
 
-        <AuthFormField
-          label={t("auth.confirmNewPassword")}
-          name="confirmPassword"
-          type={showPassword ? "text" : "password"}
-          icon={Lock}
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          placeholder={t("auth.confirmNewPasswordPlaceholder")}
-          error={errors.confirmPassword}
-          required
-        />
+          <AuthFormField
+            label={t("auth.newPassword")}
+            name="newPassword"
+            type={showPassword ? "text" : "password"}
+            icon={Lock}
+            value={formData.newPassword}
+            onChange={handleChange}
+            placeholder={t("auth.newPasswordPlaceholder")}
+            error={errors.newPassword}
+            showToggle
+            showPassword={showPassword}
+            onTogglePassword={() => setShowPassword(!showPassword)}
+            required
+          />
 
-        <ActionButton
-          type="submit"
-          variant="primary"
-          disabled={isSubmitting}
-          className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
-        >
-          {isSubmitting ? t("errors.resetting") : t("errors.resetBtn")}
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-        </ActionButton>
-      </form>
+          <AuthFormField
+            label={t("auth.confirmNewPassword")}
+            name="confirmPassword"
+            type={showPassword ? "text" : "password"}
+            icon={Lock}
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            placeholder={t("auth.confirmNewPasswordPlaceholder")}
+            error={errors.confirmPassword}
+            required
+          />
+
+          <ActionButton
+            type="submit"
+            variant="primary"
+            disabled={isSubmitting || !formData.newPassword || !formData.confirmPassword}
+            className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+          >
+            {isSubmitting ? t("errors.resetting") : t("errors.resetBtn")}
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          </ActionButton>
+        </form>
+      )}
     </AuthLayout>
   );
 }

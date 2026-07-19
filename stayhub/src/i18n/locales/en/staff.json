@@ -7,5 +7,6 @@
   "staffDashboard": "Staff Dashboard",
   "staffMember": "Staff Member",
   "newScheduleAssigned": "New tour schedule assigned to you.",
-  "loggedOutSuccess": "Logged out successfully."
+  "loggedOutSuccess": "Logged out successfully.",
+  "tourStaff": "Tour Staff"
 }

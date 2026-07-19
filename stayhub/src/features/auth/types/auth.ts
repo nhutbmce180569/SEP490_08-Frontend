@@ -18,6 +18,7 @@ export interface UserResponseDTO {
 }
 
 export interface LoginResponseDTO {
+  requirePhoneNumber?: boolean;
   user: UserResponseDTO;
   token: string;
   refreshToken: string;
@@ -38,20 +39,17 @@ export interface RegisterDTO {
   phoneNumber: string;
   gender: string;
   dateOfBirth: string | null;
+  otpCode?: string;
+}
+
+export interface SendRegisterOtpDTO {
+  email: string;
+  fullName: string;
 }
 
 export interface GoogleLoginDTO {
   idToken: string;
-}
-
-export interface FacebookLoginDTO {
-  accessToken: string;
-}
-
-export interface FacebookUserDTO {
-  id: string;
-  email: string;
-  name: string;
+  phoneNumber?: string;
 }
 
 export interface RefreshTokenRequestDTO {
@@ -67,8 +65,14 @@ export interface ForgotPasswordDTO {
   email: string;
 }
 
-export interface ResetPasswordDTO {
+export interface VerifyResetOtpDTO {
   email: string;
   code: string;
+}
+
+export interface ResetPasswordDTO {
+  email: string;
+  code?: string;
+  resetToken?: string;
   newPassword: string;
 }

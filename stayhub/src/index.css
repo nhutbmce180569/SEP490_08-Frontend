@@ -281,7 +281,9 @@
       radial-gradient(ellipse 55% 40% at 100% 100%, var(--surface-page-gradient-3), transparent 50%);
   }
 
-  .dashboard-shell--admin {
+  .dashboard-shell--admin,
+  .dashboard-shell--partner,
+  .dashboard-shell--staff {
     background-image:
       radial-gradient(ellipse 80% 45% at 100% 0%, rgba(0, 104, 224, 0.06), transparent 55%),
       radial-gradient(ellipse 55% 40% at 0% 100%, rgba(0, 104, 224, 0.04), transparent 50%);

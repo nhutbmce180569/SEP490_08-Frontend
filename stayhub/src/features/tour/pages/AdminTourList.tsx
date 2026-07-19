@@ -205,16 +205,7 @@ export const AdminTourList: React.FC = () => {
   return (
     <div className="rounded-2xl">
       {/* Card header */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <div>
-            <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              Admin Tour Management
-            </h2>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
@@ -255,10 +246,11 @@ export const AdminTourList: React.FC = () => {
                 setPage(1);
               }}
             >
-              <option value={5}>5 / page</option>
-              <option value={10}>10 / page</option>
-              <option value={20}>20 / page</option>
-              <option value={50}>50 / page</option>
+              <option value={5}>5 {t("common.perPage")}</option>
+              <option value={10}>10 {t("common.perPage")}</option>
+              <option value={15}>15 {t("common.perPage")}</option>
+              <option value={20}>20 {t("common.perPage")}</option>
+              <option value={50}>50 {t("common.perPage")}</option>
             </select>
           </div>
 

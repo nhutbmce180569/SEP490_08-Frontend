@@ -39,9 +39,9 @@
   "delivered": "Đã giao",
   "pending": "Chờ xử lý",
   "rejected": "Từ chối",
-  "adminDashboard": "Bảng điều khiển quản trị",
-  "partnerDashboard": "Bảng điều khiển đối tác",
-  "staffDashboard": "Bảng điều khiển nhân viên",
+  "adminDashboard": "Giới thiệu Vai trò (Admin)",
+  "partnerDashboard": "Giới thiệu Vai trò (Manager)",
+  "staffDashboard": "Tổng quan",
   "signedOutSuccess": "Đã đăng xuất thành công.",
   "signOut": "Đăng xuất",
   "signOutConfirm": "Bạn có chắc muốn đăng xuất khỏi tài khoản?",
@@ -50,5 +50,6 @@
   "adminSidebarDesc": "Quản lý nền tảng du lịch tập trung.",
   "partnerSidebarDesc": "Tối ưu tour, lịch trình và doanh thu.",
   "staffSubtitle": "Quản lý lịch trình, khách hàng.",
-  "operations": "Hoạt động"
+  "operations": "Hoạt động",
+  "tourStaffLabel": "Nhân viên Tour"
 }

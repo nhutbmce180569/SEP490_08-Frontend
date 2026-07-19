@@ -8,6 +8,7 @@ import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { getDashboardPath } from "../../../utils/jwt";
 import {
   getOtpCooldownStorageKey,
   usePersistentCountdown,
@@ -22,12 +23,13 @@ export default function ForgotPassword() {
 
   useEffect(() => {
     if (user) {
-      navigate(PATH.PUBLIC.HOME, { replace: true });
+      navigate(getDashboardPath(user.roles), { replace: true });
     }
   }, [user, navigate]);
 
+
   const [email, setEmail] = useState("");
-  const { handleForgotPasswordSubmit, isSubmitting } = useForgotPassword();
+  const { handleForgotPasswordSubmit, isSubmitting, serverError } = useForgotPassword();
   const {
     isActive: isCooldownActive,
     startCountdown,
@@ -66,6 +68,11 @@ export default function ForgotPassword() {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-6">
+        {serverError && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-400">
+            {serverError}
+          </div>
+        )}
         <AuthFormField
           label={t("errors.emailAddress")}
           type="email"

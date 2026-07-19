@@ -4,8 +4,10 @@ import { getCategoryById, updateCategory } from "../services/category.service";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import type { ReadCategoryDTO } from "../types/category";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useUpdateCategory = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
@@ -24,8 +26,8 @@ export const useUpdateCategory = () => {
         const res = await getCategoryById(id);
         setCategory(res);
       } catch (err: any) {
-        setFetchError("Failed to load category details.");
-        showError("Failed to load category details.");
+        setFetchError(t("content.loadCategoryFailed"));
+        showError(t("content.loadCategoryFailed"));
       } finally {
         setIsFetching(false);
       }
@@ -61,13 +63,23 @@ export const useUpdateCategory = () => {
 
       await updateCategory(id, payload);
       
-      success("Category updated successfully!");
+      success(t("content.categoryUpdatedSuccess"));
       navigate(PATH.ADMIN.CATEGORY_MANAGEMENT);
     } catch (err: any) {
       if (err.response?.data?.errors) {
         setServerErrors(err.response.data.errors);
       }
-      showError(err.response?.data?.message || "Failed to update category.");
+      const msg = err.response?.data?.message || t("content.categoryUpdateFailed");
+      showError(msg);
+      
+      if (msg && typeof msg === "string") {
+        const lower = msg.toLowerCase();
+        if (lower.includes("tên") || lower.includes("name")) {
+          setServerErrors((prev) => ({ ...prev, name: msg }));
+        } else if (lower.includes("slug")) {
+          setServerErrors((prev) => ({ ...prev, slug: msg }));
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }

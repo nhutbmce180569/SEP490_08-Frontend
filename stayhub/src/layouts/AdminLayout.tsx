@@ -6,6 +6,7 @@ import {
   Gift,
   Image,
   Layers,
+  LayoutDashboard,
   Map,
   PieChart,
   Ticket,
@@ -25,6 +26,16 @@ export const AdminLayout = () => {
 
   const groups = useMemo<AdminSidebarGroup[]>(
     () => [
+      {
+        title: t("dashboard.operations"),
+        items: [
+          {
+            label: t("dashboard.adminDashboard"),
+            to: PATH.ADMIN.DASHBOARD,
+            icon: <LayoutDashboard className={iconClass} />,
+          },
+        ],
+      },
       {
         title: t("admin.analytics"),
         items: [
@@ -49,7 +60,8 @@ export const AdminLayout = () => {
         title: t("admin.users"),
         items: [
           {
-            label: t("admin.usersList"),
+            label: t("admin.users"),
+            headerTitle: t("admin.userManagement"),
             to: PATH.ADMIN.USER_MANAGEMENT,
             icon: <Users className={iconClass} />,
           },
@@ -59,27 +71,32 @@ export const AdminLayout = () => {
         title: t("admin.tourContent"),
         items: [
           {
-            label: t("admin.tours") || "Tour Management",
+            label: t("admin.toursObj"),
+            headerTitle: t("admin.tourManagement"),
             to: PATH.ADMIN.TOUR_MODERATION,
             icon: <Map className={iconClass} />,
           },
           {
             label: t("admin.banners"),
+            headerTitle: t("admin.bannerManagement"),
             to: PATH.ADMIN.BANNER_MANAGEMENT,
             icon: <Image className={iconClass} />,
           },
           {
-            label: t("admin.tourCategories"),
+            label: t("admin.categoriesObj"),
+            headerTitle: t("admin.categoryManagement"),
             to: PATH.ADMIN.CATEGORY_MANAGEMENT,
             icon: <Layers className={iconClass} />,
           },
           {
             label: t("admin.tourismInformation"),
+            headerTitle: t("admin.tourismInformationManagement"),
             to: PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT,
             icon: <Compass className={iconClass} />,
           },
           {
             label: t("admin.ticketTypes"),
+            headerTitle: t("admin.ticketTypeManagement"),
             to: PATH.ADMIN.TICKET_TYPE_MANAGEMENT,
             icon: <Ticket className={iconClass} />,
           },
@@ -99,12 +116,14 @@ export const AdminLayout = () => {
         title: t("admin.marketing"),
         items: [
           {
-            label: t("admin.voucherManagement"),
+            label: t("admin.vouchersObj"),
+            headerTitle: t("admin.voucherManagement"),
             to: PATH.ADMIN.SYSTEM_VOUCHERS,
             icon: <Gift className={iconClass} />,
           },
           {
-            label: t("admin.promotionManagement") || "Promotions",
+            label: t("admin.promotionsObj"),
+            headerTitle: t("admin.promotionManagement"),
             to: PATH.ADMIN.SYSTEM_PROMOTIONS,
             icon: <BadgePercent className={iconClass} />,
           },

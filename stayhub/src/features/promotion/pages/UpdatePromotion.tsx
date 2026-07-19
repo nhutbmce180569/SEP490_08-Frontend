@@ -12,6 +12,7 @@ export const UpdatePromotion: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [initialData, setInitialData] = useState<Record<string, any> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [serverErrors, setServerErrors] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const fetchPromotion = async () => {
@@ -38,6 +39,7 @@ export const UpdatePromotion: React.FC = () => {
   const handleSubmit = async (data: Record<string, any>) => {
     if (!id) return;
     try {
+      setServerErrors({});
       const payload: PromotionFormData = {
         code: data.code,
         name: data.name,
@@ -47,104 +49,147 @@ export const UpdatePromotion: React.FC = () => {
         maxDiscountAmount: data.maxDiscountAmount ? Number(data.maxDiscountAmount) : null,
         startDate: new Date(data.startDate).toISOString(),
         endDate: new Date(data.endDate).toISOString(),
-        status: data.status,
+        // status is not passed here since it's removed from form
       };
 
       await promotionService.updatePromotion(id, payload);
       navigate(PATH.ADMIN.SYSTEM_PROMOTIONS);
-    } catch (err: any) {
-      console.error("Failed to update promotion", err);
-      // Depending on the API error handling format, we could set serverErrors here
+    } catch (error: any) {
+      console.error("Failed to update promotion", error);
+      const responseData = error?.response?.data;
+      
+      // Handle standard .NET validation errors
+      if (responseData?.errors) {
+        setServerErrors(responseData.errors);
+      } else {
+        // Handle custom exception messages
+        const msg = responseData?.message || (typeof responseData === "string" ? responseData : error.message);
+        if (typeof msg === "string" && msg.toLowerCase().includes("already exists")) {
+          setServerErrors({ code: msg });
+        } else {
+          setServerErrors({ form: msg || "An error occurred" });
+        }
+      }
     }
   };
 
   const fields: FormField[] = [
     {
-      name: "code",
-      label: "Promotion Code",
-      type: "text",
-      placeholder: "e.g., SUMMER2024",
-      required: true,
-    },
-    {
       name: "name",
-      label: "Promotion Name",
+      label: t("admin.promotionName", { defaultValue: "Promotion Name" }),
       type: "text",
-      placeholder: "Summer Sale 2024",
+      placeholder: t("admin.promotionNamePlaceholder", { defaultValue: "e.g., Summer Sale 2024" }),
       required: true,
+      maxLength: 100,
+      validate: (value) => {
+        if (!value || String(value).trim().length < 5) return t("admin.promotionNameLength");
+      }
     },
     {
-      name: "discountType",
-      label: "Discount Type",
-      type: "select",
-      options: [
-        { label: "Percentage (%)", value: "PERCENTAGE" },
-        { label: "Fixed Amount (VND)", value: "FIXED" },
-      ],
+      name: "code",
+      label: t("admin.promotionCode", { defaultValue: "Promotion Code" }),
+      type: "text",
+      placeholder: t("admin.promotionCodePlaceholder", { defaultValue: "e.g., SUMMER2024" }),
       required: true,
+      maxLength: 25,
+      readOnly: true,
     },
     {
-      name: "discountValue",
-      label: "Discount Value",
-      type: "number",
-      placeholder: "e.g., 10 or 50000",
-      required: true,
+      name: "discountRow",
+      label: "",
+      type: "row",
+      colSpan: 2,
+      subFields: [
+        {
+          name: "discountType",
+          label: t("admin.promotionDiscountType", { defaultValue: "Discount Type" }),
+          type: "select",
+          options: [
+            { label: t("admin.promotionPercentage", { defaultValue: "Percentage (%)" }), value: "PERCENTAGE" },
+            { label: t("admin.promotionFixedAmount", { defaultValue: "Fixed Amount (VND)" }), value: "FIXED" },
+          ],
+          required: true,
+          readOnly: true,
+        },
+        {
+          name: "discountValue",
+          label: t("admin.promotionDiscountValue", { defaultValue: "Discount Value" }),
+          type: "number",
+          placeholder: t("admin.promotionDiscountValuePlaceholder", { defaultValue: "e.g., 10 or 50000" }),
+          required: true,
+          validate: (value, formData) => {
+            const num = Number(value);
+            if (value === undefined || value === null || num <= 0) return t("admin.promotionDiscountPositive");
+            if (formData.discountType === "PERCENTAGE") {
+              if (num < 1 || num > 100) return t("admin.promotionDiscountPercentageRange");
+            } else if (formData.discountType === "FIXED") {
+              if (num < 10000) return t("admin.promotionDiscountFixedMin");
+            }
+          }
+        },
+        {
+          name: "maxDiscountAmount",
+          label: t("admin.promotionMaxDiscountAmount", { defaultValue: "Max Discount Amount (VND)" }),
+          type: "number",
+          placeholder: t("admin.promotionMaxDiscountAmountPlaceholder", { defaultValue: "Optional limit for percentage discounts" }),
+          visible: (data) => data.discountType === "PERCENTAGE",
+          validate: (value) => {
+            if (value !== undefined && value !== null && value !== "") {
+              if (Number(value) < 10000) return t("admin.promotionMaxDiscountFixedMin");
+            }
+          }
+        }
+      ]
     },
     {
       name: "startDate",
-      label: "Start Date",
+      label: t("admin.promotionStartDate", { defaultValue: "Start Date" }),
       type: "datetime-local",
       required: true,
     },
     {
       name: "endDate",
-      label: "End Date",
+      label: t("admin.promotionEndDate", { defaultValue: "End Date" }),
       type: "datetime-local",
       required: true,
+      validate: (value, formData) => {
+        if (formData.startDate && new Date(value) <= new Date(formData.startDate)) {
+          return t("admin.promotionEndDateError");
+        }
+      }
     },
-    {
-      name: "maxDiscountAmount",
-      label: "Max Discount Amount (VND)",
-      type: "number",
-      placeholder: "Optional limit for percentage discounts",
-      visible: (data) => data.discountType === "PERCENTAGE",
-    },
-    {
-      name: "status",
-      label: "Status",
-      type: "select",
-      options: [
-        { label: "Active", value: "Active" },
-        { label: "Inactive", value: "Inactive" },
-      ],
-      required: true,
-    },
+
     {
       name: "description",
-      label: "Description",
+      label: t("common.description", { defaultValue: "Description" }),
       type: "textarea",
-      placeholder: "Detailed information about the promotion",
+      placeholder: t("admin.promotionDescriptionPlaceholder", { defaultValue: "Detailed information about the promotion" }),
       colSpan: 2,
     },
   ];
+
+  if (!initialData && !error) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent"></div>
+      </div>
+    );
+  }
 
   if (error) {
     return <div className="p-10 text-center text-rose-500">{error}</div>;
   }
 
-  if (!initialData) {
-    return <div className="p-10 text-center text-slate-500">Loading promotion...</div>;
-  }
-
   return (
     <div className="py-6">
       <DynamicForm
-        title="Update Promotion"
-        description={`Editing promotion details for code ${initialData.code}`}
+        title={t("admin.updatePromotionTitle", { defaultValue: "Update Promotion" })}
+        description={t("admin.updatePromotionDesc", { defaultValue: "Edit promotional code details" })}
         fields={fields}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        initialData={initialData}
+        initialData={initialData || undefined}
+        serverErrors={serverErrors}
       />
     </div>
   );

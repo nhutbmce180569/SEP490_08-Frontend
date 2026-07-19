@@ -14,7 +14,7 @@ export const usePromotions = (filters: UsePromotionsFilters) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
 
   const fetchPromotions = useCallback(async () => {
@@ -56,6 +56,7 @@ export const usePromotions = (filters: UsePromotionsFilters) => {
     isLoading,
     error,
     pageSize,
+    setPageSize,
     page,
     setPage,
     handleCreate,

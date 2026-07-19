@@ -29,6 +29,7 @@ export const AdminPromotionList: React.FC = () => {
     isLoading,
     error,
     pageSize,
+    setPageSize,
     setPage,
     handleCreate,
     handleEdit,
@@ -66,53 +67,69 @@ export const AdminPromotionList: React.FC = () => {
   const columns: Column<Promotion>[] = useMemo(
     () => [
       {
-        header: 'Code',
+        header: t('admin.promotionCode'),
+        className: 'w-1/6 min-w-[150px]',
         render: (item) => <span className="font-semibold text-slate-800">{item.code}</span>,
       },
       {
-        header: 'Name',
+        header: t('admin.promotionName'),
+        className: 'w-1/4 min-w-[200px]',
         render: (item) => <span className="text-sm text-slate-600">{item.name}</span>,
       },
       {
-        header: 'Discount',
+        header: t('admin.promotionDiscount'),
+        className: 'w-1/6 min-w-[150px] text-right',
         render: (item) => (
           <div className="text-sm">
             <div className="font-medium text-slate-800">
-              {item.discountType === 'PERCENTAGE' ? `${item.discountValue}%` : `${item.discountValue.toLocaleString()} VND`}
+              {item.discountType?.toString().toUpperCase() === 'PERCENTAGE' 
+                ? `${item.discountValue}%` 
+                : `${item.discountValue.toLocaleString()} VND`}
             </div>
           </div>
         ),
       },
       {
-        header: 'Valid Period',
+        header: t('admin.promotionValidPeriod'),
+        className: 'w-44 text-right',
         render: (item) => (
-          <div className="text-xs text-slate-600">
-            <div>{new Date(item.startDate).toLocaleDateString()}</div>
-            <div className="text-slate-400">To {new Date(item.endDate).toLocaleDateString()}</div>
+          <div className="flex flex-col items-end">
+            <div className="inline-block">
+              <div className="flex items-center gap-2 text-sm text-slate-700 mb-1">
+                <span className="text-slate-400 text-xs w-8 text-left">{t('common.from', { defaultValue: 'From' })}</span>
+                <span className="font-medium text-right min-w-[75px]">{new Date(item.startDate).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <span className="text-slate-400 text-xs w-8 text-left">{t('common.to', { defaultValue: 'To' })}</span>
+                <span className="font-medium text-right min-w-[75px]">{new Date(item.endDate).toLocaleDateString()}</span>
+              </div>
+            </div>
           </div>
         ),
       },
       {
-        header: 'Status',
+        header: t('common.status'),
+        className: 'w-36',
         render: (item) => (
           <span
-            className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-              item.status === 'Active' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+            className={`inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+              item.status === 'Active' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-600 border border-slate-200'
             }`}
           >
-            {item.status}
+            {item.status === 'Active' ? t('common.active') : t('common.inactive')}
           </span>
         ),
       },
       {
-        header: 'Actions',
+        header: t('common.actions'),
+        className: 'w-32',
         render: (item) => (
           <div className="flex items-center gap-1.5">
             <ActionButton
               variant="secondary"
               onClick={() => handleEdit(item.id)}
               className="h-8 w-8"
-              title="Edit"
+              title={t('common.edit', { defaultValue: "Edit" })}
             >
               <Pencil className="h-3.5 w-3.5" />
             </ActionButton>
@@ -127,7 +144,7 @@ export const AdminPromotionList: React.FC = () => {
                   ? 'text-rose-600 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700'
                   : 'text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700'
               }`}
-              title={item.status === 'Active' ? 'Deactivate' : 'Activate'}
+              title={item.status === 'Active' ? t('admin.deactivatePromotion') : t('admin.activatePromotion')}
             >
               {item.status === 'Active' ? (
                 <Lock className="h-3.5 w-3.5" />
@@ -139,54 +156,67 @@ export const AdminPromotionList: React.FC = () => {
         ),
       },
     ],
-    [handleEdit],
+    [handleEdit, t],
   );
 
   return (
     <div className="rounded-2xl">
       <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-[15px] font-bold leading-tight text-slate-900">Promotions Management</h2>
-          <p className="mt-0.5 text-xs text-slate-500">Manage system-wide promotional codes and discounts</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
+            <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <input
+              type="text"
+              placeholder={t("admin.searchByPromotion")}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+            <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <select
+              value={status}
+              onChange={(e) => {
+                setPage(1);
+                setStatus(e.target.value);
+              }}
+              className="bg-transparent text-sm text-slate-700 outline-none"
+            >
+              <option value="">{t("common.allStatus", { defaultValue: "All Statuses" })}</option>
+              <option value="Active">{t("common.active")}</option>
+              <option value="Inactive">{t("common.inactive")}</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+            <select
+              className="bg-transparent text-sm text-slate-700 outline-none"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={5}>5 {t("common.perPage")}</option>
+              <option value={10}>10 {t("common.perPage")}</option>
+              <option value={15}>15 {t("common.perPage")}</option>
+              <option value={20}>20 {t("common.perPage")}</option>
+              <option value={50}>50 {t("common.perPage")}</option>
+            </select>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm">
-            <Plus className="h-4 w-4" /> Create Promotion
+
+        <div className="flex items-center shrink-0 mt-3 sm:mt-0">
+          <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm whitespace-nowrap">
+            <Plus className="h-4 w-4" /> {t("admin.addPromotion")}
           </ActionButton>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 border-b border-slate-100 py-4">
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[200px] flex-1">
-          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search by code or name"
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
-            className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-          />
-        </div>
-
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors min-w-[140px] flex-1">
-          <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-          <select
-            value={status}
-            onChange={(event) => {
-              setPage(1);
-              setStatus(event.target.value);
-            }}
-            className="w-full bg-transparent text-sm text-slate-700 outline-none"
-          >
-            <option value="">All Statuses</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
-
       {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">Loading promotions...</div>
+        <div className="flex justify-center p-10 text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
       ) : error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
@@ -194,7 +224,7 @@ export const AdminPromotionList: React.FC = () => {
           data={promotions}
           columns={columns}
           keyExtractor={(item) => item.id}
-          emptyMessage="No promotions found."
+          emptyMessage={t("admin.noPromotionsFound")}
         />
       )}
 
@@ -210,11 +240,11 @@ export const AdminPromotionList: React.FC = () => {
         open={!!statusChange}
         onClose={() => setStatusChange(null)}
         onConfirm={handleChangeStatusConfirm}
-        title={statusChange?.newStatus === 'Inactive' ? "Deactivate Promotion" : "Activate Promotion"}
+        title={statusChange?.newStatus === 'Inactive' ? t("admin.deactivatePromotion") : t("admin.activatePromotion")}
         message={
           statusChange?.newStatus === 'Inactive'
-            ? "Are you sure you want to deactivate this promotion? It will no longer be usable."
-            : "Are you sure you want to activate this promotion? It will become usable."
+            ? t("admin.deactivatePromotionConfirm")
+            : t("admin.activatePromotionConfirm")
         }
         variant={statusChange?.newStatus === 'Inactive' ? "warning" : "primary"}
       />

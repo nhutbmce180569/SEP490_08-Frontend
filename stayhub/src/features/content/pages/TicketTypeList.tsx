@@ -24,7 +24,7 @@ export const TicketTypeList: React.FC = () => {
     if (!date) return t("common.na");
     const parsed = new Date(date);
     if (Number.isNaN(parsed.getTime())) return t("common.na");
-    return parsed.toLocaleString();
+    return parsed.toLocaleString().replace(",", "");
   }, [t]);
 
   useEffect(() => {
@@ -85,8 +85,10 @@ export const TicketTypeList: React.FC = () => {
           const isActive = ticketType.isActive === true;
           return (
             <span
-              className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-600"
+              className={`inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                isActive
+                  ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+                  : "bg-slate-100 text-slate-600 border border-slate-200"
               }`}
             >
               {isActive ? t("common.active") : t("common.inactive")}
@@ -96,21 +98,21 @@ export const TicketTypeList: React.FC = () => {
       },
       {
         header: t("content.created"),
-        className: "w-36",
+        className: "w-36 text-right",
         render: (ticketType) => (
           <span className="text-sm text-slate-500">{formatDate(ticketType.createdAt)}</span>
         ),
       },
       {
         header: t("content.updated"),
-        className: "w-36",
+        className: "w-36 text-right",
         render: (ticketType) => (
           <span className="text-sm text-slate-500">{formatDate(ticketType.updatedAt)}</span>
         ),
       },
       {
         header: t("common.actions"),
-        className: "w-24",
+        className: "w-36",
         render: (ticketType) => {
           const isActive = ticketType.isActive === true;
           return (

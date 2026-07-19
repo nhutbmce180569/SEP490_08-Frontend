@@ -2,7 +2,7 @@ export const formatVnd = (amount?: number | null, locale: "en" | "vi" = "vi") =>
   if (amount == null || Number.isNaN(amount)) {
     return locale === "vi" ? "Liên hệ" : "Contact us";
   }
-  return `${amount.toLocaleString("vi-VN")} đ`;
+  return `${amount.toLocaleString(locale === "vi" ? "vi-VN" : "en-US")} VND`;
 };
 
 export const formatMatchPercent = (score: number) =>

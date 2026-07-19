@@ -41,5 +41,8 @@
   "googlePhoneModalDesc": "Tài khoản Google của bạn là tài khoản mới. Vui lòng bổ sung số điện thoại để hoàn tất đăng ký.",
   "googleRegisterCanceled": "Đã hủy đăng ký tài khoản mới bằng Google.",
   "confirmAndCompleteBtn": "Xác nhận & Hoàn tất",
-  "cancelBtn": "Hủy bỏ"
+  "cancelBtn": "Hủy bỏ",
+  "failedToSendOtp": "Gửi OTP thất bại.",
+  "otpResent": "OTP đã được gửi lại vào email của bạn.",
+  "failedToResendOtp": "Gửi lại OTP thất bại."
 }

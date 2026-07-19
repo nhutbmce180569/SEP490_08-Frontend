@@ -78,10 +78,14 @@ export const CreateUser: React.FC = () => {
     );
   }
 
-  const roleOptions = Array.isArray(roles) ? roles.map((role: ReadRoleDTO) => ({
-    label: role.name || t("auth.unknown"),
-    value: role.id,
-  })) : [];
+  const roleOptions = Array.isArray(roles) 
+    ? roles
+        .filter((role: ReadRoleDTO) => role.name !== "Admin")
+        .map((role: ReadRoleDTO) => ({
+          label: role.name || t("auth.unknown"),
+          value: role.id,
+        })) 
+    : [];
 
   const userFields: FormField[] = [
     {
@@ -91,6 +95,7 @@ export const CreateUser: React.FC = () => {
       placeholder: t("errors.emailPlaceholder"),
       icon: <Mail className="h-4 w-4" />,
       required: true,
+      colSpan: 2,
     },
     {
       name: "fullName",
@@ -99,6 +104,7 @@ export const CreateUser: React.FC = () => {
       placeholder: t("errors.fullNamePlaceholder"),
       icon: <UserIcon className="h-4 w-4" />,
       required: true,
+      colSpan: 2,
     },
     {
       name: "avatarFile",

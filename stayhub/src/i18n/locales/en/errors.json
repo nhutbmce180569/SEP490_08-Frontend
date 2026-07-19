@@ -41,5 +41,8 @@
   "googlePhoneModalDesc": "Your Google account is new. Please enter your phone number to complete registration.",
   "googleRegisterCanceled": "Registration of new Google account canceled.",
   "confirmAndCompleteBtn": "Confirm & Complete",
-  "cancelBtn": "Cancel"
+  "cancelBtn": "Cancel",
+  "failedToSendOtp": "Failed to send OTP.",
+  "otpResent": "OTP resent to your email.",
+  "failedToResendOtp": "Failed to resend OTP."
 }

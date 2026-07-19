@@ -33,7 +33,6 @@ export const useCreateCategory = () => {
         name: data.name,
         slug: finalSlug,
         description: data.description,
-        isActive: false, // Mặc định tạo là inactive
         iconFile: data.iconFile instanceof File ? data.iconFile : undefined,
       };
 

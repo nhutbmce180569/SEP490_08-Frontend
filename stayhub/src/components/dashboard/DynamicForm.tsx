@@ -7,15 +7,18 @@ import { MultiSelectDropdown } from "./MultiSelectDropdown";
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "number" | "select" | "textarea" | "custom" | "file" | "date" | "datetime-local" | "time" | "multiselect" | "password";
+  type: "text" | "number" | "select" | "textarea" | "custom" | "file" | "date" | "datetime-local" | "time" | "multiselect" | "password" | "row";
   placeholder?: string;
   icon?: React.ReactNode;
   options?: { label: string; value: string | number }[];
+  subFields?: FormField[]; // Để gom nhóm nhiều field trên cùng 1 hàng
   colSpan?: 1 | 2; // Hỗ trợ trải rộng 2 cột (ví dụ như mô tả hoặc hình ảnh)
   required?: boolean; // Tự động check field không được bỏ trống
+  maxLength?: number; // Giới hạn số lượng ký tự tối đa
   readOnly?: boolean; // Thêm cờ không cho phép nhập tay
   visible?: (formData: Record<string, any>) => boolean; // Ẩn/hiện field động theo dữ liệu form hiện tại
   validate?: (value: any, formData: Record<string, any>) => string | undefined; // Hàm validate custom
+  onChangeCustom?: (value: any, setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>) => void; // Side effect khi field thay đổi
   render?: (value: any, onChange: (val: any) => void, error?: string, setFormData?: React.Dispatch<React.SetStateAction<Record<string, any>>>, formData?: Record<string, any>) => React.ReactNode; // Dùng cho các field đặc biệt
 }
 
@@ -117,9 +120,19 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         if (errorMsg) {
           newErrors[field.name] = errorMsg;
           isValid = false;
+        } 
+        // Kiểm tra hàm validate custom
+        else if (field.validate) {
+          const errorMsg = field.validate(value, formData);
+          if (errorMsg) {
+            newErrors[field.name] = errorMsg;
+            isValid = false;
+          }
         }
-      }
-    });
+      });
+    };
+
+    validateFields(fields);
 
     setErrors(newErrors);
 
@@ -299,16 +312,21 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               className={baseInputClass}
               placeholder={field.placeholder}
               value={value}
+              maxLength={field.maxLength}
               onChange={(e) => handleChange(field.name, e.target.value)}
             />
           ) : field.type === "select" ? (
             <>
               <select
-                className={`${baseInputClass} appearance-none !pr-10`}
+                className={`${baseInputClass} appearance-none !pr-10 ${field.readOnly ? "cursor-not-allowed bg-slate-100 opacity-80" : ""}`}
                 value={value}
-                onChange={(e) => handleChange(field.name, e.target.value)}
+                disabled={field.readOnly}
+                onChange={(e) => {
+                  handleChange(field.name, e.target.value);
+                  if (field.onChangeCustom) field.onChangeCustom(e.target.value, setFormData);
+                }}
               >
-                <option value="">Select...</option>
+                <option value="">{t("common.select", { defaultValue: "Select..." })}</option>
                 {field.options?.map((opt, i) => (
                   <option key={i} value={opt.value}>
                     {opt.label}
@@ -345,6 +363,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
             <input
               type={field.type}
               readOnly={field.readOnly}
+              maxLength={field.maxLength}
               className={`${baseInputClass} ${field.readOnly ? "cursor-not-allowed bg-slate-100 opacity-80" : ""}`}
               placeholder={field.placeholder}
               value={value}
@@ -352,8 +371,10 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 const val = e.target.value;
                 if (field.type === "number" && val !== "") {
                   handleChange(field.name, Number(val));
+                  if (field.onChangeCustom) field.onChangeCustom(Number(val), setFormData);
                 } else {
                   handleChange(field.name, val);
+                  if (field.onChangeCustom) field.onChangeCustom(val, setFormData);
                 }
               }}
             />
@@ -393,20 +414,57 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {fields
             .filter((field) => (field.visible ? field.visible(formData) : true))
-            .map((field) => (
-            <div
-              key={field.name}
-              className={field.colSpan === 2 ? "md:col-span-2" : ""}
-            >
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                {field.label}
-                {field.required && (
-                  <span className="ml-1 text-rose-500">*</span>
-                )}
-              </label>
-              {renderInput(field)}
-            </div>
-          ))}
+            .map((field) => {
+              if (field.type === "row" && field.subFields) {
+                const visibleSubFields = field.subFields.filter((sf) => (sf.visible ? sf.visible(formData) : true));
+                const cols = visibleSubFields.length;
+                const gridClass = cols === 3 ? "md:grid-cols-3" : cols === 4 ? "md:grid-cols-4" : cols === 1 ? "md:grid-cols-1" : "md:grid-cols-2";
+                return (
+                  <div key={field.name || "row"} className={field.colSpan === 2 ? "md:col-span-2" : ""}>
+                    <div className={`grid grid-cols-1 gap-6 ${gridClass}`}>
+                      {visibleSubFields.map((subField) => (
+                        <div key={subField.name}>
+                          <label className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                            <span>
+                              {subField.label}
+                              {subField.required && <span className="ml-1 text-rose-500">*</span>}
+                            </span>
+                            {subField.maxLength && (
+                              <span className="text-xs font-normal text-slate-400">
+                                {String(formData[subField.name] ?? "").length}/{subField.maxLength}
+                              </span>
+                            )}
+                          </label>
+                          {renderInput(subField)}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div
+                  key={field.name}
+                  className={field.colSpan === 2 ? "md:col-span-2" : ""}
+                >
+                  <label className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                    <span>
+                      {field.label}
+                      {field.required && (
+                        <span className="ml-1 text-rose-500">*</span>
+                      )}
+                    </span>
+                    {field.maxLength && (
+                      <span className="text-xs font-normal text-slate-400">
+                        {String(formData[field.name] ?? "").length}/{field.maxLength}
+                      </span>
+                    )}
+                  </label>
+                  {renderInput(field)}
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ export type AdminSidebarItem = {
   label: string;
   to: string;
   icon: React.ReactNode;
+  headerTitle?: string;
 };
 
 export type AdminSidebarGroup = {

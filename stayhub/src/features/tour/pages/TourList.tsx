@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { Search, Pencil, Trash2, Plus, Eye, Star, Power, PowerOff, ListFilter, X } from "lucide-react";
+import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
+import { Search, Pencil, Trash2, Plus, Eye, Star, Power, PowerOff, ListFilter, X, Filter } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -42,6 +42,18 @@ export const TourList: React.FC = () => {
     togglingTourId,
   } = useTours(pageSize);
   const [tourStatusAction, setTourStatusAction] = useState<Tour | null>(null);
+  const [showFilter, setShowFilter] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilter(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
 
   const tours = data?.data || [];
   const totalPages = data?.totalPages || 1;
@@ -179,6 +191,14 @@ export const TourList: React.FC = () => {
               <>
                 <ActionButton
                   variant="secondary"
+                  aria-label={t("tour.edit")}
+                  onClick={() => handleEditClick(tour)}
+                  className="h-8 w-8"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </ActionButton>
+                <ActionButton
+                  variant="secondary"
                   aria-label={tour.status === "Active" ? t("tour.deactivate") : t("tour.activate")}
                   title={tour.status === "Active" ? t("tour.deactivateTour") : t("tour.activateTour")}
                   onClick={() => setTourStatusAction(tour)}
@@ -194,14 +214,6 @@ export const TourList: React.FC = () => {
                   ) : (
                     <Power className="h-3.5 w-3.5" />
                   )}
-                </ActionButton>
-                <ActionButton
-                  variant="secondary"
-                  aria-label={t("tour.edit")}
-                  onClick={() => handleEditClick(tour)}
-                  className="h-8 w-8"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
                 </ActionButton>
                 <ActionButton
                   variant="warning"
@@ -245,36 +257,54 @@ export const TourList: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-56">
-            <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <select
-              className="w-full bg-transparent text-sm text-slate-700 outline-none disabled:text-slate-400"
-              value={categoryId ?? ""}
-              disabled={isCategoryLoading}
-              onChange={(e) =>
-                setCategoryId(e.target.value ? Number(e.target.value) : null)
-              }
+          <div className="relative" ref={filterRef}>
+            <button
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white"
+              onClick={() => setShowFilter((v) => !v)}
             >
-              <option value="">
-                {isCategoryLoading ? t("tour.loadingCategories") : t("tour.allCategories")}
-              </option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+              <Filter className="h-3.5 w-3.5" />
+              {t("tour.filter") || "Filter"}
+            </button>
+            {showFilter && (
+              <div className="glass-dropdown absolute left-0 top-full z-50 mt-2 w-64 p-4 shadow-lg">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-500">{t("tour.category")}</label>
+                    <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+                      <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <select
+                        className="w-full bg-transparent text-sm text-slate-700 outline-none disabled:text-slate-400"
+                        value={categoryId ?? ""}
+                        disabled={isCategoryLoading}
+                        onChange={(e) =>
+                          setCategoryId(e.target.value ? Number(e.target.value) : null)
+                        }
+                      >
+                        <option value="">
+                          {isCategoryLoading ? t("tour.loadingCategories") : t("tour.allCategories")}
+                        </option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <label className="flex cursor-pointer items-center gap-2 whitespace-nowrap text-sm font-medium text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={createdByMe}
+                      onChange={(e) => setCreatedByMe(e.target.checked)}
+                      className="h-4 w-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand"
+                    />
+                    {t("tour.createdByMe")}
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
-
-          <label className="flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-white">
-            <input
-              type="checkbox"
-              checked={createdByMe}
-              onChange={(e) => setCreatedByMe(e.target.checked)}
-              className="h-4 w-4 cursor-pointer rounded border-slate-300 text-brand focus:ring-brand"
-            />
-            {t("tour.createdByMe")}
-          </label>
 
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
             <select
@@ -287,6 +317,7 @@ export const TourList: React.FC = () => {
             >
               <option value={5}>5 {t("common.perPage")}</option>
               <option value={10}>10 {t("common.perPage")}</option>
+              <option value={15}>15 {t("common.perPage")}</option>
               <option value={20}>20 {t("common.perPage")}</option>
               <option value={50}>50 {t("common.perPage")}</option>
             </select>
@@ -352,9 +383,8 @@ export const TourList: React.FC = () => {
             ? t("tour.activateTourConfirm", { name: tourStatusAction?.name ?? "" })
             : t("tour.deactivateTourConfirm", { name: tourStatusAction?.name ?? "" })
         }
-        confirmText={
-          shouldActivateSelectedTour ? t("tour.activate") : t("tour.deactivate")
-        }
+        confirmText="Confirm"
+        cancelText="Cancel"
         variant={shouldActivateSelectedTour ? "primary" : "warning"}
         icon={
           shouldActivateSelectedTour ? (

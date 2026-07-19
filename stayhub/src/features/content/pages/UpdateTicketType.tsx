@@ -27,10 +27,13 @@ export const UpdateTicketType: React.FC = () => {
         icon: <Type className="h-4 w-4" />,
         colSpan: 1,
         required: true,
-        validate: (value) =>
-          String(value || "").trim().length > 100
-            ? t("content.ticketTypeNameMaxLength")
-            : undefined,
+        maxLength: 50,
+        validate: (value) => {
+          const val = String(value || "").trim();
+          if (val.length > 50) return t("content.ticketTypeNameMaxLength");
+          if (!/^[\p{L}\p{N}\s]*$/u.test(val)) return t("content.ticketTypeNameSpecialChars", { defaultValue: "Ticket type name cannot contain special characters" });
+          return undefined;
+        },
       },
       {
         name: "isActive",
@@ -49,6 +52,7 @@ export const UpdateTicketType: React.FC = () => {
         type: "textarea",
         icon: <AlignLeft className="h-4 w-4" />,
         colSpan: 2,
+        maxLength: 500,
       },
     ],
     [t],

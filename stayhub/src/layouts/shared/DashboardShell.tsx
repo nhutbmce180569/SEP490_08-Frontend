@@ -29,7 +29,7 @@ function resolvePageTitle(
     .slice()
     .sort((a, b) => b.to.length - a.to.length)
     .find((i) => pathname === i.to || pathname.startsWith(`${i.to}/`));
-  return match?.label ?? defaultTitle;
+  return match ? (match.headerTitle ?? match.label) : defaultTitle;
 }
 
 export function DashboardShell({

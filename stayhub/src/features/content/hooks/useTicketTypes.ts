@@ -4,15 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
 import { ticketTypeService } from "../services/ticketType.service";
 
-const PAGE_SIZE = 5;
-
-export const useTicketTypes = (searchTerm?: string) => {
+export const useTicketTypes = (searchTerm?: string, initialPageSize: number = 5) => {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
   const navigate = useNavigate();
 
   const query = useQuery({
-    queryKey: ["ticketTypes", page, PAGE_SIZE, searchTerm],
-    queryFn: () => ticketTypeService.getAll(page, PAGE_SIZE, searchTerm),
+    queryKey: ["ticketTypes", page, pageSize, searchTerm],
+    queryFn: () => ticketTypeService.getAll(page, pageSize, searchTerm),
   });
 
   const handleCreate = () => navigate(`${PATH.ADMIN.TICKET_TYPE_MANAGEMENT}/create`);
@@ -24,8 +23,9 @@ export const useTicketTypes = (searchTerm?: string) => {
     isLoading: query.isLoading,
     error: query.isError ? "Failed to fetch ticket types." : null,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     setPage,
+    setPageSize,
     handleCreate,
     handleEdit,
   };

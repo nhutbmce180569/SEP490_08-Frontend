@@ -182,6 +182,9 @@
     "manageTrips": "Manage trips, vouchers, and travel experiences"
   },
   "dashboard": {
+    "stayhubStaff": "Stayhub Staff",
+    "staffSidebarDesc": "Manage your assigned schedules and customers",
+    "tourStaffSubtitle": "Assigned tours & tracking",
     "partner": "Tour manager",
     "admin": "System admin",
     "staff": "Staff Member",

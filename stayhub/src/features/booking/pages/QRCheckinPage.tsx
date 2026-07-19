@@ -51,33 +51,13 @@ export const QRCheckinPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl py-4 px-4 sm:px-6 space-y-6">
-      {/* Header section */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-            {t("booking.ticketCheckIn")}
-          </h2>
-          <p className="mt-1 text-sm text-slate-500">
-            {t("booking.scanOrEnter")}
-          </p>
-        </div>
-        <button
-          onClick={() => navigate(-1)}
-          className="group inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-[#0068E0] hover:ring-[#0068E0]/30 outline-none"
-        >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-          {t("booking.backToDashboard")}
-        </button>
-      </div>
-
-      {/* Căn items-start để cột phải không bị kéo giãn chiều cao vô cớ */}
-      <div className="grid gap-5 lg:grid-cols-12 items-start">
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 min-h-[calc(100vh-140px)] flex flex-col items-center justify-center">
+      <div className="w-full grid gap-8 lg:grid-cols-2 items-stretch max-w-6xl">
         {/* ==============================================================
-            CỘT TRÁI: KHU VỰC QUÉT MÃ (Chiếm 7 phần)
+            CỘT TRÁI: KHU VỰC QUÉT MÃ (Chiếm 1 phần)
         ============================================================== */}
-        <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+        <div className="flex flex-col">
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm h-full flex flex-col justify-center">
 
             {/* Segmented Control: Camera vs Manual */}
             <div className="mb-5 flex rounded-xl bg-slate-100/80 p-1 ring-1 ring-slate-200/50">
@@ -101,9 +81,9 @@ export const QRCheckinPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Giao diện quét bằng Camera (Thu nhỏ kích thước max-w) */}
+            {/* Giao diện quét bằng Camera */}
             {scanMode === "camera" && (
-              <div className="relative aspect-square w-full max-w-[280px] mx-auto overflow-hidden rounded-3xl bg-slate-900 border-[4px] border-slate-800 shadow-md">
+              <div className="relative aspect-square w-full max-w-[380px] mx-auto overflow-hidden rounded-3xl bg-slate-900 border-[4px] border-slate-800 shadow-md">
                 <Scanner
                   onScan={(detectedCodes) => {
                     if (detectedCodes && detectedCodes.length > 0) {
@@ -148,7 +128,7 @@ export const QRCheckinPage: React.FC = () => {
             {scanMode === "manual" && (
               <form
                 onSubmit={handleManualSubmit}
-                className="max-w-sm mx-auto mt-4 space-y-4"
+                className="max-w-md w-full mx-auto mt-4 space-y-5"
               >
                 <div>
                   <label className="mb-2 block text-xs font-bold text-slate-700 text-center">
@@ -184,10 +164,10 @@ export const QRCheckinPage: React.FC = () => {
         </div>
 
         {/* ==============================================================
-            CỘT PHẢI: KẾT QUẢ HIỂN THỊ (Chiếm 5 phần)
+            CỘT PHẢI: KẾT QUẢ HIỂN THỊ (Chiếm 1 phần)
         ============================================================== */}
-        <div className="lg:col-span-5">
-          <div className="sticky top-20 rounded-3xl border border-slate-200/80 bg-slate-50/50 shadow-sm overflow-hidden flex flex-col">
+        <div className="flex flex-col">
+          <div className="sticky top-20 rounded-3xl border border-slate-200/80 bg-slate-50/50 shadow-sm overflow-hidden flex flex-col h-full">
             <div className="bg-white border-b border-slate-200 px-5 py-3">
               <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
                 <Ticket className="h-4 w-4 text-slate-500" />
@@ -195,7 +175,7 @@ export const QRCheckinPage: React.FC = () => {
               </h3>
             </div>
 
-            <div className="p-5 flex flex-col items-center justify-center text-center">
+            <div className="p-5 flex flex-col items-center justify-center text-center flex-1">
 
               {/* TRẠNG THÁI CHỜ */}
               {!lastResult ? (

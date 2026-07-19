@@ -183,6 +183,9 @@
     "manageTrips": "Quản lý chuyến đi, voucher và trải nghiệm du lịch"
   },
   "dashboard": {
+    "stayhubStaff": "Nhân viên Stayhub",
+    "staffSidebarDesc": "Quản lý lịch trình và hành khách được phân công",
+    "tourStaffSubtitle": "Quản lý tour và theo dõi",
     "partner": "Đối tác tour",
     "admin": "Quản trị viên",
     "staff": "Nhân viên",

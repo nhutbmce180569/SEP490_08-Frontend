@@ -138,6 +138,8 @@
   "trackingScheduleMeta": "Schedule #{{scheduleId}} • Tour #{{tourId}}",
   "trackingViewMap": "Xem bản đồ",
   "trackingNoSchedules": "Không có lịch trình nào.",
+  "trackingNoSchedulesShort": "Không tìm thấy chuyến đi nào",
+  "trackingSelectTour": "Chọn chuyến đi để theo dõi",
   "trackingNoSearchResults": "Không có lịch trình phù hợp.",
   "trackingCustomersWatching": "Khách hàng đang theo dõi",
   "trackingNoLocationsYet": "Chưa có vị trí nào được gửi.",

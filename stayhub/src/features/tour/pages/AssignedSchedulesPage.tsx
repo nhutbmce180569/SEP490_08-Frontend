@@ -15,8 +15,6 @@ import { tourScheduleStaffService } from "../services/tourScheduleStaffService.s
 import { useTranslation } from "../../../contexts/LocaleContext";
 import type { AssignedTourSchedule } from "../types/tourScheduleStaff";
 
-const PAGE_SIZE = 10;
-
 export const AssignedSchedulesPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -26,11 +24,12 @@ export const AssignedSchedulesPage: React.FC = () => {
     total: 0,
     totalPages: 1,
     currentPage: 1,
-    pageSize: PAGE_SIZE,
+    pageSize: 5,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [upcomingOnly, setUpcomingOnly] = useState(true);
@@ -52,7 +51,7 @@ export const AssignedSchedulesPage: React.FC = () => {
       try {
         const res = await tourScheduleStaffService.getAssignedSchedules(
           page,
-          PAGE_SIZE,
+          pageSize,
           upcomingOnly,
           debouncedSearch || undefined,
         );
@@ -61,7 +60,7 @@ export const AssignedSchedulesPage: React.FC = () => {
           total: res.total || 0,
           totalPages: res.totalPages || 1,
           currentPage: res.currentPage || page,
-          pageSize: res.pageSize || PAGE_SIZE,
+          pageSize: res.pageSize || pageSize,
         });
       } catch (err: any) {
         setError(err?.message || t("tour.failedLoadSchedule"));
@@ -70,7 +69,7 @@ export const AssignedSchedulesPage: React.FC = () => {
       }
     };
     fetchData();
-  }, [page, upcomingOnly, debouncedSearch, t]);
+  }, [page, pageSize, upcomingOnly, debouncedSearch, t]);
 
 
   const columns: Column<AssignedTourSchedule>[] = useMemo(
@@ -83,11 +82,11 @@ export const AssignedSchedulesPage: React.FC = () => {
             <img
               src={item.tourImageUrl}
               alt={item.tourName ?? t("tour.tourImageAlt")}
-              className="h-14 w-20 rounded-xl object-cover"
+              className="h-10 w-10 min-w-[40px] shrink-0 rounded-lg border border-slate-100 object-cover bg-slate-100"
             />
           ) : (
-            <div className="flex h-14 w-20 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-              <ImageIcon className="h-5 w-5" />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-100 bg-slate-100 text-slate-400">
+              <ImageIcon className="h-4 w-4" />
             </div>
           ),
       },
@@ -110,14 +109,14 @@ export const AssignedSchedulesPage: React.FC = () => {
         render: (item) => (
           <div className="flex items-center gap-2 text-sm text-slate-600">
             <Calendar className="h-4 w-4 text-slate-400" />
-            <div>
-              <div className="font-medium">
+            <div className="flex flex-wrap items-center gap-1">
+              <span className="font-medium">
                 {new Date(item.departureDate).toLocaleDateString("vi-VN")}
-              </div>
-              <div className="text-slate-400">
-                {t("tour.to")}{" "}
+              </span>
+              <span className="text-slate-400">{t("tour.to")}</span>
+              <span className="font-medium">
                 {new Date(item.returnDate).toLocaleDateString("vi-VN")}
-              </div>
+              </span>
             </div>
           </div>
         ),
@@ -158,13 +157,7 @@ export const AssignedSchedulesPage: React.FC = () => {
           );
         },
       },
-      {
-        header: t("tour.tourIdCol"),
-        render: (item) => (
-          <span className="font-semibold text-slate-800">#{item.tourId}</span>
-        ),
-        className: "w-[100px] text-sm",
-      },
+
       {
         header: t("common.actions"),
         className: "w-[120px]",
@@ -188,18 +181,7 @@ export const AssignedSchedulesPage: React.FC = () => {
   return (
     <div className="rounded-2xl">
       {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <div>
-            <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              {t("tour.assignedSchedulesTitle")}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              {t("tour.assignedSchedulesDesc")}
-            </p>
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {/* Search */}
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white sm:w-64">
@@ -227,6 +209,24 @@ export const AssignedSchedulesPage: React.FC = () => {
             </select>
             <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           </div>
+
+          {/* Page Size Filter */}
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+            <select
+              className="bg-transparent text-sm text-slate-700 outline-none"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={5}>5 {t("common.perPage")}</option>
+              <option value={10}>10 {t("common.perPage")}</option>
+              <option value={15}>15 {t("common.perPage")}</option>
+              <option value={20}>20 {t("common.perPage")}</option>
+              <option value={50}>50 {t("common.perPage")}</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -242,7 +242,7 @@ export const AssignedSchedulesPage: React.FC = () => {
           keyExtractor={(item) => item.scheduleId}
           isLoading={isLoading}
           emptyMessage={t("tour.assignedEmpty")}
-          skeletonRows={PAGE_SIZE}
+          skeletonRows={pageSize}
         />
       )}
 

@@ -16,6 +16,7 @@ interface TableProps<T> {
   isLoading?: boolean;
   skeletonRows?: number;
   tableClassName?: string;
+  wrapperClassName?: string;
 }
 
 export function Table<T>({
@@ -26,18 +27,19 @@ export function Table<T>({
   isLoading = false,
   skeletonRows = 5,
   tableClassName = "w-full min-w-[680px] border-collapse",
+  wrapperClassName = "table-glass overflow-x-auto",
 }: TableProps<T>) {
   const { t } = useTranslation();
   const resolvedEmpty = emptyMessage ?? t("common.noData");
   return (
-    <div className="table-glass overflow-x-auto">
+    <div className={wrapperClassName}>
       <table className={tableClassName}>
-        <thead>
-          <tr className="border-b border-slate-100/80 bg-slate-50/70">
+        <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-sm shadow-[0_1px_0_rgba(241,245,249,0.8)]">
+          <tr>
             {columns.map((col, idx) => (
               <th
                 key={idx}
-                className={`px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-400 ${col.className || ""}`}
+                className={`px-5 py-3.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500 ${col.className || ""}`}
               >
                 {col.header}
               </th>

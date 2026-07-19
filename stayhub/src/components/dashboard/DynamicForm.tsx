@@ -66,7 +66,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   // Đồng bộ lại state nếu parent component truyền initialValues vào sau khi đã render
   useEffect(() => {
     setFormData({ ...safeInitialData, ...safeInitialValues });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initDataStr, initValuesStr]);
 
   // Đồng bộ lỗi từ Server (nếu có) vào state lỗi của Form
@@ -76,7 +76,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       Object.entries(serverErrors).forEach(([key, val]) => {
         // Chuyển key từ PascalCase (.NET) sang camelCase (React/TS) để match với field.name
         const camelKey = key.charAt(0).toLowerCase() + key.slice(1);
-        
+
         // .NET thường trả về mảng chuỗi (ví dụ: ["OperatorId must be greater than 0"])
         normalizedErrors[camelKey] = Array.isArray(val) ? val[0] : String(val);
       });
@@ -103,12 +103,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
     visibleFields.forEach((field) => {
       const value = formData[field.name];
-      
+
       // Kiểm tra required
       if (field.required && (value === undefined || value === null || value === "")) {
         newErrors[field.name] = t("common.fieldRequired", { label: field.label });
         isValid = false;
-      } 
+      }
       // Kiểm tra file type trong lúc submit nếu có file
       else if (field.type === "file" && value instanceof File && !value.type.startsWith("image/")) {
         newErrors[field.name] = t("content.onlyImageFilesAllowed");
@@ -120,19 +120,9 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
         if (errorMsg) {
           newErrors[field.name] = errorMsg;
           isValid = false;
-        } 
-        // Kiểm tra hàm validate custom
-        else if (field.validate) {
-          const errorMsg = field.validate(value, formData);
-          if (errorMsg) {
-            newErrors[field.name] = errorMsg;
-            isValid = false;
-          }
         }
-      });
-    };
-
-    validateFields(fields);
+      }
+    });
 
     setErrors(newErrors);
 
@@ -214,12 +204,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
       return (
         <div className="flex w-full flex-col gap-2">
-          <div 
-            className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${
-              error 
-                ? 'border-rose-400 bg-rose-50/50' 
-                : 'border-slate-200 bg-slate-50 hover:border-brand hover:bg-brand/5'
-            } ${!preview ? 'cursor-pointer py-10' : 'py-8'}`}
+          <div
+            className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${error
+              ? 'border-rose-400 bg-rose-50/50'
+              : 'border-slate-200 bg-slate-50 hover:border-brand hover:bg-brand/5'
+              } ${!preview ? 'cursor-pointer py-10' : 'py-8'}`}
             onClick={!preview ? triggerFileSelect : undefined}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
@@ -233,7 +222,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               onClick={(e) => e.stopPropagation()}
               className="hidden"
             />
-            
+
             {preview ? (
               <div className="flex w-full flex-col items-center justify-center gap-4">
                 <div className="relative h-40 w-full max-w-[280px] overflow-hidden rounded-lg border border-slate-200 shadow-sm">
@@ -289,13 +278,11 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
       );
     }
 
-    const baseInputClass = `input-field py-2.5 pr-4 text-sm ${
-      field.icon ? "pl-10" : ""
-    } ${
-      error
+    const baseInputClass = `input-field py-2.5 pr-4 text-sm ${field.icon ? "pl-10" : ""
+      } ${error
         ? "!border-rose-500 focus:!border-rose-500 !bg-rose-50/30 focus:!shadow-[0_0_0_3px_rgba(244,63,94,0.12)]"
         : ""
-    }`;
+      }`;
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -305,7 +292,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               {field.icon}
             </div>
           )}
-          
+
           {field.type === "textarea" ? (
             <textarea
               rows={4}
@@ -380,7 +367,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
             />
           )}
         </div>
-        
+
         {/* Hiển thị Error Message */}
         {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
       </div>

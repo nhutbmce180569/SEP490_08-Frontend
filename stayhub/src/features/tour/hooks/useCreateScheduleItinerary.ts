@@ -452,6 +452,7 @@ export const useCreateScheduleItinerary = () => {
     isCloning,
     cloningDayIndex,
     setInvalidItineraryIds,
+    setServerErrors,
     isTourLoading,
   };
 };

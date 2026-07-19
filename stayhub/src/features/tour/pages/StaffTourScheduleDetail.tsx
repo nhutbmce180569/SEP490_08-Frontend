@@ -304,10 +304,10 @@ export const StaffTourScheduleDetail: React.FC = () => {
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("tour.ticketName")}
                       </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("common.price")}
                       </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                         {t("tour.quantity")}
                       </th>
                       <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
@@ -346,13 +346,15 @@ export const StaffTourScheduleDetail: React.FC = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-2 font-semibold text-emerald-600">
-                              <Banknote className="h-4 w-4" />
-                              {formatTicketCurrency(ticket.price)}
+                          <td className="px-5 py-3.5 text-right">
+                            <div className="flex flex-col items-end gap-1">
+                              <div className="flex items-center gap-2 font-semibold text-emerald-600">
+                                <Banknote className="h-4 w-4" />
+                                {formatTicketCurrency(ticket.price)}
+                              </div>
                             </div>
                           </td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-5 py-3.5 text-right">
                             <div className="text-sm font-semibold text-slate-800">
                               {quantity}
                             </div>
@@ -397,7 +399,7 @@ export const StaffTourScheduleDetail: React.FC = () => {
               {missingItineraryDays.length > 0 && (
                 <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
                   <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
-                  <p>{t("tour.missingItineraryDaysMsg", { days: missingItineraryDays.join(", Day ") })}</p>
+                  <p>{t("tour.missingItineraryDaysMsg", { days: missingItineraryDays.join(`, ${t("tour.day")} `) })}</p>
                 </div>
               )}
             </div>

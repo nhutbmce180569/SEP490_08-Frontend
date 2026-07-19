@@ -10,13 +10,17 @@ import {
   ExternalLink,
   Hash,
   Image as ImageIcon,
+  Info,
+  Globe,
   MapPin,
   Pencil,
   Plus,
-  Power,
-  PowerOff,
+  Lock,
+  Unlock,
   Ticket,
   Trash2,
+  Users,
+  Route,
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
@@ -29,7 +33,7 @@ import type { TourismInformation } from "../../content/types/tourismInformation"
 import { PATH } from "../../../config/routes/route";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
 import { useTourSchedule } from "../hooks/useTourSchedule";
-import { getScheduleItinerariesBySchedule } from "../services/tourScheduleItinerary.service";
+import { getScheduleItinerariesBySchedule, deleteScheduleItinerary } from "../services/tourScheduleItinerary.service";
 import { tourScheduleTicketService } from "../services/tourScheduleTicket.service";
 import type { TourScheduleItinerary } from "../types/tourScheduleItinerary";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
@@ -47,7 +51,7 @@ export const TourScheduleDetail: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { error: showError } = useToast();
+  const { success: showSuccess, error: showError } = useToast();
   const {
     currentSchedule: schedule,
     isLoading,
@@ -70,6 +74,10 @@ export const TourScheduleDetail: React.FC = () => {
     | { type: "activateTicket" | "deactivateTicket"; ticket: TourScheduleTicket }
     | null
   >(null);
+  const [selectedDay, setSelectedDay] = React.useState<number | null>(null);
+  const [deletingItineraryId, setDeletingItineraryId] = React.useState<number | string | null>(null);
+  const [isDeletingItinerary, setIsDeletingItinerary] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"itinerary" | "tickets" | "staff">("itinerary");
 
   const renderedItineraries = React.useMemo(
     () =>
@@ -95,7 +103,8 @@ export const TourScheduleDetail: React.FC = () => {
         setIsItinerariesLoading(false);
       }
     },
-    [showError, t],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   const fetchTickets = React.useCallback(
@@ -135,7 +144,8 @@ export const TourScheduleDetail: React.FC = () => {
         setIsTicketsLoading(false);
       }
     },
-    [showError, t],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   );
 
   React.useEffect(() => {
@@ -244,6 +254,21 @@ export const TourScheduleDetail: React.FC = () => {
     }
   };
 
+  const handleDeleteItinerary = async () => {
+    if (!deletingItineraryId || !schedule?.id) return;
+    try {
+      setIsDeletingItinerary(true);
+      await deleteScheduleItinerary(deletingItineraryId);
+      showSuccess(t("tour.deleteScheduleItinerarySuccess") || "Schedule itinerary deleted successfully!");
+      await fetchItineraries(schedule.id);
+      setDeletingItineraryId(null);
+    } catch (err: unknown) {
+      showError(getApiErrorMessage(err, t("tour.failedDeleteItinerary") || "Failed to delete schedule itinerary."));
+    } finally {
+      setIsDeletingItinerary(false);
+    }
+  };
+
   const confirmTitle =
     confirmAction?.type === "deactivateTicket"
       ? t("tour.deactivateTicket")
@@ -279,18 +304,22 @@ export const TourScheduleDetail: React.FC = () => {
       : t("tour.activate");
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6">
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-brand"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t("tour.backToSchedules")}
-      </button>
-
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40">
           <Calendar className="h-16 w-16 text-white opacity-20" />
+          
+          {/* Nút Back */}
+          <div className="absolute left-4 top-4">
+            <button
+              onClick={() => navigate(PATH.MANAGER.SCHEDULE_MANAGEMENT)}
+              className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md transition-colors hover:bg-white/30 z-10"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              {t("tour.backToSchedules")}
+            </button>
+          </div>
+
           <div className="absolute right-4 top-4">
             <span className="inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md">
               {t("tour.scheduleDetail")}
@@ -377,255 +406,109 @@ export const TourScheduleDetail: React.FC = () => {
               )}
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="mt-8 border-t border-slate-100 pt-8">
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-base font-bold text-slate-900">{t("tour.scheduleTickets")}</h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  {tickets.length > 0
-                    ? tickets.length === 1
-                      ? t("tour.ticketTypesConfigured", { count: tickets.length })
-                      : t("tour.ticketTypesConfiguredPlural", { count: tickets.length })
-                    : t("tour.noTicketSetupSchedule")}
-                </p>
-              </div>
-              {schedule.canEdit && (
-                <ActionButton
-                  variant="primary"
-                  onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Plus className="h-4 w-4" />
-                  {t("tour.addTicket")}
-                </ActionButton>
-              )}
-            </div>
+      {/* TAB BAR */}
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex border-b border-slate-200 bg-slate-50">
+          {([
+            { key: "itinerary" as const, label: t("tour.scheduleItinerarySection"), icon: <Route className="h-4 w-4" /> },
+            { key: "tickets" as const,   label: t("tour.scheduleTickets"),           icon: <Ticket className="h-4 w-4" /> },
+            { key: "staff" as const,     label: t("tour.staff") || "Staff",          icon: <Users className="h-4 w-4" /> },
+          ]).map(({ key, label, icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-all border-b-2 ${
+                activeTab === key
+                  ? "border-brand text-brand bg-white"
+                  : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              {icon}
+              {label}
+            </button>
+          ))}
+        </div>
 
-            {isTicketsLoading ? (
-              <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
-                {t("tour.loadingScheduleTickets")}
-              </div>
-            ) : tickets.length > 0 ? (
-              <div className="overflow-x-auto rounded-2xl border border-slate-200">
-                <table className="w-full min-w-[760px] border-collapse bg-white">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50">
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {t("tour.ticketName")}
-                      </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {t("common.price")}
-                      </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {t("tour.quantity")}
-                      </th>
-                      <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                        {t("common.status")}
-                      </th>
-                      {schedule.canEdit && (
-                        <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                          {t("common.actions")}
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {tickets.map((ticket) => {
-                      const ticketTypeId = getScheduleTicketTypeId(ticket);
-                      const ticketType = ticketTypeId ? ticketTypeDetails[ticketTypeId] : undefined;
-                      const quantity = getScheduleTicketCapacity(ticket) ?? 0;
-                      const soldQuantity = ticket.soldQuantity ?? 0;
-                      const availableQuantity = getScheduleTicketAvailable(ticket) ?? 0;
-                      const isActive = ticket.isActive ?? true;
+        <div className="p-6 sm:p-8">
 
-                      let displayPrice = ticket.price;
-                      let hasDiscount = false;
-                      if (ticket.promotion && ticket.price != null && ticket.promotion.discountValue) {
-                        const p = Number(ticket.price);
-                        let discountAmount = 0;
-                        if (ticket.promotion.discountType === "PERCENTAGE") {
-                          discountAmount = p * (ticket.promotion.discountValue / 100);
-                          if (ticket.promotion.maxDiscountAmount && discountAmount > ticket.promotion.maxDiscountAmount) {
-                            discountAmount = ticket.promotion.maxDiscountAmount;
-                          }
-                        } else {
-                          discountAmount = ticket.promotion.discountValue;
-                        }
-                        displayPrice = Math.max(0, p - discountAmount);
-                        hasDiscount = true;
-                      }
-
-                      return (
-                        <tr
-                          key={ticket.id}
-                          className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/70"
-                        >
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-3">
-                              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
-                                <Ticket className="h-4 w-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <span className="font-semibold text-slate-800">
-                                  {getScheduleTicketName(ticket, ticketType)}
-                                </span>
-                                {ticket.note && (
-                                  <p className="mt-0.5 max-w-xs truncate text-xs font-medium text-slate-400">
-                                    {ticket.note}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2 font-semibold text-emerald-600">
-                                <Banknote className="h-4 w-4" />
-                                {formatTicketCurrency(displayPrice)}
-                              </div>
-                              {hasDiscount && (
-                                <div className="text-xs font-medium text-slate-400 line-through pl-6">
-                                  {formatTicketCurrency(ticket.price)}
-                                </div>
-                              )}
-                              {ticket.promotion && (
-                                <div className="pl-6">
-                                  <span className="inline-block rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
-                                    {ticket.promotion.code}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <div className="text-sm font-semibold text-slate-800">
-                              {quantity}
-                            </div>
-                            <div className="mt-0.5 text-xs font-medium text-slate-400">
-                              {t("tour.soldLeft", { sold: soldQuantity, left: availableQuantity })}
-                            </div>
-                          </td>
-                          <td className="px-5 py-3.5">
-                            <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                isActive
-                                  ? "bg-emerald-100 text-emerald-700"
-                                  : "bg-slate-100 text-slate-700"
-                              }`}
-                            >
-                              {isActive ? t("common.active") : t("common.inactive")}
-                            </span>
-                          </td>
-                          {schedule.canEdit && (
-                            <td className="px-5 py-3.5">
-                              <div className="flex items-center gap-1.5">
-                                <ActionButton
-                                  variant="secondary"
-                                  onClick={() =>
-                                    navigate(
-                                      PATH.MANAGER.EDIT_SCHEDULE_TICKET(
-                                        schedule.id,
-                                        ticket.id,
-                                      ),
-                                    )
-                                  }
-                                  className="h-8 w-8"
-                                  title={t("tour.editTicket")}
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </ActionButton>
-                                <ActionButton
-                                  variant={isActive ? "warning" : "secondary"}
-                                  onClick={() =>
-                                    setConfirmAction({
-                                      type: isActive ? "deactivateTicket" : "activateTicket",
-                                      ticket,
-                                    })
-                                  }
-                                  disabled={updatingTicketId === ticket.id}
-                                  className={`h-8 w-8 ${
-                                    !isActive
-                                      ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
-                                      : ""
-                                  }`}
-                                  title={isActive ? t("tour.deactivateTicketAction") : t("tour.activateTicketAction")}
-                                >
-                                  {isActive ? (
-                                    <PowerOff className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <Power className="h-3.5 w-3.5" />
-                                  )}
-                                </ActionButton>
-                              </div>
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
-                <Ticket className="mb-3 h-10 w-10 text-slate-400" />
-                <h3 className="mb-1 text-sm font-bold text-slate-900">
-                  {t("tour.noTicketsConfigured")}
-                </h3>
-                <p className="mb-4 text-xs text-slate-500">
-                  {t("tour.addTicketHint")}
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-8 border-t border-slate-100 pt-8">
-            <div className="mb-6 space-y-3">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-bold text-slate-900">
-                  {t("tour.scheduleItinerarySection")}
-                </h2>
-                {schedule.canEdit && (
-                  <ActionButton
-                    variant="primary"
-                    onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
-                    className="gap-2 px-4 py-2 text-sm"
-                  >
-                    <Plus className="h-4 w-4" />
-                    {t("tour.addItineraries")}
-                  </ActionButton>
+          {/* ── TAB: ITINERARY ── */}
+          {activeTab === "itinerary" && (
+            <div>
+              <div className="mb-6 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-base font-bold text-slate-900">
+                    {t("tour.scheduleItinerarySection")}
+                  </h2>
+                  {schedule.canEdit && (
+                    <ActionButton
+                      variant="primary"
+                      onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
+                      className="gap-2 px-4 py-2 text-sm"
+                    >
+                      <Plus className="h-4 w-4" />
+                      {t("tour.addItineraries")}
+                    </ActionButton>
+                  )}
+                </div>
+                {missingItineraryDays.length > 0 && (
+                  <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
+                    <p>{t("tour.missingItineraryDaysMsg", { days: missingItineraryDays.join(`, ${t("tour.day")} `) })}</p>
+                  </div>
                 )}
               </div>
-              {missingItineraryDays.length > 0 && (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  <p className="font-semibold">{t("tour.missingItineraryDaysTitle")}</p>
-                  <p>{t("tour.missingItineraryDaysMsg", { days: missingItineraryDays.join(", Day ") })}</p>
-                </div>
-              )}
-            </div>
 
-            {isItinerariesLoading ? (
-              <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
-                {t("tour.loadingScheduleItinerary")}
-              </div>
-            ) : renderedItineraries.length > 0 ? (
-              <div className="flex flex-col gap-6">
-                {Object.entries(groupedItineraries)
-                  .map(([dayStr]) => Number(dayStr))
-                  .sort((a, b) => a - b)
-                  .map((dayNumber) => {
-                    const itemsForDay = groupedItineraries[dayNumber];
+              {isItinerariesLoading ? (
+                <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
+                  {t("tour.loadingScheduleItinerary")}
+                </div>
+              ) : renderedItineraries.length > 0 ? (
+                <div className="space-y-4">
+                  {/* Day pills */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {Object.entries(groupedItineraries)
+                      .map(([dayStr]) => Number(dayStr))
+                      .sort((a, b) => a - b)
+                      .map((dayNumber) => {
+                        const isMissing = missingItineraryDays.includes(dayNumber);
+                        const isSelected = (selectedDay ?? Object.entries(groupedItineraries).map(([d]) => Number(d)).sort((a, b) => a - b)[0]) === dayNumber;
+                        return (
+                          <button
+                            key={dayNumber}
+                            onClick={() => setSelectedDay(dayNumber)}
+                            className={`relative flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${
+                              isSelected
+                                ? "bg-brand text-white shadow-sm"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            }`}
+                          >
+                            <span className="capitalize">{t("tour.day")}</span> {dayNumber}
+                            {isMissing && (
+                              <span className="flex h-1.5 w-1.5 rounded-full bg-amber-400" />
+                            )}
+                          </button>
+                        );
+                      })}
+                  </div>
+
+                  {(() => {
+                    const sortedDays = Object.entries(groupedItineraries).map(([d]) => Number(d)).sort((a, b) => a - b);
+                    const activeDayNumber = selectedDay ?? sortedDays[0];
+                    const itemsForDay = groupedItineraries[activeDayNumber] ?? [];
                     const dayDate = itemsForDay[0]?.itineraryDate;
 
                     return (
                       <div
-                        key={dayNumber}
-                        className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+                        key={activeDayNumber}
+                        className="mb-6"
                       >
-                        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-4">
+                        <div className="flex items-center justify-between px-2 py-1">
                           <div>
                             <h3 className="text-base font-bold text-slate-900">
-                              Day {dayNumber}
+                              Day {activeDayNumber}
                             </h3>
                             {dayDate && (
                               <p className="mt-0.5 text-xs font-medium text-slate-400">
@@ -635,193 +518,349 @@ export const TourScheduleDetail: React.FC = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-col divide-y divide-slate-100">
-                          {itemsForDay.map((iti) => {
+                        <div className="relative ml-5 border-l-2 border-slate-100 pl-6 space-y-3 mt-4 mb-8">
+                          {itemsForDay.map((iti, idx) => {
                             const isExpanded = expandedItiIds.includes(iti.id);
-                            const timeStr =
-                              iti.startDuration && iti.endDuration
-                                ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
-                                : iti.startDuration
-                                  ? iti.startDuration.substring(0, 5)
-                                  : t("tour.anyTime");
-                            const tourismInfo = iti.tourismInfoId
-                              ? tourismInformationById[iti.tourismInfoId]
-                              : null;
+                            const timeStr = iti.startDuration && iti.endDuration
+                              ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
+                              : iti.startDuration ? iti.startDuration.substring(0, 5) : t("tour.anyTime");
+                            const tourismInfo = iti.tourismInfoId ? tourismInformationById[iti.tourismInfoId] : null;
 
                             return (
-                              <div key={iti.id} className="flex flex-col">
-                                <div
-                                  className="flex cursor-pointer items-center justify-between px-5 py-4 transition-colors hover:bg-slate-50/60"
-                                  onClick={() => toggleIti(iti.id)}
-                                >
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex min-w-[110px] items-center justify-center rounded-lg bg-brand-light px-3 py-1.5 text-xs font-bold text-brand">
-                                      <Clock className="mr-1.5 h-3.5 w-3.5" />
-                                      {timeStr}
-                                    </div>
-                                    <h4 className="text-sm font-semibold text-slate-800">
-                                      {iti.title || t("tour.untitledItinerary")}
-                                    </h4>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                    {schedule.canEdit && (
-                                      <div
-                                        className="flex gap-2"
-                                        onClick={(event) => event.stopPropagation()}
-                                      >
-                                        <ActionButton
-                                          variant="secondary"
-                                          onClick={() =>
-                                            navigate(
-                                              PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(
-                                                schedule.id,
-                                                iti.id,
-                                              ),
-                                            )
-                                          }
-                                          className="h-8 w-8 text-brand hover:bg-brand-light"
-                                        >
-                                          <Pencil className="h-3.5 w-3.5" />
-                                        </ActionButton>
-                                        <ActionButton
-                                          variant="warning"
-                                          onClick={() =>
-                                            navigate(
-                                              PATH.MANAGER.DELETE_SCHEDULE_ITINERARY(
-                                                schedule.id,
-                                                iti.id,
-                                              ),
-                                            )
-                                          }
-                                          className="h-8 w-8"
-                                        >
-                                          <Trash2 className="h-3.5 w-3.5" />
-                                        </ActionButton>
-                                      </div>
-                                    )}
-                                    <div className="text-slate-400">
-                                      {isExpanded ? (
-                                        <ChevronUp className="h-5 w-5" />
-                                      ) : (
-                                        <ChevronDown className="h-5 w-5" />
-                                      )}
-                                    </div>
-                                  </div>
+                              <div key={iti.id} className="relative">
+                                {/* Dot */}
+                                <div className="absolute -left-[33px] top-[18px] flex h-4 w-4 items-center justify-center rounded-full border-2 border-brand bg-white">
+                                  <div className="h-1.5 w-1.5 rounded-full bg-brand" />
                                 </div>
 
-                                {isExpanded && (
-                                  <div className="border-t border-slate-50 bg-slate-50/40 px-5 pb-5 pt-2 sm:pl-[150px]">
-                                    {iti.description && (
-                                      <div
-                                        className="prose prose-sm max-w-none mb-3 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
-                                        dangerouslySetInnerHTML={{
-                                          __html: iti.description.replace(/&nbsp;/g, " "),
-                                        }}
-                                      />
-                                    )}
-                                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-                                      <MapPin className="h-4 w-4 text-brand" />
-                                      <span>{iti.locationName || t("tour.noLocationSpec")}</span>
-                                    </div>
-                                    {iti.tourismInfoId && (
-                                      <div className="mt-3 overflow-hidden rounded-xl border border-slate-100 bg-white text-sm text-slate-600">
-                                        {tourismInfo ? (
-                                          <div className="grid sm:grid-cols-[180px_1fr]">
-                                            <div className="flex min-h-36 items-center justify-center bg-slate-100">
-                                              {tourismInfo.imageUrl ? (
-                                                <img
-                                                  src={tourismInfo.imageUrl}
-                                                  alt={tourismInfo.name}
-                                                  className="h-full min-h-36 w-full object-cover"
-                                                />
-                                              ) : (
-                                                <div className="flex flex-col items-center gap-2 text-slate-400">
-                                                  <ImageIcon className="h-8 w-8" />
-                                                  <span className="text-xs font-medium">{t("tour.noImage")}</span>
-                                                </div>
-                                              )}
-                                            </div>
-
-                                            <div className="space-y-2 p-4">
-                                              <div className="flex flex-wrap items-center gap-2">
-                                                <h5 className="font-bold text-slate-900">{tourismInfo.name}</h5>
-                                                <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-bold text-brand">
-                                                  {tourismInfo.type}
-                                                </span>
-                                              </div>
-                                              {tourismInfo.description && (
-                                                <p className="text-xs leading-relaxed text-slate-500">
-                                                  {tourismInfo.description}
-                                                </p>
-                                              )}
-                                              <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
-                                                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
-                                                <span>
-                                                  {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
-                                                    .filter(Boolean)
-                                                    .join(", ") || t("common.na")}
-                                                </span>
-                                              </div>
-                                              {(tourismInfo.latitude || tourismInfo.longitude) && (
-                                                <div className="text-xs font-medium text-slate-400">
-                                                  {t("tour.latLng", {
-                                                    lat: tourismInfo.latitude ?? t("common.na"),
-                                                    lng: tourismInfo.longitude ?? t("common.na"),
-                                                  })}
-                                                </div>
-                                              )}
-                                              {tourismInfo.sourceUrl && (
-                                                <a
-                                                  href={tourismInfo.sourceUrl}
-                                                  target="_blank"
-                                                  rel="noreferrer"
-                                                  className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
-                                                >
-                                                  {tourismInfo.sourceName || t("tour.source")}
-                                                  <ExternalLink className="h-3.5 w-3.5" />
-                                                </a>
-                                              )}
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div className="flex items-center gap-2 p-3 font-semibold text-slate-800">
-                                            <MapPin className="h-4 w-4 text-brand" />
-                                            {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
-                                          </div>
-                                        )}
+                                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all">
+                                  <div
+                                    className="flex cursor-pointer items-center justify-between px-4 py-3.5 transition-colors hover:bg-slate-50"
+                                    onClick={() => toggleIti(iti.id)}
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-500">
+                                        {idx + 1}
+                                      </span>
+                                      <div className="flex flex-col min-w-0">
+                                        <h4 className="truncate font-bold text-slate-800">{iti.title || t("tour.untitledItinerary")}</h4>
+                                        <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                                          <span className="flex items-center gap-0.5">
+                                            <Clock className="h-3 w-3" />
+                                            {timeStr}
+                                          </span>
+                                          <span className="text-slate-300">•</span>
+                                          <span className="flex items-center gap-0.5">
+                                            <MapPin className="h-3 w-3 text-emerald-500" />
+                                            {iti.locationName || t("tour.noLocationSpec")}
+                                          </span>
+                                        </div>
                                       </div>
-                                    )}
+                                    </div>
+                                    <div className="flex shrink-0 items-center gap-2 pl-4">
+                                      {schedule.canEdit && (
+                                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                          <ActionButton
+                                            variant="secondary"
+                                            onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE_ITINERARY(schedule.id, iti.id))}
+                                            className="h-7 w-7 text-brand hover:bg-brand-light"
+                                          >
+                                            <Pencil className="h-3 w-3" />
+                                          </ActionButton>
+                                          <ActionButton
+                                            variant="warning"
+                                            onClick={() => setDeletingItineraryId(iti.id)}
+                                            className="h-7 w-7"
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </ActionButton>
+                                        </div>
+                                      )}
+                                      <span className={`text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+                                        <ChevronDown className="h-4 w-4" />
+                                      </span>
+                                    </div>
                                   </div>
-                                )}
+
+                                  {isExpanded && (
+                                    <div className="border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 space-y-4">
+                                      {iti.description && (
+                                        <div
+                                          className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
+                                          dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, " ") }}
+                                        />
+                                      )}
+                                      {iti.tourismInfoId && (
+                                        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white text-sm">
+                                          {tourismInfo ? (
+                                            <div className="grid sm:grid-cols-[130px_1fr]">
+                                              <div className="flex min-h-28 items-center justify-center bg-slate-100">
+                                                {tourismInfo.imageUrl ? (
+                                                  <img src={tourismInfo.imageUrl} alt={tourismInfo.name} className="h-full min-h-28 w-full object-cover" />
+                                                ) : (
+                                                  <div className="flex flex-col items-center gap-1 text-slate-400">
+                                                    <ImageIcon className="h-6 w-6" />
+                                                    <span className="text-[11px]">{t("tour.noImage")}</span>
+                                                  </div>
+                                                )}
+                                              </div>
+                                              <div className="space-y-1.5 p-3">
+                                                <div className="flex flex-wrap items-center gap-1.5">
+                                                  <h5 className="font-bold text-slate-800">{tourismInfo.name}</h5>
+                                                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">{tourismInfo.type}</span>
+                                                </div>
+                                                {tourismInfo.description && (
+                                                  <p className="text-xs leading-relaxed text-slate-500">{tourismInfo.description}</p>
+                                                )}
+                                                <div className="flex items-start gap-1.5 text-xs text-slate-500">
+                                                  <Globe className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
+                                                  <span>{[tourismInfo.address, tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ") || t("common.na")}</span>
+                                                </div>
+                                                {(tourismInfo.latitude || tourismInfo.longitude) && (
+                                                  <div className="flex items-start gap-1.5 text-xs text-slate-500">
+                                                    <MapPin className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
+                                                    <span>
+                                                      {t("tour.latLng", {
+                                                        lat: tourismInfo.latitude ?? t("common.na"),
+                                                        lng: tourismInfo.longitude ?? t("common.na"),
+                                                      })}
+                                                    </span>
+                                                  </div>
+                                                )}
+                                                {tourismInfo.sourceUrl && (
+                                                  <a href={tourismInfo.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover">
+                                                    {tourismInfo.sourceName || t("tour.source")}
+                                                    <ExternalLink className="h-3 w-3" />
+                                                  </a>
+                                                )}
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <div className="flex items-center gap-2 p-3 font-semibold text-slate-600">
+                                              <Info className="h-4 w-4 text-indigo-400" />
+                                              {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
                         </div>
                       </div>
                     );
-                  })}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
-                <MapPin className="mb-3 h-10 w-10 text-slate-400" />
-                <h3 className="mb-1 text-sm font-bold text-slate-900">
-                  {t("tour.noItineraryItemsYet")}
-                </h3>
-                <p className="mb-4 text-xs text-slate-500">
-                  {t("tour.createScheduleItineraryHint")}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                  })()}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                  <MapPin className="mb-3 h-10 w-10 text-slate-400" />
+                  <h3 className="mb-1 text-sm font-bold text-slate-900">
+                    {t("tour.noItineraryItemsYet")}
+                  </h3>
+                  <p className="mb-4 text-xs text-slate-500">
+                    {t("tour.createScheduleItineraryHint")}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
-      {/* SECTION: Quản lý Nhân sự */}
-      <div className="mt-8">
-        <TourScheduleStaffManagement
-          scheduleId={Number(id)}
-          isReadOnly={!schedule.canEdit}
-        />
+          {/* ── TAB: TICKETS ── */}
+          {activeTab === "tickets" && (
+            <div>
+              <div className="mb-6 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">{t("tour.scheduleTickets")}</h2>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {tickets.length > 0
+                      ? tickets.length === 1
+                        ? t("tour.ticketTypesConfigured", { count: tickets.length })
+                        : t("tour.ticketTypesConfiguredPlural", { count: tickets.length })
+                      : t("tour.noTicketSetupSchedule")}
+                  </p>
+                </div>
+                {schedule.canEdit && (
+                  <ActionButton
+                    variant="primary"
+                    onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_TICKET(schedule.id))}
+                    className="gap-2 px-4 py-2 text-sm"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("tour.addTicket")}
+                  </ActionButton>
+                )}
+              </div>
+
+              {isTicketsLoading ? (
+                <div className="flex justify-center rounded-2xl border border-slate-100 bg-slate-50 p-8 text-sm text-slate-500">
+                  {t("tour.loadingScheduleTickets")}
+                </div>
+              ) : tickets.length > 0 ? (
+                <div className="overflow-x-auto rounded-2xl border border-slate-200">
+                  <table className="w-full min-w-[760px] border-collapse bg-white">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50">
+                        <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {t("tour.ticketName")}
+                        </th>
+                        <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {t("common.price")}
+                        </th>
+                        <th className="px-5 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {t("tour.quantity")}
+                        </th>
+                        <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                          {t("common.status")}
+                        </th>
+                        {schedule.canEdit && (
+                          <th className="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            {t("common.actions")}
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tickets.map((ticket) => {
+                        const ticketTypeId = getScheduleTicketTypeId(ticket);
+                        const ticketType = ticketTypeId ? ticketTypeDetails[ticketTypeId] : undefined;
+                        const quantity = getScheduleTicketCapacity(ticket) ?? 0;
+                        const soldQuantity = ticket.soldQuantity ?? 0;
+                        const availableQuantity = getScheduleTicketAvailable(ticket) ?? 0;
+                        const isActive = ticket.isActive ?? true;
+
+                        let displayPrice = ticket.price;
+                        let hasDiscount = false;
+                        if (ticket.promotion && ticket.price != null && ticket.promotion.discountValue) {
+                          const p = Number(ticket.price);
+                          let discountAmount = 0;
+                          if (ticket.promotion.discountType === "PERCENTAGE") {
+                            discountAmount = p * (ticket.promotion.discountValue / 100);
+                            if (ticket.promotion.maxDiscountAmount && discountAmount > ticket.promotion.maxDiscountAmount) {
+                              discountAmount = ticket.promotion.maxDiscountAmount;
+                            }
+                          } else {
+                            discountAmount = ticket.promotion.discountValue;
+                          }
+                          displayPrice = Math.max(0, p - discountAmount);
+                          hasDiscount = true;
+                        }
+
+                        return (
+                          <tr
+                            key={ticket.id}
+                            className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/70"
+                          >
+                            <td className="px-5 py-3.5">
+                              <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-light text-brand">
+                                  <Ticket className="h-4 w-4" />
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="font-semibold text-slate-800">
+                                    {getScheduleTicketName(ticket, ticketType)}
+                                  </span>
+                                  {ticket.note && (
+                                    <p className="mt-0.5 max-w-xs truncate text-xs font-medium text-slate-400">
+                                      {ticket.note}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="flex flex-col items-end gap-1">
+                                <div className="flex items-center gap-2 font-semibold text-emerald-600">
+                                  <Banknote className="h-4 w-4" />
+                                  {formatTicketCurrency(displayPrice)}
+                                </div>
+                                {hasDiscount && (
+                                  <div className="text-xs font-medium text-slate-400 line-through">
+                                    {formatTicketCurrency(ticket.price)}
+                                  </div>
+                                )}
+                                {ticket.promotion && (
+                                  <div>
+                                    <span className="inline-block rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
+                                      {ticket.promotion.code}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5 text-right">
+                              <div className="text-sm font-semibold text-slate-800">{quantity}</div>
+                              <div className="mt-0.5 text-xs font-medium text-slate-400">
+                                {t("tour.soldLeft", { sold: soldQuantity, left: availableQuantity })}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3.5">
+                              <span
+                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                  isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                {isActive ? t("common.active") : t("common.inactive")}
+                              </span>
+                            </td>
+                            {schedule.canEdit && (
+                              <td className="px-5 py-3.5">
+                                <div className="flex items-center gap-1.5">
+                                  <ActionButton
+                                    variant="secondary"
+                                    onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE_TICKET(schedule.id, ticket.id))}
+                                    className="h-8 w-8"
+                                    title={t("tour.editTicket")}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </ActionButton>
+                                  <ActionButton
+                                    variant={isActive ? "warning" : "secondary"}
+                                    onClick={() => setConfirmAction({ type: isActive ? "deactivateTicket" : "activateTicket", ticket })}
+                                    disabled={updatingTicketId === ticket.id}
+                                    className={`h-8 w-8 ${!isActive ? "text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700" : ""}`}
+                                    title={isActive ? t("tour.deactivateTicketAction") : t("tour.activateTicketAction")}
+                                  >
+                                    {isActive ? (
+                                      <Lock className="h-3.5 w-3.5" />
+                                    ) : (
+                                      <Unlock className="h-3.5 w-3.5" />
+                                    )}
+                                  </ActionButton>
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12 text-center">
+                  <Ticket className="mb-3 h-10 w-10 text-slate-400" />
+                  <h3 className="mb-1 text-sm font-bold text-slate-900">
+                    {t("tour.noTicketsConfigured")}
+                  </h3>
+                  <p className="mb-4 text-xs text-slate-500">
+                    {t("tour.addTicketHint")}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+          {/* ── TAB: STAFF ── */}
+          {activeTab === "staff" && (
+            <TourScheduleStaffManagement
+              scheduleId={Number(id)}
+              isReadOnly={!schedule.canEdit}
+              noWrapper={true}
+            />
+          )}
+
+        </div>
       </div>
 
       <ConfirmDialog
@@ -834,11 +873,23 @@ export const TourScheduleDetail: React.FC = () => {
         variant={confirmAction?.type === "activateTicket" ? "primary" : "warning"}
         icon={
           confirmAction?.type === "activateTicket" ? (
-            <Power className="h-6 w-6 text-brand" />
+            <Unlock className="h-6 w-6 text-brand" />
           ) : (
-            <PowerOff className="h-6 w-6 text-rose-500" />
+            <Lock className="h-6 w-6 text-rose-500" />
           )
         }
+      />
+
+      <ConfirmDialog
+        open={!!deletingItineraryId}
+        onClose={() => setDeletingItineraryId(null)}
+        onConfirm={handleDeleteItinerary}
+        title={t("tour.deleteScheduleItineraryConfirm")}
+        message={t("tour.deleteItineraryItemWarning")}
+        confirmText={isDeletingItinerary ? t("tour.deleting") : t("common.confirm")}
+        cancelText={t("common.cancel")}
+        variant="warning"
+        icon={<Trash2 className="h-6 w-6 text-rose-500" />}
       />
     </div>
   );

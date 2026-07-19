@@ -53,6 +53,7 @@ export const CreateItinerary: React.FC = () => {
     patchItinerary,
     addImportedItineraries,
     setInvalidItineraryIds,
+    setServerErrors,
   } = useCreateItinerary();
   const { success, error: showError } = useToast();
   const [tourismInformationList, setTourismInformationList] = useState<
@@ -149,6 +150,18 @@ export const CreateItinerary: React.FC = () => {
         return;
       }
 
+      if (iti.locationLat === null || iti.locationLat === undefined || iti.locationLng === null || iti.locationLng === undefined) {
+        showError("Vui lòng chọn địa điểm trên bản đồ cho " + (iti.title || "lịch trình"));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
+        // Tự động gán error vào serverErrors ảo để hiển thị ở field Location Name
+        setServerErrors((prev) => ({
+          ...prev,
+          [`itineraries[${i}].locationLat`]: "Vui lòng chọn địa điểm trên bản đồ",
+        }));
+        return;
+      }
+
       if (iti.startDuration && iti.endDuration) {
         if (iti.startDuration >= iti.endDuration) {
           showError(
@@ -242,6 +255,28 @@ export const CreateItinerary: React.FC = () => {
       setIsImporting(false);
     }
   };
+
+  useEffect(() => {
+    if (serverErrors && Object.keys(serverErrors).length > 0) {
+      setInvalidItineraryIds((prev) => {
+        const newInvalidIds = new Set(prev);
+        let hasNewInvalid = false;
+
+        Object.keys(serverErrors).forEach((key) => {
+          const match = key.match(/itineraries\[(\d+)\]/i);
+          if (match && match[1]) {
+            const index = parseInt(match[1], 10);
+            if (itineraries[index]) {
+              newInvalidIds.add(itineraries[index].id);
+              hasNewInvalid = true;
+            }
+          }
+        });
+
+        return hasNewInvalid ? newInvalidIds : prev;
+      });
+    }
+  }, [serverErrors, itineraries]);
 
   // Hàm lấy lỗi từ BE trả về (Bắt định dạng Itineraries[0].Title của C#)
   const getError = (index: number, field: string) => {
@@ -380,7 +415,7 @@ export const CreateItinerary: React.FC = () => {
             </p>
             <p>
               {t("tour.missingItineraryDaysTourMsg", {
-                days: missingDayNumbers.join(", Day "),
+                days: missingDayNumbers.join(`, ${t("tour.day")} `),
               })}
             </p>
           </div>
@@ -402,7 +437,7 @@ export const CreateItinerary: React.FC = () => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-500">
+                          <span className="text-xs font-bold text-slate-500 capitalize">
                             {t("tour.day")}
                           </span>
                           <input

@@ -236,7 +236,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     className="gap-2 px-4 py-2 text-sm"
                   >
                     <UploadCloud className="h-4 w-4" />
-                    Change Image
+                    {t("common.changeImage")}
                   </ActionButton>
                   <ActionButton
                     type="button"
@@ -245,7 +245,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                     className="gap-2 px-4 py-2 text-sm"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Remove
+                    {t("common.removeImage")}
                   </ActionButton>
                 </div>
               </div>
@@ -256,10 +256,10 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 </div>
                 <div className="flex flex-col items-center justify-center gap-1">
                   <div className="text-sm font-semibold text-slate-700">
-                    Click to upload or drag and drop
+                    {t("common.clickToUpload")}
                   </div>
                   <div className="text-xs text-slate-500">
-                    SVG, PNG, JPG or GIF (max. 5MB)
+                    {t("common.uploadFormatHint")}
                   </div>
                 </div>
                 <ActionButton
@@ -268,7 +268,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   className="pointer-events-none mt-2 gap-2 px-4 py-2 text-sm"
                 >
                   <UploadCloud className="h-4 w-4" />
-                  Browse Files
+                  {t("common.browseFiles")}
                 </ActionButton>
               </div>
             )}
@@ -313,7 +313,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                   if (field.onChangeCustom) field.onChangeCustom(e.target.value, setFormData);
                 }}
               >
-                <option value="">{t("common.select", { defaultValue: "Select..." })}</option>
+                <option value="">{field.placeholder || t("common.select", { defaultValue: "Select..." })}</option>
                 {field.options?.map((opt, i) => (
                   <option key={i} value={opt.value}>
                     {opt.label}

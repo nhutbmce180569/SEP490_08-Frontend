@@ -6,9 +6,12 @@ import {
 } from "../../../components/dashboard/DynamicForm";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useCreateTour } from "../hooks/useCreateTour";
+import { useProvinces } from "../hooks/useProvinces";
+import { useCountries } from "../hooks/useCountries";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { SearchableSelect } from "../../../components/dashboard/SearchableSelect";
 import { MapPickerModal } from "../components/MapPickerModal";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
@@ -22,18 +25,43 @@ export const CreateTour: React.FC = () => {
     categoryOptions,
   } = useCreateTour();
 
+  const { provinces } = useProvinces();
+  const { countries } = useCountries();
+
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [currentSetFormData, setCurrentSetFormData] = useState<React.Dispatch<
     React.SetStateAction<Record<string, any>>
   > | null>(null);
   const [mapInitialData, setMapInitialData] = useState<any>(null);
 
+  const normalizeString = (str: string) => {
+    return str
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/đ/g, "d")
+      .replace(/[^a-z0-9]/g, "");
+  };
+
   const handleConfirmLocation = (locationData: any) => {
     if (currentSetFormData) {
+      let matchedCity = locationData.city;
+      const targetCityInput = locationData.state || locationData.city;
+      if (targetCityInput && provinces.length > 0) {
+        const normalizedInput = normalizeString(targetCityInput).replace("thanhpho", "").replace("tinh", "");
+        const match = provinces.find((p) => {
+          const normP = normalizeString(p.label).replace("thanhpho", "").replace("tinh", "");
+          return normP === normalizedInput || normP.includes(normalizedInput) || normalizedInput.includes(normP);
+        });
+        if (match) {
+          matchedCity = match.value;
+        }
+      }
+
       currentSetFormData((prev) => ({
         ...prev,
         country: locationData.country,
-        city: locationData.city,
+        city: matchedCity,
         address: locationData.address,
       }));
     }
@@ -47,9 +75,11 @@ export const CreateTour: React.FC = () => {
       placeholder: t("tour.tourNamePlaceholder"),
       colSpan: 2,
       required: true,
+      maxLength: 100,
       validate: (value) => {
         const length = String(value ?? "").trim().length;
-        return length < 5 || length > 100 ? t("tour.nameLengthValidation") : undefined;
+        if (length < 5 || length > 100) return t("tour.nameLengthValidation");
+        return undefined;
       },
     },
     {
@@ -58,6 +88,7 @@ export const CreateTour: React.FC = () => {
       type: "select",
       icon: <Layers className="h-4 w-4" />,
       options: categoryOptions,
+      placeholder: t("tour.selectCategory"),
       required: true,
     },
     {
@@ -120,27 +151,42 @@ export const CreateTour: React.FC = () => {
               <MapPin className="h-4 w-4" /> {t("tour.pickOnMap")}
             </ActionButton>
           </div>
-          {error && (
-            <span className="text-xs font-medium text-rose-500">{error}</span>
-          )}
         </div>
       ),
     },
     {
       name: "city",
-      label: t("tour.city"),
-      type: "text",
-      placeholder: t("tour.city"),
-      icon: <MapPin className="h-4 w-4" />,
+      label: t("tour.provinceCity"),
+      type: "custom",
       required: true,
+      render: (value, onChange, error) => (
+        <div className="flex flex-col gap-1.5">
+          <SearchableSelect
+            options={provinces}
+            value={value || ""}
+            onChange={onChange}
+            placeholder={t("tour.selectProvinceCity")}
+            error={!!error}
+          />
+        </div>
+      ),
     },
     {
       name: "country",
       label: t("tour.country"),
-      type: "text",
-      placeholder: t("tour.country"),
-      icon: <MapPin className="h-4 w-4" />,
+      type: "custom",
       required: true,
+      render: (value, onChange, error) => (
+        <div className="flex flex-col gap-1.5">
+          <SearchableSelect
+            options={countries}
+            value={value || ""}
+            onChange={onChange}
+            placeholder={t("tour.country")}
+            error={!!error}
+          />
+        </div>
+      ),
     },
     {
       name: "description",
@@ -148,6 +194,12 @@ export const CreateTour: React.FC = () => {
       type: "custom",
       colSpan: 2,
       required: true,
+      validate: (value) => {
+        if (typeof value === "string" && value.includes("<img")) {
+          return t("tour.descriptionNoImageValidation");
+        }
+        return undefined;
+      },
       render: (value, onChange, error) => (
         <div className="flex flex-col gap-1.5">
           <div className="prose-sm max-w-none [&>.ql-toolbar]:rounded-t-xl [&>.ql-toolbar]:border-slate-200 [&>.ql-container]:rounded-b-xl [&>.ql-container]:border-slate-200">
@@ -157,11 +209,18 @@ export const CreateTour: React.FC = () => {
               onChange={onChange}
               placeholder={t("tour.tourDescriptionPlaceholder")}
               className={error ? "[&>.ql-container]:!border-rose-500" : ""}
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                  [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+                  ['link'],
+                  [{ 'color': [] }, { 'background': [] }],
+                  ['clean']
+                ],
+              }}
             />
           </div>
-          {error && (
-            <span className="text-xs font-medium text-rose-500">{error}</span>
-          )}
         </div>
       ),
     },
@@ -189,7 +248,7 @@ export const CreateTour: React.FC = () => {
         onSubmit={handleSubmit}
         serverErrors={serverErrors}
         onCancel={handleCancel}
-        initialValues={{ status: "Inactive" }}
+        initialValues={{ status: "Inactive", country: "Vietnam" }}
         submitText={t("tour.saveTour")}
         cancelText={t("common.cancel")}
       />

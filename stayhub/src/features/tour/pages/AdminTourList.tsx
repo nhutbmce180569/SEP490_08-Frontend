@@ -138,26 +138,34 @@ export const AdminTourList: React.FC = () => {
         header: t("tour.rating"),
         render: (tour) => {
           const rating = tour.averageStar ?? 0;
-          const displayRating = rating > 0 ? rating.toFixed(1) : t("tour.noRatings");
           return (
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3.5 w-3.5 ${
-                      i < Math.floor(rating)
-                        ? "fill-amber-400 text-amber-400"
-                        : i < rating
-                          ? "fill-amber-200 text-amber-400"
-                          : "text-slate-300"
-                    }`}
-                  />
-                ))}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-1.5">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3.5 w-3.5 ${
+                        i < Math.floor(rating)
+                          ? "fill-amber-400 text-amber-400"
+                          : i < rating
+                            ? "fill-amber-200 text-amber-400"
+                            : "text-slate-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {rating > 0 && (
+                  <span className="text-sm font-medium text-slate-600">
+                    {rating.toFixed(1)}
+                  </span>
+                )}
               </div>
-              <span className="text-sm font-medium text-slate-600">
-                {displayRating}
-              </span>
+              {rating === 0 && (
+                <span className="text-[11px] font-medium text-slate-400">
+                  {t("tour.noRatings")}
+                </span>
+              )}
             </div>
           );
         },
@@ -170,6 +178,7 @@ export const AdminTourList: React.FC = () => {
       },
       {
         header: t("common.actions"),
+        className: "w-[160px] min-w-[160px]",
         render: (tour) => (
           <div className="flex items-center gap-1.5">
             <ActionButton

@@ -27,6 +27,7 @@ interface StaffMember {
 interface TourScheduleStaffManagementProps {
   scheduleId: number;
   isReadOnly?: boolean; // <-- Thêm thuộc tính này để quản lý trạng thái Read-Only
+  noWrapper?: boolean; // <--- Thêm prop này để bỏ khung ngoài
   onAssignSuccess?: () => void;
   onRemoveSuccess?: () => void;
 }
@@ -37,6 +38,7 @@ export const TourScheduleStaffManagement: React.FC<
 > = ({
   scheduleId,
   isReadOnly = false, // <-- Gán giá trị mặc định là false nếu không truyền
+  noWrapper = false,
   onAssignSuccess,
   onRemoveSuccess,
 }) => {
@@ -183,21 +185,16 @@ export const TourScheduleStaffManagement: React.FC<
 
   // ============ RENDER ============
   return (
-    <div className="w-full max-w-5xl mx-auto p-6 bg-white rounded-2xl shadow-lg border border-slate-200 mt-6">
+    <div className={noWrapper ? "" : "w-full max-w-5xl mx-auto p-6 bg-white rounded-2xl shadow-lg border border-slate-200 mt-6"}>
       {/* ========== HEADER ========== */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-blue-100 rounded-lg">
-            <Users className="w-6 h-6 text-brand" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {t("tour.staffManagementTitle")}
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              {t("tour.staffManagementSubtitle")}
-            </p>
-          </div>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-base font-bold text-slate-900">
+            {t("tour.staffManagementTitle")}
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            {t("tour.staffManagementSubtitle")}
+          </p>
         </div>
 
         {/* Chỉ hiển thị nút Assign Staff khi không ở chế độ Read-Only */}

@@ -145,6 +145,7 @@
   "locationHintAutoFill": "Search for a place, click the map, or use your current location — city, country, and coordinates are filled automatically.",
   "sourceUrlInvalid": "Source URL must be a valid HTTP or HTTPS URL.",
   "descriptionLabel": "Description",
+  "onlyImageFilesAllowed": "Only image files (JPG, PNG, GIF, WebP, SVG) are allowed.",
   "failedToFetchBanners": "Failed to fetch banners.",
   "bannerDeactivated": "Banner deactivated successfully.",
   "bannerActivated": "Banner activated successfully.",

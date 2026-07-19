@@ -66,6 +66,7 @@ export const CreateScheduleItinerary: React.FC = () => {
     isCloning,
     cloningDayIndex,
     setInvalidItineraryIds,
+    setServerErrors,
     isTourLoading,
   } = useCreateScheduleItinerary();
   const { success, error: showError } = useToast();
@@ -209,6 +210,24 @@ export const CreateScheduleItinerary: React.FC = () => {
         dateDayMap.set(iti.itineraryDate, assignedDay);
       }
 
+      if (String(iti.description ?? "").trim().length < 10) {
+        showError(t("tour.error.descriptionMinLength", { day: assignedDay }));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
+        return;
+      }
+
+      if (iti.locationLat === null || iti.locationLat === undefined || iti.locationLng === null || iti.locationLng === undefined) {
+        showError("Vui lòng chọn địa điểm trên bản đồ cho " + (iti.title || "lịch trình"));
+        invalidIds.add(iti.id);
+        setInvalidItineraryIds(invalidIds);
+        setServerErrors((prev) => ({
+          ...prev,
+          [`itineraries[${i}].locationLat`]: "Vui lòng chọn địa điểm trên bản đồ",
+        }));
+        return;
+      }
+
       if (String(iti.title ?? "").trim().length < 3) {
         showError(t("tour.error.titleMinLength", { day: assignedDay }));
         invalidIds.add(iti.id);
@@ -320,6 +339,28 @@ export const CreateScheduleItinerary: React.FC = () => {
       setIsImporting(false);
     }
   };
+
+  useEffect(() => {
+    if (serverErrors && Object.keys(serverErrors).length > 0) {
+      setInvalidItineraryIds((prev) => {
+        const newInvalidIds = new Set(prev);
+        let hasNewInvalid = false;
+
+        Object.keys(serverErrors).forEach((key) => {
+          const match = key.match(/itineraries\[(\d+)\]/i);
+          if (match && match[1]) {
+            const index = parseInt(match[1], 10);
+            if (itineraries[index]) {
+              newInvalidIds.add(itineraries[index].id);
+              hasNewInvalid = true;
+            }
+          }
+        });
+
+        return hasNewInvalid ? newInvalidIds : prev;
+      });
+    }
+  }, [serverErrors, itineraries]);
 
   const getError = (index: number, field: string) => {
     if (!serverErrors) return null;
@@ -466,7 +507,7 @@ export const CreateScheduleItinerary: React.FC = () => {
             </p>
             <p>
               {t("tour.missingItineraryDaysMsg", {
-                days: missingDayNumbers.join(", Day "),
+                days: missingDayNumbers.join(`, ${t("tour.day")} `),
               })}
             </p>
             <p className="mt-1 text-[13px] text-amber-700">
@@ -618,7 +659,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-500">
+                          <span className="text-xs font-bold text-slate-500 capitalize">
                             {t("tour.day")}
                           </span>
                           <input

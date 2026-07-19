@@ -180,13 +180,19 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
 
             {/* Các trường form giống hệt như cũ */}
             <div className="sm:col-span-2">
-              <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                <Type className="h-4 w-4 text-slate-400" /> {t("tour.title")}{" "}
-                <span className="text-rose-500">*</span>
+              <label className="mb-1.5 flex items-center justify-between text-sm font-semibold text-slate-700">
+                <span className="flex items-center gap-1.5">
+                  <Type className="h-4 w-4 text-slate-400" /> {t("tour.title")}{" "}
+                  <span className="text-rose-500">*</span>
+                </span>
+                <span className="text-xs font-normal text-slate-400">
+                  {itinerary.title?.length || 0}/100
+                </span>
               </label>
               <input
                 type="text"
                 required
+                maxLength={100}
                 value={itinerary.title || ""}
                 onChange={(e) => updateItinerary("title", e.target.value)}
                 placeholder={t("tour.itineraryTitlePlaceholderTour")}
@@ -216,6 +222,16 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
                       ? "[&>.ql-container]:!border-rose-500"
                       : ""
                   }
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                      [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+                      ['link'],
+                      [{ 'color': [] }, { 'background': [] }],
+                      ['clean']
+                    ],
+                  }}
                 />
               </div>
               {getError("description") && (
@@ -241,13 +257,6 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
               {getError("endDuration") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError("endDuration")}</span>}
             </div>
 
-            <div className="sm:col-span-2 mt-2 flex items-center justify-between border-b border-slate-100 pb-3">
-              <label className="text-sm font-semibold text-slate-700">{t("tour.location")}</label>
-              <ActionButton type="button" variant="secondary" onClick={openMapModal} className="gap-2 px-3 py-1.5 text-xs text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100">
-                <Map className="h-3.5 w-3.5" /> {t("tour.pickLocationOnMap")}
-              </ActionButton>
-            </div>
-
             <div className="sm:col-span-2">
               <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                 {t("tour.tourismInfo")}
@@ -262,11 +271,22 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
             </div>
 
             <div className="sm:col-span-2">
-              <label className="mb-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                <MapPin className="h-4 w-4 text-emerald-500" /> {t("tour.locationName")}
+              <label className="mb-1.5 flex items-center justify-between text-sm font-semibold text-slate-700">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-4 w-4 text-emerald-500" /> {t("tour.locationName")}
+                </span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-normal text-slate-400">
+                    {itinerary.locationName?.length || 0}/255
+                  </span>
+                  <ActionButton type="button" variant="secondary" onClick={openMapModal} className="gap-2 px-2 py-1 text-xs text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100 h-7 rounded-md">
+                    <Map className="h-3.5 w-3.5" /> {t("tour.pickLocationOnMap")}
+                  </ActionButton>
+                </div>
               </label>
               <input
                 type="text"
+                maxLength={255}
                 value={itinerary.locationName ?? ""}
                 onChange={(e) => {
                   const locationName = e.target.value;
@@ -276,9 +296,10 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
                   });
                 }}
                 placeholder={t("tour.typeNameOrPickMap")}
-                className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError("locationName") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
+                className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError("locationName") || getError("locationLat") || getError("locationLng") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
               />
               {getError("locationName") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError("locationName")}</span>}
+              {(getError("locationLat") || getError("locationLng")) && <span className="mt-1 block text-xs font-medium text-rose-500">{getError("locationLat") || getError("locationLng")}</span>}
             </div>
           </div>
         </div>

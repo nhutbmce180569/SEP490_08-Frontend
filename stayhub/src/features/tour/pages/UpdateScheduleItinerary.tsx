@@ -161,6 +161,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
       name: "title",
       label: t("tour.title"),
       type: "text",
+      maxLength: 100,
       placeholder: t("tour.itineraryTitlePlaceholder"),
       icon: <Type className="h-4 w-4" />,
       colSpan: 2,
@@ -180,6 +181,16 @@ export const UpdateScheduleItinerary: React.FC = () => {
               onChange={onChange}
               placeholder={t("tour.updateItineraryDesc")}
               className={error ? "[&>.ql-container]:!border-rose-500" : ""}
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+                  [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
+                  ['link'],
+                  [{ 'color': [] }, { 'background': [] }],
+                  ['clean']
+                ],
+              }}
             />
           </div>
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
@@ -223,22 +234,6 @@ export const UpdateScheduleItinerary: React.FC = () => {
       )
     },
     {
-      name: "route_picker_heading", 
-      label: t("tour.location"), 
-      type: "custom", 
-      colSpan: 2,
-      render: (_value, _onChange, _error, setFormData, formData) => (
-        <div className="flex items-center justify-end border-b border-slate-100 pb-3">
-          <ActionButton 
-            type="button" variant="secondary" onClick={() => setFormData && formData && openMapModal(setFormData, formData)} 
-            className="gap-2 px-3 py-1.5 text-xs text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100"
-          >
-            <Map className="h-3.5 w-3.5" /> {t("tour.pickLocationOnMap")}
-          </ActionButton>
-        </div>
-      )
-    },
-    {
       name: "tourismInfoId",
       label: t("tour.tourismInfo"),
       type: "custom",
@@ -266,11 +261,12 @@ export const UpdateScheduleItinerary: React.FC = () => {
       ),
     },
     { 
-      name: "locationName", 
-      label: t("tour.locationName"), 
-      type: "custom", 
+      name: "locationName",
+      label: t("tour.locationName"),
+      type: "custom",
       colSpan: 2,
-      render: (value, onChange, error, setFormData) => (
+      maxLength: 255,
+      render: (value, onChange, error, setFormData, formData) => (
         <div className="flex flex-col gap-1.5">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -289,11 +285,19 @@ export const UpdateScheduleItinerary: React.FC = () => {
                     }));
                   }
                 }}
-                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${(error || formData?.serverErrors?.locationLat || formData?.serverErrors?.locationLng || formData?.serverErrors?.LocationLat || formData?.serverErrors?.LocationLng) ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
                 placeholder={t("tour.typeNameOrPickMap")}
                 value={value || ""}
               />
             </div>
+            <ActionButton
+              type="button"
+              variant="secondary"
+              onClick={() => setFormData && formData && openMapModal(setFormData, formData)}
+              className="gap-2 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100 shrink-0"
+            >
+              <Map className="h-4 w-4" /> {t("tour.pickLocationOnMap")}
+            </ActionButton>
           </div>
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>

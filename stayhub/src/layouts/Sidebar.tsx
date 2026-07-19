@@ -11,6 +11,7 @@ export type AdminSidebarItem = {
   label: string;
   to: string;
   icon: React.ReactNode;
+  headerTitle?: string;
 };
 
 export type AdminSidebarGroup = {
@@ -167,7 +168,7 @@ export function Sidebar({
           <div
             className="rounded-2xl bg-brand-light/80 p-3.5 text-xs leading-relaxed text-brand"
           >
-            <p className="font-bold">{variant === "admin" ? t("dashboard.stayhubAdmin") : t("dashboard.stayhubPartner")}</p>
+            <p className="font-bold">{variant === "admin" ? t("admin.admin") : t("manager.partner")}</p>
             <p className="mt-1 opacity-80">
               {variant === "admin" ? t("dashboard.adminSidebarDesc") : t("dashboard.partnerSidebarDesc")}
             </p>

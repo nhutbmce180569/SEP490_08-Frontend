@@ -43,17 +43,20 @@ export const DashboardLayout = () => {
         title: t("manager.toursSchedules"),
         items: [
           {
-            label: t("manager.myTours"),
+            label: t("manager.toursObj"),
+            headerTitle: t("manager.tourManagement"),
             to: PATH.MANAGER.MY_TOURS,
             icon: <BookOpen className={iconClass} />,
           },
           {
             label: t("manager.schedules"),
+            headerTitle: t("manager.scheduleManagement"),
             to: PATH.MANAGER.SCHEDULE_MANAGEMENT,
             icon: <CalendarDays className={iconClass} />,
           },
           {
-            label: t("manager.locations"),
+            label: t("manager.locationsObj"),
+            headerTitle: t("manager.locationManagement"),
             to: PATH.MANAGER.LOCATIONS,
             icon: <MapPin className={iconClass} />,
           },
@@ -64,11 +67,13 @@ export const DashboardLayout = () => {
         items: [
           {
             label: t("manager.cancellations"),
+            headerTitle: t("manager.cancellationManagement"),
             to: PATH.MANAGER.CANCELLATION_REQUESTS,
             icon: <FileText className={iconClass} />,
           },
           {
-            label: t("manager.vouchers"),
+            label: t("manager.vouchersObj"),
+            headerTitle: t("manager.voucherManagement"),
             to: PATH.MANAGER.VOUCHERS,
             icon: <Ticket className={iconClass} />,
           },
@@ -79,16 +84,19 @@ export const DashboardLayout = () => {
         items: [
           {
             label: t("manager.reviews"),
+            headerTitle: t("manager.reviewManagement"),
             to: PATH.MANAGER.REVIEWS,
             icon: <Star className={iconClass} />,
           },
           {
-            label: t("manager.moderation"),
+            label: t("manager.moderationObj"),
+            headerTitle: t("manager.moderationManagement"),
             to: PATH.MANAGER.MODERATION,
             icon: <ShieldAlert className={iconClass} />,
           },
           {
-            label: t("manager.trendPrediction"),
+            label: t("manager.trendPredictionObj"),
+            headerTitle: t("manager.trendPredictionManagement"),
             to: PATH.MANAGER.TREND_PREDICTION,
             icon: <LayoutDashboard className={iconClass} />,
           },

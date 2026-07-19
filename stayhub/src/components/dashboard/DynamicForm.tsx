@@ -13,6 +13,7 @@ export interface FormField {
   options?: { label: string; value: string | number }[];
   colSpan?: 1 | 2; // Hỗ trợ trải rộng 2 cột (ví dụ như mô tả hoặc hình ảnh)
   required?: boolean; // Tự động check field không được bỏ trống
+  maxLength?: number; // Giới hạn số lượng ký tự tối đa
   readOnly?: boolean; // Thêm cờ không cho phép nhập tay
   visible?: (formData: Record<string, any>) => boolean; // Ẩn/hiện field động theo dữ liệu form hiện tại
   validate?: (value: any, formData: Record<string, any>) => string | undefined; // Hàm validate custom
@@ -263,6 +264,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               className={baseInputClass}
               placeholder={field.placeholder}
               value={value}
+              maxLength={field.maxLength}
               onChange={(e) => handleChange(field.name, e.target.value)}
             />
           ) : field.type === "select" ? (
@@ -309,6 +311,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
             <input
               type={field.type}
               readOnly={field.readOnly}
+              maxLength={field.maxLength}
               className={`${baseInputClass} ${field.readOnly ? "cursor-not-allowed bg-slate-100 opacity-80" : ""}`}
               placeholder={field.placeholder}
               value={value}
@@ -362,10 +365,17 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               key={field.name}
               className={field.colSpan === 2 ? "md:col-span-2" : ""}
             >
-              <label className="mb-2 block text-sm font-semibold text-slate-700">
-                {field.label}
-                {field.required && (
-                  <span className="ml-1 text-rose-500">*</span>
+              <label className="mb-2 flex items-center justify-between text-sm font-semibold text-slate-700">
+                <span>
+                  {field.label}
+                  {field.required && (
+                    <span className="ml-1 text-rose-500">*</span>
+                  )}
+                </span>
+                {field.maxLength && (
+                  <span className="text-xs font-normal text-slate-400">
+                    {String(formData[field.name] ?? "").length}/{field.maxLength}
+                  </span>
                 )}
               </label>
               {renderInput(field)}

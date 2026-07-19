@@ -1,4 +1,4 @@
-import { Promotion } from "../../promotion/types/promotion";
+import type { Promotion } from "../../promotion/types/promotion";
 
 export interface TourScheduleTicketType {
   id?: number;
@@ -23,7 +23,6 @@ export interface TourScheduleTicket {
   availableSeats?: number | null;
   maxCapacity?: number | null;
   isActive?: boolean | null;
-  isActive?: boolean | null;
   note?: string | null;
   promotion?: Promotion | null;
 }
@@ -34,7 +33,6 @@ export interface CreateTourScheduleTicketRequest {
   ticketTypeId: number;
   price: number;
   quantity: number;
-  isActive?: boolean | null;
   isActive?: boolean | null;
   note?: string | null;
   promotionId?: number | null;

@@ -24,9 +24,9 @@ export const PublicTrackingPage: React.FC = () => {
   useEffect(() => {
     if (data) {
       setLiveLocation({ lat: data.lat, lng: data.lng });
-      setTargetName(data.fullName);
+      setTargetName(data.fullName || t("social.trackingGuestLabel") || "Người dùng");
     }
-  }, [data]);
+  }, [data, t]);
 
   useEffect(() => {
     if (!token || isError || !data) return;
@@ -118,11 +118,22 @@ export const PublicTrackingPage: React.FC = () => {
           <Marker longitude={liveLocation.lng} latitude={liveLocation.lat} anchor="bottom">
             <div className="pointer-events-none relative flex origin-bottom flex-col items-center justify-center">
               <div className="absolute -bottom-1 h-3 w-8 rounded-[100%] bg-black/30 blur-[3px]"></div>
-              <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-tr from-brand to-brand shadow-xl">
-                <MapPin className="h-6 w-6 text-white" />
+              <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-brand shadow-xl overflow-hidden">
+                {data?.avatarUrl ? (
+                  <img src={data.avatarUrl} alt={targetName} className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl bg-brand">
+                    {targetName?.charAt(0) || "?"}
+                  </div>
+                )}
                 <div className="absolute inset-0 animate-ping rounded-full border-[3px] border-brand opacity-50"></div>
               </div>
-              <div className="absolute -bottom-2 z-0 h-4 w-4 rotate-45 border-b-[4px] border-r-[4px] border-white bg-blue-400"></div>
+              <div className="absolute -bottom-2 z-0 h-4 w-4 rotate-45 border-b-[4px] border-r-[4px] border-white bg-brand"></div>
+              {targetName && (
+                <span className="mt-3 px-2.5 py-1 text-white text-xs font-bold rounded-md whitespace-nowrap shadow-md bg-brand">
+                  {targetName}
+                </span>
+              )}
             </div>
           </Marker>
         )}

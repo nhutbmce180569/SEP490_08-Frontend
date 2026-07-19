@@ -109,6 +109,14 @@ export const GlobalChatPopover: React.FC = () => {
 
   const handleShareLocationInChat = useCallback(() => {
     if (!activeRoomId || !isConnected) return;
+    const isAlreadyEnabled = localStorage.getItem("share_my_location") === "true";
+    localStorage.setItem("share_my_location", "true");
+    if (!isAlreadyEnabled) {
+      warning(
+        t("social.shareLocationWarnTurnOn") ||
+          "Đã tự động bật chia sẻ vị trí của bạn trên bản đồ để liên kết hoạt động chính xác!"
+      );
+    }
     shareLocation(undefined, {
       onSuccess: (token) => {
         const shareContent = `📍 Vị trí hiện tại của tôi: [LocationShare:${JSON.stringify({ token })}]`;
@@ -120,7 +128,7 @@ export const GlobalChatPopover: React.FC = () => {
         error("Không thể chia sẻ vị trí.");
       }
     });
-  }, [activeRoomId, isConnected, shareLocation, sendMessage, success, error, queryClient]);
+  }, [activeRoomId, isConnected, shareLocation, sendMessage, success, error, warning, t, queryClient]);
 
   // Mutation đánh dấu đã đọc
   const { mutate: mutateMarkAsRead } = useMutation({

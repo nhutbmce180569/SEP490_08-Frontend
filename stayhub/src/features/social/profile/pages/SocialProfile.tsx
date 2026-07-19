@@ -12,6 +12,7 @@ import { PATH } from '../../../../config/routes/route';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { MomentModal } from '../../moments/components/MomentModal';
 import { useToggleReaction, useGetMomentById } from '../../moments/hooks/useMoments';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const SocialProfile: React.FC = () => {
   const { t, locale } = useTranslation();
@@ -39,6 +40,13 @@ export const SocialProfile: React.FC = () => {
   const { mutate: respondToRequest } = useRespondToRequest();
   const { mutate: deleteFriend } = useDeleteFriendship();
   const { mutate: createChat } = useCreateChatRoom();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (id) {
+      void queryClient.invalidateQueries({ queryKey: ["friends", "status", String(id)] });
+    }
+  }, [id, queryClient]);
 
   const dateLocale = locale === 'vi' ? 'vi-VN' : 'en-US';
 
@@ -71,7 +79,9 @@ export const SocialProfile: React.FC = () => {
     return (moments || []).slice(0, visibleCount);
   }, [moments, visibleCount]);
 
-  const currentUserId = currentUser ? (currentUser.id || (currentUser as any).Id) : null;
+  const currentUserId = currentUser
+    ? (currentUser.id || currentUser.Id || currentUser.nameid || currentUser.sub || null)
+    : null;
   
   const initialIsLiked = useMemo(() => {
     if (!fetchedMoment || !currentUserId) return false;
@@ -160,7 +170,7 @@ export const SocialProfile: React.FC = () => {
   };
 
   const renderProfileActions = () => {
-    if (currentUser && String(currentUser.id || (currentUser as any).Id) === String(id)) {
+    if (currentUser && currentUserId && String(currentUserId) === String(id)) {
       return (
         <button
           onClick={() => navigate(PATH.CUSTOMER.PROFILE)}
@@ -176,45 +186,40 @@ export const SocialProfile: React.FC = () => {
       return <div className="h-10 w-24 bg-slate-100 animate-pulse rounded-xl"></div>;
     }
 
-    const status = friendshipStatus?.status || friendshipStatus?.Status || 'None';
-    const requesterId = friendshipStatus?.requesterId || friendshipStatus?.RequesterId;
+    const rawStatus = friendshipStatus?.status || friendshipStatus?.Status || 'none';
+    const status = rawStatus.toLowerCase();
+    const requesterId = friendshipStatus?.requesterId ?? friendshipStatus?.RequesterId;
+    const friendshipId = friendshipStatus?.id ?? friendshipStatus?.Id;
+    
+    // Safely check if outgoing by ensuring both IDs are defined
+    const isOutgoing = !!requesterId && !!currentUserId && String(requesterId) === String(currentUserId);
 
-    const userRoles = currentUser?.roles 
-      ? (Array.isArray(currentUser.roles) ? currentUser.roles : [currentUser.roles]) 
-      : [];
-    const currentUserIsStaffOrAdmin = userRoles.includes("Admin") || userRoles.includes("Manager") || userRoles.includes("Staff");
-    const targetIsStaffOrAdmin = profile?.roles?.includes("Admin") || profile?.roles?.includes("Manager") || profile?.roles?.includes("Staff");
-    const canChat = status === 'Accepted' || targetIsStaffOrAdmin || currentUserIsStaffOrAdmin;
+    console.log("[SocialProfile] Friendship status check:", {
+      status,
+      requesterId,
+      currentUserId,
+      isOutgoing,
+      friendshipStatus
+    });
 
-    const renderChatButton = () => {
-      if (!canChat) return null;
-      return (
-        <button
-          onClick={() => {
-            createChat(Number(id), {
-              onSuccess: (newRoom) => {
-                const roomId = newRoom?.data?.id || newRoom?.data?.Id || newRoom?.id || newRoom?.Id;
-                if (roomId) {
-                  navigate(`${PATH.CUSTOMER.SOCIAL_CHAT}?roomId=${roomId}`);
-                } else {
-                  error(t('social.couldNotGetChatRoom'));
-                }
-              },
-              onError: (err: any) => {
-                const msg = err.response?.data?.message || err.response?.data || t('social.errorCreatingChatRoom');
-                error(typeof msg === 'string' ? msg : t('social.unknownSystemError'));
-              },
-            });
-          }}
-          className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
-        >
-          <MessageCircle className="h-4 w-4" />
-          {t("social.message")}
-        </button>
-      );
+    const handleChatClick = () => {
+      createChat(Number(id), {
+        onSuccess: (newRoom) => {
+          const roomId = newRoom?.data?.id || newRoom?.data?.Id || newRoom?.id || newRoom?.Id;
+          if (roomId) {
+            navigate(`${PATH.CUSTOMER.SOCIAL_CHAT}?roomId=${roomId}`);
+          } else {
+            error(t('social.couldNotGetChatRoom'));
+          }
+        },
+        onError: (err: any) => {
+          const msg = err.response?.data?.message || err.response?.data || t('social.errorCreatingChatRoom');
+          error(typeof msg === 'string' ? msg : t('social.unknownSystemError'));
+        },
+      });
     };
 
-    if (status === 'None') {
+    if (status === 'none' || status === 'declined') {
       return (
         <div className="flex items-center gap-2.5 shrink-0">
           <button
@@ -235,14 +240,11 @@ export const SocialProfile: React.FC = () => {
             <UserPlus className="h-4 w-4" />
             {t("social.addFriend")}
           </button>
-          {renderChatButton()}
         </div>
       );
     }
 
-    if (status === 'Pending') {
-      const isOutgoing = String(requesterId) === String(currentUser?.id);
-
+    if (status === 'pending') {
       if (isOutgoing) {
         return (
           <div className="flex items-center gap-2.5 shrink-0">
@@ -253,7 +255,6 @@ export const SocialProfile: React.FC = () => {
               <Clock className="h-4 w-4" />
               {t("social.requestSent") || "Đã gửi lời mời"}
             </button>
-            {renderChatButton()}
           </div>
         );
       } else {
@@ -262,7 +263,7 @@ export const SocialProfile: React.FC = () => {
             <button
               onClick={() => {
                 respondToRequest(
-                  { requestId: friendshipStatus.id, isAccepted: true },
+                  { requestId: friendshipId, isAccepted: true },
                   {
                     onSuccess: () => success(t("social.friendRequestAccepted")),
                     onError: (err: any) => {
@@ -280,7 +281,7 @@ export const SocialProfile: React.FC = () => {
             <button
               onClick={() => {
                 respondToRequest(
-                  { requestId: friendshipStatus.id, isAccepted: false },
+                  { requestId: friendshipId, isAccepted: false },
                   {
                     onSuccess: () => success(t("social.friendRequestDeclined")),
                     onError: (err: any) => {
@@ -295,16 +296,21 @@ export const SocialProfile: React.FC = () => {
               <UserX className="h-4 w-4" />
               {t("social.decline")}
             </button>
-            {renderChatButton()}
           </div>
         );
       }
     }
 
-    if (status === 'Accepted') {
+    if (status === 'accepted') {
       return (
         <div className="flex items-center gap-2.5 shrink-0">
-          {renderChatButton()}
+          <button
+            onClick={handleChatClick}
+            className="flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
+          >
+            <MessageCircle className="h-4 w-4" />
+            {t("social.message")}
+          </button>
           <button
             onClick={() => setIsConfirmOpen(true)}
             className="flex items-center gap-2 rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all"

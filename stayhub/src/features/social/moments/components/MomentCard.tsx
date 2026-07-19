@@ -8,6 +8,7 @@ import { useToggleReaction, useDeleteMoment } from "../hooks/useMoments";
 import { MomentModal } from "./MomentModal";
 import type { Moment } from "../types/moment.type";
 import { reportContent } from "../services/momentService";
+import { ConfirmDialog } from "../../../../components/dashboard/ConfirmDialog";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -25,6 +26,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   const { mutate: toggleReaction, isPending } = useToggleReaction();
   const { mutate: deleteMoment, isPending: isDeleting } = useDeleteMoment();
   const { warning, error, success } = useToast();
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const formatTimeAgo = useCallback((dateString: string) => {
     if (!dateString) return t("social.justNow");
@@ -113,17 +115,24 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   }, [user, currentUserId, isLiked, moment.id, reactionList.length, toggleReaction, warning, error, t]);
 
   const handleDeleteMoment = useCallback(() => {
-    if (isDeleting) return;
-    if (window.confirm("Are you sure you want to delete this moment? This action cannot be undone.")) {
-      deleteMoment(
-        { momentId: moment.id, userId: Number(currentUserId) },
-        {
-          onSuccess: () => success("Moment deleted successfully"),
-          onError: () => error("Failed to delete moment")
-        }
-      );
-    }
+    setIsDeleteConfirmOpen(true);
+  }, []);
 
+  const executeDeleteMoment = useCallback(() => {
+    if (isDeleting) return;
+    deleteMoment(
+      { momentId: moment.id, userId: Number(currentUserId) },
+      {
+        onSuccess: () => {
+          success("Moment deleted successfully");
+          setIsDeleteConfirmOpen(false);
+        },
+        onError: () => {
+          error("Failed to delete moment");
+          setIsDeleteConfirmOpen(false);
+        }
+      }
+    );
   }, [currentUserId, deleteMoment, isDeleting, moment.id, success, error]);
 
 
@@ -329,6 +338,15 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
           onToggleLike={handleLike}
         />
       )}
+
+      <ConfirmDialog
+        open={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={executeDeleteMoment}
+        title="Xóa khoảnh khắc"
+        message="Bạn có chắc chắn muốn xóa khoảnh khắc này không? Thao tác này không thể hoàn tác."
+        variant="warning"
+      />
     </>
   );
 };

@@ -5,6 +5,7 @@ import { X, Search, Loader2, Send } from 'lucide-react';
 import * as signalR from '@microsoft/signalr';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
+import { SIGNALR_HUB_BASE } from '../../../../config/api/api';
 
 interface ShareTargetModalProps {
   onClose: () => void;
@@ -41,7 +42,7 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
     setSharingRoomId(roomId);
     try {
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl('https://localhost:7010/hubs/chat', {
+        .withUrl(`${SIGNALR_HUB_BASE}/chat`, {
           accessTokenFactory: () => localStorage.getItem('accessToken') || localStorage.getItem('access_token') || '',
         })
         .configureLogging(signalR.LogLevel.None)

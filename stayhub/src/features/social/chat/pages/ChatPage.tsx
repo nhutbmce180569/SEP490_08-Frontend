@@ -228,6 +228,14 @@ export const ChatPage: React.FC = () => {
 
   const handleShareLocationInChat = useCallback(() => {
     if (!selectedRoomId || !isConnected) return;
+    const isAlreadyEnabled = localStorage.getItem("share_my_location") === "true";
+    localStorage.setItem("share_my_location", "true");
+    if (!isAlreadyEnabled) {
+      warning(
+        t("social.shareLocationWarnTurnOn") ||
+          "Đã tự động bật chia sẻ vị trí của bạn trên bản đồ để liên kết hoạt động chính xác!"
+      );
+    }
     shareLocation(undefined, {
       onSuccess: (token) => {
         const shareContent = `📍 Vị trí hiện tại của tôi: [LocationShare:${JSON.stringify({ token })}]`;
@@ -239,7 +247,7 @@ export const ChatPage: React.FC = () => {
         error("Không thể chia sẻ vị trí.");
       }
     });
-  }, [selectedRoomId, isConnected, shareLocation, sendMessage, success, error, queryClient]);
+  }, [selectedRoomId, isConnected, shareLocation, sendMessage, success, error, warning, t, queryClient]);
 
   const handleSelectRoom = (roomId: number) => {
     setSelectedRoomId(roomId);

@@ -29,7 +29,7 @@ export function Table<T>({
   const resolvedEmpty = emptyMessage ?? t("common.noData");
   return (
     <div className="table-glass overflow-x-auto">
-      <table className="w-full min-w-[680px] border-collapse">
+      <table className="w-full min-w-[680px] table-fixed border-collapse">
         <thead>
           <tr className="border-b border-slate-100/80 bg-slate-50/70">
             {columns.map((col, idx) => (

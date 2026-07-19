@@ -1,7 +1,6 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Bell,
   ChevronRight,
   Home,
   KeyRound,
@@ -44,7 +43,6 @@ export function DashboardTopBar({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
-  const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +56,7 @@ export function DashboardTopBar({
       case "partner":
         basePath = PATH.MANAGER.DASHBOARD;
         metaData = {
-          label: t("dashboard.partner"),
+          label: t("manager.partner"),
           badgeClass: "bg-brand-light text-brand",
           subtitle: t("dashboard.partnerSubtitle"),
         };
@@ -66,7 +64,7 @@ export function DashboardTopBar({
       case "admin":
         basePath = PATH.ADMIN.DASHBOARD;
         metaData = {
-          label: t("dashboard.admin"),
+          label: t("admin.admin"),
           badgeClass: "bg-brand-light text-brand",
           subtitle: t("dashboard.adminSubtitle"),
         };
@@ -88,14 +86,6 @@ export function DashboardTopBar({
     }
     return { meta: metaData, profilePath: basePath };
   }, [role, t]);
-
-  const notificationItems = useMemo(
-    () =>
-      role === "admin"
-        ? [t("dashboard.notifAdminPartnerApproval"), t("dashboard.notifAdminViolation")]
-        : [t("dashboard.notifPartnerReview"), t("dashboard.notifPartnerReview5Star")],
-    [role, t],
-  );
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -162,46 +152,11 @@ export function DashboardTopBar({
         <LanguageSwitcher variant="icon" />
         <ThemeToggle />
 
-        <div className="relative">
-          <button
-            type="button"
-            className={`icon-btn relative ${showNotifications ? "!bg-brand-light !text-brand" : ""}`}
-            onClick={() => {
-              setShowNotifications((v) => !v);
-setShowProfileMenu(false);
-            }}
-            aria-label={t("dashboard.notifications")}
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-0.5 text-[9px] font-bold text-white ring-2 ring-white">
-              {role === "admin" ? 3 : 6}
-            </span>
-          </button>
-
-          {showNotifications && (
-            <div className="glass-dropdown absolute right-0 top-full z-50 mt-2 w-80 p-4">
-              <h3 className="mb-3 text-sm font-bold text-navy">{t("dashboard.notifications")}</h3>
-              <ul className="space-y-2 text-sm text-slate-600">
-                {notificationItems.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                className="mt-3 text-sm font-semibold text-brand hover:underline"
-              >
-                {t("dashboard.viewAll")}
-              </button>
-            </div>
-          )}
-        </div>
-
         <div className="relative" ref={menuRef}>
           <button
             type="button"
             onClick={() => {
               setShowProfileMenu((v) => !v);
-              setShowNotifications(false);
             }}
             className="flex items-center gap-2 rounded-full border border-transparent py-1 pl-1 pr-2 transition-colors hover:border-slate-200/80 hover:bg-white/60 md:pr-3"
           >

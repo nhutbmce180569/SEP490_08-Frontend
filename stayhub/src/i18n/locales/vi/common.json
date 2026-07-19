@@ -38,6 +38,7 @@
   "unpaid": "Chưa thanh toán",
   "yes": "Có",
   "no": "Không",
+  "detail": "Chi tiết",
   "select": "Chọn",
   "required": "Bắt buộc",
   "optional": "Tùy chọn",
@@ -136,5 +137,9 @@
   "minutesAgo": "{{count}} phút trước",
   "hoursAgo": "{{count}} giờ trước",
   "daysAgo": "{{count}} ngày trước",
-  "loadMore": "Tải thêm"
+  "loadMore": "Tải thêm",
+  "showing": "Hiển thị",
+  "of": "trong số",
+  "entries": "mục",
+  "perPage": "/ trang"
 }

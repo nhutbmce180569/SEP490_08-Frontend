@@ -36,5 +36,20 @@
   "eligibleCustomers": "Eligible Customers",
   "voucherCode": "Voucher Code",
   "distributeConfirmMessage": "You are about to distribute birthday vouchers for customers with birthdays in month {{month}}/{{year}}.",
-  "alreadyDistributedMessage": "Birthday vouchers for month {{month}}/{{year}} have already been distributed. You cannot distribute them again for this month."
+  "alreadyDistributedMessage": "Birthday vouchers for month {{month}}/{{year}} have already been distributed. You cannot distribute them again for this month.",
+  "users": "Users",
+  "userManagement": "User Management",
+  "toursObj": "Tours",
+  "tourManagement": "Tour Management",
+  "banners": "Banners",
+  "bannerManagement": "Banner Management",
+  "categoriesObj": "Categories",
+  "categoryManagement": "Category Management",
+  "tourismInformation": "Tourism Information",
+  "tourismInformationManagement": "Tourism Information Management",
+  "ticketTypes": "Ticket Types",
+  "ticketTypeManagement": "Ticket Type Management",
+  "vouchersObj": "Vouchers",
+  "promotionsObj": "Promotions",
+  "promotionManagement": "Promotion Management"
 }

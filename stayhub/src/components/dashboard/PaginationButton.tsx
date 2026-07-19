@@ -1,5 +1,6 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslation } from "../../contexts/LocaleContext";
 
 interface PaginationButtonProps {
   currentPage: number;
@@ -16,17 +17,20 @@ export const PaginationButton: React.FC<PaginationButtonProps> = ({
   pageSize,
   onPageChange,
 }) => {
+  const { t } = useTranslation();
   const from = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const to = Math.min(currentPage * pageSize, totalItems);
 
   return (
     <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3.5">
       <p className="text-xs text-slate-400">
-        Showing{" "}
+        {t("common.showing", { defaultValue: "Showing" })}{" "}
         <span className="font-semibold text-slate-600">
           {from}–{to}
         </span>{" "}
-        of <span className="font-semibold text-slate-600">{totalItems}</span>
+        {t("common.of", { defaultValue: "of" })}{" "}
+        <span className="font-semibold text-slate-600">{totalItems}</span>{" "}
+        {t("common.entries", { defaultValue: "entries" })}
       </p>
 
       <div className="flex items-center gap-1">

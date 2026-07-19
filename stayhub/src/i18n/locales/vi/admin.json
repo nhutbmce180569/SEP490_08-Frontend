@@ -36,5 +36,20 @@
   "eligibleCustomers": "Số KH hợp lệ",
   "voucherCode": "Mã Voucher",
   "distributeConfirmMessage": "Bạn đang chuẩn bị phát voucher sinh nhật cho các khách hàng có sinh nhật trong tháng {{month}}/{{year}}.",
-  "alreadyDistributedMessage": "Voucher sinh nhật cho tháng {{month}}/{{year}} đã được phát rồi. Bạn không thể phát lại cho tháng này."
+  "alreadyDistributedMessage": "Voucher sinh nhật cho tháng {{month}}/{{year}} đã được phát rồi. Bạn không thể phát lại cho tháng này.",
+  "users": "Người dùng",
+  "userManagement": "Quản lý người dùng",
+  "toursObj": "Chuyến đi",
+  "tourManagement": "Quản lý chuyến đi",
+  "banners": "Banner",
+  "bannerManagement": "Quản lý banner",
+  "categoriesObj": "Danh mục",
+  "categoryManagement": "Quản lý danh mục",
+  "tourismInformation": "Thông tin du lịch",
+  "tourismInformationManagement": "Quản lý thông tin du lịch",
+  "ticketTypes": "Loại vé",
+  "ticketTypeManagement": "Quản lý loại vé",
+  "vouchersObj": "Mã giảm giá",
+  "promotionsObj": "Chương trình khuyến mãi",
+  "promotionManagement": "Quản lý chương trình khuyến mãi"
 }

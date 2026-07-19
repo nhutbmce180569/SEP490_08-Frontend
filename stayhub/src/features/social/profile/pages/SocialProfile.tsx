@@ -220,6 +220,14 @@ export const SocialProfile: React.FC = () => {
     };
 
     if (status === 'none' || status === 'declined') {
+      // Hide Add Friend button entirely for Staff, Manager, or Admin accounts
+      const isRestrictedRole = profile?.roles?.some(
+        (r) => ['staff', 'manager', 'admin'].includes(r.toLowerCase())
+      );
+      if (isRestrictedRole) {
+        return null;
+      }
+
       return (
         <div className="flex items-center gap-2.5 shrink-0">
           <button

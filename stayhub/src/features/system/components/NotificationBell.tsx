@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationHub } from "../hooks/useNotificationHub";
 import { useTranslation } from "../../../contexts/LocaleContext";
-import { useGetPendingRequests } from "../../../features/social/friends/hooks/useFriends";
+import { useGetPendingRequests, useRespondToRequest } from "../../../features/social/friends/hooks/useFriends";
 import { getImg } from "../../../config/api/api";
 
 type NotificationWithMeta = {
@@ -46,6 +46,7 @@ export default function NotificationBell() {
 
   // Gọi API lấy các yêu cầu bạn bè đang chờ duyệt
   const { data: pendingRequests } = useGetPendingRequests(!!localStorage.getItem("accessToken"));
+  const { mutate: respondToRequest } = useRespondToRequest();
   const pendingRequestsCount = Array.isArray(pendingRequests) ? pendingRequests.length : 0;
 
   useNotificationHub(setNotifications);
@@ -190,8 +191,9 @@ export default function NotificationBell() {
                           e.stopPropagation();
                           if (noti.id > 0) deleteNoti(noti.id);
                           else {
-                            // Xóa virtual notification (lời mời kết bạn)
-                            setNotifications((prev) => prev.filter((x) => x.id !== noti.id));
+                            // Xóa virtual notification (lời mời kết bạn) bằng cách từ chối yêu cầu
+                            const requestId = -noti.id;
+                            respondToRequest({ requestId, isAccepted: false });
                           }
                         }}
                         className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-slate-100 text-slate-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-rose-100 hover:text-rose-500"

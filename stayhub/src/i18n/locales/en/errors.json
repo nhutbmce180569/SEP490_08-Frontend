@@ -27,5 +27,19 @@
   "changePasswordBtn": "Change password",
   "changingPassword": "Changing password...",
   "googleLoginFailed": "Google login failed. Please try again.",
-  "facebookLoginFailed": "Facebook login failed. Please try again."
+  "facebookLoginFailed": "Facebook login failed. Please try again.",
+  "fullNameNoSpecialChars": "Full name cannot contain special characters or icons.",
+  "phoneMax15Chars": "Phone number cannot exceed 15 digits.",
+  "phoneInvalid": "Invalid phone number format.",
+  "sendingOtp": "Sending verification code...",
+  "verifyRegisterOtpTitle": "Verify Registration OTP",
+  "verifyRegisterOtpSubtitle": "Please enter the 6-digit verification code sent to your email to verify and complete registration.",
+  "completeRegistrationBtn": "Complete Registration",
+  "completingRegistration": "Completing Registration...",
+  "backToRegister": "Back to edit registration details",
+  "googlePhoneModalTitle": "Complete Google Registration",
+  "googlePhoneModalDesc": "Your Google account is new. Please enter your phone number to complete registration.",
+  "googleRegisterCanceled": "Registration of new Google account canceled.",
+  "confirmAndCompleteBtn": "Confirm & Complete",
+  "cancelBtn": "Cancel"
 }

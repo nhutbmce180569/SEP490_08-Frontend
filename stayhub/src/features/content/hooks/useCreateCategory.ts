@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { createCategory } from "../services/category.service";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useCreateCategory = () => {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
   
@@ -31,19 +33,29 @@ export const useCreateCategory = () => {
         name: data.name,
         slug: finalSlug,
         description: data.description,
-        isActive: data.isActive === "Active",
+        isActive: false, // Mặc định tạo là inactive
         iconFile: data.iconFile instanceof File ? data.iconFile : undefined,
       };
 
       await createCategory(payload);
       
-      success("Category created successfully!");
+      success(t("content.categoryCreatedSuccess"));
       navigate(PATH.ADMIN.CATEGORY_MANAGEMENT);
     } catch (err: any) {
       if (err.response?.data?.errors) {
         setServerErrors(err.response.data.errors);
       }
-      showError(err.response?.data?.message || "Failed to create category.");
+      const msg = err.response?.data?.message || t("content.categoryCreateFailed");
+      showError(msg);
+      
+      if (msg && typeof msg === "string") {
+        const lower = msg.toLowerCase();
+        if (lower.includes("tên") || lower.includes("name")) {
+          setServerErrors((prev) => ({ ...prev, name: msg }));
+        } else if (lower.includes("slug")) {
+          setServerErrors((prev) => ({ ...prev, slug: msg }));
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }

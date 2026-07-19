@@ -106,7 +106,7 @@ export function Sidebar({
     <aside
       className={[
         "dashboard-sidebar glass-sidebar fixed left-0 top-0 z-40 flex h-full flex-col transition-all duration-300",
-        variant === "admin" ? "dashboard-sidebar--admin" : "dashboard-sidebar--partner",
+        "dashboard-sidebar--admin",
         collapsed ? "w-[76px]" : "w-[272px]",
         open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
       ].join(" ")}
@@ -168,9 +168,19 @@ export function Sidebar({
           <div
             className="rounded-2xl bg-brand-light/80 p-3.5 text-xs leading-relaxed text-brand"
           >
-            <p className="font-bold">{variant === "admin" ? t("admin.admin") : t("manager.partner")}</p>
+            <p className="font-bold">
+              {variant === "admin"
+                ? t("dashboard.stayhubAdmin", "StayHub System Admin")
+                : variant === "staff"
+                ? t("dashboard.stayhubStaff", "StayHub Tour Staff")
+                : t("dashboard.stayhubManager", "StayHub Tour Manager")}
+            </p>
             <p className="mt-1 opacity-80">
-              {variant === "admin" ? t("dashboard.adminSidebarDesc") : t("dashboard.partnerSidebarDesc")}
+              {variant === "admin"
+                ? t("dashboard.adminSidebarDesc", "Quản trị vĩ mô hệ thống, nhân sự & AI.")
+                : variant === "staff"
+                ? t("dashboard.staffSidebarDesc", "Điều hành đoàn, soát vé QR & bản đồ GPS.")
+                : t("dashboard.partnerSidebarDesc", "Quản lý tour, lịch trình, GPS & doanh số.")}
             </p>
           </div>
         </div>

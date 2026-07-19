@@ -56,25 +56,25 @@ export function DashboardTopBar({
       case "partner":
         basePath = PATH.MANAGER.DASHBOARD;
         metaData = {
-          label: t("manager.partner"),
-          badgeClass: "bg-brand-light text-brand",
-          subtitle: t("dashboard.partnerSubtitle"),
+          label: t("dashboard.tourManagerLabel", "TOUR MANAGER"),
+          badgeClass: "bg-brand-light text-brand font-bold",
+          subtitle: t("dashboard.tourManagerSubtitle", "Tour Operations Manager"),
         };
         break;
       case "admin":
         basePath = PATH.ADMIN.DASHBOARD;
         metaData = {
-          label: t("admin.admin"),
-          badgeClass: "bg-brand-light text-brand",
-          subtitle: t("dashboard.adminSubtitle"),
+          label: t("dashboard.adminLabel", "SYSTEM ADMIN"),
+          badgeClass: "bg-brand-light text-brand font-bold",
+          subtitle: t("dashboard.adminSubtitle", "System Administrator"),
         };
         break;
       case "staff":
         basePath = PATH.STAFF.DASHBOARD;
         metaData = {
-          label: "STAFF",
-          badgeClass: "bg-brand-light text-brand",
-          subtitle: t("dashboard.staffSubtitle"),
+          label: t("dashboard.tourStaffLabel", "TOUR STAFF"),
+          badgeClass: "bg-brand-light text-brand font-bold",
+          subtitle: t("dashboard.tourStaffSubtitle", "Tour Guide & Field Staff"),
         };
         break;
       default:

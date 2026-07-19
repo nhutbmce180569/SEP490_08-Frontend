@@ -2,6 +2,7 @@ import React, { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { AuthContext } from "./AuthContext";
 import { PATH } from "../config/routes/route";
+import { getDashboardPath } from "../utils/jwt";
 
 const GuestRoute: React.FC = () => {
     const { user, loading } = useContext(AuthContext);
@@ -15,8 +16,9 @@ const GuestRoute: React.FC = () => {
     }
 
     if (user) {
-        return <Navigate to={PATH.PUBLIC.HOME} replace />;
+        return <Navigate to={getDashboardPath(user.roles)} replace />;
     }
+
 
     return <Outlet />;
 };

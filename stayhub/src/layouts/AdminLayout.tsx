@@ -6,6 +6,7 @@ import {
   Gift,
   Image,
   Layers,
+  LayoutDashboard,
   Map,
   PieChart,
   Ticket,
@@ -25,6 +26,16 @@ export const AdminLayout = () => {
 
   const groups = useMemo<AdminSidebarGroup[]>(
     () => [
+      {
+        title: t("dashboard.operations"),
+        items: [
+          {
+            label: t("dashboard.adminDashboard"),
+            to: PATH.ADMIN.DASHBOARD,
+            icon: <LayoutDashboard className={iconClass} />,
+          },
+        ],
+      },
       {
         title: t("admin.analytics"),
         items: [

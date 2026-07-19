@@ -4,11 +4,12 @@ import { getAllCategories } from "../services/category.service";
 import { PATH } from "../../../config/routes/route";
 import type { ReadCategoryDTO, PaginationDTO } from "../types/category";
 
-export const useCategories = (pageSize: number = 5, keyword?: string) => {
+export const useCategories = (initialPageSize: number = 5, keyword?: string) => {
   const [data, setData] = useState<PaginationDTO<ReadCategoryDTO> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
 
   const navigate = useNavigate();
 
@@ -33,5 +34,5 @@ export const useCategories = (pageSize: number = 5, keyword?: string) => {
   const handleEdit = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/edit`);
   const handleDelete = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/delete`);
 
-  return { data, isLoading, error, page, pageSize, setPage, handleCreate, handleEdit, handleDelete, refetch: fetchCategories };
+  return { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, handleDelete, refetch: fetchCategories };
 };

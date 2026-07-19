@@ -99,18 +99,26 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
   const handleSubmit = () => {
     const newErrors: Record<string, string> = {};
     let isValid = true;
-    const validateFields = (fieldsList: FormField[]) => {
-      const visibleFields = fieldsList.filter((field) => (field.visible ? field.visible(formData) : true));
-      visibleFields.forEach((field) => {
-        if (field.type === "row" && field.subFields) {
-          validateFields(field.subFields);
-          return;
-        }
-        const value = formData[field.name];
-        
-        // Kiểm tra required
-        if (field.required && (value === undefined || value === null || value === "")) {
-          newErrors[field.name] = t("common.fieldRequired", { label: field.label });
+    const visibleFields = fields.filter((field) => (field.visible ? field.visible(formData) : true));
+
+    visibleFields.forEach((field) => {
+      const value = formData[field.name];
+      
+      // Kiểm tra required
+      if (field.required && (value === undefined || value === null || value === "")) {
+        newErrors[field.name] = t("common.fieldRequired", { label: field.label });
+        isValid = false;
+      } 
+      // Kiểm tra file type trong lúc submit nếu có file
+      else if (field.type === "file" && value instanceof File && !value.type.startsWith("image/")) {
+        newErrors[field.name] = t("content.onlyImageFilesAllowed");
+        isValid = false;
+      }
+      // Kiểm tra hàm validate custom
+      else if (field.validate) {
+        const errorMsg = field.validate(value, formData);
+        if (errorMsg) {
+          newErrors[field.name] = errorMsg;
           isValid = false;
         } 
         // Kiểm tra hàm validate custom
@@ -140,7 +148,12 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
     // Nếu là trường custom, cho phép tự render giao diện dựa trên logic truyền vào
     if (field.type === "custom" && field.render) {
-      return field.render(value, (val) => handleChange(field.name, val), error, setFormData, formData);
+      return (
+        <div className="flex flex-col gap-1.5">
+          {field.render(value, (val) => handleChange(field.name, val), error, setFormData, formData)}
+          {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
+        </div>
+      );
     }
 
     if (field.type === "file") {
@@ -163,7 +176,31 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
 
       const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-          handleChange(field.name, e.target.files[0]);
+          const file = e.target.files[0];
+          if (!file.type.startsWith("image/")) {
+            setErrors((prev) => ({ ...prev, [field.name]: t("content.onlyImageFilesAllowed") }));
+            e.target.value = "";
+            return;
+          }
+          handleChange(field.name, file);
+        }
+      };
+
+      const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+          const file = e.dataTransfer.files[0];
+          if (!file.type.startsWith("image/")) {
+            setErrors((prev) => ({ ...prev, [field.name]: t("content.onlyImageFilesAllowed") }));
+            return;
+          }
+          handleChange(field.name, file);
         }
       };
 
@@ -184,6 +221,8 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
                 : 'border-slate-200 bg-slate-50 hover:border-brand hover:bg-brand/5'
             } ${!preview ? 'cursor-pointer py-10' : 'py-8'}`}
             onClick={!preview ? triggerFileSelect : undefined}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
           >
             <input
               ref={fileInputRef}

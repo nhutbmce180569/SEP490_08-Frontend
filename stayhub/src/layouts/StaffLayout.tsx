@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Calendar, MapPin, QrCode, Ticket, Users } from "lucide-react";
+import { Calendar, LayoutDashboard, MapPin, QrCode, Ticket, Users } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
 import { useTranslation } from "../contexts/LocaleContext";
@@ -17,6 +17,11 @@ export const StaffLayout = () => {
       {
         title: t("dashboard.operations"),
         items: [
+          {
+            label: t("dashboard.staffDashboard"),
+            to: PATH.STAFF.DASHBOARD,
+            icon: <LayoutDashboard className={iconClass} />,
+          },
           {
             label: t("staff.assignedSchedules"),
             to: PATH.STAFF.SCHEDULES,
@@ -53,10 +58,10 @@ export const StaffLayout = () => {
       role="staff"
       logoLink={PATH.STAFF.DASHBOARD}
       groups={groups}
-      defaultTitle={t("staff.staffDashboard")}
+      defaultTitle={t("staff.tourStaffDashboard", "Tour Staff Dashboard")}
       badge={
-        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-          STAFF
+        <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
+          {t("staff.tourStaff", "TOUR STAFF")}
         </span>
       }
     />

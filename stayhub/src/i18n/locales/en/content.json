@@ -144,5 +144,6 @@
   "pickOnMapBtn": "Pick on Map",
   "locationHintAutoFill": "Search for a place, click the map, or use your current location — city, country, and coordinates are filled automatically.",
   "sourceUrlInvalid": "Source URL must be a valid HTTP or HTTPS URL.",
-  "descriptionLabel": "Description"
+  "descriptionLabel": "Description",
+  "onlyImageFilesAllowed": "Only image files (JPG, PNG, GIF, WebP, SVG) are allowed."
 }

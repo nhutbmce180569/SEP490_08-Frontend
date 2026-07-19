@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Banknote, Save, Ticket, Users, X } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
+import { SearchableSelect } from "../../../components/dashboard/SearchableSelect";
 import { useToast } from "../../../contexts/ToastContext";
 import { getApiErrorMessage } from "../../content/utils/apiError";
 import { ticketTypeService } from "../../content/services/ticketType.service";
@@ -15,6 +16,7 @@ import {
   buildScheduleTicketPayload,
   getScheduleTicketCapacity,
   getScheduleTicketTypeId,
+  formatTicketCurrency,
 } from "../utils/tourScheduleTicket";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { usePromotions } from "../../promotion/hooks/usePromotions";
@@ -27,7 +29,7 @@ export const UpdateScheduleTicket: React.FC = () => {
   const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById } =
     useTourSchedule();
 
-  const { data: promotionsData, isLoading: isLoadingPromotions } = usePromotions({ status: "Active" });
+  const { data: promotionsData, isLoading: isLoadingPromotions } = usePromotions({ status: "Active", limit: 1000 });
   const activePromotions = promotionsData?.data || [];
 
   const [ticket, setTicket] = React.useState<TourScheduleTicket | null>(null);
@@ -43,6 +45,27 @@ export const UpdateScheduleTicket: React.FC = () => {
   const [isFetching, setIsFetching] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
+
+  const selectedPromotion = React.useMemo(() => {
+    return activePromotions.find((p) => p.id.toString() === promotionId);
+  }, [activePromotions, promotionId]);
+
+  const discountAmount = React.useMemo(() => {
+    if (!selectedPromotion || !price) return 0;
+    const p = Number(price);
+    if (!Number.isFinite(p) || p <= 0) return 0;
+    
+    let amount = 0;
+    if (selectedPromotion.discountType === "PERCENTAGE") {
+      amount = p * (selectedPromotion.discountValue / 100);
+      if (selectedPromotion.maxDiscountAmount && amount > selectedPromotion.maxDiscountAmount) {
+        amount = selectedPromotion.maxDiscountAmount;
+      }
+    } else {
+      amount = selectedPromotion.discountValue;
+    }
+    return Math.round(amount);
+  }, [selectedPromotion, price]);
 
   React.useEffect(() => {
     if (!scheduleId) return;
@@ -125,7 +148,7 @@ export const UpdateScheduleTicket: React.FC = () => {
       return;
     }
 
-    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+    if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
       setFormError(t("tour.priceInvalid"));
       return;
     }
@@ -320,22 +343,37 @@ export const UpdateScheduleTicket: React.FC = () => {
               Promotion <span className="text-slate-400 font-normal">(Optional)</span>
             </label>
             <div className="relative">
-              <select
+              <SearchableSelect
+                options={[
+                  { label: isLoadingPromotions ? "Loading promotions..." : "No promotion", value: "" },
+                  ...activePromotions.map((promo) => ({
+                    label: `${promo.code} - ${promo.name}`,
+                    value: promo.id.toString(),
+                  })),
+                ]}
                 value={promotionId}
-                onChange={(event) => setPromotionId(event.target.value)}
+                onChange={setPromotionId}
                 disabled={isLoadingPromotions || isSubmitting}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                <option value="">
-                  {isLoadingPromotions ? "Loading promotions..." : "No promotion"}
-                </option>
-                {activePromotions.map((promo) => (
-                  <option key={promo.id} value={promo.id}>
-                    {promo.code} - {promo.name}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select promotion"
+                direction="up"
+              />
             </div>
+            {selectedPromotion && Number(price) > 0 && (
+              <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-medium">Original Price:</span>
+                  <span>{formatTicketCurrency(Number(price))}</span>
+                </div>
+                <div className="flex justify-between items-center mb-1 text-emerald-600">
+                  <span className="font-medium">Discount ({selectedPromotion.discountType === "PERCENTAGE" ? `${selectedPromotion.discountValue}%` : 'Fixed'}):</span>
+                  <span>- {formatTicketCurrency(discountAmount)}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-emerald-200/50 font-bold text-emerald-800">
+                  <span>Final Price:</span>
+                  <span>{formatTicketCurrency(Math.max(0, Number(price) - discountAmount))}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">

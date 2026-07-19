@@ -141,5 +141,10 @@
   "showing": "Hiển thị",
   "of": "trong số",
   "entries": "mục",
-  "perPage": "/ trang"
+  "perPage": "/ trang",
+  "changeImage": "Đổi ảnh",
+  "removeImage": "Gỡ ảnh",
+  "clickToUpload": "Nhấn để tải lên hoặc kéo thả",
+  "uploadFormatHint": "SVG, PNG, JPG hoặc WebP (tối đa 5MB)",
+  "browseFiles": "Duyệt file"
 }

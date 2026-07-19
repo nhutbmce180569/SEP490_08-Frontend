@@ -33,5 +33,7 @@
   "moderationObj": "Kiểm duyệt",
   "moderationManagement": "Quản lý kiểm duyệt",
   "trendPredictionObj": "Dự báo Tour Hot",
-  "trendPredictionManagement": "Quản lý dự báo Tour Hot"
+  "trendPredictionManagement": "Quản lý dự báo Tour Hot",
+  "tourManagerDashboard": "Bảng điều khiển Quản lý",
+  "tourManager": "QUẢN LÝ"
 }

@@ -33,5 +33,7 @@
   "moderationObj": "Moderation",
   "moderationManagement": "Moderation Management",
   "trendPredictionObj": "Trend Prediction",
-  "trendPredictionManagement": "Trend Prediction Management"
+  "trendPredictionManagement": "Trend Prediction Management",
+  "tourManagerDashboard": "Manager Dashboard",
+  "tourManager": "MANAGER"
 }

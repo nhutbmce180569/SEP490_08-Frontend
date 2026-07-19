@@ -170,7 +170,7 @@ export function Sidebar({
           >
             <p className="font-bold">
               {variant === "admin"
-                ? t("dashboard.stayhubAdmin", "StayHub System Admin")
+                ? t("dashboard.stayhubAdmin", "StayHub Admin")
                 : variant === "staff"
                 ? t("dashboard.stayhubStaff", "StayHub Tour Staff")
                 : t("dashboard.stayhubManager", "StayHub Tour Manager")}

@@ -7,6 +7,7 @@ import type { PaginatedPromotions } from '../types/promotion';
 interface UsePromotionsFilters {
   search?: string;
   status?: string;
+  limit?: number;
 }
 
 export const usePromotions = (filters: UsePromotionsFilters) => {
@@ -14,7 +15,7 @@ export const usePromotions = (filters: UsePromotionsFilters) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(filters.limit || 10);
   const navigate = useNavigate();
 
   const fetchPromotions = useCallback(async () => {

@@ -146,5 +146,10 @@
   "showing": "Showing",
   "of": "of",
   "entries": "entries",
-  "perPage": "/ page"
+  "perPage": "/ page",
+  "changeImage": "Change Image",
+  "removeImage": "Remove",
+  "clickToUpload": "Click to upload or drag and drop",
+  "uploadFormatHint": "SVG, PNG, JPG or WebP (max. 5MB)",
+  "browseFiles": "Browse Files"
 }

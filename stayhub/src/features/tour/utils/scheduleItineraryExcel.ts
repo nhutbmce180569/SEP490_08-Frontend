@@ -138,6 +138,24 @@ export const downloadScheduleItineraryExcelTemplate = async () => {
     cell.border = BORDER;
   });
 
+  // Thêm 1 record mẫu và hướng dẫn kế bên
+  const sampleRow = itinerarySheet.addRow([
+    1,
+    new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate() + 7), // A week from now
+    "Khám phá chợ Bến Thành",
+    "Tham quan chợ, mua sắm đặc sản và tìm hiểu văn hóa địa phương.",
+    0.333333, // 08:00 in Excel time
+    0.4375, // 10:30 in Excel time
+    "Chợ Bến Thành, Quận 1",
+    "",
+    "👈 Dữ liệu mẫu (Hãy xóa dòng này trước khi import). Đọc thêm ở sheet Instructions."
+  ]);
+  
+  // Format lại cột I (hướng dẫn)
+  itinerarySheet.getColumn(9).width = 75;
+  sampleRow.getCell(9).font = { italic: true, color: { argb: "FF0000" } };
+  sampleRow.getCell(9).alignment = { vertical: "middle" };
+
   //
   // RÀNG BUỘC KIỂU DỮ LIỆU (Áp dụng cho 100 dòng đầu tiên)
   //

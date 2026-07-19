@@ -23,7 +23,7 @@ export const useTours = (initialPageSize: number = 5) => {
   const [page, setPage] = useState(1);
   const [search, setSearchState] = useState("");
   const [categoryId, setCategoryIdState] = useState<number | null>(null);
-  const [createdByMe, setCreatedByMeState] = useState(false);
+  const [createdByMe, setCreatedByMeState] = useState(true);
   const [categories, setCategories] = useState<ReadCategoryDTO[]>([]);
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [data, setData] = useState<PaginatedResponse<Tour> | null>(null);

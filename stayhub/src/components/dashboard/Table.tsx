@@ -6,6 +6,7 @@ export interface Column<T> {
   accessor?: keyof T;
   render?: (item: T, index: number) => React.ReactNode;
   className?: string;
+  skeletonClassName?: string;
 }
 
 interface TableProps<T> {
@@ -58,7 +59,7 @@ export function Table<T>({
                     key={`skeleton-col-${colIndex}`}
                     className={`px-5 py-3.5 ${col.className || ""}`}
                   >
-                    <div className="h-5 w-full animate-pulse rounded-lg bg-slate-200/80"></div>
+                    <div className={`${col.skeletonClassName || "h-5 w-full"} animate-pulse rounded-lg bg-slate-200/80`}></div>
                   </td>
                 ))}
               </tr>

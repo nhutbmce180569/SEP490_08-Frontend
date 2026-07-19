@@ -64,9 +64,9 @@ export function DashboardTopBar({
       case "admin":
         basePath = PATH.ADMIN.DASHBOARD;
         metaData = {
-          label: t("dashboard.adminLabel", "SYSTEM ADMIN"),
+          label: t("dashboard.adminLabel", "ADMIN"),
           badgeClass: "bg-brand-light text-brand font-bold",
-          subtitle: t("dashboard.adminSubtitle", "System Administrator"),
+          subtitle: t("dashboard.adminSubtitle", "Administrator"),
         };
         break;
       case "staff":

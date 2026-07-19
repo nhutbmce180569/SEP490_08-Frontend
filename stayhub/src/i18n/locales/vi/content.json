@@ -144,5 +144,6 @@
   "pickOnMapBtn": "Chọn trên bản đồ",
   "locationHintAutoFill": "Tìm địa điểm, nhấp bản đồ hoặc dùng vị trí hiện tại — thành phố, quốc gia và tọa độ được điền tự động.",
   "sourceUrlInvalid": "URL nguồn phải là HTTP hoặc HTTPS hợp lệ.",
-  "descriptionLabel": "Mô tả"
+  "descriptionLabel": "Mô tả",
+  "onlyImageFilesAllowed": "Chỉ cho phép tải lên tệp hình ảnh (JPG, PNG, GIF, WebP, SVG)."
 }

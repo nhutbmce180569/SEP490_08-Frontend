@@ -24,6 +24,12 @@ export interface Tour {
   tourItineraries?: TourItinerary[];
   tourSchedules?: TourSchedule[];
   reviews? : Review[];
+  totalReviews?: number;
+  fiveStarCount?: number;
+  fourStarCount?: number;
+  threeStarCount?: number;
+  twoStarCount?: number;
+  oneStarCount?: number;
 }
 
 export interface TourBasic {

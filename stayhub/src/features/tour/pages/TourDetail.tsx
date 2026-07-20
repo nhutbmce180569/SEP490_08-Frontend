@@ -37,6 +37,48 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 
 type TabKey = "itinerary" | "reviews";
 
+const ExpandableText = ({
+  text,
+  maxLength = 200,
+  showMoreLabel,
+  showLessLabel,
+  className = "text-slate-600 leading-relaxed whitespace-pre-line"
+}: {
+  text: string;
+  maxLength?: number;
+  showMoreLabel: string;
+  showLessLabel: string;
+  className?: string;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const needsExpand = text.length > maxLength;
+  const displayText = !needsExpand || isExpanded ? text : `${text.substring(0, maxLength)}...`;
+
+  return (
+    <div>
+      <p className={className}>{displayText}</p>
+      {needsExpand && (
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand/5 px-3 py-1.5 text-xs font-bold text-brand transition-colors hover:bg-brand/10 hover:text-brand-hover"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-3.5 w-3.5" />
+              {showLessLabel}
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3.5 w-3.5" />
+              {showMoreLabel}
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export const TourDetail: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
@@ -103,19 +145,6 @@ export const TourDetail: React.FC = () => {
       });
     }
   }, [fetchedReviews, reviewPage]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isReviewsLoading && localReviews.length < (totalCount || 0)) {
-          setReviewPage((prev) => prev + 1);
-        }
-      },
-      { threshold: 1.0 }
-    );
-    if (observerTarget.current) observer.observe(observerTarget.current);
-    return () => observer.disconnect();
-  }, [isReviewsLoading, localReviews.length, totalCount]);
 
   const handleRatingChange = (val: string) => {
     setRatingFilter(val === "" ? null : Number(val));
@@ -332,18 +361,16 @@ export const TourDetail: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`relative mr-1 flex items-center gap-2 rounded-t-xl px-5 py-2.5 text-sm font-semibold transition-all ${
-                activeTab === tab.key
-                  ? "bg-white text-brand border border-b-white border-slate-200 -mb-px z-10"
-                  : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-              }`}
+              className={`relative mr-1 flex items-center gap-2 rounded-t-xl px-5 py-2.5 text-sm font-semibold transition-all ${activeTab === tab.key
+                ? "bg-white text-brand border border-b-white border-slate-200 -mb-px z-10"
+                : "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                }`}
             >
               {tab.icon}
               {tab.label}
               {tab.count !== undefined && tab.count > 0 && (
-                <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                  activeTab === tab.key ? "bg-brand/10 text-brand" : "bg-slate-200 text-slate-500"
-                }`}>
+                <span className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${activeTab === tab.key ? "bg-brand/10 text-brand" : "bg-slate-200 text-slate-500"
+                  }`}>
                   {tab.count}
                 </span>
               )}
@@ -370,11 +397,10 @@ export const TourDetail: React.FC = () => {
                           <button
                             key={dayNumber}
                             onClick={() => setSelectedDay(dayNumber)}
-                            className={`relative flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${
-                              isSelected
-                                ? "bg-brand text-white shadow-sm"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            }`}
+                            className={`relative flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${isSelected
+                              ? "bg-brand text-white shadow-sm"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
                           >
                             <span className="capitalize">{t("tour.day")}</span> {dayNumber}
                             {isMissing && (
@@ -620,20 +646,22 @@ export const TourDetail: React.FC = () => {
                             ))}
                           </div>
                         </div>
-                        <p className="text-sm leading-relaxed text-slate-700">{review.comment || t("tour.noComment")}</p>
+                        <ExpandableText
+                          text={review.comment || t("tour.noComment")}
+                          showMoreLabel={t("tour.showMore")}
+                          showLessLabel={t("tour.showLess")}
+                          className="text-sm leading-relaxed text-slate-700"
+                        />
 
                         {review.replies && review.replies.length > 0 && (
                           <div className="mt-3 space-y-3">
                             {review.replies.map((reply: any) => {
-                              const replyName = reply.userName || reply.UserName || (reply.userId ? `Staff #${reply.userId}` : t("tour.tourManager"));
-                              const replyInitial = replyName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "TM";
+                              const replyName = t("tour.tourManager");
+                              const replyInitial = "TM";
                               return (
                                 <div key={reply.id} className="flex gap-3 rounded-xl border border-slate-200 bg-white p-3.5">
                                   <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-indigo-200 bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs uppercase">
-                                    {reply.userAvatar ? (
-                                      <img src={reply.userAvatar} alt={replyName} className="h-full w-full object-cover"
-                                        onError={(e) => { e.currentTarget.style.display = "none"; e.currentTarget.parentElement!.innerText = replyInitial; }} />
-                                    ) : replyInitial}
+                                    {replyInitial}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-800">
@@ -641,7 +669,12 @@ export const TourDetail: React.FC = () => {
                                       <span className="text-slate-300">·</span>
                                       <span className="font-normal text-slate-400">{reply.createdAt ? new Date(reply.createdAt).toLocaleDateString("vi-VN") : ""}</span>
                                     </div>
-                                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{reply.content}</p>
+                                    <ExpandableText
+                                      text={reply.content}
+                                      showMoreLabel={t("tour.showMore")}
+                                      showLessLabel={t("tour.showLess")}
+                                      className="mt-1 text-sm text-slate-600 leading-relaxed"
+                                    />
                                   </div>
                                 </div>
                               );
@@ -661,9 +694,42 @@ export const TourDetail: React.FC = () => {
                   )
                 )}
 
-                <div ref={observerTarget} className="h-4 w-full" />
+                {localReviews.length > 0 && (
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-4 border-t border-slate-100 pt-8">
+                    {localReviews.length < (totalCount || 0) && (
+                      <button
+                        onClick={() => setReviewPage(prev => prev + 1)}
+                        disabled={isReviewsLoading}
+                        className="group relative overflow-hidden rounded-xl bg-white px-8 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-brand hover:ring-brand/50 hover:shadow-md disabled:opacity-50"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          {isReviewsLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-400 transition-colors group-hover:text-brand" />
+                          )}
+                          {isReviewsLoading ? (t("tour.loadingReviewsMgr") || "Đang tải thêm...") : t("tour.showMore")}
+                        </span>
+                        <div className="absolute inset-0 z-0 bg-gradient-to-r from-brand/0 via-brand/5 to-brand/0 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </button>
+                    )}
+                    {reviewPage > 1 && (
+                      <button
+                        onClick={() => {
+                          setReviewPage(1);
+                          setLocalReviews(localReviews.slice(0, 5));
+                        }}
+                        disabled={isReviewsLoading}
+                        className="group flex items-center gap-2 rounded-xl bg-white px-8 py-3 text-sm font-bold text-slate-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-700 hover:ring-slate-300 disabled:opacity-50"
+                      >
+                        <ChevronUp className="h-4 w-4 text-slate-400 transition-colors group-hover:text-slate-600" />
+                        {t("tour.showLess")}
+                      </button>
+                    )}
+                  </div>
+                )}
 
-                {isReviewsLoading && (
+                {isReviewsLoading && localReviews.length === 0 && (
                   <div className="flex justify-center py-4">
                     <div className="flex items-center gap-2 text-brand">
                       <Loader2 className="h-5 w-5 animate-spin" />

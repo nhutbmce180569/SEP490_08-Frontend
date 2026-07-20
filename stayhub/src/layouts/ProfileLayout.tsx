@@ -28,7 +28,6 @@ const navItems = [
   { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
   { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
   { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles, openPlanner: true },
-  { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
 ];
 
 export const ProfileLayout = () => {
@@ -46,7 +45,6 @@ export const ProfileLayout = () => {
     { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
     { labelKey: "nav.vouchers", path: PATH.CUSTOMER.VOUCHERS, icon: TicketPercent },
     { labelKey: "nav.aiRecommendations", path: PATH.PUBLIC.AI_ASSISTANT, icon: Sparkles, openPlanner: true },
-    { labelKey: "nav.notifications", path: PATH.CUSTOMER.NOTIFICATIONS, icon: Bell },
     { labelKey: "nav.settings", path: PATH.CUSTOMER.SETTINGS, icon: Settings },
   ];
 

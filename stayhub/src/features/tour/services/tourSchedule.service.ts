@@ -28,12 +28,20 @@ export const tourScheduleService = {
   getMySchedules: async (
     page: number = 1,
     pageSize: number = 10,
+    tourId?: number | null,
+    startDate?: string,
+    endDate?: string,
+    search?: string,
   ): Promise<PaginationResponse<TourSchedule>> => {
+    const params: any = { page, pageSize };
+    if (tourId) params.tourId = tourId;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+    if (search?.trim()) params.search = search.trim();
+
     return await apiClient.get<PaginationResponse<TourSchedule>>(
       TOURS_API.GET_MY_SCHEDULES,
-      {
-        params: { page, pageSize },
-      },
+      { params },
     );
   },
 

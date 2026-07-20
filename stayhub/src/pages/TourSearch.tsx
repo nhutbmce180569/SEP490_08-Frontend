@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Filter,
@@ -7,6 +7,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   SlidersHorizontal,
   ArrowUpDown,
 } from "lucide-react";
@@ -14,7 +15,8 @@ import { ActionButton } from "../components/home/ActionButton";
 import { TourCard } from "../components/home/TourCard";
 import { useQuery } from "@tanstack/react-query";
 import { categoryService } from "../features/content/services/category.service";
-import { useSearchTours } from "../hooks/useSearchTours";
+import { useSearchTours, getSearchSuggestions } from "../hooks/useSearchTours";
+import { useProvinces } from "../features/tour/hooks/useProvinces";
 import type { Tour } from "../features/tour/types/tour";
 import { getNumberValue } from "../features/tour/utils/tourScheduleTicket";
 import { useTranslation } from "../contexts/LocaleContext";
@@ -53,6 +55,74 @@ const SLIDER_CSS = `
   .ts-dual .ts-range::-webkit-slider-thumb { pointer-events: all; }
   .ts-dual .ts-range::-moz-range-thumb     { pointer-events: all; }
 `;
+
+// ─── Custom Select ──────────────────────────────────────────────────────────────
+
+function CustomSelect({
+  value,
+  onChange,
+  options,
+  placeholder,
+  className = "",
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  options: { label: string; value: string }[];
+  placeholder?: string;
+  className?: string;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div className={`relative ${className}`} ref={ref}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-4 py-2.5 transition-all focus:border-brand focus:ring-2 focus:ring-brand/20 bg-slate-50 border border-slate-200 hover:border-slate-300"
+      >
+        <span className="truncate pr-4">{selected ? selected.label : placeholder}</span>
+        <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden py-1">
+          <ul className="max-h-60 overflow-y-auto custom-scrollbar">
+            {options.map((opt) => (
+              <li key={opt.value}>
+                <button
+                  type="button"
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                    opt.value === value
+                      ? "bg-brand/5 text-brand font-bold"
+                      : "text-slate-700 hover:bg-slate-50 font-medium"
+                  }`}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  {opt.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Track Fill ───────────────────────────────────────────────────────────────
 
@@ -254,6 +324,64 @@ function Sidebar({
   onClear,
 }: any) {
   const { t } = useTranslation();
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
+  const searchLocationRef = useRef<HTMLDivElement>(null);
+
+  const { provinces, isLoading: isProvincesLoading } = useProvinces();
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const cityInputRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (searchLocationRef.current && !searchLocationRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+      if (cityInputRef.current && !cityInputRef.current.contains(e.target as Node)) {
+        setShowCitySuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  useEffect(() => {
+    if (!localSearch.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setIsSuggestionsLoading(true);
+        const results = await getSearchSuggestions(localSearch, controller.signal);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch (error: any) {
+        if (error.name !== 'CanceledError') {
+          console.error("Failed to fetch search suggestions:", error);
+          setSuggestions([]);
+        }
+      } finally {
+        setIsSuggestionsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [localSearch]);
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setLocalSearch(suggestion);
+    setShowSuggestions(false);
+    upd({ searchTerm: suggestion, city: localCity });
+  };
+
   return (
     <aside
       className="w-full lg:w-[360px] lg:shrink-0 lg:sticky lg:top-24 lg:self-start"
@@ -290,40 +418,123 @@ function Sidebar({
           {/* Keywords */}
           <FilterSection label={t("common.search")}>
             <div className="flex flex-col gap-2.5">
-              {[
-                {
-                  icon: Search,
-                  val: localSearch,
-                  set: setLocalSearch,
-                  ph: t("tour.searchToursPlaceholder"),
-                },
-                {
-                  icon: MapPin,
-                  val: localCity,
-                  set: setLocalCity,
-                  ph: t("tour.cityPlaceholder"),
-                },
-              ].map(({ icon: Icon, val, set, ph }) => (
+              <div className="relative" ref={searchLocationRef}>
                 <label
-                  key={ph}
                   className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all"
                   style={{
                     background: "rgba(5,7,60,0.03)",
                     border: "1px solid rgba(5,7,60,0.08)",
                   }}
                 >
-                  <Icon size={14} className="text-slate-400 shrink-0" />
+                  <Search size={14} className="text-slate-400 shrink-0" />
                   <input
                     type="text"
-                    value={val}
-                    placeholder={ph}
-                    onChange={(e) => set(e.target.value)}
+                    value={localSearch}
+                    placeholder={t("tour.searchToursPlaceholder")}
+                    onChange={(e) => setLocalSearch(e.target.value)}
                     onBlur={submitText}
+                    onFocus={() => localSearch.trim() && setShowSuggestions(true)}
                     onKeyDown={(e) => e.key === "Enter" && submitText()}
                     className="bg-transparent text-[13px] text-slate-700 placeholder:text-slate-400 outline-none w-full font-medium"
                   />
                 </label>
-              ))}
+                {showSuggestions && (
+                  <div className="absolute top-full left-0 right-0 mt-2 z-[100] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden text-slate-800">
+                    {isSuggestionsLoading ? (
+                      <div className="p-4 text-center text-sm text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
+                    ) : suggestions.length > 0 ? (
+                      <ul className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
+                        {suggestions.map((suggestion, index) => (
+                          <li key={index}>
+                            <button
+                              type="button"
+                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 outline-none text-left"
+                              onMouseDown={(e) => {
+                                // use onMouseDown instead of onClick to fire before onBlur of the input
+                                e.preventDefault();
+                                handleSuggestionClick(suggestion);
+                              }}
+                            >
+                              <Search className="h-4 w-4 text-slate-400 shrink-0" />
+                              <span
+                                className="truncate"
+                                dangerouslySetInnerHTML={{
+                                  __html: suggestion.replace(
+                                    new RegExp(`(${localSearch})`, 'gi'),
+                                    '<strong class="font-bold text-brand">$1</strong>'
+                                  ),
+                                }}
+                              />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="p-4 text-center text-sm text-slate-500">{t("tour.noToursFound", { defaultValue: "No matches found" })}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="relative" ref={cityInputRef}>
+                <label
+                  className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all"
+                  style={{
+                    background: "rgba(5,7,60,0.03)",
+                    border: "1px solid rgba(5,7,60,0.08)",
+                  }}
+                >
+                  <MapPin size={14} className="text-slate-400 shrink-0" />
+                  <input
+                    type="text"
+                    value={localCity}
+                    placeholder={t("tour.cityPlaceholder")}
+                    onChange={(e) => {
+                      setLocalCity(e.target.value);
+                      setShowCitySuggestions(true);
+                    }}
+                    onBlur={submitText}
+                    onFocus={() => setShowCitySuggestions(true)}
+                    onKeyDown={(e) => e.key === "Enter" && submitText()}
+                    className="bg-transparent text-[13px] text-slate-700 placeholder:text-slate-400 outline-none w-full font-medium"
+                  />
+                </label>
+                {showCitySuggestions && (
+                  <div className="absolute top-full left-0 right-0 mt-2 z-[100] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden text-slate-800">
+                    {isProvincesLoading ? (
+                      <div className="p-4 text-center text-sm text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
+                    ) : (
+                      <ul className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
+                        {(() => {
+                          const filtered = provinces.filter((p) =>
+                            p.label.toLowerCase().includes(localCity.toLowerCase())
+                          );
+                          if (filtered.length === 0) {
+                            return <div className="p-4 text-center text-sm text-slate-500">{t("common.noData", { defaultValue: "No matches found" })}</div>;
+                          }
+                          return filtered.map((p, index) => (
+                            <li key={index}>
+                              <button
+                                type="button"
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 outline-none text-left"
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  setLocalCity(p.value);
+                                  setShowCitySuggestions(false);
+                                  upd({ searchTerm: localSearch, city: p.value });
+                                }}
+                              >
+                                <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span className="truncate">{p.label}</span>
+                              </button>
+                            </li>
+                          ));
+                        })()}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </FilterSection>
 
@@ -356,27 +567,14 @@ function Sidebar({
 
           {/* Category */}
           <FilterSection label={t("tour.category")}>
-            <div className="flex flex-wrap gap-2">
-              {categories.map((c: any) => {
-                const active = (categoryId ?? null) === c.value;
-                return (
-                  <button
-                    key={c.label}
-                    onClick={() => upd({ categoryId: c.value })}
-                    className="px-4 py-2 rounded-xl text-sm font-bold transition-all"
-                    style={{
-                      background: active ? "var(--color-brand)" : "rgba(5,7,60,0.04)",
-                      color: active ? "#fff" : "#64748b",
-                      border: active
-                        ? "1px solid var(--color-brand)"
-                        : "1px solid rgba(5,7,60,0.08)",
-                    }}
-                  >
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
+            <CustomSelect
+              value={categoryId === null || categoryId === undefined ? "" : String(categoryId)}
+              onChange={(val) => upd({ categoryId: val })}
+              options={categories.map((c: any) => ({
+                label: c.label,
+                value: c.value === null ? "" : String(c.value),
+              }))}
+            />
           </FilterSection>
 
           {/* Price */}
@@ -682,43 +880,31 @@ export default function TourSearch() {
                   <span className="text-sm text-slate-400 font-medium hidden sm:block">
                     {t("common.show") || "Show"}
                   </span>
-                  <select
-                    value={pageSize}
-                    onChange={(e) => upd({ pageSize: e.target.value, page: "1" })}
-                    className="text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-3 py-2 transition-colors"
-                    style={{
-                      background: "rgba(5,7,60,0.04)",
-                      border: "1px solid rgba(5,7,60,0.08)",
-                    }}
-                  >
-                    {[6, 12, 24, 48].map((size) => (
-                      <option key={size} value={size}>
-                        {size}
-                      </option>
-                    ))}
-                  </select>
+                  <CustomSelect
+                    value={String(pageSize)}
+                    onChange={(val) => upd({ pageSize: val, page: "1" })}
+                    options={[6, 12, 24, 48].map((size) => ({
+                      label: String(size),
+                      value: String(size),
+                    }))}
+                    className="min-w-[70px]"
+                  />
                 </div>
 
                 <div className="flex items-center gap-2.5">
                   <ArrowUpDown size={14} className="text-slate-400 shrink-0" />
-                  <span className="text-sm text-slate-400 font-medium hidden sm:block">
+                  <span className="text-sm text-slate-400 font-medium hidden sm:block whitespace-nowrap">
                     {t("tour.sortBy")}
                   </span>
-                  <select
+                  <CustomSelect
                     value={sortBy}
-                    onChange={(e) => upd({ sortBy: e.target.value })}
-                    className="text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-3 py-2 transition-colors"
-                    style={{
-                      background: "rgba(5,7,60,0.04)",
-                      border: "1px solid rgba(5,7,60,0.08)",
-                    }}
-                  >
-                    {SORT_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => upd({ sortBy: val })}
+                    options={SORT_OPTIONS.map((o) => ({
+                      label: o.label,
+                      value: o.value,
+                    }))}
+                    className="min-w-[150px]"
+                  />
                 </div>
               </div>
             </div>

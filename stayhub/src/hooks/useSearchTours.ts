@@ -12,6 +12,15 @@ type SearchToursResponse =
       totalPage?: number;
     };
 
+export const removeVietnameseTones = (str?: string) => {
+  if (!str) return str;
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D");
+};
+
 const normalizeSearchToursResponse = (response: SearchToursResponse) => {
   const payload =
     !Array.isArray(response) &&
@@ -63,11 +72,11 @@ export const useSearchTours = (
           params: { 
             page, 
             pageSize,
-            searchTerm: searchTerm || undefined,
+            searchTerm: searchTerm ? removeVietnameseTones(searchTerm) : undefined,
             startDate: startDate || undefined,
             categoryId: categoryId || undefined,
             country: country || undefined,
-            city: city || undefined,
+            city: city ? removeVietnameseTones(city) : undefined,
             minPrice: minPrice || undefined,
             maxPrice: maxPrice || undefined,
             endDate: endDate || undefined,
@@ -109,7 +118,7 @@ export const getSearchSuggestions = async (
   // Sử dụng API search có sẵn để lấy gợi ý
   const res = await apiClient.get<SearchToursResponse>(TOURS_API.SEARCH, {
     params: {
-      searchTerm,
+      searchTerm: removeVietnameseTones(searchTerm),
       pageSize: 5, // Chỉ lấy 5 kết quả để làm gợi ý
       page: 1,
     },

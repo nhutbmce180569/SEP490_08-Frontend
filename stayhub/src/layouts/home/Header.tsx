@@ -30,7 +30,6 @@ import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
 import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
 import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
-import { getSearchSuggestions } from "../../hooks/useSearchTours";
 import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { useTourAssistantChatState } from "../../contexts/TourAssistantChatContext";
 import { useQuery } from "@tanstack/react-query";
@@ -88,68 +87,22 @@ export default function Header() {
     user?.rawClaims?.idp === "Google" ||
     user?.rawClaims?.idp === "Facebook";
 
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
-  const searchBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setShowUserMenu(false);
       }
-      if (searchBarRef.current && !searchBarRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // Thêm: Debounce và gọi API gợi ý
-  useEffect(() => {
-    if (!query.trim()) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(async () => {
-      try {
-        setIsSuggestionsLoading(true);
-        const results = await getSearchSuggestions(query, controller.signal);
-        setSuggestions(results);
-        setShowSuggestions(true);
-      } catch (error: any) {
-        if (error.name !== 'CanceledError') {
-          console.error("Failed to fetch search suggestions:", error);
-          setSuggestions([]);
-        }
-      } finally {
-        setIsSuggestionsLoading(false);
-      }
-    }, 300); // Debounce 300ms
-
-    return () => {
-      clearTimeout(timer);
-      controller.abort(); // Hủy request cũ
-    };
-  }, [query]);
-
-  const handleSearch = () => {
-    if (!query.trim()) return;
-    navigate(
-      `${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(query.trim())}`,
-    );
-    setShowSuggestions(false);
-  };
 
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -188,61 +141,6 @@ export default function Header() {
             />
           </Link>
 
-          {pathname !== PATH.PUBLIC.HOME && (
-            <div ref={searchBarRef} className="search-bar-glass hidden relative max-w-md flex-1 lg:flex items-center">
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                onFocus={() => query.trim() && setShowSuggestions(true)}
-                placeholder={t("header.searchPlaceholder")}
-                className="w-full border-none bg-transparent text-sm text-navy outline-none placeholder:text-slate-400 pr-2"
-                aria-label={t("header.searchLabel")}
-              />
-              <button
-                type="button"
-                onClick={handleSearch}
-                className="p-1 rounded-full hover:bg-slate-200/60 transition-colors"
-                aria-label={t("common.search")}
-              >
-                <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden />
-              </button>
-              {showSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden">
-                  {isSuggestionsLoading ? (
-                    <div className="p-4 text-center text-sm text-slate-500">{t("common.loading")}</div>
-                  ) : suggestions.length > 0 ? (
-                    <ul className="py-1">
-                      {suggestions.map((suggestion, index) => (
-                        <li key={index}>
-                          <Link
-                            to={`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(suggestion)}`}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 !no-underline"
-                            onClick={() => {
-                              setQuery(suggestion);
-                              setShowSuggestions(false);
-                            }}
-                          >
-                            <Search className="h-4 w-4 text-slate-400" />
-                            <span
-                              dangerouslySetInnerHTML={{
-                                __html: suggestion.replace(
-                                  new RegExp(`(${query})`, 'gi'),
-                                  '<strong class="font-bold text-brand">$1</strong>'
-                                ),
-                              }}
-                            />
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <div className="p-4 text-center text-sm text-slate-500">{t("tour.noToursFound")}</div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
 
           {/* Main Navigation Links */}
           <nav className="hidden xl:flex items-center gap-6 ml-6 shrink-0">

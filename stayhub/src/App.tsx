@@ -24,6 +24,10 @@ import { ProfileLayout } from "./layouts/ProfileLayout";
 import { StaffLayout } from "./layouts/StaffLayout";
 import Unauthorized from "./pages/Unauthorized";
 import Home from "./pages/Home";
+import HotTours from "./pages/HotTours";
+import SaleTours from "./pages/SaleTours";
+import UpcomingTours from "./pages/UpcomingTours";
+import RegionTours from "./pages/RegionTours";
 
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
@@ -304,6 +308,10 @@ const App: React.FC = () => {
                           <Route element={<MainLayout />}>
                             <Route path={PATH.PUBLIC.HOME} element={<Home />} />
                             <Route path={PATH.PUBLIC.TOURS} element={<TourSearch />} />
+                            <Route path={PATH.PUBLIC.HOT_TOURS} element={<HotTours />} />
+                            <Route path={PATH.PUBLIC.SALE_TOURS} element={<SaleTours />} />
+                            <Route path={PATH.PUBLIC.UPCOMING_TOURS} element={<UpcomingTours />} />
+                            <Route path={PATH.PUBLIC.REGION_TOURS} element={<RegionTours />} />
                             <Route
                               path={PATH.PUBLIC.TOUR_SEARCH}
                               element={<TourSearch />}

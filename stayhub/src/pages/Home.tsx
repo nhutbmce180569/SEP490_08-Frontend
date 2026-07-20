@@ -1,6 +1,5 @@
 import { useTranslation } from "../contexts/LocaleContext";
 import { HomeHero } from "../components/home/sections/HomeHero";
-import { HomeExploreStrip } from "../components/home/sections/HomeExploreStrip";
 import { HomeFeaturedTours } from "../components/home/sections/HomeFeaturedTours";
 import { HomePopularTours } from "../components/home/sections/HomePopularTours";
 import { HomeDestinations } from "../components/home/sections/HomeDestinations";
@@ -8,24 +7,28 @@ import { HomeWhyUs } from "../components/home/sections/HomeWhyUs";
 import { HomeCTA } from "../components/home/sections/HomeCTA";
 import { HomeRegions } from "../components/home/sections/HomeRegions";
 import { useHomeSections } from "../hooks/useHomeSections";
+import { useNavigate } from "react-router-dom";
+import { PATH } from "../config/routes/route";
 
 export default function Home() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { sale, hot, upcoming } = useHomeSections();
 
   return (
     <div className="-mt-[68px]">
       <HomeHero />
       <div className="home-page">
-        <HomeExploreStrip />
+        <HomeDestinations />
         
         <HomeFeaturedTours
           tours={hot.tours}
           isLoading={hot.isLoading}
           error={hot.error}
           eyebrow={t("home.topPicksEyebrow")}
-          title={t("home.top5HotToursTitle")}
+          title={t("home.topHotToursTitle")}
           subtitle={t("home.top5HotToursSubtitle")}
+          onViewAll={() => navigate(PATH.PUBLIC.HOT_TOURS)}
         />
         
         {sale.tours.length > 0 && (
@@ -36,6 +39,7 @@ export default function Home() {
             eyebrow={t("home.specialOffersEyebrow")}
             title={t("home.toursOnSaleTitle")}
             subtitle={t("home.toursOnSaleSubtitle")}
+            onViewAll={() => navigate(PATH.PUBLIC.SALE_TOURS)}
           />
         )}
 
@@ -47,11 +51,11 @@ export default function Home() {
             eyebrow={t("home.preparingToDepartEyebrow")}
             title={t("home.upcomingToursTitle")}
             subtitle={t("home.upcomingToursSubtitle")}
+            onViewAll={() => navigate(PATH.PUBLIC.UPCOMING_TOURS)}
           />
         )}
 
         <HomeRegions />
-        <HomeDestinations />
         <HomeWhyUs />
         <HomeCTA />
       </div>

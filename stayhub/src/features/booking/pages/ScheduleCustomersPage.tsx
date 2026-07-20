@@ -13,6 +13,7 @@ import { Table, type Column } from "../../../components/dashboard/Table";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useToast } from "../../../contexts/ToastContext";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { getGenderDisplay } from "../../auth/pages/UserList";
 import { getApiErrorMessage } from "../../content/utils/apiError";
 import { getScheduleCustomersByScheduleId } from "../services/booking.service";
 import type { ReadScheduleCustomerDTO } from "../types/booking";
@@ -132,7 +133,7 @@ export const ScheduleCustomersPage: React.FC = () => {
       {
         header: t("booking.genderLabel"),
         render: (c) => (
-          <span className="text-sm capitalize text-slate-600">{c.gender ?? "-"}</span>
+          <span className="text-sm capitalize text-slate-600">{getGenderDisplay(c.gender, t)}</span>
         ),
       },
       {
@@ -246,7 +247,7 @@ export const ScheduleCustomersPage: React.FC = () => {
         <div className="flex flex-col min-w-0 rounded-3xl border border-slate-100 bg-white shadow-sm h-[calc(100vh-140px)] sticky top-6">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-1">
-              <h2 className="text-[15px] font-bold text-slate-900" title={selectedSchedule?.tourName}>
+              <h2 className="text-[15px] font-bold text-slate-900" title={selectedSchedule?.tourName || undefined}>
                 {selectedSchedule ? (selectedSchedule.tourName || `Schedule #${selectedSchedule.scheduleId}`) : t("booking.tourCustomers")}
               </h2>
               {selectedSchedule && (

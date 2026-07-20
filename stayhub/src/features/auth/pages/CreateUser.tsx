@@ -6,6 +6,7 @@ import { useCreateUser } from "../hooks/useCreateUser";
 import { useRoles } from "../hooks/useRoles";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import type { ReadRoleDTO } from "../types/role";
+import { getRoleDisplay } from "./UserList";
 
 export const CreateUser: React.FC = () => {
   const { t } = useTranslation();
@@ -82,7 +83,7 @@ export const CreateUser: React.FC = () => {
     ? roles
         .filter((role: ReadRoleDTO) => role.name !== "Admin")
         .map((role: ReadRoleDTO) => ({
-          label: role.name || t("auth.unknown"),
+          label: getRoleDisplay(role.name || "", t) || t("auth.unknown"),
           value: role.id,
         })) 
     : [];

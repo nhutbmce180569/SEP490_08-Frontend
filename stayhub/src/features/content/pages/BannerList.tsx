@@ -31,7 +31,7 @@ export const BannerList: React.FC = () => {
 
   const banners = data?.data || [];
   const totalPages = data?.totalPages || 1;
-  const currentPage = data?.page || page;
+  const currentPage = data?.currentPage || (data as any)?.page || page;
   const totalItems = data?.total || 0;
 
   const columns: Column<ReadBannerDTO>[] = useMemo(

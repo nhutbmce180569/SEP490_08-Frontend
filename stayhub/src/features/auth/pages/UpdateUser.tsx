@@ -5,6 +5,7 @@ import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useUpdateUser } from "../hooks/useUpdateUser";
 import { useRoles } from "../hooks/useRoles";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { getRoleDisplay } from "./UserList";
 
 export const UpdateUser: React.FC = () => {
   const { t } = useTranslation();
@@ -16,7 +17,7 @@ export const UpdateUser: React.FC = () => {
   if (!user) return <div className="flex justify-center p-10 text-slate-500">{t("auth.userNotFound")}</div>;
 
   const roleOptions = Array.isArray(rolesList) ? rolesList.map((role) => ({
-    label: role.name || t("auth.unknown"),
+    label: getRoleDisplay(role.name || "", t) || t("auth.unknown"),
     value: role.id,
   })) : [];
 

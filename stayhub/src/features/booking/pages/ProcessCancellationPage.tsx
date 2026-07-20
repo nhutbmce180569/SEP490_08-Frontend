@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Check, X, ArrowLeft } from "lucide-react";
+import { Check, X, ArrowLeft, HelpCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useTranslation } from "../../../contexts/LocaleContext";
@@ -9,6 +10,8 @@ import { useProcessCancellation } from "../hooks/useProcessCancellation";
 import { useToast } from "../../../contexts/ToastContext";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
+import { getGenderDisplay } from "../../auth/pages/UserList";
+import { categoryService } from "../../content/services/category.service";
 
 const formatCurrency = (amount?: number | null) => {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0);
@@ -25,6 +28,16 @@ const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) 
   </div>
 );
 
+const getStatusDisplay = (status: string, t: any) => {
+  if (!status) return "";
+  const normalized = status.toLowerCase();
+  if (normalized === "pending") return t("common.pending");
+  if (normalized === "approved") return t("common.approved");
+  if (normalized === "rejected") return t("common.rejected");
+  if (normalized === "refunded") return t("common.refunded");
+  return status;
+};
+
 export const ProcessCancellationPage: React.FC = () => {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
@@ -40,11 +53,28 @@ export const ProcessCancellationPage: React.FC = () => {
     isOpen: false,
     action: null,
   });
+  const [isPolicyOpen, setIsPolicyOpen] = useState(false);
+
+  const { data: categoryData } = useQuery({
+    queryKey: ["category", detail?.tour?.categoryId],
+    queryFn: () => categoryService.getCategoryById(Number(detail!.tour!.categoryId)),
+    enabled: !!detail?.tour?.categoryId,
+  });
 
   const formatDate = (date?: string | null) => {
     if (!date) return t("common.na");
     const parsedDate = new Date(date);
     return Number.isNaN(parsedDate.getTime()) ? t("common.na") : parsedDate.toLocaleString();
+  };
+
+  const formatDateOnly = (date?: string | null) => {
+    if (!date) return t("common.na");
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [year, month, day] = date.split("-");
+      return `${day}/${month}/${year}`;
+    }
+    const parsedDate = new Date(date);
+    return Number.isNaN(parsedDate.getTime()) ? t("common.na") : parsedDate.toLocaleDateString();
   };
 
   const formatValue = (value: unknown) => {
@@ -162,6 +192,42 @@ export const ProcessCancellationPage: React.FC = () => {
         </div>
 
         <div className="grid gap-6 p-6">
+          {!isPending && (
+            <section
+              className={`rounded-2xl border p-5 ${normalizedStatus === "approved" ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}
+            >
+              <h3 className="mb-3 font-semibold text-slate-800">{t("booking.processingResult")}</h3>
+              <div className="grid gap-3 md:grid-cols-3">
+                <DetailRow
+                  label={t("common.status")}
+                  value={
+                    <span
+                      className={
+                        normalizedStatus === "approved" ? "text-emerald-700" : "text-rose-700"
+                      }
+                    >
+                      {getStatusDisplay(detail.status || "", t)}
+                    </span>
+                  }
+                />
+                <DetailRow
+                  label={t("booking.processedBy")}
+                  value={
+                    detail.processedBy
+                      ? t("booking.staffNumber", { id: detail.processedBy })
+                      : t("common.na")
+                  }
+                />
+                <DetailRow label={t("booking.processedAt")} value={formatDate(detail.processedAt)} />
+              </div>
+              {detail.rejectReason && (
+                <p className="mt-3 whitespace-pre-wrap rounded-lg border border-rose-100 bg-white/70 p-3 text-sm text-rose-700">
+                  {detail.rejectReason}
+                </p>
+              )}
+            </section>
+          )}
+
           {isPending && (
             <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">
               <label className="text-sm font-semibold text-slate-800">
@@ -188,15 +254,25 @@ export const ProcessCancellationPage: React.FC = () => {
               label={t("booking.customerId")}
               value={detail.customer?.id ? `#${detail.customer.id}` : t("common.na")}
             />
-            <DetailRow label={t("common.status")} value={detail.status || t("common.na")} />
+            <DetailRow label={t("common.status")} value={getStatusDisplay(detail.status || "", t) || t("common.na")} />
             <DetailRow label={t("booking.requestedAt")} value={formatDate(detail.requestedAt)} />
             <DetailRow label={t("booking.processedAt")} value={formatDate(detail.processedAt)} />
           </div>
 
           <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
-            <h3 className="border-b border-slate-100 pb-2 font-semibold text-slate-800">
-              {t("booking.financialDetails")}
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <h3 className="font-semibold text-slate-800">
+                {t("booking.financialDetails")}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsPolicyOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-brand/20 bg-brand/5 px-2.5 py-1 text-xs font-semibold text-brand transition hover:bg-brand/10"
+              >
+                <HelpCircle className="h-3.5 w-3.5" />
+                {t("booking.cancellationPolicyInfo") || "Chính sách hủy & hoàn tiền"}
+              </button>
+            </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <DetailRow label={t("booking.originalAmount")} value={formatCurrency(detail.originalAmount)} />
               <DetailRow label={t("booking.feePercent")} value={`${detail.feePercent ?? 0}%`} />
@@ -234,12 +310,12 @@ export const ProcessCancellationPage: React.FC = () => {
                   value={detail.customer?.id ? `#${detail.customer.id}` : t("common.na")}
                 />
                 <DetailRow label={t("booking.fullNameLabel")} value={formatValue(detail.customer?.fullName)} />
-                <DetailRow label={t("booking.genderLabel")} value={formatValue(detail.customer?.gender)} />
+                <DetailRow label={t("booking.genderLabel")} value={getGenderDisplay(detail.customer?.gender, t)} />
                 <DetailRow
                   label={t("common.dateOfBirth")}
                   value={
                     detail.customer?.dateOfBirth
-                      ? formatDate(detail.customer.dateOfBirth)
+                      ? formatDateOnly(detail.customer.dateOfBirth)
                       : t("common.na")
                   }
                 />
@@ -289,8 +365,11 @@ export const ProcessCancellationPage: React.FC = () => {
                   value={detail.tour?.id ? `#${detail.tour.id}` : t("common.na")}
                 />
                 <DetailRow
-                  label={t("booking.categoryId")}
-                  value={detail.tour?.categoryId ? `#${detail.tour.categoryId}` : t("common.na")}
+                  label={t("booking.categoryName") || "Tên danh mục"}
+                  value={
+                    categoryData?.name ||
+                    (detail.tour?.categoryId ? `#${detail.tour.categoryId}` : t("common.na"))
+                  }
                 />
                 <DetailRow label={t("common.name")} value={formatValue(detail.tour?.name)} />
                 <DetailRow label={t("common.status")} value={formatValue(detail.tour?.status)} />
@@ -313,42 +392,6 @@ export const ProcessCancellationPage: React.FC = () => {
               {detail.reason || t("common.na")}
             </p>
           </section>
-
-          {!isPending && (
-            <section
-              className={`rounded-2xl border p-5 ${normalizedStatus === "approved" ? "border-emerald-200 bg-emerald-50" : "border-rose-200 bg-rose-50"}`}
-            >
-              <h3 className="mb-3 font-semibold text-slate-800">{t("booking.processingResult")}</h3>
-              <div className="grid gap-3 md:grid-cols-3">
-                <DetailRow
-                  label={t("common.status")}
-                  value={
-                    <span
-                      className={
-                        normalizedStatus === "approved" ? "text-emerald-700" : "text-rose-700"
-                      }
-                    >
-                      {detail.status}
-                    </span>
-                  }
-                />
-                <DetailRow
-                  label={t("booking.processedBy")}
-                  value={
-                    detail.processedBy
-                      ? t("booking.staffNumber", { id: detail.processedBy })
-                      : t("common.na")
-                  }
-                />
-                <DetailRow label={t("booking.processedAt")} value={formatDate(detail.processedAt)} />
-              </div>
-              {detail.rejectReason && (
-                <p className="mt-3 whitespace-pre-wrap rounded-lg border border-rose-100 bg-white/70 p-3 text-sm text-rose-700">
-                  {detail.rejectReason}
-                </p>
-              )}
-            </section>
-          )}
 
           {additionalDetails.length > 0 && (
             <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
@@ -384,6 +427,84 @@ export const ProcessCancellationPage: React.FC = () => {
         }
         variant={confirmState.action === "Approve" ? "primary" : "warning"}
       />
+      {isPolicyOpen && (
+        <div
+          className="fixed inset-0 z-[9000] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setIsPolicyOpen(false)}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-4">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-brand font-bold">
+                  %
+                </span>
+                <h3 className="font-bold text-slate-900">
+                  {t("booking.cancellationPolicyInfo") || "Chính sách hủy & hoàn tiền"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPolicyOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="space-y-3.5 px-5 py-4 text-sm text-slate-700">
+              <p className="font-medium leading-relaxed text-slate-800">
+                {t("booking.feeRule")}
+              </p>
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-200 bg-slate-100 font-semibold text-slate-700">
+                    <tr>
+                      <th className="px-3 py-2">{t("booking.policyTimeBeforeDeparture") || "Thời gian trước khởi hành"}</th>
+                      <th className="px-3 py-2 text-right">{t("booking.policyCancellationFeeRate") || "Phí hủy (%)"}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    <tr>
+                      <td className="px-3 py-2">&gt; 15 ngày</td>
+                      <td className="px-3 py-2 text-right text-emerald-600">0% (Hoàn 100%)</td>
+                    </tr>
+                    <tr>
+                      <td className="px-3 py-2">11 - 15 ngày</td>
+                      <td className="px-3 py-2 text-right text-amber-600">5%</td>
+                    </tr>
+                    <tr>
+                      <td className="px-3 py-2">6 - 10 ngày</td>
+                      <td className="px-3 py-2 text-right text-amber-600">10%</td>
+                    </tr>
+                    <tr>
+                      <td className="px-3 py-2">3 - 5 ngày</td>
+                      <td className="px-3 py-2 text-right text-orange-600">15%</td>
+                    </tr>
+                    <tr>
+                      <td className="px-3 py-2">1 - 2 ngày</td>
+                      <td className="px-3 py-2 text-right text-rose-600">20%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-slate-500 italic">
+                {t("booking.policyFeeNote") || "* Phí hủy được trừ trực tiếp vào tổng tiền thanh toán ban đầu để tính ra số tiền hoàn lại cho khách hàng."}
+              </p>
+            </div>
+            <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsPolicyOpen(false)}
+                className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand/90"
+              >
+                {t("common.close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <LoadingOverlay isOpen={isProcessing} message={t("booking.processingRequest")} />
     </div>
   );

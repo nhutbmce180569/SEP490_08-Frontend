@@ -230,6 +230,11 @@
   "accountHolder": "Account Holder",
   "tourInformation": "Tour Information",
   "categoryId": "Category ID",
+  "categoryName": "Category Name",
+  "cancellationPolicyInfo": "Cancellation & Refund Policy",
+  "policyTimeBeforeDeparture": "Time before departure",
+  "policyCancellationFeeRate": "Cancellation fee (%)",
+  "policyFeeNote": "* Cancellation fee is deducted directly from the original payment amount to calculate the refund.",
   "averageStar": "Average Star",
   "country": "Country",
   "city": "City",
@@ -364,5 +369,10 @@
   "genderLabel": "Gender",
   "copyQrCode": "Copy QR Code",
   "qrCodeCopied": "Copied QR code to clipboard!",
-  "qrCodeCopyFailed": "Could not copy QR code."
+  "qrCodeCopyFailed": "Could not copy QR code.",
+  "passengerExcelTitle": "Import passengers",
+  "passengerExcelDescription": "Download the template, fill it in, and import to quickly add {{count}} passengers.",
+  "passengerExcelDownload": "Download Template",
+  "passengerExcelImport": "Import from Excel",
+  "passengerExcelReview": "Successfully uploaded info for {{count}} passengers."
 }

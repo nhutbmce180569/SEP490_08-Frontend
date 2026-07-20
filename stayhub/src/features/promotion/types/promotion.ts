@@ -21,7 +21,7 @@ export interface PromotionFormData {
   maxDiscountAmount?: number | null;
   startDate: string;
   endDate: string;
-  status: string;
+  status?: string;
 }
 
 export interface PaginatedPromotions {

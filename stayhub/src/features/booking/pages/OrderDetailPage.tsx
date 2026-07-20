@@ -36,14 +36,14 @@ import type { TourScheduleItinerary } from "../../tour/types/tourScheduleItinera
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { useToast } from "../../../contexts/ToastContext";
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
+const formatDate = (date: Date, locale: string) => new Intl.DateTimeFormat(locale, {
   weekday: "short",
   year: "numeric",
   month: "short",
   day: "numeric",
   hour: "2-digit",
   minute: "2-digit",
-});
+}).format(date);
 
 const isReviewEditable = (createdAt?: string | null) => {
   if (!createdAt) return false;
@@ -53,17 +53,17 @@ const isReviewEditable = (createdAt?: string | null) => {
   return currentTime - createdTime <= oneDayInMs;
 };
 
-const tripDateFormatter = new Intl.DateTimeFormat("en-US", {
+const formatTripDate = (date: Date, locale: string) => new Intl.DateTimeFormat(locale, {
   weekday: "short",
   month: "short",
   day: "numeric",
   year: "numeric",
-});
+}).format(date);
 
-const tripTimeFormatter = new Intl.DateTimeFormat("en-US", {
+const formatTripTime = (date: Date, locale: string) => new Intl.DateTimeFormat(locale, {
   hour: "2-digit",
   minute: "2-digit",
-});
+}).format(date);
 
 type OrderItineraryItem = TourScheduleItinerary & {
   startLocationName?: string | null;
@@ -85,8 +85,20 @@ const getCancellationFeePercent = (daysUntilDeparture: number) => {
   return 0;
 };
 
+const getTranslatedStatus = (status: string | null | undefined, t: any) => {
+  if (!status) return t("common.pending");
+  switch (status) {
+    case "Paid": return t("common.paid");
+    case "Cancelled": return t("common.cancelled");
+    case "Request to Cancel": return t("booking.requestToCancel");
+    case "Completed": return t("common.completed");
+    case "Pending": return t("common.pending");
+    default: return status;
+  }
+};
+
 export const OrderDetailPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { order, isLoading, error, refetch } = useOrderDetail(id);
@@ -333,15 +345,6 @@ export const OrderDetailPage: React.FC = () => {
   return (
     <div className="w-full">
       <div className="space-y-6">
-        <button
-          type="button"
-          onClick={() => navigate(PATH.CUSTOMER.MY_BOOKINGS)}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-brand/30 hover:bg-brand-light/40 hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t("booking.backToMyBookings")}
-        </button>
-
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="grid">
             <div className="relative min-h-[220px] bg-slate-100 sm:min-h-[260px]">
@@ -356,12 +359,22 @@ export const OrderDetailPage: React.FC = () => {
                   <ImageIcon className="h-12 w-12" />
                 </div>
               )}
-              <div className="absolute left-4 top-4">
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold shadow-sm ${statusClasses}`}
+              
+              <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between gap-4">
+                <button
+                  type="button"
+                  onClick={() => navigate(PATH.CUSTOMER.MY_BOOKINGS)}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200/50 bg-white/95 backdrop-blur-sm px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-white hover:text-brand"
                 >
-                  {isSettled ? <CheckCircle2 size={14} /> : <Clock size={14} />}
-                  {order.status || t("common.pending")}
+                  <ArrowLeft className="h-4 w-4 shrink-0" />
+                  <span className="hidden sm:inline">{t("booking.backToMyBookings")}</span>
+                </button>
+
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold shadow-sm backdrop-blur-md ${statusClasses}`}
+                >
+                  {isSettled ? <CheckCircle2 size={16} /> : <Clock size={16} />}
+                  {getTranslatedStatus(order.status, t)}
                 </span>
               </div>
             </div>
@@ -371,7 +384,7 @@ export const OrderDetailPage: React.FC = () => {
                 {bookedDate && (
                   <p className="text-xs font-semibold uppercase text-slate-400">
                     {t("booking.booked", {
-                      date: dateFormatter.format(bookedDate),
+                      date: formatDate(bookedDate, locale),
                     })}
                   </p>
                 )}
@@ -424,13 +437,13 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                     <p className="text-base font-bold leading-snug text-slate-950">
                       {departureDate
-                        ? tripDateFormatter.format(departureDate)
+                        ? formatTripDate(departureDate, locale)
                         : t("common.na")}
                     </p>
                     {departureDate && (
                       <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
                         <Clock className="h-4 w-4 text-emerald-600" />
-                        {tripTimeFormatter.format(departureDate)}
+                        {formatTripTime(departureDate, locale)}
                       </p>
                     )}
                   </div>
@@ -444,13 +457,13 @@ export const OrderDetailPage: React.FC = () => {
                     </div>
                     <p className="text-base font-bold leading-snug text-slate-950">
                       {returnDate
-                        ? tripDateFormatter.format(returnDate)
+                        ? formatTripDate(returnDate, locale)
                         : t("common.na")}
                     </p>
                     {returnDate && (
                       <p className="mt-2 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
                         <Clock className="h-4 w-4 text-sky-600" />
-                        {tripTimeFormatter.format(returnDate)}
+                        {formatTripTime(returnDate, locale)}
                       </p>
                     )}
                   </div>
@@ -748,7 +761,7 @@ export const OrderDetailPage: React.FC = () => {
                       </span>
                       <span className="text-right font-semibold text-slate-900">
                         {departureDate
-                          ? dateFormatter.format(departureDate)
+                          ? formatDate(departureDate, locale)
                           : t("common.na")}
                       </span>
                     </div>

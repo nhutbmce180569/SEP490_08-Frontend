@@ -44,17 +44,46 @@ export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
   let correspondingOriginalPrice: number | null = null;
 
   const schedules = tour.tourSchedules || [];
+  const now = new Date();
   
   for (const schedule of schedules) {
+    if (schedule.departureDate && new Date(schedule.departureDate) <= now) {
+      continue;
+    }
+    
     const tickets = schedule.tourScheduleTickets || [];
     
     for (const ticket of tickets) {
       const { price: effectivePrice, originalPrice } = getTicketEffectivePriceInfo(ticket);
 
       if (effectivePrice !== null) {
-        if (lowestEffectivePrice === null || effectivePrice < lowestEffectivePrice) {
+        if (
+          lowestEffectivePrice === null || 
+          effectivePrice < lowestEffectivePrice ||
+          (effectivePrice === lowestEffectivePrice && originalPrice !== null && correspondingOriginalPrice === null)
+        ) {
           lowestEffectivePrice = effectivePrice;
           correspondingOriginalPrice = originalPrice;
+        }
+      }
+    }
+  }
+
+  // Fallback: If no future schedules found, try to get price from past schedules (just for display)
+  if (lowestEffectivePrice === null) {
+    for (const schedule of schedules) {
+      const tickets = schedule.tourScheduleTickets || [];
+      for (const ticket of tickets) {
+        const { price: effectivePrice, originalPrice } = getTicketEffectivePriceInfo(ticket);
+        if (effectivePrice !== null) {
+          if (
+            lowestEffectivePrice === null || 
+            effectivePrice < lowestEffectivePrice ||
+            (effectivePrice === lowestEffectivePrice && originalPrice !== null && correspondingOriginalPrice === null)
+          ) {
+            lowestEffectivePrice = effectivePrice;
+            correspondingOriginalPrice = originalPrice;
+          }
         }
       }
     }

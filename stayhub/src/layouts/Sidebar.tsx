@@ -69,7 +69,9 @@ function NavItems({
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
                   <ChevronRight
                     className={`h-3.5 w-3.5 shrink-0 transition-opacity ${
-                      isActive ? "opacity-60" : "opacity-0 group-hover:opacity-40"
+                      isActive
+                        ? "opacity-60"
+                        : "opacity-0 group-hover:opacity-40"
                     }`}
                   />
                 </>
@@ -116,7 +118,9 @@ export function Sidebar({
           collapsed ? "justify-center px-2" : "justify-between px-4"
         }`}
       >
-        <div className={`flex min-w-0 items-center ${collapsed ? "justify-center" : "gap-2"}`}>
+        <div
+          className={`flex min-w-0 items-center ${collapsed ? "justify-center" : "gap-2"}`}
+        >
           <StayHubLogo
             variant={collapsed ? "compact" : "full"}
             linkTo={logoLink}
@@ -126,7 +130,12 @@ export function Sidebar({
         </div>
 
         {!collapsed && (
-          <button type="button" className="icon-btn md:hidden" onClick={onClose} aria-label={t("dashboard.closeSidebar")}>
+          <button
+            type="button"
+            className="icon-btn md:hidden"
+            onClick={onClose}
+            aria-label={t("dashboard.closeSidebar")}
+          >
             <X className="h-5 w-5" />
           </button>
         )}
@@ -165,22 +174,20 @@ export function Sidebar({
 
       {!collapsed && (
         <div className="shrink-0 border-t border-slate-200/60 p-4">
-          <div
-            className="rounded-2xl bg-brand-light/80 p-3.5 text-xs leading-relaxed text-brand"
-          >
+          <div className="rounded-2xl bg-brand-light/80 p-3.5 text-xs leading-relaxed text-brand">
             <p className="font-bold">
               {variant === "admin"
-                ? t("dashboard.stayhubAdmin", "StayHub Admin")
+                ? t("dashboard.stayhubAdmin")
                 : variant === "staff"
-                ? t("dashboard.stayhubStaff", "StayHub Tour Staff")
-                : t("dashboard.stayhubManager", "StayHub Tour Manager")}
+                  ? t("dashboard.stayhubStaff")
+                  : t("dashboard.stayhubManager")}
             </p>
             <p className="mt-1 opacity-80">
               {variant === "admin"
-                ? t("dashboard.adminSidebarDesc", "Quản trị vĩ mô hệ thống, nhân sự & AI.")
+                ? t("dashboard.adminSidebarDesc")
                 : variant === "staff"
-                ? t("dashboard.staffSidebarDesc", "Điều hành đoàn, soát vé QR & bản đồ GPS.")
-                : t("dashboard.partnerSidebarDesc", "Quản lý tour, lịch trình, GPS & doanh số.")}
+                  ? t("dashboard.staffSidebarDesc")
+                  : t("dashboard.partnerSidebarDesc")}
             </p>
           </div>
         </div>

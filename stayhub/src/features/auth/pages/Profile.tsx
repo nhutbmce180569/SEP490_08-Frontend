@@ -10,6 +10,7 @@ import { useProfile } from '../hooks/useProfile';
 import { getImg } from '../../../config/api/api';
 import { LoadingOverlay } from '../../../components/home/LoadingOverlay';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { ImageCropModal } from '../../../components/profile/ImageCropModal';
 
 export const Profile: React.FC = () => {
   const { t } = useTranslation();
@@ -32,6 +33,8 @@ export const Profile: React.FC = () => {
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -53,13 +56,36 @@ export const Profile: React.FC = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setAvatarFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      const imageUrl = URL.createObjectURL(file);
+      setTempImageSrc(imageUrl);
+      setIsCropModalOpen(true);
     }
+    // Reset file input so same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleCropComplete = (croppedFile: File, croppedUrl: string) => {
+    setAvatarFile(croppedFile);
+    setPreviewUrl(croppedUrl);
+    setIsCropModalOpen(false);
+    setTempImageSrc(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.phone || formData.phone.trim() === '') {
+      showError(t('errors.phoneRequired'));
+      return;
+    }
+
+    const fullNameRegex = /^[a-zA-Z0-9\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+$/;
+    if (!fullNameRegex.test(formData.fullName.trim())) {
+      showError(t('errors.fullNameNoSpecialChars'));
+      return;
+    }
     
     try {
       const payload = {
@@ -73,7 +99,22 @@ export const Profile: React.FC = () => {
       await handleUpdateProfile(payload);
       success(t('auth.profileUpdated'));
     } catch (err: any) {
-      showError(err.response?.data?.message || err.message || t('auth.profileUpdateFailed'));
+      if (err.response?.status === 400 && err.response.data?.errors) {
+        const firstErrorKey = Object.keys(err.response.data.errors)[0];
+        const firstErrorMsg = err.response.data.errors[firstErrorKey][0];
+        if (firstErrorMsg === "FullNameCannotContainSpecialCharacters") {
+           showError(t('errors.fullNameNoSpecialChars'));
+        } else {
+           showError(firstErrorMsg);
+        }
+      } else {
+        const msg = err.response?.data?.message;
+        if (msg === "PhoneNumberExists") {
+          showError(t('errors.phoneNumberExists'));
+        } else {
+          showError(msg || err.message || t('auth.profileUpdateFailed'));
+        }
+      }
     }
   };
   const isDashboard = location.pathname.includes('/manager') || location.pathname.includes('/staff') || location.pathname.includes('/admin');
@@ -88,10 +129,6 @@ export const Profile: React.FC = () => {
           <p className="mt-1.5 text-sm text-slate-500">{t('auth.profileSubtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
-            <ShieldCheck size={18} />
-            {t('auth.accountVerified')}
-          </div>
           <button
             type="button"
             onClick={() => navigate(`/social/profile/${user?.id || user?.Id}`)}
@@ -181,6 +218,7 @@ export const Profile: React.FC = () => {
                   value={formData.phone}
                   onChange={handleChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+                  required
                 />
               </div>
             </div>
@@ -229,6 +267,15 @@ export const Profile: React.FC = () => {
       </form>
       
       <LoadingOverlay isOpen={isUpdating} message={t('auth.savingChanges')} />
+
+      {tempImageSrc && (
+        <ImageCropModal
+          isOpen={isCropModalOpen}
+          imageSrc={tempImageSrc}
+          onClose={() => setIsCropModalOpen(false)}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 };

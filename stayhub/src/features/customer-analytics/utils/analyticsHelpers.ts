@@ -56,6 +56,13 @@ export const formatPeriodLabel = (period: string, granularity: string, locale = 
   return period;
 };
 
+export const getSegmentLabel = (segment: CustomerSegment | string) => {
+  if (segment === 'NeverPurchased') return 'Never Purchased';
+  if (segment === 'OneTimeBuyer') return 'One-Time Buyer';
+  if (segment === 'RepeatBuyer') return 'Repeat Buyer';
+  return segment;
+};
+
 export const SEGMENT_STYLES: Record<string, string> = {
   NeverPurchased: 'bg-slate-100 text-slate-700 border border-slate-200',
   OneTimeBuyer: 'bg-indigo-50 text-indigo-700 border border-indigo-200/60',

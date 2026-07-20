@@ -163,5 +163,18 @@
   "otherVoucherBadge": "Others",
   "revenuePeriodCustom": "Custom range",
   "fromDate": "From date",
-  "toDate": "To date"
+  "toDate": "To date",
+  "percentInvalidRange": "Percent discount must be between 1 and 100.",
+  "amountInvalidMin": "Discount amount must be at least 10,000 VND.",
+  "maxDiscountRequired": "Max discount amount is required for percent vouchers.",
+  "confirmDeactivateTitle": "Confirm Voucher Deactivation",
+  "confirmDeactivateMessage": "Are you sure you want to deactivate this voucher? It can no longer be used.",
+  "confirmActivateTitle": "Confirm Voucher Activation",
+  "confirmActivateMessage": "Are you sure you want to activate this voucher? It will become usable.",
+  "voucherActiveNoEdit": "This voucher is active. Please deactivate it before editing.",
+  "createSuccess": "Voucher created successfully!",
+  "updateSuccess": "Voucher updated successfully!",
+  "filterModalTitle": "Voucher Filters",
+  "filter": "Filter",
+  "clearFilter": "Clear Filter"
 }

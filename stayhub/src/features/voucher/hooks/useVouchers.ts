@@ -9,11 +9,12 @@ const PAGE_SIZE = 10;
 
 export const useVouchers = (filters: VoucherFilters) => {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
 
   const query = useQuery({
-    queryKey: ['vouchers', page, PAGE_SIZE, filters],
-    queryFn: () => voucherService.getAll(page, PAGE_SIZE, filters),
+    queryKey: ['vouchers', page, pageSize, filters],
+    queryFn: () => voucherService.getAll(page, pageSize, filters),
   });
 
   const location = useLocation();
@@ -28,8 +29,9 @@ export const useVouchers = (filters: VoucherFilters) => {
     isLoading: query.isLoading,
     error: query.isError ? 'Failed to fetch vouchers.' : null,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     setPage,
+    setPageSize,
     handleCreate,
     handleEdit,
     handleView,

@@ -138,23 +138,21 @@ export const CustomerAssignmentEditor: React.FC<CustomerAssignmentEditorProps> =
             >
               <div>
                 <label className="mb-1 block text-xs font-medium text-slate-600">
-                  {t('voucher.customerIdLabel')}
+                  {t('voucher.customer')}
                 </label>
-                <input
-                  type="number"
-                  min={1}
-                  value={row.userId || ''}
-                  disabled={readOnly}
-                  readOnly
-                  className="w-full cursor-not-allowed rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-700 outline-none"
-                  placeholder={t('voucher.enterCustomerId')}
-                />
-                {(row.userFullName || row.userEmail) && (
-                  <p className="mt-1 text-xs text-slate-500">
-                    {row.userFullName || t('voucher.unknownCustomer')}
-                    {row.userEmail ? ` (${row.userEmail})` : ''}
-                  </p>
-                )}
+                <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2">
+                  <div>
+                    <span className="font-semibold text-slate-800 text-sm block">
+                      {row.userFullName || `${t('voucher.customer')} #${row.userId}`}
+                    </span>
+                    {row.userEmail && (
+                      <span className="text-xs text-slate-500 block">{row.userEmail}</span>
+                    )}
+                  </div>
+                  <span className="shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
+                    ID: {row.userId}
+                  </span>
+                </div>
               </div>
 
               <div>

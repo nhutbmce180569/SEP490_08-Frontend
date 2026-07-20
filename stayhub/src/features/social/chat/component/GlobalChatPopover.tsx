@@ -151,21 +151,36 @@ export const GlobalChatPopover: React.FC = () => {
     ).sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }, [historyMessages, realtimeMessages]);
 
+  const lastMessageIdRef = useRef<any>(null);
+  const lastRoomIdRef = useRef<number | null>(null);
+
   // Tự động cuộn xuống cuối khi có tin nhắn mới hoặc đổi phòng
   useEffect(() => {
-    if (chatContainerRef.current) {
-      const container = chatContainerRef.current;
-      const isAtBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
-      const isRoomChanged = lastMessagesLengthRef.current === 0 || allMessages.length === 0;
-      const lastMessage = allMessages[allMessages.length - 1];
-      const isMyNewMessage = lastMessage && String(lastMessage.senderId) === String(currentUserId);
+    if (!chatContainerRef.current) return;
+    
+    const container = chatContainerRef.current;
+    const lastMsg = allMessages[allMessages.length - 1];
+    const lastMsgId = lastMsg?.id ?? lastMsg?.Id;
+    
+    // 1. Switched rooms -> scroll to bottom immediately
+    if (activeRoomId !== lastRoomIdRef.current) {
+      container.scrollTop = container.scrollHeight;
+      lastRoomIdRef.current = activeRoomId;
+      lastMessageIdRef.current = lastMsgId;
+      return;
+    }
 
-      if (isRoomChanged || isAtBottom || isMyNewMessage) {
+    // 2. New message arrived -> scroll to bottom ONLY if the user is already near bottom OR if they sent the message themselves
+    if (lastMsgId !== lastMessageIdRef.current) {
+      const isMe = String(lastMsg?.senderId ?? lastMsg?.SenderId ?? '') === String(currentUserId);
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
+      
+      if (isMe || isNearBottom) {
         container.scrollTop = container.scrollHeight;
       }
+      lastMessageIdRef.current = lastMsgId;
     }
-    lastMessagesLengthRef.current = allMessages.length;
-  }, [allMessages, viewState, currentUserId]);
+  }, [allMessages, activeRoomId, viewState, currentUserId]);
 
   // Xử lý khi click chọn phòng chat từ danh sách
   const handleSelectRoom = (roomId: number) => {
@@ -464,22 +479,58 @@ export const GlobalChatPopover: React.FC = () => {
               </div>
             ) : (
               allMessages.map((msg: any, index) => {
-                const isMe = String(msg.senderId || msg.SenderId) === String(currentUserId);
+                const senderName = msg.senderName ?? msg.SenderName ?? '';
+                const senderId = msg.senderId ?? msg.SenderId;
+                const isMe = String(senderId ?? '') === String(currentUserId);
                 
-                // Hiển thị avatar người khác nếu là tin nhắn đầu tiên của khối tin nhắn đến
                 const nextMsg = allMessages[index + 1];
-                const showAvatar = !isMe && (!nextMsg || String((nextMsg as any).senderId || (nextMsg as any).SenderId) === String(currentUserId));
+                const prevMsg = allMessages[index - 1];
+                const nextSenderId = nextMsg?.senderId ?? nextMsg?.SenderId;
+                const prevSenderId = prevMsg?.senderId ?? prevMsg?.SenderId;
+                const isNextSystem = nextMsg?.senderName === 'System' || nextMsg?.SenderName === 'System';
+                const isPrevSystem = prevMsg?.senderName === 'System' || prevMsg?.SenderName === 'System';
+
+                const isLastInGroup = !nextMsg || isNextSystem || String(nextSenderId ?? '') !== String(senderId ?? '');
+                const isFirstInGroup = !prevMsg || isPrevSystem || String(prevSenderId ?? '') !== String(senderId ?? '');
+
+                const rawAvatar = msg.senderAvatarUrl || msg.SenderAvatarUrl || msg.senderAvatar || msg.SenderAvatar || (msg as any).senderAvatarUrl || (msg as any).SenderAvatarUrl || (msg as any).senderAvatar || (msg as any).SenderAvatar;
+                const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? selectedRoom?.avatarUrl : null);
 
                 return (
-                  <div key={msg.id || Math.random()} className={`flex gap-2 max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto'}`}>
-                    {!isMe && (
-                      <div className="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 text-[8px] font-extrabold self-end">
-                        {showAvatar && (
-                          selectedRoom?.avatarUrl ? <img src={selectedRoom.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span>{getInitials(getRoomDisplayName(selectedRoom))}</span>
+                  <div key={msg.id || Math.random()} className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} shrink-0 ${isFirstInGroup ? 'mt-3.5' : 'mt-0.5'}`}>
+                    <div className={`flex gap-2 max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto'} items-end`}>
+                      {!isMe && (
+                        isLastInGroup ? (
+                          <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-250 overflow-hidden flex items-center justify-center shrink-0 text-[8px] font-extrabold mb-0.5 shadow-sm text-slate-700 dark:text-slate-250">
+                            {avatarToUse && (
+                              <img 
+                                src={avatarToUse} 
+                                alt="avatar" 
+                                className="w-full h-full object-cover" 
+                                onError={(e) => { 
+                                  e.currentTarget.style.display = 'none'; 
+                                  const sibling = e.currentTarget.nextSibling as HTMLElement;
+                                  if (sibling) sibling.style.display = 'flex';
+                                }}
+                              />
+                            )}
+                            <span 
+                              style={{ display: avatarToUse ? 'none' : 'flex' }} 
+                              className="w-full h-full items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 text-slate-750 dark:text-slate-250"
+                            >
+                              {getInitials(senderName || 'User')}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 shrink-0" />
+                        )
+                      )}
+                      <div className="flex flex-col">
+                        {!isMe && isFirstInGroup && selectedRoom?.isGroupChat && (
+                          <span className="text-[9px] font-black text-slate-400 mb-1 px-1 tracking-wide uppercase">
+                            {senderName}
+                          </span>
                         )}
-                      </div>
-                    )}
-                    <div className="flex flex-col">
                       {msg.content.startsWith('[MomentShare:') ? (() => {
                         try {
                           const jsonStr = msg.content.substring(13, msg.content.length - 1);
@@ -548,10 +599,11 @@ export const GlobalChatPopover: React.FC = () => {
                       )}
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
+                </div>
+              );
+            })
+          )}
+        </div>
 
           {/* Input Footer Form */}
           <form 

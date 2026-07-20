@@ -1,6 +1,6 @@
 import React, { useState, useContext, useRef, useCallback, useEffect } from "react";
 import Webcam from "react-webcam";
-import { Loader2, X, RefreshCw, MapPin, Globe, Users, Lock, ChevronDown } from "lucide-react";
+import { Loader2, X, RefreshCw, MapPin, Globe, Users, Lock, ChevronDown, CameraOff } from "lucide-react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useCreateMoment } from "../hooks/useMoments";
@@ -58,6 +58,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
   // STATE: GPS
   const [location, setLocation] = useState<{lat: number, lng: number} | null>(null);
   const [geoStatus, setGeoStatus] = useState<"locating" | "success" | "error">("locating");
+  const [hasCameraError, setHasCameraError] = useState(false);
 
   const webcamRef = useRef<Webcam>(null);
   const { user } = useContext(AuthContext);
@@ -218,18 +219,49 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
             ref={webcamRef}
             screenshotFormat="image/jpeg"
             videoConstraints={{ facingMode: "environment" }}
+            onUserMedia={() => setHasCameraError(false)}
+            onUserMediaError={(err) => {
+              console.error("Camera access error:", err);
+              setHasCameraError(true);
+              showError(t("social.cameraAccessError") || "Không thể truy cập camera. Vui lòng cấp quyền camera trong cài đặt trình duyệt để tiếp tục.");
+            }}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 pointer-events-none border-[2px] border-white/20 m-4 rounded-[1.5rem]" />
           
-          <div className="absolute bottom-10 left-0 right-0 flex justify-center z-10">
-            <button
-              onClick={capture}
-              className="w-20 h-20 rounded-full border-[5px] border-white flex items-center justify-center bg-transparent hover:bg-white/30 transition-all active:scale-90"
-            >
-              <div className="w-[60px] h-[60px] rounded-full bg-white shadow-lg" />
-            </button>
-          </div>
+          {hasCameraError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 p-6 text-center z-10">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
+                <CameraOff className="w-8 h-8" />
+              </div>
+              <h3 className="text-base font-bold text-slate-100 mb-2">
+                {t("social.cameraErrorTitle") || "Yêu cầu quyền truy cập Camera"}
+              </h3>
+              <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed mb-6">
+                {t("social.cameraErrorDesc") || "Ứng dụng cần truy cập camera của bạn để chụp ảnh Moment. Vui lòng cấp quyền camera trong cài đặt trình duyệt của bạn."}
+              </p>
+              <button
+                onClick={() => {
+                  setHasCameraError(false);
+                }}
+                className="px-4 py-2 bg-white/10 hover:bg-white/20 text-xs font-bold rounded-xl transition-colors active:scale-95 cursor-pointer"
+              >
+                {t("social.cameraRetry") || "Thử lại"}
+              </button>
+            </div>
+          ) : (
+            <div className="absolute inset-0 pointer-events-none border-[2px] border-white/20 m-4 rounded-[1.5rem]" />
+          )}
+          
+          {!hasCameraError && (
+            <div className="absolute bottom-10 left-0 right-0 flex justify-center z-10">
+              <button
+                onClick={capture}
+                className="w-20 h-20 rounded-full border-[5px] border-white flex items-center justify-center bg-transparent hover:bg-white/30 transition-all active:scale-90 cursor-pointer"
+              >
+                <div className="w-[60px] h-[60px] rounded-full bg-white shadow-lg" />
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="relative flex-1 flex flex-col bg-black">
@@ -253,6 +285,17 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 </button>
               ))}
             </div>
+
+            {privacy === 'Public' && (
+              <p className="text-[11px] text-white/60 px-1 leading-normal">
+                💡 {t('social.momentPrivacyPublicDesc') || "Decides who can view the Moment on the Feed."}
+              </p>
+            )}
+            {privacy === 'Tour' && (
+              <p className="text-[11px] text-white/60 px-1 leading-normal">
+                💡 {t('social.momentPrivacyTourDesc') || "Used to link the Moment with the trip and display it on the trip map."}
+              </p>
+            )}
             <div className="relative">
               <input
                 type="text"

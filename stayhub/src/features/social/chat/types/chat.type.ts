@@ -19,6 +19,9 @@ export interface ChatMessage {
   senderId: number;
   senderName: string;
   senderAvatarUrl?: string;
+  senderAvatar?: string;
+  SenderAvatar?: string;
+  SenderAvatarUrl?: string;
   content: string;
   createdAt: string;
 }

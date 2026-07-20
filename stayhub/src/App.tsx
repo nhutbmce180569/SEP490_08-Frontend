@@ -378,19 +378,18 @@ const App: React.FC = () => {
                                     path={PATH.CUSTOMER.SETTINGS}
                                     element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
                                   />
-
-                                  <Route
-                                    path={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                                    element={<FriendsManagement />}
-                                  />
                                 </Route>
-
-                                <Route
-                                  path={PATH.CUSTOMER.SOCIAL_CHAT}
-                                  element={<ChatPage />}
-                                />
                               </Route>
 
+                              <Route
+                                path={PATH.CUSTOMER.SOCIAL_CHAT}
+                                element={<ChatPage />}
+                              />
+
+                              <Route
+                                path={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                                element={<FriendsManagement />}
+                              />
                               <Route path="/social/moments" element={<MomentsRouteWrapper />} />
                             </Route>
                           </Route>

@@ -23,9 +23,6 @@ import { UserAvatar } from "../components/ui/UserAvatar";
 
 
 const navItems = [
-  { labelKey: "nav.profile", path: PATH.CUSTOMER.PROFILE, icon: User },
-  { labelKey: "nav.friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
-  { labelKey: "nav.messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
   { labelKey: "nav.myBookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
   { labelKey: "nav.wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
   { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
@@ -43,10 +40,6 @@ export const ProfileLayout = () => {
   const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
 
   const navItems = [
-    { labelKey: "nav.profile", path: PATH.CUSTOMER.PROFILE, icon: User },
-    { labelKey: "nav.socialProfile", path: `/social/profile/${currentUserId}`, icon: Globe },
-    { labelKey: "nav.friends", path: PATH.CUSTOMER.SOCIAL_FRIENDS, icon: Users },
-    { labelKey: "nav.messages", path: PATH.CUSTOMER.SOCIAL_CHAT, icon: MessageCircle },
     { labelKey: "nav.myBookings", path: PATH.CUSTOMER.MY_BOOKINGS, icon: Ticket },
     { labelKey: "nav.wishlist", path: PATH.CUSTOMER.WISHLIST, icon: Heart },
     { labelKey: "nav.reviews", path: PATH.CUSTOMER.MY_REVIEWS, icon: Star },
@@ -86,12 +79,14 @@ export const ProfileLayout = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={({ isActive }) =>
-                  `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${isActive
+                className={({ isActive }) => {
+                  const isProfileActive = item.labelKey === "nav.profile" && (isActive || location.pathname === PATH.CUSTOMER.PROFILE);
+                  const isReallyActive = isProfileActive || (item.labelKey !== "nav.profile" && isActive);
+                  return `flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold !no-underline transition-all ${isReallyActive
                     ? "bg-brand text-white shadow-md shadow-brand/25"
                     : "bg-white/80 text-slate-600 ring-1 ring-slate-200/80"
-                  }`
-                }
+                  }`;
+                }}
               >
                 <item.icon size={16} />
                 {t(item.labelKey)}
@@ -126,25 +121,30 @@ export const ProfileLayout = () => {
                     <NavLink
                       key={item.path}
                       to={item.path}
-                      className={({ isActive }) =>
-                        `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${isActive ? "nav-item-active" : "nav-item-inactive"
-                        }`
-                      }
+                      className={({ isActive }) => {
+                        const isProfileActive = item.labelKey === "nav.profile" && (isActive || location.pathname === PATH.CUSTOMER.PROFILE);
+                        const isReallyActive = isProfileActive || (item.labelKey !== "nav.profile" && isActive);
+                        return `group flex items-center gap-3 rounded-2xl px-3.5 py-3 text-sm font-bold transition-all !no-underline ${isReallyActive ? "nav-item-active" : "nav-item-inactive"}`;
+                      }}
                     >
-                      {({ isActive }) => (
-                        <>
-                          <item.icon
-                            size={18}
-                            strokeWidth={isActive ? 2.5 : 2}
-                            className={
-                              isActive
-                                ? "text-white"
-                                : "text-slate-400 group-hover:text-brand"
-                            }
-                          />
-                          <span>{t(item.labelKey)}</span>
-                        </>
-                      )}
+                      {({ isActive }) => {
+                        const isProfileActive = item.labelKey === "nav.profile" && (isActive || location.pathname === PATH.CUSTOMER.PROFILE);
+                        const isReallyActive = isProfileActive || (item.labelKey !== "nav.profile" && isActive);
+                        return (
+                          <>
+                            <item.icon
+                              size={18}
+                              strokeWidth={isReallyActive ? 2.5 : 2}
+                              className={
+                                isReallyActive
+                                  ? "text-white"
+                                  : "text-slate-400 group-hover:text-brand"
+                              }
+                            />
+                            <span>{t(item.labelKey)}</span>
+                          </>
+                        );
+                      }}
                     </NavLink>
                   ),
                 )}

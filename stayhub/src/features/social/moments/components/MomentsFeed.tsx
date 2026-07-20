@@ -129,6 +129,55 @@ export const MomentsFeed: React.FC = () => {
     });
   }, [selectedMoment, user, currentUserId, isLiked, toggleReaction, initialLikeCount, warning, error, t]);
 
+  const currentMomentIndexInFeed = useMemo(() => {
+    if (!selectedMomentId) return -1;
+    return filteredMoments.findIndex((m: any) => (m.id || m.Id) === selectedMomentId);
+  }, [filteredMoments, selectedMomentId]);
+
+  const handleNextMomentInFeed = useMemo(() => {
+    if (currentMomentIndexInFeed !== -1 && currentMomentIndexInFeed < filteredMoments.length - 1) {
+      return () => {
+        const next = filteredMoments[currentMomentIndexInFeed + 1];
+        setSelectedMomentId(next.id || next.Id);
+      };
+    }
+    return undefined;
+  }, [filteredMoments, currentMomentIndexInFeed]);
+
+  const handlePrevMomentInFeed = useMemo(() => {
+    if (currentMomentIndexInFeed > 0) {
+      return () => {
+        const prev = filteredMoments[currentMomentIndexInFeed - 1];
+        setSelectedMomentId(prev.id || prev.Id);
+      };
+    }
+    return undefined;
+  }, [filteredMoments, currentMomentIndexInFeed]);
+
+  // Preload next 5 moments (API pre-fetching + image caching)
+  useEffect(() => {
+    if (currentMomentIndexInFeed === -1 || !filteredMoments || filteredMoments.length === 0) return;
+    
+    // 1. If we are within 5 items of the end of the currently loaded list, fetch the next page from the backend
+    if (currentMomentIndexInFeed >= filteredMoments.length - 5 && hasNextPage && !isFetchingNextPage) {
+      void fetchNextPage();
+    }
+
+    // 2. Programmatically cache the images of the next 5 moments in the browser memory
+    const preloadCount = 5;
+    for (let i = 1; i <= preloadCount; i++) {
+      const targetIndex = currentMomentIndexInFeed + i;
+      if (targetIndex < filteredMoments.length) {
+        const nextMoment = filteredMoments[targetIndex];
+        const imgUrl = nextMoment?.imageUrl || nextMoment?.ImageUrl;
+        if (imgUrl) {
+          const img = new Image();
+          img.src = imgUrl;
+        }
+      }
+    }
+  }, [currentMomentIndexInFeed, filteredMoments, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   const renderPrivacyBadge = (privacy: string) => {
     switch (privacy?.toLowerCase()) {
       case 'private':
@@ -335,6 +384,8 @@ export const MomentsFeed: React.FC = () => {
           likeCount={likeCount}
           onToggleLike={handleToggleLike}
           onReportSuccess={handleReportSuccess}
+          onNext={handleNextMomentInFeed}
+          onPrev={handlePrevMomentInFeed}
         />
       )}
     </div>

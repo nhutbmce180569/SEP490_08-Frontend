@@ -116,7 +116,7 @@ export const ChatNotificationProvider: React.FC<{ children: ReactNode }> = ({ ch
       roomName: targetRoom?.roomName || targetRoom?.name || savedMessage.senderName || "New conversation",
       senderName: savedMessage.senderName || "Member",
       message: savedMessage.content,
-      avatarUrl: savedMessage.senderAvatarUrl || targetRoom?.avatarUrl,
+      avatarUrl: savedMessage.senderAvatarUrl || savedMessage.senderAvatar || savedMessage.SenderAvatar || savedMessage.SenderAvatarUrl || targetRoom?.avatarUrl,
       unreadCount: nextUnreadCount,
       roomId: roomId,
     };

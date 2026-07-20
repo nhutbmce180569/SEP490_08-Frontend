@@ -71,14 +71,15 @@ function resolve(obj: Record<string, unknown>, path: string): string | undefined
 export function translate(
   locale: Locale,
   key: string,
-  params?: Record<string, string | number>,
+  params?: Record<string, any> | string,
 ): string {
+  const fallback = typeof params === "string" ? params : (params && typeof params.defaultValue === "string" ? params.defaultValue : key);
   const value =
     resolve(catalogs[locale], key) ??
     resolve(catalogs[DEFAULT_LOCALE], key) ??
-    key;
+    fallback;
 
-  if (!params) return value;
+  if (!params || typeof params === "string") return value;
 
   return Object.entries(params).reduce(
     (text, [paramKey, paramValue]) =>

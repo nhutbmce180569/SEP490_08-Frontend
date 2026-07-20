@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Loader2, MapPin, Ticket } from 'lucide-react';
+import { Heart, Loader2, MapPin, Ticket, Eye } from 'lucide-react';
 import { PATH } from '../../../../config/routes/route';
 import { getImg } from '../../../../config/api/api';
 import { useTranslation } from '../../../../contexts/LocaleContext';
@@ -87,27 +87,14 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
           <span>{t('tour.savedToWishlist')}</span>
         </div>
 
-        <div className="mt-auto flex flex-wrap gap-2 border-t border-slate-100 pt-3">
+        <div className="mt-auto flex flex-wrap gap-3 border-t border-slate-100 pt-4">
           <Link
             to={PATH.PUBLIC.TOUR_DETAIL(item.tourId)}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 !no-underline"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white shadow-md shadow-brand/20 transition-all hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/30 !no-underline"
           >
-            {t('tour.viewTour')}
+            <Ticket className="h-4 w-4" />
+            {t('tour.viewTour')} & {t('booking.createBooking')}
           </Link>
-
-          {isActive ? (
-            <Link
-              to={PATH.CUSTOMER.CHECKOUT(item.tourId)}
-              className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-xs font-bold text-white hover:bg-brand-hover !no-underline"
-            >
-              <Ticket className="h-3.5 w-3.5" />
-              {t('booking.createBooking')}
-            </Link>
-          ) : (
-            <span className="inline-flex flex-1 items-center justify-center rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-400">
-              {t('tour.unavailableLabel')}
-            </span>
-          )}
         </div>
       </div>
     </div>

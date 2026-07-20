@@ -8,29 +8,18 @@ import { WishlistSearchInput } from '../components/WishlistSearchInput';
 import { WishlistTourCard } from '../components/WishlistTourCard';
 import { useMyWishlist } from '../hooks/useMyWishlist';
 import { useRemoveFromWishlist } from '../hooks/useRemoveFromWishlist';
-import type { WishlistTab } from '../types/customerWishlist';
 import {
   filterWishlistBySearch,
 } from '../utils/wishlistHelpers';
 
 export const MyWishlistPage: React.FC = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<WishlistTab>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [pendingRemove, setPendingRemove] = useState<{ tourId: number; tourName: string } | null>(
     null,
   );
 
-  const TABS: { key: WishlistTab; label: string }[] = useMemo(
-    () => [
-      { key: 'all', label: t('common.all') },
-      { key: 'active', label: t('tour.tabAvailable') },
-      { key: 'unavailable', label: t('tour.tabUnavailable') },
-    ],
-    [t],
-  );
-
-  const { allItems, items, isLoading, error, refetch, isFetching } = useMyWishlist(activeTab);
+  const { allItems, items, isLoading, error, refetch, isFetching } = useMyWishlist();
   const { removeFromWishlist, isRemoving, removingTourId } = useRemoveFromWishlist({
     onRemoved: () => setPendingRemove(null),
   });
@@ -65,29 +54,14 @@ export const MyWishlistPage: React.FC = () => {
       </div>
 
       {!isLoading && !error && allItems.length > 0 && (
-        <WishlistSearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          resultCount={displayedItems.length}
-        />
+        <div className="mb-5 border-b border-slate-100 pb-4">
+          <WishlistSearchInput
+            value={searchQuery}
+            onChange={setSearchQuery}
+            resultCount={displayedItems.length}
+          />
+        </div>
       )}
-
-      <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-100 pb-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
-              activeTab === tab.key
-                ? 'bg-brand text-white shadow-md shadow-brand/20'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -114,12 +88,10 @@ export const MyWishlistPage: React.FC = () => {
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
           <Heart size={40} className="text-slate-300" />
           <p className="font-semibold text-slate-700">
-            {activeTab === 'all'
-              ? t('tour.emptyWishlist')
-              : t('tour.noTabTours', { tab: activeTab })}
+            {t('tour.emptyWishlist')}
           </p>
           <p className="max-w-sm text-sm text-slate-400">
-            {activeTab === 'all' ? t('tour.emptyWishlistHint') : t('tour.noTabHint')}
+            {t('tour.emptyWishlistHint')}
           </p>
           <Link
             to={PATH.PUBLIC.TOUR_SEARCH}

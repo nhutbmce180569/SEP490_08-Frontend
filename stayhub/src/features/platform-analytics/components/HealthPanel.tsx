@@ -75,10 +75,10 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
           <MetricStrip
             columns={4}
             items={[
-              { label: 'Schedule occupancy', value: formatPercent(data.scheduleOccupancyRate) },
-              { label: 'Check-in rate', value: formatPercent(data.checkInRate) },
-              { label: 'Review response', value: formatPercent(data.reviewResponseRate) },
-              { label: 'Voucher redemption', value: formatPercent(data.voucherRedemptionRate) },
+              { label: t('analytics.platform.healthScheduleOccupancy'), value: formatPercent(data.scheduleOccupancyRate) },
+              { label: t('analytics.platform.healthCheckInRate'), value: formatPercent(data.checkInRate) },
+              { label: t('analytics.platform.healthReviewResponse'), value: formatPercent(data.reviewResponseRate) },
+              { label: t('analytics.platform.healthVoucherRedemption'), value: formatPercent(data.voucherRedemptionRate) },
             ]}
           />
         </div>
@@ -92,6 +92,13 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
               ? Math.min(indicator.value, 100)
               : Math.min((indicator.value / maxValue) * 100, 100);
 
+          const statusLabelKey = {
+            Healthy: 'analytics.platform.indicatorStatusHealthy',
+            Fair: 'analytics.platform.indicatorStatusFair',
+            NeedsAttention: 'analytics.platform.indicatorStatusNeedsAttention',
+            Critical: 'analytics.platform.indicatorStatusCritical',
+          }[indicator.status] ?? `analytics.platform.indicatorStatusHealthy`;
+
           return (
             <AnalyticsPanel key={indicator.name} title={indicator.name} subtitle={indicator.description ?? undefined}>
               <div className="flex items-start justify-between gap-3">
@@ -101,7 +108,7 @@ export const HealthPanel: React.FC<HealthPanelProps> = ({ data, isLoading }) => 
                 <span
                   className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold ${INDICATOR_STATUS_BADGE[indicator.status]}`}
                 >
-                  {indicator.status}
+                  {t(statusLabelKey)}
                 </span>
               </div>
               <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-100">

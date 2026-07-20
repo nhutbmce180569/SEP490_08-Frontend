@@ -10,6 +10,7 @@ import {
   TicketPercent,
   ShieldAlert,
   MapPin,
+  PieChart,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -41,6 +42,11 @@ export const DashboardLayout = () => {
             label: t("manager.bookingStatistics"),
             to: PATH.MANAGER.BOOKING_STATISTICS,
             icon: <TicketPercent className={iconClass} />,
+          },
+          {
+            label: t("manager.revenueStatistics"),
+            to: PATH.MANAGER.REVENUE_STATISTICS,
+            icon: <PieChart className={iconClass} />,
           },
         ],
       },

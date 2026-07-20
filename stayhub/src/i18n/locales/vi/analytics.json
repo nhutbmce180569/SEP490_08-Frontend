@@ -7,6 +7,7 @@
     "catalog": "Danh mục",
     "vouchers": "Voucher",
     "social": "Mạng xã hội",
+    "health": "Sức khỏe hệ thống",
     "demographics": "Nhân khẩu",
     "segments": "Phân khúc",
     "engagement": "Tương tác",
@@ -104,7 +105,15 @@
     "statusCritical": "Nghiêm trọng",
     "noBookingData": "Không có dữ liệu đặt tour trong khoảng thời gian đã chọn.",
     "colTour": "Tour",
-    "colBookings": "Đặt chỗ"
+    "colBookings": "Đặt chỗ",
+    "healthScheduleOccupancy": "Công suất lịch trình",
+    "healthCheckInRate": "Tỷ lệ check-in",
+    "healthReviewResponse": "Phản hồi đánh giá",
+    "healthVoucherRedemption": "Tỷ lệ dùng voucher",
+    "indicatorStatusHealthy": "Khỏe mạnh",
+    "indicatorStatusFair": "Ổn định",
+    "indicatorStatusNeedsAttention": "Cần chú ý",
+    "indicatorStatusCritical": "Nghiêm trọng"
   },
   "customer": {
     "title": "Phân tích khách hàng",

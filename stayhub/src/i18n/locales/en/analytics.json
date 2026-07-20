@@ -7,6 +7,7 @@
     "catalog": "Catalog",
     "vouchers": "Vouchers",
     "social": "Social",
+    "health": "System Health",
     "demographics": "Demographics",
     "segments": "Segments",
     "engagement": "Engagement",
@@ -104,7 +105,15 @@
     "statusCritical": "Critical",
     "noBookingData": "No booking data available for the selected period.",
     "colTour": "Tour",
-    "colBookings": "Bookings"
+    "colBookings": "Bookings",
+    "healthScheduleOccupancy": "Schedule occupancy",
+    "healthCheckInRate": "Check-in rate",
+    "healthReviewResponse": "Review response",
+    "healthVoucherRedemption": "Voucher redemption",
+    "indicatorStatusHealthy": "Healthy",
+    "indicatorStatusFair": "Fair",
+    "indicatorStatusNeedsAttention": "Needs Attention",
+    "indicatorStatusCritical": "Critical"
   },
   "customer": {
     "title": "Customer Analytics",

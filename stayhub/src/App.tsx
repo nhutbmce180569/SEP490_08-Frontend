@@ -531,6 +531,10 @@ const App: React.FC = () => {
                                 element={<BookingStatisticsPage />}
                               />
                               <Route
+                                path={childPath(PATH.MANAGER.REVENUE_STATISTICS)}
+                                element={<RevenueStatisticsPage />}
+                              />
+                              <Route
                                 path={childPath(PATH.MANAGER.PAYOUT)}
                                 element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
                               />
@@ -589,18 +593,6 @@ const App: React.FC = () => {
                               <Route
                                 path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}
                                 element={<PlatformAnalyticsPage />}
-                              />
-                              <Route
-                                path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
-                                element={<CustomerAnalyticsPage />}
-                              />
-                              <Route
-                                path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
-                                element={<BookingStatisticsPage />}
-                              />
-                              <Route
-                                path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
-                                element={<RevenueStatisticsPage />}
                               />
                               <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                                 <Route index element={<UserList />} />

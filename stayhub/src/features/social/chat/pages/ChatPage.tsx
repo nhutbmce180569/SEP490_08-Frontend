@@ -174,6 +174,17 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
   );
 };
 
+// ============ HELPERS ============
+const getInitials = (name?: string | null) => {
+  if (!name || typeof name !== 'string') return 'U';
+  return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
+};
+
+const getRoomDisplayName = (room: any) => {
+  const name = room?.roomName || room?.name || 'Chat';
+  return typeof name === 'string' ? name : 'Chat';
+};
+
 // ============ MAIN COMPONENT: ChatPage ============
 export const ChatPage: React.FC = () => {
   const { t } = useTranslation();
@@ -206,8 +217,11 @@ export const ChatPage: React.FC = () => {
     queryFn: chatService.getChatRooms,
   });
 
+  const [roomSearchQuery, setRoomSearchQuery] = useState('');
+
   const sortedRooms = useMemo(() => {
-    return [...rooms].sort((a: any, b: any) => {
+    const roomsArray = Array.isArray(rooms) ? rooms : [];
+    return [...roomsArray].sort((a: any, b: any) => {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
       const timeA = new Date(a.lastMessageCreatedAt || a.updatedAt || 0).getTime();
@@ -215,6 +229,12 @@ export const ChatPage: React.FC = () => {
       return timeB - timeA;
     });
   }, [rooms]);
+
+  const filteredRooms = useMemo(() => {
+    return sortedRooms.filter(room => 
+      getRoomDisplayName(room).toLowerCase().includes(roomSearchQuery.toLowerCase())
+    );
+  }, [sortedRooms, roomSearchQuery]);
 
   const { data: historyMessages = [], isLoading: isLoadingHistory } = useQuery({
     queryKey: ['chatMessages', selectedRoomId],
@@ -238,13 +258,13 @@ export const ChatPage: React.FC = () => {
     }
     shareLocation(undefined, {
       onSuccess: (token) => {
-        const shareContent = `📍 Vị trí hiện tại của tôi: [LocationShare:${JSON.stringify({ token })}]`;
+        const shareContent = `📍 ${t('social.myCurrentLocation') || 'My current location'}: [LocationShare:${JSON.stringify({ token })}]`;
         sendMessage(shareContent);
-        success("Đã gửi vị trí của bạn!");
+        success(t('social.locationSent') || 'Location sent successfully!');
         queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
       },
       onError: () => {
-        error("Không thể chia sẻ vị trí.");
+        error(t('social.unableToShareLocation') || 'Unable to share location.');
       }
     });
   }, [selectedRoomId, isConnected, shareLocation, sendMessage, success, error, warning, t, queryClient]);
@@ -265,16 +285,46 @@ export const ChatPage: React.FC = () => {
     setRealtimeMessages([]);
   }, [selectedRoomId, setRealtimeMessages]);
 
-  const rawMessages = [...historyMessages, ...realtimeMessages];
-  const allMessages = Array.from(
-    new Map(rawMessages.map((msg) => [msg.id, msg])).values()
-  ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  const allMessages = useMemo(() => {
+    const rawMessages = [...(historyMessages || []), ...(realtimeMessages || [])];
+    return Array.from(
+      new Map(rawMessages.map((msg: any) => [msg?.id ?? msg?.Id ?? Math.random(), msg])).values()
+    ).sort((a: any, b: any) => {
+      const timeA = new Date(a?.createdAt || a?.CreatedAt || 0).getTime();
+      const timeB = new Date(b?.createdAt || b?.CreatedAt || 0).getTime();
+      return timeA - timeB;
+    });
+  }, [historyMessages, realtimeMessages]);
+
+  const lastMessageIdRef = useRef<any>(null);
+  const lastRoomIdRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    if (!chatContainerRef.current) return;
+    
+    const container = chatContainerRef.current;
+    const lastMsg = allMessages[allMessages.length - 1];
+    const lastMsgId = lastMsg?.id ?? lastMsg?.Id;
+    
+    // 1. Switched rooms -> scroll to bottom immediately
+    if (selectedRoomId !== lastRoomIdRef.current) {
+      container.scrollTop = container.scrollHeight;
+      lastRoomIdRef.current = selectedRoomId;
+      lastMessageIdRef.current = lastMsgId;
+      return;
     }
-  }, [allMessages]);
+
+    // 2. New message arrived -> scroll to bottom ONLY if the user is already near bottom OR if they sent the message themselves
+    if (lastMsgId !== lastMessageIdRef.current) {
+      const isMe = String(lastMsg?.senderId ?? lastMsg?.SenderId ?? '') === String(currentUserId);
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 250;
+      
+      if (isMe || isNearBottom) {
+        container.scrollTop = container.scrollHeight;
+      }
+      lastMessageIdRef.current = lastMsgId;
+    }
+  }, [allMessages, selectedRoomId, currentUserId]);
 
   // ============ MUTATIONS & ACTIONS ============
   const { mutate: mutatePin, isPending: isPinning } = useMutation({
@@ -336,7 +386,7 @@ const { mutate: mutateMarkAsRead } = useMutation({
     });
   };
 
-  const selectedRoom = rooms.find(r => r.id === selectedRoomId);
+  const selectedRoom = (Array.isArray(rooms) ? rooms : []).find(r => r.id === selectedRoomId);
 
   const formatTime = (dateString: string) => {
     try {
@@ -346,73 +396,82 @@ const { mutate: mutateMarkAsRead } = useMutation({
     } catch { return t('social.justNow'); }
   };
 
-  const getInitials = (name?: string | null) => {
-    if (!name || typeof name !== 'string') return 'U';
-    return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().slice(0, 2);
-  };
 
-  const getRoomDisplayName = (room: any) => room?.roomName || room?.name || t('social.chat');
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 py-2 animate-fade-in">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
-              <MessageSquare className="text-brand" size={24} />
-              {t('social.messages')}
-            </h1>
-            <p className="mt-1.5 text-sm text-slate-500">{t('social.messagesSubtitle')}</p>
-          </div>
-          <button type="button" onClick={() => setShowNewChatModal(true)} className="inline-flex items-center gap-2 rounded-2xl bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand/20 transition-all hover:bg-brand-hover active:scale-95 cursor-pointer"><SquarePen className="h-4 w-4" />{t('social.newChat')}</button>
-        </div>
-
-        <div className="flex h-[600px] w-full overflow-hidden rounded-[32px] border border-slate-200/60 bg-white shadow-2xl shadow-slate-200/40">
+      <div className="page-container py-4 md:py-6 animate-fade-in text-slate-800 dark:text-slate-100">
+        <div className="flex h-[86vh] min-h-[600px] w-full overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
           
           {/* LEFT COLUMN: CONVERSATION LIST */}
-          <div className="w-1/3 border-r border-slate-100 flex flex-col bg-slate-50/40">
-            <div className="p-4 border-b border-slate-100/80 bg-white flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <MessageSquare className="w-5 h-5 text-brand" />
-                <h2 className="text-base font-bold text-slate-800">{t('social.conversations')}</h2>
+          <div className="w-1/3 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900 shrink-0">
+            <div className="p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{t('social.conversations') || 'Chats'}</h2>
+                <button
+                  type="button"
+                  onClick={() => setShowNewChatModal(true)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-full transition-all text-slate-500 dark:text-slate-400 hover:text-brand cursor-pointer"
+                  title={t('social.newChat') || 'New Chat'}
+                >
+                  <SquarePen className="w-5 h-5" />
+                </button>
+              </div>
+              {/* Search bar inside conversations list */}
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                <input
+                  type="text"
+                  value={roomSearchQuery}
+                  onChange={(e) => setRoomSearchQuery(e.target.value)}
+                  placeholder={t('social.searchByNameOrEmail') || 'Search chats...'}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-semibold text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 border border-transparent focus:bg-white dark:focus:bg-slate-900 focus:border-slate-200 dark:focus:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand/10 transition-all"
+                />
+                {roomSearchQuery && (
+                  <button onClick={() => setRoomSearchQuery('')} className="absolute right-3 top-2.5 text-xs text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 font-bold">Clear</button>
+                )}
               </div>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-0.5 custom-scrollbar">
               {isLoadingRooms ? (
-                <div className="flex justify-center items-center h-20"><Loader2 className="w-6 h-6 animate-spin text-brand" /></div>
-              ) : sortedRooms.length === 0 ? (
-                <div className="text-center text-slate-400 mt-8 text-sm font-medium">{t('social.noChatsAvailable')}</div>
+                <div className="flex justify-center items-center py-10"><Loader2 className="w-6 h-6 animate-spin text-brand" /></div>
+              ) : filteredRooms.length === 0 ? (
+                <div className="text-center text-slate-400 dark:text-slate-500 mt-10 text-xs font-semibold">{t('social.noChatsAvailable') || 'No chats found'}</div>
               ) : (
-                sortedRooms.map((room) => {
-                  const hasUnread = room.unreadCount > 0;
+                filteredRooms.map((room) => {
+                  if (!room) return null;
+                  const hasUnread = (room.unreadCount || 0) > 0;
+                  const isSelected = selectedRoomId === room.id;
                   return (
                     <button
                       key={room.id}
                       onClick={() => handleSelectRoom(room.id)}
                       className={`w-full flex items-center gap-3 p-3 rounded-2xl transition-all outline-none border border-transparent ${
-                        selectedRoomId === room.id ? 'bg-brand/10 text-blue-900 font-bold shadow-sm' : 'hover:bg-slate-100/60 text-slate-700'
+                        isSelected 
+                          ? 'bg-slate-100/90 dark:bg-slate-800 text-slate-900 dark:text-white font-bold shadow-sm' 
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-300'
                       }`}
                     >
-                      <div className="w-11 h-11 rounded-full bg-gradient-to-br from-brand to-blue-600 flex items-center justify-center shrink-0 overflow-hidden text-white font-bold text-xs shadow-sm border border-slate-200">
-                        {room.avatarUrl ? <img src={room.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span>{getInitials(getRoomDisplayName(room))}</span>}
+                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 overflow-hidden text-white font-black text-sm border border-slate-100/50 dark:border-slate-700/50 shadow-sm relative">
+                        {room.avatarUrl ? <img src={room.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-brand-light to-brand text-white font-bold"><span>{getInitials(getRoomDisplayName(room))}</span></div>}
                       </div>
-
+ 
                       <div className="flex-1 text-left overflow-hidden">
-                        <div className={`truncate text-sm tracking-tight transition-colors ${hasUnread ? 'font-black text-slate-950' : 'font-semibold text-slate-700'}`}>
+                        <div className={`truncate text-sm tracking-tight transition-colors ${hasUnread ? 'font-black text-slate-950 dark:text-white' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
                           {getRoomDisplayName(room)}
                         </div>
-                        <div className={`truncate text-xs mt-0.5 transition-colors ${hasUnread ? 'font-bold text-brand' : 'font-medium text-slate-400'}`}>
-                          {room.lastMessage || t('social.startConversation')}
+                        <div className={`truncate text-xs mt-0.5 transition-colors ${hasUnread ? 'font-black text-brand' : 'font-medium text-slate-400 dark:text-slate-500'}`}>
+                          {room.lastMessage || t('social.startConversation') || 'Say hi!'}
                         </div>
                       </div>
-
+ 
                       <div className="flex items-center gap-1.5 shrink-0">
                         {room.isPinned && <Pin className="w-3.5 h-3.5 text-amber-500 fill-current" />}
-                        {room.isMuted && <BellOff className="w-3.5 h-3.5 text-slate-400" />}
+                        {room.isMuted && <BellOff className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />}
                         
                         {hasUnread && (
-                          <div className="min-w-[20px] h-5 px-1.5 rounded-full bg-gradient-to-r from-rose-500 to-red-600 text-white text-[10px] font-black flex items-center justify-center shadow-[0_4px_10px_rgba(244,63,94,0.35)] border border-white/20 animate-pulse">
+                          <div className="min-w-[18px] h-4.5 px-1 rounded-full bg-brand text-white text-[9px] font-black flex items-center justify-center shadow-md">
                             {room.unreadCount > 5 ? "5+" : room.unreadCount}
                           </div>
                         )}
@@ -423,129 +482,181 @@ const { mutate: mutateMarkAsRead } = useMutation({
               )}
             </div>
           </div>
-
+ 
           {/* RIGHT COLUMN: MESSAGE DISPLAY PANE */}
-          <div className="w-2/3 flex flex-col bg-white relative">
+          <div className="flex-1 flex flex-col bg-[#F0F2F5] dark:bg-slate-950 relative">
             {!selectedRoomId ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-white">
-                <MessageSquare className="w-14 h-14 mb-4 text-slate-200" />
-                <h3 className="text-base font-bold text-slate-700">{t('social.selectChatToMessage')}</h3>
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900">
+                <MessageSquare className="w-16 h-16 mb-4 text-slate-100 dark:text-slate-800" />
+                <h3 className="text-sm font-black text-slate-700 dark:text-slate-300 tracking-wide">{t('social.selectChatToMessage') || 'Select a chat to start messaging'}</h3>
               </div>
             ) : (
               <>
-                <div className="h-16 border-b border-slate-200/60 bg-white/75 backdrop-blur-[30px] flex items-center px-6 z-20 justify-between shadow-sm">
+                {/* Header */}
+                <div className="h-16 border-b border-slate-200/60 dark:border-slate-800/80 bg-white dark:bg-slate-900 flex items-center px-6 z-20 justify-between shadow-sm">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-brand flex items-center justify-center overflow-hidden border border-slate-200 text-white font-bold text-xs shadow-sm">
-                      {selectedRoom?.avatarUrl ? <img src={selectedRoom.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span>{getInitials(getRoomDisplayName(selectedRoom))}</span>}
+                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-200/50 dark:border-slate-700/50 text-white font-bold text-xs shadow-sm">
+                      {selectedRoom?.avatarUrl ? <img src={selectedRoom.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-brand-light to-brand text-white font-bold"><span>{getInitials(getRoomDisplayName(selectedRoom))}</span></div>}
                     </div>
-                    <div><h3 className="text-sm font-black text-slate-800 tracking-wide">{getRoomDisplayName(selectedRoom)}</h3></div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-wide">{getRoomDisplayName(selectedRoom)}</h3>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <button onClick={() => setShowMembersModal(true)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-800"><Users className="w-4.5 h-4.5" /></button>
-                    <button onClick={() => setShowAddMemberModal(true)} disabled={isAddingMembers} className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-800"><UserPlus className="w-4.5 h-4.5" /></button>
-                    <button onClick={() => { if(selectedRoomId) mutatePin(selectedRoomId); }} disabled={isPinning} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isPinned ? 'text-amber-500 hover:bg-amber-50' : 'text-slate-500 hover:bg-slate-100'}`}><Pin className="w-4.5 h-4.5" /></button>
-                    <button onClick={() => { if(selectedRoomId) mutateMute(selectedRoomId); }} disabled={isMuting} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isMuted ? 'text-slate-400 hover:bg-slate-50' : 'text-slate-500 hover:bg-slate-100'}`}><BellOff className="w-4.5 h-4.5" /></button>
+                    <button onClick={() => setShowMembersModal(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><Users className="w-4.5 h-4.5" /></button>
+                    <button onClick={() => setShowAddMemberModal(true)} disabled={isAddingMembers} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><UserPlus className="w-4.5 h-4.5" /></button>
+                    <button onClick={() => { if(selectedRoomId) mutatePin(selectedRoomId); }} disabled={isPinning} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isPinned ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}><Pin className="w-4.5 h-4.5" /></button>
+                    <button onClick={() => { if(selectedRoomId) mutateMute(selectedRoomId); }} disabled={isMuting} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isMuted ? 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/30' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}><BellOff className="w-4.5 h-4.5" /></button>
                   </div>
                 </div>
-
-                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-5 space-y-4 bg-slate-50/40 custom-scrollbar z-0 relative flex flex-col">
+ 
+                {/* Scrollable messages viewport */}
+                <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar z-0 relative flex flex-col bg-[#F2F4F7] dark:bg-slate-900/40">
                   {isLoadingHistory ? (
                     <div className="flex justify-center items-center h-full"><Loader2 className="w-7 h-7 animate-spin text-brand" /></div>
                   ) : (
-                    allMessages.map((msg, idx) => {
-                      if (msg.senderName === 'System') {
+                    allMessages.map((msg: any, idx) => {
+                      const senderName = msg.senderName ?? msg.SenderName ?? '';
+                      const content = msg.content ?? msg.Content ?? '';
+                      const senderId = msg.senderId ?? msg.SenderId;
+                      const msgId = msg.id ?? msg.Id ?? Math.random();
+                      const createdAt = msg.createdAt ?? msg.CreatedAt;
+
+                      if (senderName === 'System') {
                         return (
-                          <div key={`${msg.id}-${idx}`} className="flex justify-center w-full shrink-0">
-                            <span className="bg-slate-200/60 backdrop-blur-sm text-[11px] font-semibold text-slate-500 rounded-full px-4 py-1 my-1 shadow-inner border border-white/40">{msg.content}</span>
+                          <div key={`${msgId}-${idx}`} className="flex justify-center w-full shrink-0">
+                            <span className="bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm text-[10px] font-black text-slate-500 dark:text-slate-400 rounded-full px-4 py-1 my-1 shadow-inner border border-white/20 dark:border-slate-700/30 uppercase tracking-wider">{content}</span>
                           </div>
                         );
                       }
-                      const isMe = String(msg.senderId) === String(currentUserId);
-                      const rawAvatar = msg.senderAvatarUrl || (msg as any).SenderAvatarUrl;
+                      const isMe = String(senderId ?? '') === String(currentUserId);
+                      
+                      const nextMsg = allMessages[idx + 1];
+                      const prevMsg = allMessages[idx - 1];
+                      const nextSenderId = nextMsg?.senderId ?? nextMsg?.SenderId;
+                      const prevSenderId = prevMsg?.senderId ?? prevMsg?.SenderId;
+                      const isNextSystem = nextMsg?.senderName === 'System' || nextMsg?.SenderName === 'System';
+                      const isPrevSystem = prevMsg?.senderName === 'System' || prevMsg?.SenderName === 'System';
+
+                      const isLastInGroup = !nextMsg || isNextSystem || String(nextSenderId ?? '') !== String(senderId ?? '');
+                      const isFirstInGroup = !prevMsg || isPrevSystem || String(prevSenderId ?? '') !== String(senderId ?? '');
+
+                      const rawAvatar = msg.senderAvatarUrl || msg.SenderAvatarUrl || msg.senderAvatar || msg.SenderAvatar || (msg as any).senderAvatarUrl || (msg as any).SenderAvatarUrl || (msg as any).senderAvatar || (msg as any).SenderAvatar;
                       const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? selectedRoom?.avatarUrl : null);
 
                       return (
                         <div
-                          key={`${msg.id}-${idx}`}
-                          onMouseEnter={() => setHoveredMessageId(msg.id)}
+                          key={`${msgId}-${idx}`}
+                          onMouseEnter={() => setHoveredMessageId(msgId)}
                           onMouseLeave={() => setHoveredMessageId(null)}
-                          className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} group shrink-0`}
+                          className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} group shrink-0 ${isFirstInGroup ? 'mt-3' : 'mt-1'}`}
                         >
-                          <div className={`flex gap-2.5 items-end max-w-[75%] ${isMe ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex gap-3 items-end max-w-[70%] ${isMe ? 'flex-row-reverse' : ''}`}>
                             {!isMe && (
-                              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0 text-[10px] font-bold text-white mb-0.5 overflow-hidden border border-slate-200 shadow-sm">
-                                {avatarToUse ? <img src={avatarToUse} alt="avatar" className="w-full h-full object-cover" /> : <span>{getInitials(msg.senderName || 'User')}</span>}
-                              </div>
+                              isLastInGroup ? (
+                                <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 text-[10px] font-black text-slate-650 dark:text-slate-200 mb-0.5 overflow-hidden border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+                                  {avatarToUse && (
+                                    <img 
+                                      src={avatarToUse} 
+                                      alt="avatar" 
+                                      className="w-full h-full object-cover" 
+                                      onError={(e) => { 
+                                        e.currentTarget.style.display = 'none'; 
+                                        const sibling = e.currentTarget.nextSibling as HTMLElement;
+                                        if (sibling) sibling.style.display = 'flex';
+                                      }}
+                                    />
+                                  )}
+                                  <span 
+                                    style={{ display: avatarToUse ? 'none' : 'flex' }} 
+                                    className="w-full h-full items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 text-slate-750 dark:text-slate-250"
+                                  >
+                                    {getInitials(senderName || 'User')}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="w-8 h-8 shrink-0" />
+                              )
                             )}
-                            <div className={`relative px-4 py-2.5 rounded-2xl text-[14px] leading-relaxed shadow-sm w-auto ${isMe ? 'bg-brand text-white rounded-br-none' : 'bg-white border border-slate-200/60 text-slate-800 rounded-bl-none'}`}>
-                              {!isMe && <div className="text-[10px] font-black text-brand mb-1 uppercase tracking-wide">{msg.senderName}</div>}
-                              
-                              {msg.content.startsWith('[MomentShare:') ? (() => {
-                                try {
-                                  const jsonStr = msg.content.substring(13, msg.content.length - 1);
-                                  const { id, imageUrl, caption } = JSON.parse(jsonStr);
-                                  return (
-                                    <div 
-                                      onClick={() => navigate(`/social/moments?momentId=${id}`)}
-                                      className="flex flex-col rounded-2xl overflow-hidden border border-slate-800 shadow-lg cursor-pointer hover:scale-[1.02] hover:border-brand/40 transition-all max-w-[240px] bg-slate-900 text-white mt-1"
-                                    >
-                                      <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-800/80 text-[10px] font-black uppercase tracking-wider text-slate-300">
-                                        <Camera className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
-                                        <span>Khoảnh khắc</span>
-                                      </div>
-                                      <div className="w-full aspect-[4/5] bg-slate-950 overflow-hidden relative">
-                                        <img src={imageUrl} alt="" className="w-full h-full object-cover" />
-                                      </div>
-                                      {caption && (
-                                        <div className="p-3 text-[11px] font-bold line-clamp-2 bg-slate-900 text-slate-100 leading-normal">
-                                          {caption}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                } catch (e) {
-                                  return <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>;
-                                }
-                              })() : msg.content.includes('[LocationShare:') ? (() => {
-                                try {
-                                  const match = msg.content.match(/\[LocationShare:({.*?})\]/);
-                                  if (match) {
-                                    const { token } = JSON.parse(match[1]);
+                            <div className="relative flex flex-col">
+                              {!isMe && isFirstInGroup && selectedRoom?.isGroupChat && (
+                                <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 mb-1 px-1 tracking-wide uppercase">
+                                  {senderName}
+                                </span>
+                              )}
+                              <div className={`relative px-4 py-2.5 rounded-[18px] text-[14px] leading-relaxed shadow-sm w-auto ${
+                                isMe 
+                                  ? 'bg-[#0084FF] text-white rounded-br-[4px]' 
+                                  : 'bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-100 rounded-bl-[4px]'
+                              }`}>
+                                
+                                {content.startsWith('[MomentShare:') ? (() => {
+                                  try {
+                                    const jsonStr = content.substring(13, content.length - 1);
+                                    const { id, imageUrl, caption } = JSON.parse(jsonStr);
                                     return (
                                       <div 
-                                        onClick={() => window.open(`/track/${token}`, '_blank')}
-                                        className={`flex flex-col rounded-2xl overflow-hidden border shadow-md cursor-pointer hover:scale-[1.02] transition-all p-3.5 max-w-[240px] mt-1 ${
-                                          isMe ? 'bg-blue-950 text-white border-blue-900' : 'bg-slate-50 text-slate-800 border-slate-200'
-                                        }`}
+                                        onClick={() => navigate(`/social/moments?momentId=${id}`)}
+                                        className="flex flex-col rounded-2xl overflow-hidden border border-slate-850 shadow-lg cursor-pointer hover:scale-[1.02] hover:border-brand/40 transition-all max-w-[240px] bg-slate-900 text-white mt-1"
                                       >
-                                        <div className="flex items-center gap-2 mb-2">
-                                          <div className="relative flex h-3 w-3">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
-                                          </div>
-                                          <span className="text-[10px] font-black uppercase tracking-widest">Vị trí trực tiếp</span>
+                                        <div className="flex items-center gap-1.5 px-3 py-2 bg-slate-800/80 text-[10px] font-black uppercase tracking-wider text-slate-300">
+                                          <Camera className="w-3.5 h-3.5 text-yellow-400 animate-pulse" />
+                                          <span>{t('social.moment') || 'Moment'}</span>
                                         </div>
-                                        <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">Bấm để theo dõi lộ trình di chuyển trực tuyến của tôi.</p>
-                                        <span className="text-[10px] font-bold py-1.5 bg-brand text-white rounded-xl text-center shadow-sm">Xem vị trí</span>
+                                        <div className="w-full aspect-[4/5] bg-slate-950 overflow-hidden relative">
+                                          <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                                        </div>
+                                        {caption && (
+                                          <div className="p-3 text-[11px] font-bold line-clamp-2 bg-slate-900 text-slate-100 leading-normal">
+                                            {caption}
+                                          </div>
+                                        )}
                                       </div>
                                     );
+                                  } catch (e) {
+                                    return <p className="break-words font-medium whitespace-pre-wrap">{content}</p>;
                                   }
-                                } catch (e) {
-                                  return <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>;
-                                }
-                                return <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>;
-                              })() : (
-                                <p className="break-words font-medium whitespace-pre-wrap">{msg.content}</p>
-                              )}
-                              {hoveredMessageId === msg.id && (
-                                <div className="absolute -bottom-8 right-0 flex gap-1 bg-white border border-slate-200 rounded-full p-1 shadow-md z-30">
-                                  <button className="p-1 hover:bg-slate-100 rounded-full transition-colors"><SmilePlus className="w-3.5 h-3.5 text-slate-600" /></button>
-                                </div>
-                              )}
+                                })() : content.includes('[LocationShare:') ? (() => {
+                                  try {
+                                    const match = content.match(/\[LocationShare:({.*?})\]/);
+                                    if (match) {
+                                      const { token } = JSON.parse(match[1]);
+                                      return (
+                                        <div 
+                                          onClick={() => window.open(`/track/${token}`, '_blank')}
+                                          className={`flex flex-col rounded-2xl overflow-hidden border shadow-md cursor-pointer hover:scale-[1.02] transition-all p-3.5 max-w-[240px] mt-1 ${
+                                            isMe ? 'bg-blue-950 text-white border-blue-900' : 'bg-slate-50 text-slate-800 border-slate-200'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <div className="relative flex h-3 w-3">
+                                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                              <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest">{t('social.liveLocation') || 'Live Location'}</span>
+                                          </div>
+                                          <p className="text-[10px] text-slate-400 font-medium leading-relaxed mb-3">{t('social.clickToTrackLiveRoute') || 'Click to track my live route.'}</p>
+                                          <span className="text-[10px] font-bold py-1.5 bg-brand text-white rounded-xl text-center shadow-sm">{t('social.viewLocation') || 'View Location'}</span>
+                                        </div>
+                                      );
+                                    }
+                                  } catch (e) {
+                                    return <p className="break-words font-medium whitespace-pre-wrap">{content}</p>;
+                                  }
+                                  return <p className="break-words font-medium whitespace-pre-wrap">{content}</p>;
+                                })() : (
+                                  <p className="break-words font-medium whitespace-pre-wrap">{content}</p>
+                                )}
+                                {hoveredMessageId === msgId && (
+                                  <div className="absolute -bottom-8 right-0 flex gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1 shadow-md z-30">
+                                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-full transition-colors"><SmilePlus className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" /></button>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className={`flex items-center gap-1 mt-1 px-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                            <span className="text-[9px] font-bold text-slate-400 tracking-tight">{formatTime(msg.createdAt)}</span>
+                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 tracking-tight">{formatTime(createdAt)}</span>
                             {isMe && <CheckCheck className="w-3.5 h-3.5 text-brand" />}
                           </div>
                         </div>
@@ -553,32 +664,34 @@ const { mutate: mutateMarkAsRead } = useMutation({
                     })
                   )}
                 </div>
-
-                <div className="p-4 bg-white/75 backdrop-blur-[30px] border-t border-slate-200/60 z-20 shadow-lg">
-                  <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-                    <div className="flex-1 flex items-center bg-slate-100/80 backdrop-blur-sm border border-transparent rounded-full px-5 py-1 focus-within:bg-white focus-within:border-slate-300 focus-within:ring-4 focus-within:ring-brand/10 transition-all shadow-inner">
+ 
+                {/* Message input */}
+                <div className="px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleShareLocationInChat}
+                    disabled={isSharingLocation}
+                    className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-brand rounded-full transition-colors flex-none"
+                    title="Chia sẻ vị trí"
+                  >
+                    {isSharingLocation ? (
+                      <Loader2 className="w-5 h-5 text-brand animate-spin" />
+                    ) : (
+                      <MapPin className="w-5 h-5" />
+                    )}
+                  </button>
+                  
+                  <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
+                    <div className="flex-1 flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-1.5 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-brand/20 transition-all border border-transparent focus-within:border-slate-200 dark:focus-within:border-slate-700">
                       <input 
                         type="text" 
                         value={textValue} 
                         onChange={(e) => setTextValue(e.target.value)} 
-                        placeholder={t('social.typeMessage')} 
-                        className="flex-1 bg-transparent py-2.5 text-sm focus:outline-none text-slate-800 placeholder-slate-400" 
+                        placeholder={t('social.typeMessage') || 'Type a message...'} 
+                        className="flex-1 bg-transparent py-1.5 text-sm focus:outline-none text-slate-800 dark:text-slate-150 placeholder-slate-400 dark:placeholder-slate-500" 
                       />
-                      <button
-                        type="button"
-                        onClick={handleShareLocationInChat}
-                        disabled={isSharingLocation}
-                        className="p-1.5 text-slate-400 hover:text-brand transition-colors cursor-pointer flex-none ml-2"
-                        title="Chia sẻ vị trí hiện tại"
-                      >
-                        {isSharingLocation ? (
-                          <Loader2 className="w-4 h-4 text-brand animate-spin" />
-                        ) : (
-                          <MapPin className="w-5 h-5" />
-                        )}
-                      </button>
                     </div>
-                    <button type="submit" disabled={!textValue.trim() || !isConnected} className="p-3 bg-brand hover:bg-brand-hover disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white rounded-full transition-all flex items-center justify-center shrink-0 shadow-lg shadow-brand/20 active:scale-95 cursor-pointer"><Send className="w-4 h-4" /></button>
+                    <button type="submit" disabled={!textValue.trim() || !isConnected} className="p-2.5 bg-brand text-white hover:bg-brand-hover disabled:opacity-50 disabled:cursor-not-allowed rounded-full transition-all flex items-center justify-center shrink-0 shadow-sm active:scale-95 cursor-pointer"><Send className="w-4 h-4" /></button>
                   </form>
                 </div>
               </>

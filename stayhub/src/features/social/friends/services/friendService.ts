@@ -100,3 +100,17 @@ export const getSentRequests = async (): Promise<PendingRequestResponse[]> => {
     createdAt: item.createdAt || new Date().toISOString(),
   }));
 };
+
+export const getSuggestions = async (): Promise<any[]> => {
+  const response = await apiClient.get<any>(`${FRIEND_API_URL}/suggestions`);
+  const resBody = response.data ?? response;
+  const list = Array.isArray(resBody) ? resBody : (resBody?.data || []);
+
+  return list.map((item: any) => ({
+    id: item.id || item.Id || 0,
+    fullName: item.fullName || item.FullName || "Ẩn danh",
+    avatarUrl: item.avatarUrl || item.AvatarUrl || null,
+    email: item.email || item.Email || "",
+    roleNames: item.roleNames || item.RoleNames || [],
+  }));
+};

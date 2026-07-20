@@ -21,8 +21,10 @@ export const useNotifications = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (isLoadMore = false) => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
       setIsLoading(false);
@@ -32,9 +34,23 @@ export const useNotifications = () => {
     setIsLoading(true);
     setError(null);
 
+    const fetchPage = isLoadMore ? page + 1 : 1;
+
     try {
-      const data = await notificationService.getUserNotifications();
-      setNotifications(data);
+      const response = await notificationService.getUserNotifications(fetchPage, 10);
+      const newNotifications = response.data;
+      
+      setNotifications(prev => {
+        if (isLoadMore) {
+           const existingIds = new Set(prev.map(n => n.id));
+           const filteredNew = newNotifications.filter(n => !existingIds.has(n.id));
+           return [...prev, ...filteredNew];
+        }
+        return newNotifications;
+      });
+      
+      setPage(fetchPage);
+      setHasMore(fetchPage < response.totalPages);
       setHasLoaded(true);
     } catch (err: unknown) {
       console.error("Failed to load notifications:", err);
@@ -43,7 +59,13 @@ export const useNotifications = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page]);
+
+  const loadMore = useCallback(() => {
+    if (!isLoading && hasMore) {
+      fetchNotifications(true);
+    }
+  }, [isLoading, hasMore, fetchNotifications]);
 
   const markAsRead = async (noti: Notification) => {
     if (noti.isRead) return;
@@ -80,6 +102,8 @@ export const useNotifications = () => {
     unreadCount,
     deleteNoti,
     markAsRead,
-    refresh: fetchNotifications,
+    refresh: () => fetchNotifications(false),
+    loadMore,
+    hasMore
   };
 };

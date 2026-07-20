@@ -19,5 +19,9 @@ export const locationService = {
   pingLocation: async (lat: number, lng: number, scheduleId: number | null = null) => {
     const response = await axios.post(`${FULL_API}/locations/ping`, { lat, lng, scheduleId }, getAuthHeaders());
     return response.data;
+  },
+  stopLocationSharing: async () => {
+    const response = await axios.post(`${FULL_API}/locations/stop`, {}, getAuthHeaders());
+    return response.data;
   }
 };

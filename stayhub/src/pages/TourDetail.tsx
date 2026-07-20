@@ -122,6 +122,48 @@ const enrichTicketWithTypeDetail = (
   };
 };
 
+const ExpandableText = ({ 
+  text, 
+  maxLength = 200,
+  showMoreLabel,
+  showLessLabel,
+  className = "text-slate-600 leading-relaxed whitespace-pre-line"
+}: { 
+  text: string; 
+  maxLength?: number;
+  showMoreLabel: string;
+  showLessLabel: string;
+  className?: string;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const needsExpand = text.length > maxLength;
+  const displayText = !needsExpand || isExpanded ? text : `${text.substring(0, maxLength)}...`;
+
+  return (
+    <div>
+      <p className={className}>{displayText}</p>
+      {needsExpand && (
+        <button 
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-brand/5 px-3 py-1.5 text-xs font-bold text-brand transition-colors hover:bg-brand/10 hover:text-brand-hover"
+        >
+          {isExpanded ? (
+            <>
+              <ChevronUp className="h-3.5 w-3.5" />
+              {showLessLabel}
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3.5 w-3.5" />
+              {showMoreLabel}
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
+};
+
 export default function PublicTourDetail() {
   const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
@@ -333,24 +375,13 @@ export default function PublicTourDetail() {
     }
   }, [fetchedReviews, reviewPage]);
 
-  // 3. Tự động chuyển trang khi cuộn đến cuối
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isReviewsLoading && localReviews.length < (totalCount || 0)) {
-          setReviewPage((prev) => prev + 1);
-        }
-      },
-      { threshold: 1.0 }
-    );
-    if (observerTarget.current) observer.observe(observerTarget.current);
-    return () => observer.disconnect();
-  }, [isReviewsLoading, localReviews.length, totalCount]);
+  // 3. Tự động chuyển trang khi cuộn đến cuối - Đã XÓA thay bằng nút Show More / Show Less
 
   const visibleReviews = localReviews.filter((review) => !review.isHidden);
   
+  const reviewsCount = tour?.totalReviews || 0;
+  
   const rating = tour?.averageStar || 0;
-  const reviewsCount = totalCount || 0;
   const days = tour?.tourItineraries?.length || 0;
 
   /* Loading */
@@ -787,10 +818,13 @@ export default function PublicTourDetail() {
                 </div>
                 <div className="flex-1 space-y-2">
                   {[5, 4, 3, 2, 1].map((star) => {
-                    const count = (tour?.reviews || []).filter((r) => {
-                      const isHidden = r.isHidden ?? (r as any).IsHidden;
-                      return !(isHidden === true || isHidden === 1 || isHidden === "true") && Math.round(r.rating || 0) === star;
-                    }).length;
+                    let count = 0;
+                    if (star === 5) count = tour?.fiveStarCount || 0;
+                    if (star === 4) count = tour?.fourStarCount || 0;
+                    if (star === 3) count = tour?.threeStarCount || 0;
+                    if (star === 2) count = tour?.twoStarCount || 0;
+                    if (star === 1) count = tour?.oneStarCount || 0;
+
                     const pct = reviewsCount > 0 ? (count / reviewsCount) * 100 : 0;
                     return (
                       <div key={star} className="flex items-center gap-2 text-xs text-slate-500">
@@ -810,17 +844,20 @@ export default function PublicTourDetail() {
               <div className="space-y-6">
                 {visibleReviews.length > 0 ? (
                   visibleReviews.map((review) => {
-                    // 💥 GẮN CỨNG ẨN DANH Ở ĐÂY CHO KHÁCH XEM (PUBLC VIEW)
-                    const reviewerName = t("tour.anonymousCustomer"); 
-                    const initials = "A";
+                    const reviewerName = review.customerName || review.CustomerName || (review.customerId ? `Customer #${review.customerId}` : t("tour.anonymousCustomer"));
+                    const initials = reviewerName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "A";
                     const reviewRating = review.rating || 0;
                     
                     return (
                       <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0 last:pb-0">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-brand font-bold text-lg uppercase shrink-0">
-                              {initials}
+                            <div className="h-12 w-12 rounded-full border border-blue-200 bg-blue-100 flex items-center justify-center text-brand font-bold text-lg uppercase shrink-0 overflow-hidden">
+                              {review.customerAvatar ? (
+                                <img src={review.customerAvatar} alt={reviewerName} className="h-full w-full object-cover" />
+                              ) : (
+                                initials
+                              )}
                             </div>
                             <div>
                               <div className="font-bold text-slate-800">{reviewerName}</div>
@@ -835,7 +872,12 @@ export default function PublicTourDetail() {
                             ))}
                           </div>
                         </div>
-                        <p className="text-slate-600 leading-relaxed">{review.comment || t("tour.noComment")}</p>
+                        <ExpandableText
+                          text={review.comment || t("tour.noComment")}
+                          showMoreLabel={t("tour.showMore", "Xem thêm")}
+                          showLessLabel={t("tour.showLess", "Thu gọn")}
+                          className="text-slate-600 leading-relaxed"
+                        />
 
                         {review.replies && review.replies.length > 0 && (
                           <div className="mt-4 space-y-4">
@@ -860,7 +902,12 @@ export default function PublicTourDetail() {
                                       <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
                                     </div>
                                   </div>
-                                  <p className="text-sm text-slate-700 leading-relaxed">{reply.content}</p>
+                                  <ExpandableText
+                                    text={reply.content}
+                                    showMoreLabel={t("tour.showMore", "Xem thêm")}
+                                    showLessLabel={t("tour.showLess", "Thu gọn")}
+                                    className="text-sm text-slate-700 leading-relaxed"
+                                  />
                                 </div>
                               );
                             })}
@@ -877,10 +924,42 @@ export default function PublicTourDetail() {
                   )
                 )}
 
-                {/* 💥 ĐIỂM NEO ĐỂ CUỘN */}
-                <div ref={observerTarget} className="h-4 w-full" />
+                {localReviews.length > 0 && (
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-4 border-t border-slate-100 pt-8">
+                    {localReviews.length < (totalCount || 0) && (
+                      <button
+                        onClick={() => setReviewPage(prev => prev + 1)}
+                        disabled={isReviewsLoading}
+                        className="group relative overflow-hidden rounded-xl bg-white px-8 py-3 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-brand hover:ring-brand/50 hover:shadow-md disabled:opacity-50"
+                      >
+                        <span className="relative z-10 flex items-center gap-2">
+                          {isReviewsLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-slate-400 transition-colors group-hover:text-brand" />
+                          )}
+                          {isReviewsLoading ? t("common.loading", "Đang tải...") : t("tour.showMore", "Xem thêm")}
+                        </span>
+                        <div className="absolute inset-0 z-0 bg-gradient-to-r from-brand/0 via-brand/5 to-brand/0 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </button>
+                    )}
+                    {reviewPage > 1 && (
+                      <button
+                        onClick={() => {
+                          setReviewPage(1);
+                          setLocalReviews(localReviews.slice(0, 5));
+                        }}
+                        disabled={isReviewsLoading}
+                        className="group flex items-center gap-2 rounded-xl bg-white px-8 py-3 text-sm font-bold text-slate-500 shadow-sm ring-1 ring-slate-200 transition-all hover:bg-slate-50 hover:text-slate-700 hover:ring-slate-300 disabled:opacity-50"
+                      >
+                        <ChevronUp className="h-4 w-4 text-slate-400 transition-colors group-hover:text-slate-600" />
+                        {t("tour.showLess", "Ẩn bớt")}
+                      </button>
+                    )}
+                  </div>
+                )}
                 
-                {isReviewsLoading && (
+                {isReviewsLoading && localReviews.length === 0 && (
                   <div className="flex justify-center py-4">
                     <Loader2 className="h-6 w-6 animate-spin text-brand" />
                   </div>

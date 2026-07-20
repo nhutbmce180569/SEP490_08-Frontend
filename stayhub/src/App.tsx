@@ -131,7 +131,7 @@ import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
-import NotificationListPage from "./features/system/pages/Notificationlistpage";
+
 import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
 import { TrendPredictionPage } from "./features/ai/pages/TrendPredictionPage";
 const queryClient = new QueryClient();
@@ -386,23 +386,18 @@ const App: React.FC = () => {
                                     path={PATH.CUSTOMER.SETTINGS}
                                     element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
                                   />
-                                  <Route
-                                    path={PATH.CUSTOMER.NOTIFICATIONS}
-                                    element={<NotificationListPage />}
-                                  />
-
-                                  <Route
-                                    path={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                                    element={<FriendsManagement />}
-                                  />
                                 </Route>
-
-                                <Route
-                                  path={PATH.CUSTOMER.SOCIAL_CHAT}
-                                  element={<ChatPage />}
-                                />
                               </Route>
 
+                              <Route
+                                path={PATH.CUSTOMER.SOCIAL_CHAT}
+                                element={<ChatPage />}
+                              />
+
+                              <Route
+                                path={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                                element={<FriendsManagement />}
+                              />
                               <Route path="/social/moments" element={<MomentsRouteWrapper />} />
                             </Route>
                           </Route>

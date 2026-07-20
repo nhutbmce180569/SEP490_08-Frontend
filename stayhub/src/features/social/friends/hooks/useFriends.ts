@@ -7,7 +7,8 @@ import {
   deleteFriendship,
   getPaginatedFriendList,
   getFriendshipStatus,
-  getSentRequests
+  getSentRequests,
+  getSuggestions
 } from "../services/friendService";
 
 export const friendQueryKeys = {
@@ -83,5 +84,12 @@ export const useGetSentRequests = () => {
   return useQuery({
     queryKey: friendQueryKeys.sent(),
     queryFn: getSentRequests,
+  });
+};
+
+export const useGetSuggestions = () => {
+  return useQuery({
+    queryKey: [...friendQueryKeys.all, "suggestions"] as const,
+    queryFn: getSuggestions,
   });
 };

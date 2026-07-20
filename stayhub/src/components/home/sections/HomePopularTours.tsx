@@ -18,6 +18,7 @@ type HomePopularToursProps = {
   title?: string;
   subtitle?: string;
   eyebrow?: string;
+  onViewAll?: () => void;
 };
 
 export const HomePopularTours: React.FC<HomePopularToursProps> = ({
@@ -27,6 +28,7 @@ export const HomePopularTours: React.FC<HomePopularToursProps> = ({
   title,
   subtitle,
   eyebrow,
+  onViewAll,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -69,7 +71,7 @@ export const HomePopularTours: React.FC<HomePopularToursProps> = ({
         title={title || t("home.lovedByTravelers")}
         subtitle={subtitle || t("home.popularToursSubtitle")}
         showSeeAll
-        onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
+        onSeeAll={onViewAll || (() => navigate(PATH.PUBLIC.TOUR_SEARCH))}
         actionSlot={
           !isLoading && !error && tours.length > 4 ? (
             <div className="hidden lg:flex items-center gap-2 shrink-0 mr-2">

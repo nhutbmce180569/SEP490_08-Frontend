@@ -35,12 +35,24 @@ export const useHomeSections = () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await apiClient.get<Tour[]>(url, {
+        const res = await apiClient.get<any>(url, {
           signal: controller.signal,
-          params: { limit },
+          params: { limit, page: 1, pageSize: limit },
         });
-        // Handle case where res is wrapped in { data: ... } or just array
-        const items = Array.isArray(res) ? res : (res as any).data || [];
+        
+        // Handle various response structures (array, {items: []}, {data: {items: []}}, {data: []})
+        let items: Tour[] = [];
+        if (Array.isArray(res)) {
+          items = res;
+        } else if (res?.items) {
+          items = res.items;
+        } else if (res?.data) {
+          if (Array.isArray(res.data)) {
+            items = res.data;
+          } else if (res.data.items) {
+            items = res.data.items;
+          }
+        }
         setData(items);
       } catch (err: unknown) {
         if (isRequestCancelled(err)) return;

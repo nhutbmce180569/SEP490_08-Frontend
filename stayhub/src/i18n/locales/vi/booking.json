@@ -367,5 +367,10 @@
   "genderLabel": "Giới tính",
   "copyQrCode": "Sao chép mã QR",
   "qrCodeCopied": "Đã sao chép mã QR vào clipboard!",
-  "qrCodeCopyFailed": "Không thể sao chép mã QR."
+  "qrCodeCopyFailed": "Không thể sao chép mã QR.",
+  "passengerExcelTitle": "Nhập danh sách hành khách",
+  "passengerExcelDescription": "Tải file mẫu về, điền thông tin và nhập lên lại để nhanh chóng thêm {{count}} hành khách.",
+  "passengerExcelDownload": "Tải File Mẫu",
+  "passengerExcelImport": "Nhập File Excel",
+  "passengerExcelReview": "Đã tải lên thành công thông tin của {{count}} hành khách."
 }

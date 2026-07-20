@@ -18,6 +18,8 @@ import {
   Image as ImageIcon,
   ExternalLink,
   Loader2,
+  Phone,
+  Send,
 } from "lucide-react";
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
@@ -43,20 +45,27 @@ import { useTranslation } from "../contexts/LocaleContext";
 import { useReview } from "../features/tour/hooks/useReview";
 import { MoneyDisplay } from "../features/currency/MoneyDisplay";
 import { WishlistToggleButton } from "../features/wishlist/customer/components/WishlistToggleButton";
+import { FloatingContactWidget } from "../layouts/shared/FloatingContactWidget";
 import { SimilarToursSection } from "../features/ai/components/SimilarToursSection";
 import { getTicketEffectivePriceInfo } from "../features/tour/utils/tourPrice";
+import { apiClient } from "../utils/axiosClient";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
   endLocationName?: string | null;
 };
 
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("vi-VN", {
-    day: "2-digit",
+const fmtDate = (d: string, locale: string) => {
+  const date = new Date(d);
+  if (locale === "vi") {
+    return `ngày ${String(date.getDate()).padStart(2, "0")} tháng ${String(date.getMonth() + 1).padStart(2, "0")} năm ${date.getFullYear()}`;
+  }
+  return date.toLocaleDateString("en-US", {
     month: "short",
+    day: "numeric",
     year: "numeric",
   });
+};
 
 const getScheduleTickets = (schedule: TourSchedule) =>
   (schedule.tourScheduleTickets ?? []).filter((ticket) => ticket.isActive !== false);
@@ -165,18 +174,49 @@ const ExpandableText = ({
 };
 
 export default function PublicTourDetail() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { tour, isLoading, error } = usePublicTour(id ? Number(id) : undefined);
-  const { error: showError } = useToast();
+  const { error: showError, success: showSuccess } = useToast();
+
+  // States cho modal tư vấn
+  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
+  const [isSubmittingConsultation, setIsSubmittingConsultation] = useState(false);
+  const [consultationForm, setConsultationForm] = useState({
+    fullName: "",
+    phone: "",
+    email: "",
+    note: ""
+  });
 
   const [showFullError, setShowFullError] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [expandedTicketScheduleId, setExpandedTicketScheduleId] = useState<number | null>(null);
+  const [selectedDayItinerary, setSelectedDayItinerary] = useState<number | null>(null);
   const [currentTime] = useState(() => Date.now());
+
+  const handleConsultationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tour?.id) return;
+
+    try {
+      setIsSubmittingConsultation(true);
+      await apiClient.post("/tours/request-consultation", {
+        tourId: tour.id,
+        ...consultationForm
+      });
+      showSuccess(t("tour.consultationSuccess", { defaultValue: "Yêu cầu tư vấn đã được gửi thành công!" }));
+      setIsConsultationModalOpen(false);
+      setConsultationForm({ fullName: "", phone: "", email: "", note: "" });
+    } catch (err: any) {
+      showError(err?.response?.data?.message || t("tour.consultationError", { defaultValue: "Đã có lỗi xảy ra khi gửi yêu cầu tư vấn." }));
+    } finally {
+      setIsSubmittingConsultation(false);
+    }
+  };
 
   const { data: category } = useQuery({
     queryKey: ["category", tour?.categoryId],
@@ -187,7 +227,9 @@ export default function PublicTourDetail() {
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
   const sortedSchedules = useMemo(() => {
-    const arr = [...(tour?.tourSchedules || [])];
+    const arr = [...(tour?.tourSchedules || [])].filter(
+      (s) => new Date(s.departureDate).getTime() > Date.now()
+    );
     return arr.sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
   }, [tour?.tourSchedules]);
 
@@ -526,7 +568,7 @@ export default function PublicTourDetail() {
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 xl:gap-14">
           {/* LEFT */}
-          <div className="space-y-16">
+          <div className="space-y-16 min-w-0">
             {/* Overview */}
             <section>
               <SectionLabel>{t("tour.overview")}</SectionLabel>
@@ -585,157 +627,42 @@ export default function PublicTourDetail() {
                     {Object.entries(groupedItineraries)
                       .map(([dayStr]) => Number(dayStr))
                       .sort((a, b) => a - b)
-                      .map((dayNumber) => (
-                      <div key={dayNumber} className="flex gap-5 sm:gap-8">
-                        <div className="relative z-10 shrink-0 hidden sm:block">
-                          <div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center shadow-md shadow-blue-200">
-                            <span className="text-white font-black text-xs">
-                              {dayNumber}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-brand/20 transition-colors overflow-hidden">
-                          <div className="border-b border-slate-100 bg-slate-50 px-5 py-4 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                               <span className="sm:hidden inline-flex items-center justify-center h-6 w-6 rounded-full bg-brand text-white font-black text-[10px]">
-                                 {dayNumber}
-                               </span>
-                               <h3 className="text-lg font-bold text-slate-800">
-                                 {t("tour.dayLabel", { count: dayNumber })}
-                               </h3>
+                      .map((dayNumber) => {
+                        const dayItineraries = groupedItineraries[dayNumber] as PublicTourItinerary[];
+                        
+                        return (
+                          <div key={dayNumber} className="flex gap-5 sm:gap-8">
+                            <div className="relative z-10 shrink-0 hidden sm:block">
+                              <div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center shadow-md shadow-blue-200">
+                                <span className="text-white font-black text-xs">
+                                  {dayNumber}
+                                </span>
+                              </div>
                             </div>
+                            <button 
+                              onClick={() => setSelectedDayItinerary(dayNumber)}
+                              className="flex-1 text-left rounded-2xl border border-slate-200 bg-white p-5 hover:border-brand hover:shadow-md transition-all flex items-start justify-between group"
+                            >
+                              <div className="flex-1 min-w-0 pr-4">
+                                <h3 className="text-lg font-black text-slate-800 group-hover:text-brand transition-colors mb-3">
+                                  {t("tour.dayLabel", { count: dayNumber })}
+                                </h3>
+                                <div className="flex flex-col gap-2">
+                                  {dayItineraries.map((iti) => (
+                                    <div key={iti.id} className="flex items-start gap-2 text-sm font-medium text-slate-600">
+                                      <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand/60" />
+                                      <span className="line-clamp-2 leading-relaxed">{iti.title}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="h-10 w-10 shrink-0 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-brand group-hover:text-white transition-all mt-1">
+                                <ChevronRight size={20} />
+                              </div>
+                            </button>
                           </div>
-                          <div className="flex flex-col divide-y divide-slate-100">
-                            {(groupedItineraries[dayNumber] as PublicTourItinerary[]).map((iti) => {
-                               const isExpanded = expandedItiIds.includes(iti.id);
-                               const timeStr = iti.startDuration && iti.endDuration
-                                 ? `${iti.startDuration.substring(0, 5)} - ${iti.endDuration.substring(0, 5)}`
-                                 : iti.startDuration ? iti.startDuration.substring(0, 5) : t("tour.anyTime");
-                               const tourismInfo = iti.tourismInfoId
-                                 ? tourismInformationDetails[iti.tourismInfoId]
-                                 : null;
-
-                               return (
-                                 <div key={iti.id} className="flex flex-col">
-                                   <div
-                                     className="flex cursor-pointer items-center justify-between px-5 py-4 transition-colors hover:bg-slate-50"
-                                     onClick={() => toggleIti(iti.id)}
-                                   >
-                                     <div className="flex items-center gap-4">
-                                       <div className="flex min-w-[90px] items-center justify-center rounded-lg bg-brand-light px-3 py-1.5 text-xs font-bold text-brand">
-                                         <Clock className="mr-1.5 h-3.5 w-3.5" />
-                                         {timeStr}
-                                       </div>
-                                       <h4 className="font-semibold text-slate-800 text-sm sm:text-base">{iti.title}</h4>
-                                     </div>
-                                     <div className="text-slate-400 shrink-0 ml-4">
-                                       {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
-                                     </div>
-                                   </div>
-
-                                   {isExpanded && (
-                                     <div className="bg-slate-50/50 px-5 pb-5 pt-2 sm:pl-[130px]">
-                                       {iti.description && (
-                                          <div
-                                            className="prose prose-sm mb-4 text-sm leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
-                                            dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, ' ') }}
-                                          />
-                                       )}
-                                       <div className="flex flex-col gap-2 text-sm text-slate-500 bg-white border border-slate-100 p-3 rounded-xl w-fit">
-                                         {iti.locationName && (
-                                           <div className="flex items-center gap-2">
-                                             <MapPin className="h-4 w-4 text-emerald-500 shrink-0" />
-                                             <span className="font-medium text-slate-700">{iti.locationName}</span>
-                                           </div>
-                                         )}
-                                         {iti.startLocationName && (
-                                           <div className="flex items-start gap-2">
-                                             <MapPin className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                             <div><span className="font-semibold text-slate-700">{t("tour.start")}:</span> {iti.startLocationName}</div>
-                                           </div>
-                                         )}
-                                          {iti.endLocationName && (
-                                            <div className="flex items-start gap-2">
-                                              <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
-                                              <div><span className="font-semibold text-slate-700">{t("tour.end")}:</span> {iti.endLocationName}</div>
-                                            </div>
-                                          )}
-                                          {iti.tourismInfoId && (
-                                            <div className="mt-1 overflow-hidden rounded-xl border border-slate-100 bg-white text-slate-600">
-                                              {tourismInfo ? (
-                                                <div className="grid sm:grid-cols-[160px_1fr]">
-                                                  <div className="flex min-h-32 items-center justify-center bg-slate-100">
-                                                    {tourismInfo.imageUrl ? (
-                                                      <img
-                                                        src={tourismInfo.imageUrl}
-                                                        alt={tourismInfo.name}
-                                                        className="h-full min-h-32 w-full object-cover"
-                                                      />
-                                                    ) : (
-                                                      <div className="flex flex-col items-center gap-2 text-slate-400">
-                                                        <ImageIcon className="h-7 w-7" />
-                                                        <span className="text-xs font-medium">{t("tour.noImage")}</span>
-                                                      </div>
-                                                    )}
-                                                  </div>
-                                                  <div className="space-y-2 p-4">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                      <span className="font-bold text-slate-800">{tourismInfo.name}</span>
-                                                      <span className="rounded-full bg-brand-light px-2 py-0.5 text-[11px] font-bold text-brand">
-                                                        {tourismInfo.type}
-                                                      </span>
-                                                    </div>
-                                                    {tourismInfo.description && (
-                                                      <p className="text-xs leading-relaxed text-slate-500">
-                                                        {tourismInfo.description}
-                                                      </p>
-                                                    )}
-                                                    <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
-                                                      <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                                                      <span>
-                                                        {[tourismInfo.address, tourismInfo.city, tourismInfo.country]
-                                                          .filter(Boolean)
-                                                          .join(", ") || t("common.na")}
-                                                      </span>
-                                                    </div>
-                                                    {(tourismInfo.latitude || tourismInfo.longitude) && (
-                                                      <div className="text-xs font-medium text-slate-400">
-                                                        Lat/Lng: {tourismInfo.latitude ?? "N/A"}, {tourismInfo.longitude ?? "N/A"}
-                                                      </div>
-                                                    )}
-                                                    {tourismInfo.sourceUrl && (
-                                                      <a
-                                                        href={tourismInfo.sourceUrl}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:text-brand-hover"
-                                                      >
-                                                        {tourismInfo.sourceName || t("tour.source")}
-                                                        <ExternalLink className="h-3.5 w-3.5" />
-                                                      </a>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              ) : (
-                                                <div className="flex items-start gap-2 p-3">
-                                                  <Tag className="h-4 w-4 text-brand shrink-0 mt-0.5" />
-                                                  <span className="font-semibold text-slate-700">
-                                                    {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
-                                                  </span>
-                                                </div>
-                                              )}
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                   )}
-                                 </div>
-                               );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
                   </div>
                 </div>
               ) : (
@@ -862,7 +789,7 @@ export default function PublicTourDetail() {
                             <div>
                               <div className="font-bold text-slate-800">{reviewerName}</div>
                               {review.createdAt && (
-                                <div className="text-xs text-slate-400">{fmtDate(review.createdAt)}</div>
+                                <div className="text-xs text-slate-400">{fmtDate(review.createdAt, locale)}</div>
                               )}
                             </div>
                           </div>
@@ -896,7 +823,7 @@ export default function PublicTourDetail() {
                                         <span>{replyName}</span>
                                         <span className="text-slate-400">•</span>
                                         <span className="text-xs font-medium text-slate-500">
-                                          {reply.createdAt ? fmtDate(reply.createdAt) : ""}
+                                          {reply.createdAt ? fmtDate(reply.createdAt, locale) : ""}
                                         </span>
                                       </div>
                                       <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
@@ -973,7 +900,7 @@ export default function PublicTourDetail() {
 
           {/* RIGHT: Booking widget */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div>
               <div className="rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50 overflow-hidden">
                 {/* Price strip */}
                 <div className="bg-gradient-to-r from-brand to-brand px-6 py-5">
@@ -1010,8 +937,8 @@ export default function PublicTourDetail() {
                               {t("tour.selectedSchedule")}
                             </div>
                             <div className="font-bold text-slate-900 mt-1 text-sm">
-                              {fmtDate(selectedSchedule.departureDate)} -{" "}
-                              {fmtDate(selectedSchedule.returnDate)}
+                              {fmtDate(selectedSchedule.departureDate, locale)} -{" "}
+                              {fmtDate(selectedSchedule.returnDate, locale)}
                             </div>
                             <div className="text-xs font-medium text-emerald-600 mt-1">
                               {t("tour.seatsLeft", { count: selectedScheduleAvailableSeats })}
@@ -1103,19 +1030,28 @@ export default function PublicTourDetail() {
                     )}
                   </div>
 
-                  {/* ActionButton - same as original */}
-                  <ActionButton
-                    variant="primary"
-                    className="w-full py-4 text-base shadow-lg shadow-brand/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
-                    disabled={!selectedCheckoutSchedule}
-                    onClick={() => {
-                      navigate(PATH.CUSTOMER.CHECKOUT(tour.id), {
-                        state: { tour, schedule: selectedCheckoutSchedule },
-                      });
-                    }}
-                  >
-                    {t("tour.proceedToBooking")}
-                  </ActionButton>
+                  <div className="flex items-stretch gap-3">
+                    <ActionButton
+                      variant="primary"
+                      className="flex-1 py-4 text-base shadow-lg shadow-brand/30 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed"
+                      disabled={!selectedCheckoutSchedule}
+                      onClick={() => {
+                        navigate(PATH.CUSTOMER.CHECKOUT(tour.id), {
+                          state: { tour, schedule: selectedCheckoutSchedule },
+                        });
+                      }}
+                    >
+                      {t("tour.proceedToBooking")}
+                    </ActionButton>
+
+                    <button
+                      onClick={() => setIsConsultationModalOpen(true)}
+                      className="flex w-[72px] shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand hover:bg-brand hover:text-white transition-colors border border-brand/20 shadow-sm"
+                      title={t("tour.requestConsultation", { defaultValue: "Yêu cầu tư vấn" })}
+                    >
+                      <Phone size={24} className="fill-brand-light/20" />
+                    </button>
+                  </div>
 
                   <div className="text-center text-xs font-medium text-slate-400">
                     {t("tour.notChargedYet")}
@@ -1184,7 +1120,7 @@ export default function PublicTourDetail() {
             </div>
 
             {availableMonths.length > 0 && (
-              <div className="border-b border-slate-100 px-6 flex items-center gap-6 overflow-x-auto">
+              <div className="border-b border-slate-100 px-6 flex items-center gap-6 overflow-x-auto thin-scrollbar">
                 {availableMonths.map((month) => (
                   <button
                     key={month}
@@ -1201,7 +1137,7 @@ export default function PublicTourDetail() {
               </div>
             )}
 
-            <div className="p-6 max-h-[60vh] overflow-y-auto bg-slate-50/30">
+            <div className="p-6 max-h-[60vh] overflow-y-auto bg-slate-50/30 thin-scrollbar">
               {availableMonths.length > 0 ? (
                 <div className="flex flex-col gap-3">
                   {groupedSchedules[activeMonth].map((schedule) => {
@@ -1225,13 +1161,13 @@ export default function PublicTourDetail() {
                     return (
                       <div
                         key={schedule.id}
-                        className={`relative text-left rounded-2xl border-2 p-4 transition-all
+                        className={`relative text-left rounded-2xl border-2 p-5 transition-all
                           ${
                             isSelected
                               ? "border-brand bg-brand-light/50 ring-1 ring-brand shadow-md"
                               : isUnavailable
-                              ? "border-slate-100 bg-slate-50 opacity-60 cursor-not-allowed grayscale-[50%]"
-                              : "border-slate-200 bg-white hover:shadow-md"
+                              ? "border-slate-100 bg-slate-50/50 opacity-70 cursor-not-allowed grayscale-[50%]"
+                              : "border-slate-100 bg-white hover:border-slate-300 hover:shadow-sm"
                           }`}
                       >
                         {isSelected && (
@@ -1240,123 +1176,130 @@ export default function PublicTourDetail() {
                           </div>
                         )}
 
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                          <div className="flex min-w-0 flex-1 items-center gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                          {/* Left: Date & Info */}
+                          <div className="flex items-center gap-5">
                             <div
-                              className={`rounded-xl px-3 py-2 text-center min-w-[58px] shrink-0 ${isSelected ? "bg-brand" : "bg-slate-100"}`}
+                              className={`rounded-xl px-3 py-2 text-center min-w-[64px] shrink-0 ${isSelected ? "bg-brand" : "bg-slate-100"}`}
                             >
                               <div
-                                className={`text-[10px] font-bold uppercase tracking-wide ${isSelected ? "text-blue-200" : "text-slate-400"}`}
+                                className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? "text-blue-200" : "text-slate-400"}`}
                               >
                                 {depDate.toLocaleDateString("en", {
                                   month: "short",
                                 })}
                               </div>
                               <div
-                                className={`text-2xl font-black leading-tight ${isSelected ? "text-white" : "text-slate-800"}`}
+                                className={`text-2xl font-black leading-none mt-1 ${isSelected ? "text-white" : "text-slate-800"}`}
                               >
                                 {depDate.getDate()}
                               </div>
                             </div>
 
                             <div className="min-w-0">
-                              <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                                {t("tour.departureReturn")}
+                              <div className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                                {t("tour.departureReturn")} • {nights} {nights !== 1 ? t("tour.nightsLabel") : t("tour.night")}
                               </div>
                               <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-bold text-slate-800">
-                                <span>{fmtDate(schedule.departureDate)}</span>
-                                <span className="text-slate-300">{t("tour.to")}</span>
-                                <span>{fmtDate(schedule.returnDate)}</span>
+                                <span>{fmtDate(schedule.departureDate, locale)}</span>
+                                <span className="text-slate-300">→</span>
+                                <span>{fmtDate(schedule.returnDate, locale)}</span>
                               </div>
-                              <div className="mt-1 text-xs font-medium text-slate-400">
-                                {nights} {nights !== 1 ? t("tour.nightsLabel") : t("tour.night")}
+                              <div className="mt-2.5">
+                                <span
+                                  className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shrink-0 ${
+                                    isExpired
+                                      ? "bg-slate-200 text-slate-500"
+                                      : hasNoPrice
+                                      ? "bg-slate-200 text-slate-500"
+                                      : isSoldOut
+                                      ? "bg-rose-100 text-rose-600"
+                                      : scheduleAvailableSeats <= 5
+                                      ? "bg-amber-100 text-amber-700"
+                                      : "bg-emerald-50 text-emerald-600"
+                                  }`}
+                                >
+                                  {isExpired
+                                    ? t("tour.expired")
+                                    : hasNoPrice
+                                    ? t("tour.noPrice")
+                                    : isSoldOut
+                                    ? t("tour.soldOut")
+                                    : scheduleAvailableSeats <= 5
+                                    ? t("tour.fewSeatsLeft", { count: scheduleAvailableSeats })
+                                    : t("tour.seatsLeft", { count: scheduleAvailableSeats })}
+                                </span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-                            <span
-                              className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ${
-                                isExpired
-                                  ? "bg-slate-200 text-slate-500"
-                                  : hasNoPrice
-                                  ? "bg-slate-200 text-slate-500"
-                                  : isSoldOut
-                                  ? "bg-rose-100 text-rose-600"
-                                  : scheduleAvailableSeats <= 5
-                                  ? "bg-amber-100 text-amber-600"
-                                  : "bg-emerald-50 text-emerald-600"
-                              }`}
-                            >
-                              {isExpired
-                                ? t("tour.expired")
-                                : hasNoPrice
-                                ? t("tour.noPrice")
-                                : isSoldOut
-                                ? t("tour.soldOut")
-                                : scheduleAvailableSeats <= 5
-                                ? t("tour.fewSeatsLeft", { count: scheduleAvailableSeats })
-                                : t("tour.seatsLeft", { count: scheduleAvailableSeats })}
-                            </span>
-
-                            <span className={`min-w-[110px] text-right font-bold text-sm ${isUnavailable ? "text-slate-400 line-through" : "text-slate-900"}`}>
-                              {schedulePriceRange ? (
-                                schedulePriceRange.minPrice === schedulePriceRange.maxPrice ? (
-                                  <MoneyDisplay amountVnd={schedulePriceRange.minPrice} compact />
-                                ) : (
-                                  <>
+                          {/* Right: Price & Actions */}
+                          <div className="flex flex-col sm:items-end gap-3 sm:border-l sm:border-slate-100 sm:pl-5 pt-3 sm:pt-0 border-t border-slate-100 sm:border-t-0 mt-3 sm:mt-0">
+                            <div className="flex flex-col sm:items-end">
+                              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+                                {t("tour.fromPrice", { defaultValue: "From" })}
+                              </span>
+                              <span className={`text-lg font-black ${isUnavailable ? "text-slate-400 line-through" : "text-brand"}`}>
+                                {schedulePriceRange ? (
+                                  schedulePriceRange.minPrice === schedulePriceRange.maxPrice ? (
                                     <MoneyDisplay amountVnd={schedulePriceRange.minPrice} compact />
-                                    {" - "}
-                                    <MoneyDisplay amountVnd={schedulePriceRange.maxPrice} compact />
-                                  </>
-                                )
-                              ) : (
-                                t("tour.noPrice")
-                              )}
-                            </span>
+                                  ) : (
+                                    <>
+                                      <MoneyDisplay amountVnd={schedulePriceRange.minPrice} compact />
+                                      <span className="text-slate-300 mx-1 font-normal">-</span>
+                                      <MoneyDisplay amountVnd={schedulePriceRange.maxPrice} compact />
+                                    </>
+                                  )
+                                ) : (
+                                  t("tour.noPrice")
+                                )}
+                              </span>
+                            </div>
 
-                            {scheduleTickets.length > 0 && (
+                            <div className="flex items-center gap-2 w-full sm:w-auto mt-1 sm:mt-0">
+                              {scheduleTickets.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setExpandedTicketScheduleId((currentId) =>
+                                      currentId === schedule.id ? null : schedule.id,
+                                    )
+                                  }
+                                  className="flex-1 sm:flex-none inline-flex justify-center items-center gap-1.5 rounded-xl bg-slate-100/80 px-3 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                                >
+                                  {isExpandedTickets ? t("tour.hide") : t("tour.tickets")}
+                                  {isExpandedTickets ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </button>
+                              )}
+
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setExpandedTicketScheduleId((currentId) =>
-                                    currentId === schedule.id ? null : schedule.id,
-                                  )
-                                }
-                                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100"
+                                disabled={isUnavailable}
+                                onClick={() => {
+                                  if (isExpired) {
+                                    showError(t("tour.scheduleExpired"));
+                                    return;
+                                  }
+                                  if (isSoldOut) {
+                                    showError(t("tour.scheduleSoldOut"));
+                                    return;
+                                  }
+                                  if (hasNoPrice) {
+                                    showError(t("tour.scheduleNoPrice"));
+                                    return;
+                                  }
+                                  setSelectedScheduleId(schedule.id);
+                                  setIsScheduleModalOpen(false);
+                                }}
+                                className="flex-1 sm:flex-none min-w-[120px] rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand/90 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
                               >
-                                {isExpandedTickets ? t("tour.hide") : t("tour.tickets")}
-                                {isExpandedTickets ? (
-                                  <ChevronUp className="h-4 w-4" />
-                                ) : (
-                                  <ChevronDown className="h-4 w-4" />
-                                )}
+                                {isSelected ? t("tour.selected") : t("common.select")}
                               </button>
-                            )}
-
-                            <button
-                              type="button"
-                              disabled={isUnavailable}
-                              onClick={() => {
-                                if (isExpired) {
-                                  showError(t("tour.scheduleExpired"));
-                                  return;
-                                }
-                                if (isSoldOut) {
-                                  showError(t("tour.scheduleSoldOut"));
-                                  return;
-                                }
-                                if (hasNoPrice) {
-                                  showError(t("tour.scheduleNoPrice"));
-                                  return;
-                                }
-                                setSelectedScheduleId(schedule.id);
-                                setIsScheduleModalOpen(false);
-                              }}
-                              className="min-w-[132px] rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-brand disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500"
-                            >
-                              {isSelected ? t("tour.selected") : t("common.select")}
-                            </button>
+                            </div>
                           </div>
                         </div>
 
@@ -1410,6 +1353,239 @@ export default function PublicTourDetail() {
               )}
             </div>
           </div>
+          </div>,
+          document.body,
+        )}
+
+      {selectedDayItinerary !== null &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => setSelectedDayItinerary(null)}>
+            <div 
+              className="relative flex w-full max-w-2xl max-h-[85vh] flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 p-6 bg-white z-10">
+                <div>
+                  <h3 className="text-xl font-black text-slate-900">
+                    {t("tour.dayLabel", { count: selectedDayItinerary })}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setSelectedDayItinerary(null)}
+                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto thin-scrollbar bg-slate-50 relative">
+                <div className="space-y-6 relative">
+                  {/* Timeline vertical line */}
+                  <div className="absolute left-4 top-4 bottom-4 w-[2px] bg-slate-200 hidden sm:block" />
+                  
+                  {((groupedItineraries[selectedDayItinerary] || []) as PublicTourItinerary[]).map((iti) => {
+                    const tourismInfo = iti.tourismInfoId ? tourismInformationDetails[iti.tourismInfoId] : null;
+                    return (
+                      <div key={iti.id} className="relative sm:pl-14">
+                        {/* Timeline icon */}
+                        <div className="absolute left-[2px] top-5 hidden sm:flex h-[30px] w-[30px] items-center justify-center rounded-full bg-brand text-white shadow-md ring-4 ring-slate-50 z-10">
+                          <MapPin size={14} className="fill-brand-light" />
+                        </div>
+                        
+                        <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm hover:border-brand/20 transition-colors">
+                          <h4 className="text-lg font-bold text-slate-800 mb-3">{iti.title}</h4>
+                          
+                          {iti.description && (
+                            <div
+                              className="prose prose-sm mb-4 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
+                              dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, ' ') }}
+                            />
+                          )}
+                          
+                          {(iti.locationName || iti.startLocationName || iti.endLocationName || iti.tourismInfoId) && (
+                            <div className="flex flex-col gap-2 text-sm text-slate-500 bg-slate-50/50 border border-slate-100 p-4 rounded-xl">
+                              {iti.locationName && (
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="h-4 w-4 text-emerald-500 shrink-0" />
+                                  <span className="font-medium text-slate-700">{iti.locationName}</span>
+                                </div>
+                              )}
+                              {iti.startLocationName && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                                  <div><span className="font-semibold text-slate-700">{t("tour.start")}:</span> {iti.startLocationName}</div>
+                                </div>
+                              )}
+                              {iti.endLocationName && (
+                                <div className="flex items-start gap-2">
+                                  <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                                  <div><span className="font-semibold text-slate-700">{t("tour.end")}:</span> {iti.endLocationName}</div>
+                                </div>
+                              )}
+                              
+                              {iti.tourismInfoId && (
+                                <div className="mt-2 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
+                                  {tourismInfo ? (
+                                    <div className="grid sm:grid-cols-[120px_1fr]">
+                                      <div className="flex min-h-[100px] items-center justify-center bg-slate-100">
+                                        {tourismInfo.imageUrl ? (
+                                          <img
+                                            src={tourismInfo.imageUrl}
+                                            alt={tourismInfo.name}
+                                            className="h-full w-full object-cover"
+                                          />
+                                        ) : (
+                                          <div className="flex flex-col items-center gap-2 text-slate-400">
+                                            <ImageIcon className="h-6 w-6" />
+                                            <span className="text-[10px] font-medium">{t("tour.noImage")}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="p-4 space-y-1.5">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                          <span className="font-bold text-slate-800 text-sm">{tourismInfo.name}</span>
+                                          <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand">
+                                            {tourismInfo.type}
+                                          </span>
+                                        </div>
+                                        {tourismInfo.description && (
+                                          <p className="text-xs leading-relaxed text-slate-500 line-clamp-2">
+                                            {tourismInfo.description}
+                                          </p>
+                                        )}
+                                        {tourismInfo.sourceUrl && (
+                                          <a
+                                            href={tourismInfo.sourceUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold text-brand hover:text-brand-hover"
+                                          >
+                                            {tourismInfo.sourceName || t("tour.source")}
+                                            <ExternalLink className="h-3 w-3" />
+                                          </a>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-2 p-3 text-xs">
+                                      <Tag className="h-3.5 w-3.5 text-brand shrink-0" />
+                                      <span className="font-semibold text-slate-700">
+                                        {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
+
+      <FloatingContactWidget />
+
+      {isConsultationModalOpen &&
+        createPortal(
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm" onClick={() => !isSubmittingConsultation && setIsConsultationModalOpen(false)}>
+            <div 
+              className="relative flex w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 p-6 bg-white">
+                <h3 className="text-xl font-black text-slate-900">
+                  {t("tour.consultationTitle", { defaultValue: "Yêu cầu tư vấn" })}
+                </h3>
+                <button
+                  onClick={() => !isSubmittingConsultation && setIsConsultationModalOpen(false)}
+                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+                  disabled={isSubmittingConsultation}
+                >
+                  <X size={20} />
+                </button>
+              </div>
+              
+              <div className="p-6 bg-slate-50">
+                <form onSubmit={handleConsultationSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">{t("tour.fullName", { defaultValue: "Họ và tên" })} *</label>
+                    <input
+                      type="text"
+                      required
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all bg-white"
+                      placeholder={t("tour.fullNamePlaceholder", { defaultValue: "Nhập họ và tên của bạn" })}
+                      value={consultationForm.fullName}
+                      onChange={(e) => setConsultationForm(prev => ({ ...prev, fullName: e.target.value }))}
+                      disabled={isSubmittingConsultation}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">{t("tour.phone", { defaultValue: "Số điện thoại" })} *</label>
+                    <input
+                      type="tel"
+                      required
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all bg-white"
+                      placeholder={t("tour.phonePlaceholder", { defaultValue: "Nhập số điện thoại" })}
+                      value={consultationForm.phone}
+                      onChange={(e) => setConsultationForm(prev => ({ ...prev, phone: e.target.value }))}
+                      disabled={isSubmittingConsultation}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">{t("tour.email", { defaultValue: "Email" })} *</label>
+                    <input
+                      type="email"
+                      required
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all bg-white"
+                      placeholder={t("tour.emailPlaceholder", { defaultValue: "Nhập địa chỉ email" })}
+                      value={consultationForm.email}
+                      onChange={(e) => setConsultationForm(prev => ({ ...prev, email: e.target.value }))}
+                      disabled={isSubmittingConsultation}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">{t("tour.note", { defaultValue: "Ghi chú" })}</label>
+                    <textarea
+                      rows={3}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all bg-white resize-none"
+                      placeholder={t("tour.notePlaceholder", { defaultValue: "Nhập yêu cầu tư vấn cụ thể của bạn..." })}
+                      value={consultationForm.note}
+                      onChange={(e) => setConsultationForm(prev => ({ ...prev, note: e.target.value }))}
+                      disabled={isSubmittingConsultation}
+                    ></textarea>
+                  </div>
+                  
+                  <div className="pt-2">
+                    <ActionButton
+                      type="submit"
+                      variant="primary"
+                      className="w-full py-3.5 text-base shadow-lg shadow-brand/30 disabled:opacity-50 disabled:shadow-none"
+                      disabled={isSubmittingConsultation}
+                    >
+                      {isSubmittingConsultation ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 size={18} className="animate-spin" />
+                          <span>{t("tour.sendingConsultation", { defaultValue: "Đang gửi..." })}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2">
+                          <Send size={18} />
+                          <span>{t("tour.sendConsultationRequest", { defaultValue: "Gửi yêu cầu" })}</span>
+                        </div>
+                      )}
+                    </ActionButton>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>,
           document.body,
         )}

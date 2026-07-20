@@ -369,5 +369,10 @@
   "genderLabel": "Gender",
   "copyQrCode": "Copy QR Code",
   "qrCodeCopied": "Copied QR code to clipboard!",
-  "qrCodeCopyFailed": "Could not copy QR code."
+  "qrCodeCopyFailed": "Could not copy QR code.",
+  "passengerExcelTitle": "Import passengers",
+  "passengerExcelDescription": "Download the template, fill it in, and import to quickly add {{count}} passengers.",
+  "passengerExcelDownload": "Download Template",
+  "passengerExcelImport": "Import from Excel",
+  "passengerExcelReview": "Successfully uploaded info for {{count}} passengers."
 }

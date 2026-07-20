@@ -33,11 +33,6 @@ export const DashboardLayout = () => {
             icon: <LayoutDashboard className={iconClass} />,
           },
           {
-            label: t("dashboard.salesDetails"),
-            to: "/manager/sales-overview",
-            icon: <BarChart3 className={iconClass} />,
-          },
-          {
             label: t("manager.customerAnalytics"),
             to: PATH.MANAGER.CUSTOMER_ANALYTICS,
             icon: <BarChart3 className={iconClass} />,
@@ -121,10 +116,10 @@ export const DashboardLayout = () => {
       role="partner"
       logoLink={PATH.MANAGER.DASHBOARD}
       groups={groups}
-      defaultTitle={t("manager.tourManagerDashboard", "Tour Manager Dashboard")}
+      defaultTitle={t("manager.tourManagerDashboard") || "Tour Manager Dashboard"}
       badge={
         <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand">
-          {t("manager.tourManager", "TOUR MANAGER")}
+          {t("manager.tourManager") ?? "TOUR MANAGER"}
         </span>
       }
     />

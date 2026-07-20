@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
-import { MapPickerModal } from "../../tour/components/MapPickerModal";
+import { InlineMapPicker } from "./InlineMapPicker";
 import {
   isCoordinateOnlyAddress,
   type ExtractedLocation,
@@ -66,45 +66,21 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
       })),
     [t],
   );
-  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
-  const [currentSetFormData, setCurrentSetFormData] = useState<React.Dispatch<
-    React.SetStateAction<Record<string, unknown>>
-  > | null>(null);
-  const [mapInitialData, setMapInitialData] = useState<{
-    single?: { lat?: number; lng?: number; address?: string };
-  } | null>(null);
+  const initialType = String(initialValues?.type || "Destination");
+  const [isCustomType, setIsCustomType] = useState(
+    initialType !== "" && !TOURISM_INFORMATION_TYPES.includes(initialType as any)
+  );
 
-  const openMapPicker = (
+  const handleLocationSelect = (
     setFormData: React.Dispatch<React.SetStateAction<Record<string, unknown>>>,
-    formData: Record<string, unknown>,
+    locationData: any
   ) => {
-    setCurrentSetFormData(() => setFormData);
-    setMapInitialData({
-      single: {
-        address: typeof formData.address === "string" ? formData.address : "",
-        lat:
-          formData.latitude !== undefined && formData.latitude !== null && formData.latitude !== ""
-            ? Number(formData.latitude)
-            : undefined,
-        lng:
-          formData.longitude !== undefined &&
-          formData.longitude !== null &&
-          formData.longitude !== ""
-            ? Number(formData.longitude)
-            : undefined,
-      },
-    });
-    setIsMapModalOpen(true);
-  };
-
-  const handleConfirmLocation = (locationData: ExtractedLocation | { start?: unknown; end?: unknown } | null) => {
-    if (!currentSetFormData || !isExtractedLocation(locationData)) return;
-
-    currentSetFormData((prev) => ({
+    if (!locationData) return;
+    setFormData((prev) => ({
       ...prev,
       country: locationData.country?.trim() || TOURISM_DEFAULT_COUNTRY,
       city: locationData.city?.trim() || "",
-      address: locationData.address?.trim() || "",
+      address: locationData.address?.trim() || locationData.formatted_address || prev.address,
       latitude: locationData.lat,
       longitude: locationData.lng,
     }));
@@ -124,11 +100,61 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
       {
         name: "type",
         label: t("content.type"),
-        type: "select",
-        icon: <Tag className="h-4 w-4" />,
-        options: typeOptions,
+        type: "custom",
         colSpan: 2,
         required: true,
+        render: (value, onChange, error) => {
+          const stringValue = String(value || "");
+
+          return (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <div className="relative flex-1">
+                <Tag className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <select
+                  className={`w-full appearance-none rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-white focus:border-brand focus:ring-4 focus:ring-brand/10 ${
+                    error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"
+                  }`}
+                  value={isCustomType ? "CUSTOM_TYPE_OPTION" : stringValue}
+                  onChange={(e) => {
+                    if (e.target.value === "CUSTOM_TYPE_OPTION") {
+                      setIsCustomType(true);
+                      onChange("");
+                    } else {
+                      setIsCustomType(false);
+                      onChange(e.target.value);
+                    }
+                  }}
+                >
+                  <option value="" disabled>
+                    {t("content.type")}
+                  </option>
+                  {typeOptions.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                  <option value="CUSTOM_TYPE_OPTION">
+                    {t("content.customOption")}
+                  </option>
+                </select>
+              </div>
+
+              {isCustomType && (
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    className={`input-field w-full py-2.5 px-4 text-sm ${
+                      error ? "!border-rose-500 bg-rose-50/30" : ""
+                    }`}
+                    placeholder={t("content.enterCustomType")}
+                    value={stringValue}
+                    onChange={(e) => onChange(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        },
       },
       {
         name: "description",
@@ -185,30 +211,16 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
 
           return (
             <div className="flex min-w-0 flex-col gap-2">
-              <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start">
-                <div className="relative min-w-0 flex-1">
-                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    readOnly
-                    onClick={() => setFormData && openMapPicker(setFormData, formData ?? {})}
-                    className={`w-full min-w-0 cursor-pointer truncate rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${
-                      error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"
-                    }`}
-                    placeholder={t("content.pickOnMapPlaceholder")}
-                    value={address}
-                  />
-                </div>
-                <ActionButton
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setFormData && openMapPicker(setFormData, formData ?? {})}
-                  className="w-full shrink-0 gap-2 border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm font-semibold text-indigo-600 hover:border-indigo-200 hover:bg-indigo-100 hover:text-indigo-700 sm:w-auto"
-                >
-                  <MapPin className="h-4 w-4" />
-                  <span className="whitespace-nowrap">{t("content.pickOnMapBtn")}</span>
-                </ActionButton>
-              </div>
+              <InlineMapPicker
+                initialLat={formData?.latitude ? Number(formData.latitude) : undefined}
+                initialLng={formData?.longitude ? Number(formData.longitude) : undefined}
+                initialAddress={address}
+                onLocationSelect={(loc) => {
+                  if (setFormData) {
+                    handleLocationSelect(setFormData, loc);
+                  }
+                }}
+              />
 
               {address && (
                 <div className="grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-3">
@@ -306,13 +318,13 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
       },
       {
         name: "imageFile",
-        label: requireImage ? t("content.coverImageRequired") : t("content.coverImageOptional"),
+        label: requireImage ? t("content.coverImageRequired") : t("content.image") || "Image",
         type: "file",
         colSpan: 2,
         required: requireImage,
       },
     ],
-    [requireImage, t, typeOptions],
+    [requireImage, t, typeOptions, isCustomType],
   );
 
   return (
@@ -329,13 +341,6 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
         serverErrors={serverErrors}
         onCancel={onCancel}
         submitText={resolvedSubmitText}
-      />
-
-      <MapPickerModal
-        isOpen={isMapModalOpen}
-        initialData={mapInitialData ?? undefined}
-        onClose={() => setIsMapModalOpen(false)}
-        onConfirm={handleConfirmLocation}
       />
     </>
   );

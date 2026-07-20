@@ -43,7 +43,7 @@ export interface CreateTourismInformationDTO {
   country?: string;
   latitude?: number;
   longitude?: number;
-  imageFile: File;
+  imageFile?: File;
   sourceName?: string;
   sourceUrl?: string;
 }
@@ -58,6 +58,7 @@ export interface UpdateTourismInformationDTO {
   latitude?: number;
   longitude?: number;
   imageFile?: File;
+  removeImage?: boolean;
   sourceName?: string;
   sourceUrl?: string;
 }

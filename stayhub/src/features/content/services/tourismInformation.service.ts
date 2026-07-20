@@ -112,7 +112,7 @@ const buildCreateFormData = (data: CreateTourismInformationDTO) => {
   appendOptionalText(formData, "Country", data.country);
   if (data.latitude !== undefined) formData.append("Latitude", data.latitude.toString());
   if (data.longitude !== undefined) formData.append("Longitude", data.longitude.toString());
-  formData.append("ImageFile", data.imageFile);
+  if (data.imageFile) formData.append("ImageFile", data.imageFile);
   appendOptionalText(formData, "SourceName", data.sourceName);
   appendOptionalText(formData, "SourceUrl", data.sourceUrl);
   return formData;
@@ -129,6 +129,7 @@ const buildUpdateFormData = (data: UpdateTourismInformationDTO) => {
   if (data.latitude !== undefined) formData.append("Latitude", data.latitude.toString());
   if (data.longitude !== undefined) formData.append("Longitude", data.longitude.toString());
   if (data.imageFile) formData.append("ImageFile", data.imageFile);
+  if (data.removeImage) formData.append("RemoveImage", "true");
   appendOptionalText(formData, "SourceName", data.sourceName);
   appendOptionalText(formData, "SourceUrl", data.sourceUrl);
   return formData;
@@ -142,6 +143,26 @@ const fetchAllActivePaged = async (): Promise<TourismInformation[]> => {
   while (true) {
     const response: Record<string, unknown> = await apiClient.get(
       CONTENT_API.TOURISM_INFORMATION.GET_ACTIVE,
+      { params: { page, pageSize } },
+    );
+    const pagination = unwrapPagination<TourismInformation>(response, page, pageSize);
+    items.push(...(pagination.data ?? []));
+
+    if ((pagination.data ?? []).length === 0 || page >= (pagination.totalPages || 1)) break;
+    page += 1;
+  }
+
+  return items;
+};
+
+const fetchAllPaged = async (): Promise<TourismInformation[]> => {
+  const pageSize = 100;
+  let page = 1;
+  const items: TourismInformation[] = [];
+
+  while (true) {
+    const response: Record<string, unknown> = await apiClient.get(
+      CONTENT_API.TOURISM_INFORMATION.GET_ALL,
       { params: { page, pageSize } },
     );
     const pagination = unwrapPagination<TourismInformation>(response, page, pageSize);
@@ -173,6 +194,28 @@ export const tourismInformationService = {
     );
 
     return unwrapPagination<TourismInformation>(response, page, pageSize);
+  },
+
+  getAllDistinctCities: async (): Promise<string[]> => {
+    const allItems = await fetchAllPaged();
+    const cities = new Set<string>();
+    for (const item of allItems) {
+      if (item.city) {
+        cities.add(item.city.trim());
+      }
+    }
+    return Array.from(cities).sort();
+  },
+
+  checkDuplicate: async (name: string, address: string, excludeId?: number | string): Promise<boolean> => {
+    const allItems = await fetchAllPaged();
+    const excludeIdNum = excludeId ? Number(excludeId) : undefined;
+    return allItems.some(
+      (item) =>
+        item.name.toLowerCase().trim() === name.toLowerCase().trim() &&
+        (item.address || "").toLowerCase().trim() === address.toLowerCase().trim() &&
+        item.id !== excludeIdNum
+    );
   },
 
   getActivePaged: async (

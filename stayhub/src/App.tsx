@@ -66,7 +66,6 @@ import { UpdateTicketType } from "./features/content/pages/UpdateTicketType";
 import { TourismInformationList } from "./features/content/pages/TourismInformationList";
 import { CreateTourismInformation } from "./features/content/pages/CreateTourismInformation";
 import { UpdateTourismInformation } from "./features/content/pages/UpdateTourismInformation";
-import { TourismInformationDetail } from "./features/content/pages/TourismInformationDetail";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
@@ -656,7 +655,6 @@ const App: React.FC = () => {
                                 <Route index element={<TourismInformationList />} />
                                 <Route path="create" element={<CreateTourismInformation />} />
                                 <Route path=":id/edit" element={<UpdateTourismInformation />} />
-                                <Route path=":id" element={<TourismInformationDetail />} />
                               </Route>
                               <Route
                                 path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}

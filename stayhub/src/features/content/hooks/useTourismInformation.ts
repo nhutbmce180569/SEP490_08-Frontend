@@ -5,23 +5,22 @@ import { PATH } from "../../../config/routes/route";
 import { tourismInformationService } from "../services/tourismInformation.service";
 import type { TourismInformationFilters } from "../types/tourismInformation";
 
-const PAGE_SIZE = 8;
-
 export const useTourismInformation = (filters: TourismInformationFilters = {}) => {
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
 
   const query = useQuery({
     queryKey: [
       "tourism-information",
       page,
-      PAGE_SIZE,
+      pageSize,
       filters.searchTerm,
       filters.type,
       filters.status,
       filters.city,
     ],
-    queryFn: () => tourismInformationService.getAll(page, PAGE_SIZE, filters),
+    queryFn: () => tourismInformationService.getAll(page, pageSize, filters),
   });
 
   const handleCreate = () => navigate(PATH.ADMIN.CREATE_TOURISM_INFORMATION);
@@ -33,8 +32,9 @@ export const useTourismInformation = (filters: TourismInformationFilters = {}) =
     isLoading: query.isLoading,
     error: query.isError ? "Failed to fetch tourism information." : null,
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
     setPage,
+    setPageSize,
     handleCreate,
     handleViewDetail,
     handleEdit,

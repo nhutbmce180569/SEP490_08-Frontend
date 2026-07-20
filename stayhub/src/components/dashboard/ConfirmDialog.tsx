@@ -28,8 +28,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   icon = <AlertTriangle className="h-6 w-6 text-rose-500" />,
 }) => {
   const { t } = useTranslation();
-  const resolvedConfirm = t('common.confirm');
-  const resolvedCancel = t('common.cancel');
+  const resolvedConfirm = confirmText ?? t('common.confirm');
+  const resolvedCancel = cancelText ?? t('common.cancel');
   if (!open) return null;
 
   return ReactDOM.createPortal(

@@ -3,6 +3,143 @@ import { Save, X, UploadCloud, Trash2, ChevronDown, Eye, EyeOff } from "lucide-r
 import { useTranslation } from "../../contexts/LocaleContext";
 import { ActionButton } from "./ActionButton";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
+const DynamicFileInput: React.FC<{
+  field: FormField;
+  value: any;
+  error?: string;
+  onChange: (val: any) => void;
+  onError: (err: string) => void;
+}> = ({ field, value, error, onChange, onError }) => {
+  const { t } = useTranslation();
+  const [preview, setPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (value instanceof File) {
+      const objectUrl = URL.createObjectURL(value);
+      setPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    } else if (typeof value === "string" && value) {
+      setPreview(value);
+    } else {
+      setPreview(null);
+    }
+  }, [value]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (!file.type.startsWith("image/")) {
+        onError(t("content.onlyImageFilesAllowed"));
+        e.target.value = "";
+        return;
+      }
+      onChange(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (!file.type.startsWith("image/")) {
+        onError(t("content.onlyImageFilesAllowed"));
+        return;
+      }
+      onChange(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    onChange(null);
+  };
+
+  const triggerFileSelect = () => {
+    fileInputRef.current?.click();
+  };
+
+  return (
+    <div className="flex w-full flex-col gap-2">
+      <div
+        className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${
+          error
+            ? "border-rose-400 bg-rose-50/50"
+            : "border-slate-200 bg-slate-50 hover:border-brand hover:bg-brand/5"
+        } ${!preview ? "cursor-pointer py-10" : "py-8"}`}
+        onClick={!preview ? triggerFileSelect : undefined}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          id={field.name}
+          accept="image/*"
+          onChange={handleFileChange}
+          onClick={(e) => e.stopPropagation()}
+          className="hidden"
+        />
+
+        {preview ? (
+          <div className="flex w-full flex-col items-center justify-center gap-4">
+            <div className="relative h-40 w-full max-w-[280px] overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+              <img src={preview} alt="Preview" className="h-full w-full object-cover" />
+            </div>
+            <div className="flex items-center justify-center gap-3">
+              <ActionButton
+                type="button"
+                variant="secondary"
+                onClick={triggerFileSelect}
+                className="gap-2 px-4 py-2 text-sm"
+              >
+                <UploadCloud className="h-4 w-4" />
+                {t("common.changeImage")}
+              </ActionButton>
+              <ActionButton
+                type="button"
+                variant="warning"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleRemoveImage();
+                }}
+                className="gap-2 px-4 py-2 text-sm"
+              >
+                <Trash2 className="h-4 w-4" />
+                {t("common.removeImage")}
+              </ActionButton>
+            </div>
+          </div>
+        ) : (
+          <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-brand">
+              <UploadCloud className="h-6 w-6" />
+            </div>
+            <div className="flex flex-col items-center justify-center gap-1">
+              <div className="text-sm font-semibold text-slate-700">{t("common.clickToUpload")}</div>
+              <div className="text-xs text-slate-500">{t("common.uploadFormatHint")}</div>
+            </div>
+            <ActionButton
+              type="button"
+              variant="secondary"
+              className="pointer-events-none mt-2 gap-2 px-4 py-2 text-sm"
+            >
+              <UploadCloud className="h-4 w-4" />
+              {t("common.browseFiles")}
+            </ActionButton>
+          </div>
+        )}
+      </div>
+      {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
+    </div>
+  );
+};
+
 
 export interface FormField {
   name: string;
@@ -147,134 +284,15 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
     }
 
     if (field.type === "file") {
-      const [preview, setPreview] = useState<string | null>(null);
-      const fileInputRef = useRef<HTMLInputElement>(null);
-
-      useEffect(() => {
-        if (value instanceof File) {
-          const objectUrl = URL.createObjectURL(value);
-          setPreview(objectUrl);
-          // Dọn dẹp object URL khi component unmount hoặc value thay đổi
-          return () => URL.revokeObjectURL(objectUrl);
-        } else if (typeof value === 'string' && value) {
-          // Dành cho form Update, sẽ hiển thị ảnh từ URL
-          setPreview(value);
-        } else {
-          setPreview(null);
-        }
-      }, [value]);
-
-      const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-          const file = e.target.files[0];
-          if (!file.type.startsWith("image/")) {
-            setErrors((prev) => ({ ...prev, [field.name]: t("content.onlyImageFilesAllowed") }));
-            e.target.value = "";
-            return;
-          }
-          handleChange(field.name, file);
-        }
-      };
-
-      const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-      };
-
-      const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          const file = e.dataTransfer.files[0];
-          if (!file.type.startsWith("image/")) {
-            setErrors((prev) => ({ ...prev, [field.name]: t("content.onlyImageFilesAllowed") }));
-            return;
-          }
-          handleChange(field.name, file);
-        }
-      };
-
-      const handleRemoveImage = () => {
-        handleChange(field.name, null);
-      };
-
-      const triggerFileSelect = () => {
-        fileInputRef.current?.click();
-      };
-
       return (
-        <div className="flex w-full flex-col gap-2">
-          <div
-            className={`relative flex w-full flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-all ${error
-              ? 'border-rose-400 bg-rose-50/50'
-              : 'border-slate-200 bg-slate-50 hover:border-brand hover:bg-brand/5'
-              } ${!preview ? 'cursor-pointer py-10' : 'py-8'}`}
-            onClick={!preview ? triggerFileSelect : undefined}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              id={field.name}
-              accept="image/*"
-              onChange={handleFileChange}
-              onClick={(e) => e.stopPropagation()}
-              className="hidden"
-            />
-
-            {preview ? (
-              <div className="flex w-full flex-col items-center justify-center gap-4">
-                <div className="relative h-40 w-full max-w-[280px] overflow-hidden rounded-lg border border-slate-200 shadow-sm">
-                  <img src={preview} alt="Preview" className="h-full w-full object-cover" />
-                </div>
-                <div className="flex items-center justify-center gap-3">
-                  <ActionButton
-                    type="button"
-                    variant="secondary"
-                    onClick={triggerFileSelect}
-                    className="gap-2 px-4 py-2 text-sm"
-                  >
-                    <UploadCloud className="h-4 w-4" />
-                    {t("common.changeImage")}
-                  </ActionButton>
-                  <ActionButton
-                    type="button"
-                    variant="warning"
-                    onClick={(e) => { e.preventDefault(); handleRemoveImage(); }}
-                    className="gap-2 px-4 py-2 text-sm"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {t("common.removeImage")}
-                  </ActionButton>
-                </div>
-              </div>
-            ) : (
-              <div className="flex w-full flex-col items-center justify-center gap-3 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-light text-brand">
-                  <UploadCloud className="h-6 w-6" />
-                </div>
-                <div className="flex flex-col items-center justify-center gap-1">
-                  <div className="text-sm font-semibold text-slate-700">
-                    {t("common.clickToUpload")}
-                  </div>
-                  <div className="text-xs text-slate-500">
-                    {t("common.uploadFormatHint")}
-                  </div>
-                </div>
-                <ActionButton
-                  type="button"
-                  variant="secondary"
-                  className="pointer-events-none mt-2 gap-2 px-4 py-2 text-sm"
-                >
-                  <UploadCloud className="h-4 w-4" />
-                  {t("common.browseFiles")}
-                </ActionButton>
-              </div>
-            )}
-          </div>
-          {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
-        </div>
+        <DynamicFileInput
+          key={field.name}
+          field={field}
+          value={value}
+          error={error}
+          onChange={(val) => handleChange(field.name, val)}
+          onError={(err) => setErrors((prev) => ({ ...prev, [field.name]: err }))}
+        />
       );
     }
 
@@ -385,11 +403,27 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
           )}
         </div>
         <div className="flex shrink-0 items-center justify-end gap-3 sm:w-4/12">
-          <ActionButton variant="secondary" onClick={onCancel} className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm">
+          <ActionButton 
+            type="button" 
+            variant="secondary" 
+            onClick={(e) => {
+              e.preventDefault();
+              onCancel();
+            }} 
+            className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm"
+          >
             <X className="h-4 w-4" />
             {resolvedCancel}
           </ActionButton>
-          <ActionButton variant="primary" onClick={handleSubmit} className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm">
+          <ActionButton 
+            type="button" 
+            variant="primary" 
+            onClick={(e) => {
+              e.preventDefault();
+              handleSubmit(e as any);
+            }} 
+            className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm"
+          >
             <Save className="h-4 w-4" />
             {resolvedSubmit}
           </ActionButton>

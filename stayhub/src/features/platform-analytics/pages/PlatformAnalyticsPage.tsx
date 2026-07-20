@@ -47,10 +47,17 @@ export const PlatformAnalyticsPage: React.FC = () => {
   const socialQuery = usePlatformSocial();
   const healthQuery = usePlatformHealth(dateParams);
 
-  const usersByRole = useMemo(
-    () => usersQuery.data?.byRole.map((item) => ({ ...item, label: getRoleLabel(item.label) })) ?? [],
-    [usersQuery.data?.byRole],
-  );
+  const usersByRole = useMemo(() => {
+    return (usersQuery.data?.byRole ?? []).map((item) => {
+      const norm = item.label.toUpperCase();
+      let label = item.label;
+      if (norm === 'CUSTOMER') label = t('analytics.platform.customers');
+      else if (norm === 'MANAGER') label = t('analytics.platform.managers');
+      else if (norm === 'STAFF') label = t('analytics.platform.staff');
+      else if (norm === 'ADMIN') label = t('analytics.platform.admins');
+      return { ...item, label };
+    });
+  }, [usersQuery.data?.byRole, t]);
 
   const isRefreshing = overviewQuery.isFetching || usersQuery.isFetching ||
     catalogQuery.isFetching || vouchersQuery.isFetching || socialQuery.isFetching || healthQuery.isFetching;
@@ -291,6 +298,27 @@ const CatalogTab: React.FC<{
 
   const soldPct = data.totalTicketCapacity > 0 ? (data.totalTicketsSold / data.totalTicketCapacity) * 100 : 0;
 
+  const toursByStatus = useMemo(() => {
+    if (!data?.toursByStatus) return [];
+    return data.toursByStatus.map((item) => {
+      const norm = item.label.toLowerCase();
+      let label = item.label;
+      if (norm === 'active') label = t('analytics.platform.active');
+      else if (norm === 'inactive') label = t('analytics.platform.inactive');
+      else if (norm === 'draft') label = t('analytics.platform.tourDraft');
+      return { ...item, label };
+    });
+  }, [data?.toursByStatus, t]);
+
+  const toursByCity = useMemo(() => {
+    if (!data?.toursByCity) return [];
+    return data.toursByCity.map((item) => {
+      let label = item.label;
+      if (item.label.toLowerCase() === 'unknown') label = t('analytics.platform.cityUnknown');
+      return { ...item, label };
+    });
+  }, [data?.toursByCity, t]);
+
   return (
     <div className="space-y-5">
       <KpiGrid cols={4}>
@@ -325,8 +353,8 @@ const CatalogTab: React.FC<{
 
       <ChartGrid columns={3}>
         <DistributionChart title={t('analytics.platform.toursByCategory')} data={toursByCategory} collapseLimit={6} />
-        <DistributionChart title={t('analytics.platform.toursByCity')} data={data.toursByCity} pageSize={8} />
-        <DistributionChart title={t('analytics.platform.toursByStatus')} data={data.toursByStatus} />
+        <DistributionChart title={t('analytics.platform.toursByCity')} data={toursByCity} pageSize={8} />
+        <DistributionChart title={t('analytics.platform.toursByStatus')} data={toursByStatus} />
       </ChartGrid>
 
       <AnalyticsPanel
@@ -357,6 +385,29 @@ const VouchersTab: React.FC<{
   if (isLoading) return <div className="space-y-5"><LoadingKpiGrid count={4} /><LoadingPanel height="h-64" /></div>;
   if (!data) return <ErrorState message={t('analytics.platform.errorVouchers')} onRetry={onRetry} />;
 
+  const byDiscountType = useMemo(() => {
+    if (!data?.byDiscountType) return [];
+    return data.byDiscountType.map((item) => {
+      const norm = item.label.toLowerCase();
+      let label = item.label;
+      if (norm.includes('percent')) label = t('analytics.platform.discountPercentage');
+      else if (norm.includes('fixed')) label = t('analytics.platform.discountFixed');
+      return { ...item, label };
+    });
+  }, [data?.byDiscountType, t]);
+
+  const byUserVoucherStatus = useMemo(() => {
+    if (!data?.byUserVoucherStatus) return [];
+    return data.byUserVoucherStatus.map((item) => {
+      const norm = item.label.toLowerCase();
+      let label = item.label;
+      if (norm === 'unused') label = t('analytics.platform.voucherUnused');
+      else if (norm === 'used') label = t('analytics.platform.voucherUsed');
+      else if (norm === 'expired') label = t('analytics.platform.expired');
+      return { ...item, label };
+    });
+  }, [data?.byUserVoucherStatus, t]);
+
   return (
     <div className="space-y-5">
       <KpiGrid cols={4}>
@@ -373,8 +424,8 @@ const VouchersTab: React.FC<{
           trend={{ dir: data.redemptionRate >= 30 ? 'up' : 'neutral', label: formatPercent(data.redemptionRate) }} />
       </KpiGrid>
       <ChartGrid>
-        <DistributionChart title={t('analytics.platform.byDiscountType')} data={data.byDiscountType} />
-        <DistributionChart title={t('analytics.platform.byUserVoucherStatus')} data={data.byUserVoucherStatus} />
+        <DistributionChart title={t('analytics.platform.byDiscountType')} data={byDiscountType} />
+        <DistributionChart title={t('analytics.platform.byUserVoucherStatus')} data={byUserVoucherStatus} />
       </ChartGrid>
     </div>
   );
@@ -392,6 +443,30 @@ const SocialTab: React.FC<{
 
   const acceptedRate = data.totalFriendships > 0
     ? (data.acceptedFriendships / data.totalFriendships) * 100 : 0;
+
+  const momentsByPrivacy = useMemo(() => {
+    if (!data?.momentsByPrivacy) return [];
+    return data.momentsByPrivacy.map((item) => {
+      const norm = item.label.toLowerCase();
+      let label = item.label;
+      if (norm === 'public') label = t('analytics.platform.privacyPublic');
+      else if (norm.includes('friend')) label = t('analytics.platform.privacyFriend');
+      else if (norm === 'private') label = t('analytics.platform.privacyPrivate');
+      return { ...item, label };
+    });
+  }, [data?.momentsByPrivacy, t]);
+
+  const friendshipStatusDistribution = useMemo(() => {
+    if (!data?.friendshipStatusDistribution) return [];
+    return data.friendshipStatusDistribution.map((item) => {
+      const norm = item.label.toLowerCase();
+      let label = item.label;
+      if (norm === 'accepted') label = t('analytics.platform.accepted');
+      else if (norm === 'declined') label = t('analytics.platform.friendshipDeclined');
+      else if (norm === 'pending') label = t('analytics.platform.pending');
+      return { ...item, label };
+    });
+  }, [data?.friendshipStatusDistribution, t]);
 
   return (
     <div className="space-y-5">
@@ -423,8 +498,8 @@ const SocialTab: React.FC<{
       </div>
 
       <ChartGrid>
-        <DistributionChart title={t('analytics.platform.momentsByPrivacy')} data={data.momentsByPrivacy} />
-        <DistributionChart title={t('analytics.platform.friendshipStatusDist')} data={data.friendshipStatusDistribution} />
+        <DistributionChart title={t('analytics.platform.momentsByPrivacy')} data={momentsByPrivacy} />
+        <DistributionChart title={t('analytics.platform.friendshipStatusDist')} data={friendshipStatusDistribution} />
       </ChartGrid>
     </div>
   );

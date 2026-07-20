@@ -72,21 +72,23 @@ export const TrendLineChart: React.FC<TrendLineChartProps> = ({
           Math.round((i / (tickCount - 1)) * (labels.length - 1)),
         );
 
+  const { t, locale } = useTranslation();
+
   if (labels.length === 0) {
     return (
-      <div className="flex h-[280px] items-center justify-center text-sm text-slate-400">
-        No data available for this time period
+      <div className="flex h-[280px] items-center justify-center text-sm font-medium text-slate-400">
+        {t('analytics.customer.noTrendData')}
       </div>
     );
   }
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap gap-4">
+      <div className="mb-4 flex flex-wrap gap-4">
         {series.map((s, i) => (
-          <div key={s.label} className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+          <div key={s.label} className="flex items-center gap-2 text-xs font-bold text-slate-600">
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="h-3 w-3 rounded-full shadow-xs"
               style={{ backgroundColor: s.color ?? CHART_COLORS[i % CHART_COLORS.length] }}
             />
             {s.label}
@@ -106,7 +108,7 @@ export const TrendLineChart: React.FC<TrendLineChartProps> = ({
                   x2={width - paddingX}
                   y1={y}
                   y2={y}
-                  stroke="#e5e7eb"
+                  stroke="#f1f5f9"
                   strokeWidth="1"
                 />
                 <text x={4} y={y + 4} fontSize="10" fill="#94a3b8" fontWeight="600">
@@ -118,12 +120,12 @@ export const TrendLineChart: React.FC<TrendLineChartProps> = ({
 
           {seriesPaths.map((sp, i) => (
             <g key={i}>
-              <path d={sp.areaPath} fill={sp.color} opacity="0.12" />
+              <path d={sp.areaPath} fill={sp.color} opacity="0.1" />
               <path
                 d={sp.linePath}
                 fill="none"
                 stroke={sp.color}
-                strokeWidth="2.5"
+                strokeWidth="3"
                 strokeLinejoin="round"
                 strokeLinecap="round"
               />
@@ -132,9 +134,9 @@ export const TrendLineChart: React.FC<TrendLineChartProps> = ({
         </svg>
       </div>
 
-      <div className="mt-2 flex justify-between px-4 text-xs font-semibold text-slate-400">
+      <div className="mt-2 flex justify-between px-4 text-xs font-bold text-slate-400">
         {tickIndices.map((idx) => (
-          <span key={idx}>{formatPeriodLabel(labels[idx], granularity)}</span>
+          <span key={idx}>{formatPeriodLabel(labels[idx], granularity, locale)}</span>
         ))}
       </div>
     </div>

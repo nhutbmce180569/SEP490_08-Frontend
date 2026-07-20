@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import ReactDOM from "react-dom";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Sparkles, X, MessageSquare, ClipboardList } from "lucide-react";
+import { Sparkles, X, MessageSquare, ClipboardList, LogIn, UserPlus, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { IntelligentChatWizard } from "../components/IntelligentChatWizard";
 import { QuestionnaireWizard } from "../components/QuestionnaireWizard";
@@ -12,13 +12,26 @@ import { ActionButton } from "../../../components/home/ActionButton";
 import { PATH } from "../../../config/routes/route";
 import { useAiPlanner } from "../../../contexts/AiPlannerContext";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { AuthContext } from "../../../contexts/AuthContext";
 
 /** Inner drawer — rendered via portal with animation */
 const AiQuestionnaireDialog: React.FC = () => {
   const { t } = useTranslation();
   const { close } = useAiPlanner();
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<"chat" | "form">("chat");
+
+  const isCustomer = useMemo(() => {
+    if (!user) return false;
+    const userRoles = Array.isArray(user.roles)
+      ? user.roles
+      : typeof user.roles === "string"
+      ? [user.roles]
+      : [];
+    return userRoles.some((r) => r.toUpperCase() === "CUSTOMER");
+  }, [user]);
 
   const { data: questionnaire, isLoading, error, refetch } = useQuestionnaire();
   const { submit, isLoading: isSubmitting, modelsNotReady, retryLast } = useRecommendFromProfile();
@@ -106,7 +119,7 @@ const AiQuestionnaireDialog: React.FC = () => {
             <button
               type="button"
               onClick={() => setActiveTab("form")}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-bold rounded-lg transition-all ${
                 activeTab === "form"
                   ? "bg-white text-brand shadow-sm font-extrabold"
                   : "text-slate-600 hover:text-slate-900"
@@ -114,6 +127,9 @@ const AiQuestionnaireDialog: React.FC = () => {
             >
               <ClipboardList size={14} />
               {t("ai.aiFormTab")}
+              {!isCustomer && (
+                <Lock size={11} className="text-amber-500 shrink-0 ml-0.5" />
+              )}
             </button>
           </div>
         </div>
@@ -122,6 +138,49 @@ const AiQuestionnaireDialog: React.FC = () => {
         <div className="flex-1 overflow-hidden flex flex-col bg-[var(--surface-dashboard)]">
           {activeTab === "chat" ? (
             <IntelligentChatWizard onSwitchToForm={() => setActiveTab("form")} />
+          ) : !isCustomer ? (
+            <div className="flex flex-col items-center justify-center min-h-[380px] p-6 text-center bg-white rounded-2xl border border-slate-100 shadow-sm m-6 my-auto">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand/10 to-indigo-500/10 text-brand mb-4 shadow-sm">
+                <Sparkles size={32} />
+              </div>
+              <h3 className="text-base font-extrabold text-[var(--color-navy)] mb-2">
+                {t("ai.loginRequiredTitle")}
+              </h3>
+              <p className="text-xs text-[var(--text-muted)] max-w-sm mb-6 leading-relaxed">
+                {t("ai.loginRequiredDesc")}
+              </p>
+              
+              <div className="w-full max-w-xs space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    navigate(PATH.PUBLIC.LOGIN, { state: { from: location.pathname } });
+                  }}
+                  className="w-full py-3 px-4 font-bold text-xs text-white bg-brand rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-brand/15 flex items-center justify-center gap-2"
+                >
+                  <LogIn size={15} />
+                  {t("ai.loginNow")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    close();
+                    navigate(PATH.PUBLIC.REGISTER);
+                  }}
+                  className="w-full py-2.5 px-4 font-bold text-xs text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                >
+                  <UserPlus size={15} />
+                  {t("ai.registerAccount")}
+                </button>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-100 w-full text-center">
+                <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                  💡 {t("ai.guestChatHint")}
+                </p>
+              </div>
+            </div>
           ) : (
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               {isLoading ? (

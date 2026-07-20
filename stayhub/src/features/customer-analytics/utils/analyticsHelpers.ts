@@ -16,22 +16,22 @@ export const formatPercent = (value: number, decimals = 1) =>
 export const formatNumber = (value: number) =>
   new Intl.NumberFormat('vi-VN').format(value);
 
-export const formatDate = (iso: string | null | undefined) => {
+export const formatDate = (iso: string | null | undefined, locale = 'vi') => {
   if (!iso) return '—';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
   });
 };
 
-export const formatDateTime = (iso: string | null | undefined) => {
+export const formatDateTime = (iso: string | null | undefined, locale = 'vi') => {
   if (!iso) return '—';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString(locale === 'vi' ? 'vi-VN' : 'en-US', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -40,34 +40,27 @@ export const formatDateTime = (iso: string | null | undefined) => {
   });
 };
 
-export const formatPeriodLabel = (period: string, granularity: string) => {
+export const formatPeriodLabel = (period: string, granularity: string, locale = 'vi') => {
   if (granularity === 'day') {
     const [, m, d] = period.split('-');
-    return `${m}/${d}`;
+    return `${d}/${m}`;
   }
-  if (granularity === 'week') return period.replace('-W', ' W');
+  if (granularity === 'week') return period.replace('-W', locale === 'vi' ? ' Tuần ' : ' W');
   if (granularity === 'month') {
     const [y, m] = period.split('-');
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const viMonths = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
+    const enMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = locale === 'vi' ? viMonths : enMonths;
     return `${monthNames[parseInt(m, 10) - 1]} '${y.slice(2)}`;
   }
   return period;
 };
 
-export const SEGMENT_LABELS: Record<string, string> = {
-  NeverPurchased: 'Never Purchased',
-  OneTimeBuyer: 'One-Time Buyer',
-  RepeatBuyer: 'Repeat Buyer',
-};
-
 export const SEGMENT_STYLES: Record<string, string> = {
-  NeverPurchased: 'bg-slate-100 text-slate-600',
-  OneTimeBuyer: 'bg-blue-50 text-blue-600',
-  RepeatBuyer: 'bg-emerald-50 text-emerald-600',
+  NeverPurchased: 'bg-slate-100 text-slate-700 border border-slate-200',
+  OneTimeBuyer: 'bg-indigo-50 text-indigo-700 border border-indigo-200/60',
+  RepeatBuyer: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
 };
-
-export const getSegmentLabel = (segment: CustomerSegment | string) =>
-  SEGMENT_LABELS[segment] ?? segment;
 
 export const STATUS_STYLES: Record<string, string> = {
   Active: 'bg-emerald-50 text-emerald-600',

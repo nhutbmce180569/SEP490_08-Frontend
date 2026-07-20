@@ -46,6 +46,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
       voucher.isActive &&
       voucher.voucherStatus === 'Active' &&
       voucher.quantity > 0 &&
+      new Date(voucher.endDate).getTime() >= Date.now() &&
       (!voucher.tourId || voucher.tourId === tourId),
   );
 

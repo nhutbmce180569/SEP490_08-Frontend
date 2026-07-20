@@ -1,4 +1,6 @@
 import { useTranslation } from "../contexts/LocaleContext";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
 import { HomeHero } from "../components/home/sections/HomeHero";
 import { HomeFeaturedTours } from "../components/home/sections/HomeFeaturedTours";
 import { HomePopularTours } from "../components/home/sections/HomePopularTours";
@@ -14,6 +16,7 @@ export default function Home() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { sale, hot, upcoming } = useHomeSections();
+  const { user } = useContext(AuthContext);
 
   return (
     <div className="-mt-[68px]">
@@ -57,7 +60,7 @@ export default function Home() {
 
         <HomeRegions />
         <HomeWhyUs />
-        <HomeCTA />
+        {!user && <HomeCTA />}
       </div>
     </div>
   );

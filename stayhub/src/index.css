@@ -502,6 +502,22 @@
     background: rgba(0, 104, 224, 0.35);
   }
 
+  /* Thin, subtle scrollbar for horizontal/vertical lists */
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(200, 200, 200, 0.4); /* light gray */
+    border-radius: 10px;
+  }
+  .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(200, 200, 200, 0.8);
+  }
+
   /* ── Dropdown menu items (header) ── */
   .menu-item {
     display: flex;

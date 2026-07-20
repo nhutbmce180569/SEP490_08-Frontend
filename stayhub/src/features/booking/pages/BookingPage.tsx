@@ -759,16 +759,18 @@ export const BookingPage: React.FC = () => {
   return (
     <div className="bg-white pb-12">
       <div className="container mx-auto max-w-6xl px-4 pt-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
-        >
-          <ArrowLeft className="h-4 w-4" /> {t("booking.backToTour")}
-        </button>
+        <div className="mb-8 flex items-center justify-between gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-brand shrink-0"
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">{t("booking.backToTour")}</span>
+          </button>
 
-        <h1 className="mb-8 text-3xl font-extrabold text-slate-900">
-          {t("booking.completeBooking")}
-        </h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl text-right">
+            {t("booking.completeBooking")}
+          </h1>
+        </div>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_380px]">
           <div className="space-y-6">

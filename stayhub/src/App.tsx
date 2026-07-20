@@ -336,10 +336,6 @@ const App: React.FC = () => {
                               element={<NhutPortfolioPage />}
                             />
                             <Route path={PATH.PUBLIC.INFO()} element={<PublicInfoPage />} />
-                            <Route
-                              path={PATH.CUSTOMER.CHECKOUT()}
-                              element={<BookingPage />}
-                            />
                             {/* <Route
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
@@ -348,6 +344,10 @@ const App: React.FC = () => {
 
                             {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                             <Route element={<ProtectedRoute />}>
+                              <Route
+                                path={PATH.CUSTOMER.CHECKOUT()}
+                                element={<BookingPage />}
+                              />
                               <Route
                                 path="/chat"
                                 element={<Navigate to={PATH.CUSTOMER.SOCIAL_CHAT} replace />}

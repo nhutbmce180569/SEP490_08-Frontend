@@ -597,6 +597,20 @@
   "warning": {
     "allDaysExistNoClone": "All days from the original tour already exist in the form. Nothing to clone."
   },
+  "consultationTitle": "Request Consultation",
+  "fullName": "Full Name",
+  "fullNamePlaceholder": "Enter your full name",
+  "phone": "Phone Number",
+  "phonePlaceholder": "Enter phone number",
+  "email": "Email",
+  "emailPlaceholder": "Enter email address",
+  "note": "Note",
+  "notePlaceholder": "Enter your specific consultation requirements...",
+  "sendingConsultation": "Sending...",
+  "sendConsultationRequest": "Send Request",
+  "consultationSuccess": "Your consultation request has been sent successfully!",
+  "consultationError": "An error occurred while sending the consultation request.",
+  "requestConsultation": "Request Consultation",
   "success": {
     "clonedMissingDays": "Successfully cloned and added {{count}} missing day(s) from the original tour."
   }

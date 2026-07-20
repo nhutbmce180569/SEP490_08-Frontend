@@ -132,7 +132,7 @@ export const CategoryList: React.FC = () => {
       },
       {
         header: t("common.actions"),
-        className: "w-[120px] sm:w-[130px]",
+        className: "w-[200px] sm:w-[220px]",
         render: (cat) => (
           <div className="flex items-center gap-1.5">
             <ActionButton variant="secondary" onClick={() => handleViewClick(cat)} className="h-8 w-8" title={t("common.viewDetails")}>

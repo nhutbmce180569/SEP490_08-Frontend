@@ -20,7 +20,7 @@ type LocaleContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   toggleLocale: () => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (key: string, params?: Record<string, any> | string) => string;
   supportedLocales: typeof SUPPORTED_LOCALES;
 };
 
@@ -44,7 +44,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
   }, [locale, setLocale]);
 
   const t = useCallback(
-    (key: string, params?: Record<string, string | number>) => translate(locale, key, params),
+    (key: string, params?: Record<string, any> | string) => translate(locale, key, params),
     [locale],
   );
 

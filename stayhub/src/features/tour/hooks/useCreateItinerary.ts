@@ -214,5 +214,6 @@ export const useCreateItinerary = () => {
     patchItinerary,
     addImportedItineraries,
     setInvalidItineraryIds,
+    setServerErrors,
   };
 };

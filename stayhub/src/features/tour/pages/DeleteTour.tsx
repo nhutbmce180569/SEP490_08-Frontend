@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertTriangle, ArrowLeft, Trash2, Hash, Tag, FileText } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Trash2, Hash, Tag, FileText, MapPin, ImageIcon } from "lucide-react";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useTranslation } from "../../../contexts/LocaleContext";
@@ -7,22 +7,31 @@ import { useDeleteTour } from "../hooks/useDeleteTour";
 
 export const DeleteTourConfirm: React.FC = () => {
   const { t } = useTranslation();
-  const { tour, isFetching, fetchError, isDeleting, handleConfirmDelete, handleCancel } = useDeleteTour();
+  const { tour, categoryName, isFetching, fetchError, isDeleting, handleConfirmDelete, handleCancel } = useDeleteTour();
+
+  const getStatusLabel = (status?: string | null) => {
+    if (!status) return t("common.na");
+    const lower = status.toLowerCase();
+    if (lower === "active") return t("common.active");
+    if (lower === "inactive") return t("common.inactive");
+    return status;
+  };
+
+  const getStatusStyle = (status?: string | null) => {
+    if (!status) return "bg-slate-100 text-slate-600";
+    const lower = status.toLowerCase();
+    if (lower === "active") return "bg-emerald-100 text-emerald-700";
+    if (lower === "inactive") return "bg-slate-100 text-slate-600";
+    if (lower === "banned") return "bg-rose-100 text-rose-700";
+    return "bg-slate-100 text-slate-600";
+  };
 
   if (isFetching) return <div className="flex justify-center p-10 text-slate-500">{t("tour.loadingTourDetailsMgr")}</div>;
   if (fetchError) return <div className="flex justify-center p-10 text-rose-500">{fetchError}</div>;
   if (!tour) return <div className="flex justify-center p-10 text-slate-500">{t("tour.tourNotFound")}</div>;
 
   return (
-    <div className="mx-auto max-w-2xl py-8">
-      <button 
-        onClick={handleCancel}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t("tour.backToTourList")}
-      </button>
-
+    <div className="mx-auto max-w-4xl py-8">
       <div className="overflow-hidden rounded-2xl border border-rose-200 bg-white shadow-sm">
         <div className="flex items-start gap-4 border-b border-rose-100 bg-rose-50/50 px-6 py-5">
           <div className="mt-0.5 rounded-full bg-rose-100 p-2 text-rose-600">
@@ -36,28 +45,56 @@ export const DeleteTourConfirm: React.FC = () => {
 
         <div className="p-6">
           <div className="mb-4 text-sm font-bold text-slate-800">{t("tour.tourDetailsToDelete")}</div>
-          <div className="flex flex-col gap-5 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row">
-            <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-slate-200 text-slate-400 shadow-sm">
-              <FileText className="h-8 w-8" />
+          <div className="flex flex-col gap-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 sm:flex-row">
+            {/* Image */}
+            <div className="flex h-48 w-48 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-200 shadow-sm border border-slate-200/60">
+              {tour.imageUrl ? (
+                <img src={tour.imageUrl} alt={tour.name} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-slate-400">
+                  <ImageIcon className="h-10 w-10 opacity-50" />
+                  <span className="text-sm font-medium">{t("tour.noImage")}</span>
+                </div>
+              )}
             </div>
-            <div className="flex-1 space-y-2.5">
-              <h3 className="line-clamp-2 text-base font-bold text-slate-900">{tour.name}</h3>
-              <div className="flex flex-col gap-2 text-sm text-slate-600">
+
+            {/* Info */}
+            <div className="flex-1 space-y-4 min-w-0">
+              <h3 className="text-2xl font-bold text-slate-900 leading-snug">{tour.name}</h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm text-slate-600">
                 <div className="flex items-center gap-2">
-                  <Hash className="h-4 w-4 text-slate-400" />
-                  <span>{t("tour.category")}: {tour.categoryId}</span>
+                  <Hash className="h-4 w-4 text-slate-400 shrink-0" />
+                  <span className="truncate">{t("tour.category")}: <span className="font-semibold text-slate-700">{categoryName || tour.categoryId}</span></span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-slate-400" />
-                  <span>{t("common.status")}: {tour.status || t("tour.draft")}</span>
+                  <Tag className="h-4 w-4 text-slate-400 shrink-0" />
+                  <span className="truncate flex items-center gap-1.5">
+                    {t("common.status")}: 
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider ${getStatusStyle(tour.status)}`}>
+                      {getStatusLabel(tour.status)}
+                    </span>
+                  </span>
                 </div>
-                {tour.description && (
-                  <div className="flex items-start gap-2">
-                    <FileText className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                    <span className="line-clamp-2">{tour.description}</span>
-                  </div>
-                )}
+                <div className="flex items-start gap-2 sm:col-span-2">
+                  <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+                  <span>
+                    {[tour.address, tour.city, tour.country].filter(Boolean).join(", ") || t("common.na")}
+                  </span>
+                </div>
               </div>
+
+              {tour.description && (
+                <div className="pt-4 border-t border-slate-200/60">
+                  <div className="flex items-start gap-2">
+                    <FileText className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
+                    <div 
+                      className="prose prose-sm max-w-none text-slate-600 leading-relaxed [&_ol]:pl-5 [&_ul]:pl-5"
+                      dangerouslySetInnerHTML={{ __html: tour.description.replace(/&nbsp;/g, " ") }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

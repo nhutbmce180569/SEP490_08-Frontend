@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState, useRef, useEffect } from "react";
-import { Search, Pencil, Trash2, Plus, Eye, Star, Power, PowerOff, ListFilter, X, Filter } from "lucide-react";
+import { Search, Pencil, Trash2, Plus, Eye, Star, Lock, Unlock, ListFilter, X, Filter } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -11,6 +11,7 @@ import { type Tour } from "../types/tour";
 
 const STATUS_STYLES: Record<string, string> = {
   Active: "bg-emerald-50 text-emerald-600",
+  Inactive: "bg-slate-100 text-slate-600",
   Draft: "bg-slate-100 text-slate-600",
   Full: "bg-amber-50 text-amber-600",
   Banned: "bg-rose-50 text-rose-600",
@@ -68,12 +69,13 @@ export const TourList: React.FC = () => {
 
   const getStatusLabel = useCallback((status?: string | null) => {
     const map: Record<string, string> = {
-      Active: t("common.active"),
-      Draft: t("tour.draft"),
-      Full: t("tour.full"),
-      Banned: t("tour.banned"),
+      active: t("common.active"),
+      inactive: t("common.inactive"),
+      draft: t("tour.draft"),
+      full: t("tour.full"),
+      banned: t("tour.banned"),
     };
-    return map[status || "Draft"] ?? status ?? t("tour.draft");
+    return map[status?.toLowerCase() || "draft"] ?? status ?? t("tour.draft");
   }, [t]);
 
   const handleEditClick = useCallback(
@@ -105,6 +107,7 @@ export const TourList: React.FC = () => {
       {
         header: "",
         className: "w-24",
+        skeletonClassName: "h-10 w-10",
         render: (tour) =>
           tour.imageUrl ? (
             <img
@@ -120,6 +123,7 @@ export const TourList: React.FC = () => {
       },
       {
         header: t("tour.tourNameCol"),
+        className: "w-1/3 min-w-[250px]",
         render: (tour) => (
           <span className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
             {tour.name}
@@ -128,6 +132,7 @@ export const TourList: React.FC = () => {
       },
       {
         header: t("tour.category"),
+        className: "w-40",
         render: (tour) => (
           <span className="text-sm text-slate-600">
             {categoryNameById.get(tour.categoryId) ?? `ID ${tour.categoryId}`}
@@ -136,6 +141,8 @@ export const TourList: React.FC = () => {
       },
       {
         header: t("common.status"),
+        className: "w-32",
+        skeletonClassName: "h-5 w-16 rounded-full",
         render: (tour) => (
           <span
             className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -149,34 +156,46 @@ export const TourList: React.FC = () => {
       },
       {
         header: t("tour.rating"),
+        className: "w-32",
+        skeletonClassName: "h-5 w-20",
         render: (tour) => {
           const rating = tour.averageStar ?? 0;
-          const displayRating = rating > 0 ? rating.toFixed(1) : t("tour.noRatings");
           return (
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3.5 w-3.5 ${
-                      i < Math.floor(rating)
-                        ? "fill-amber-400 text-amber-400"
-                        : i < rating
-                          ? "fill-amber-200 text-amber-400"
-                          : "text-slate-300"
-                    }`}
-                  />
-                ))}
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-1.5">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3.5 w-3.5 ${
+                        i < Math.floor(rating)
+                          ? "fill-amber-400 text-amber-400"
+                          : i < rating
+                            ? "fill-amber-200 text-amber-400"
+                            : "text-slate-300"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {rating > 0 && (
+                  <span className="text-sm font-medium text-slate-600">
+                    {rating.toFixed(1)}
+                  </span>
+                )}
               </div>
-              <span className="text-sm font-medium text-slate-600">
-                {displayRating}
-              </span>
+              {rating === 0 && (
+                <span className="text-[11px] font-medium text-slate-400">
+                  {t("tour.noRatings")}
+                </span>
+              )}
             </div>
           );
         },
       },
       {
         header: t("common.actions"),
+        className: "w-[160px] min-w-[160px]",
+        skeletonClassName: "h-8 w-24",
         render: (tour) => (
           <div className="flex items-center gap-1.5">
             <ActionButton
@@ -210,9 +229,9 @@ export const TourList: React.FC = () => {
                   } ${togglingTourId === tour.id ? "cursor-wait opacity-60" : ""}`}
                 >
                   {tour.status === "Active" ? (
-                    <PowerOff className="h-3.5 w-3.5" />
+                    <Lock className="h-3.5 w-3.5" />
                   ) : (
-                    <Power className="h-3.5 w-3.5" />
+                    <Unlock className="h-3.5 w-3.5" />
                   )}
                 </ActionButton>
                 <ActionButton
@@ -388,9 +407,9 @@ export const TourList: React.FC = () => {
         variant={shouldActivateSelectedTour ? "primary" : "warning"}
         icon={
           shouldActivateSelectedTour ? (
-            <Power className="h-6 w-6 text-brand" />
+            <Unlock className="h-6 w-6 text-brand" />
           ) : (
-            <PowerOff className="h-6 w-6 text-rose-500" />
+            <Lock className="h-6 w-6 text-rose-500" />
           )
         }
       />

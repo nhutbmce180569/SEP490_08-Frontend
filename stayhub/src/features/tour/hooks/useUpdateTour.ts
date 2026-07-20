@@ -72,11 +72,18 @@ export const useUpdateTour = () => {
       success("Tour updated successfully!");
       navigate(PATH.MANAGER.MY_TOURS);
     } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || "";
       if (err.response?.status === 400 && err.response.data?.errors) {
         setServerErrors(err.response.data.errors);
         showError("Please check again the errors in the form.");
+      } else if (errorMessage.includes("Tour name already exists.")) {
+        setServerErrors({ name: ["Tour name already exists."] });
+        showError("Please check again the errors in the form.");
+      } else if (errorMessage.includes("Special characters are not allowed")) {
+        setServerErrors({ name: ["Special characters are not allowed in the tour name."] });
+        showError("Please check again the errors in the form.");
       } else {
-        showError(err.response?.data?.message || err.message || "Failed to update tour.");
+        showError(errorMessage || "Failed to update tour.");
       }
     } finally {
       setIsSubmitting(false);

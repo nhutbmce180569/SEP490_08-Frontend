@@ -32,7 +32,6 @@ export const useCategories = (initialPageSize: number = 5, keyword?: string) => 
 
   const handleCreate = () => navigate(PATH.ADMIN.CATEGORY_MANAGEMENT + "/create");
   const handleEdit = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/edit`);
-  const handleDelete = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/delete`);
 
-  return { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, handleDelete, refetch: fetchCategories };
+  return { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, refetch: fetchCategories };
 };

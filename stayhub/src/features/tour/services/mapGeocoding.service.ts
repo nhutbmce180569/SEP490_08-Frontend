@@ -30,6 +30,7 @@ export type MapPrediction = {
 export type ExtractedLocation = {
   country: string;
   city: string;
+  state?: string;
   address: string;
   lat?: number;
   lng?: number;
@@ -405,6 +406,7 @@ export const extractLocationFromPlace = (place: MapPlace | null): ExtractedLocat
   return {
     country,
     city,
+    state,
     address,
     lat: typeof latValue === "function" ? latValue() : latValue,
     lng: typeof lngValue === "function" ? lngValue() : lngValue,

@@ -42,7 +42,6 @@ export const bannerService = {
     formData.append("ImageFile", data.imageFile);
     if (data.targetUrl) formData.append("TargetUrl", data.targetUrl);
     if (data.priority !== undefined) formData.append("Priority", data.priority.toString());
-    if (data.isActive !== undefined) formData.append("IsActive", data.isActive.toString());
 
     const response: any = await apiClient.post(CONTENT_API.BANNERS.CREATE, formData, {
       headers: { "Content-Type": "multipart/form-data" },

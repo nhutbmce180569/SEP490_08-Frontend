@@ -10,7 +10,7 @@ export const getNumberValue = (value?: number | string | null) => {
 
 export const formatTicketCurrency = (value?: number | string | null) => {
   const numberValue = getNumberValue(value);
-  return numberValue === null ? "No price" : `${numberValue.toLocaleString("vi-VN")} đ`;
+  return numberValue === null ? "No price" : `${numberValue.toLocaleString("vi-VN")} VND`;
 };
 
 export const getScheduleTicketTypeId = (ticket: TourScheduleTicket) =>

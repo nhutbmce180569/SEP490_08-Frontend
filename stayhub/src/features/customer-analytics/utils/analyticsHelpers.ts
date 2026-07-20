@@ -1,12 +1,12 @@
 import type { CustomerSegment } from '../types/customerAnalytics.types';
 
 export const formatVnd = (amount: number) =>
-  new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
 
 export const formatCompactVnd = (amount: number) => {
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)}B ₫`;
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M ₫`;
-  if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K ₫`;
+  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)}B VND`;
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M VND`;
+  if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K VND`;
   return formatVnd(amount);
 };
 

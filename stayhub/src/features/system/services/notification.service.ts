@@ -3,9 +3,10 @@ import { apiClient } from "../../../utils/axiosClient";
 import type { Notification } from "../types/notification";
 
 export const notificationService = {
-  getUserNotifications: async (): Promise<Notification[]> => {
-    return apiClient.get<Notification[]>(
+  getUserNotifications: async (page = 1, pageSize = 10): Promise<{ data: Notification[], total: number, totalPages: number, currentPage: number, pageSize: number }> => {
+    return apiClient.get(
       SYSTEM_API.NOTIFICATIONS.GET_USER_NOTIFICATIONS,
+      { params: { page, pageSize } }
     );
   },
 

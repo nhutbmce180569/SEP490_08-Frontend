@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { Plus, Eye, Search, X, Calendar } from "lucide-react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { Plus, Eye, Search, X, Calendar, Pencil, Trash2, Filter, ListFilter } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PATH } from "../../../config/routes/route";
 import { Table, type Column } from "../../../components/dashboard/Table";
@@ -26,14 +26,32 @@ export const TourScheduleList: React.FC = () => {
   } = useTourSchedule();
 
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  
+  const [selectedTourId, setSelectedTourId] = useState<number | null>(null);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [showFilter, setShowFilter] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
   const [confirmDelete, setConfirmDelete] = useState<{
     scheduleId: number;
     tourName?: string;
   } | null>(null);
 
-  // Debounce: chờ 400ms sau khi user ngừng gõ mới gọi API
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setShowFilter(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  // Debounce: chờ 400ms sau khi user ngừng gõ
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -42,82 +60,101 @@ export const TourScheduleList: React.FC = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // ✅ Gọi fetchMySchedules thay vì fetchAllSchedules
+  // Reset page when other filters change
   useEffect(() => {
-    fetchMySchedules(page, PAGE_SIZE);
-  }, [fetchMySchedules, page]);
+    setPage(1);
+  }, [selectedTourId, startDate, endDate, pageSize]);
+
+  // ✅ Gọi fetchMySchedules với các tham số filter
+  useEffect(() => {
+    fetchMySchedules(page, pageSize, selectedTourId, startDate, endDate, debouncedSearch);
+  }, [fetchMySchedules, page, pageSize, selectedTourId, startDate, endDate, debouncedSearch]);
 
   const handleCreate = () => navigate(PATH.MANAGER.CREATE_SCHEDULE());
   const handleView = (id: number) => navigate(PATH.MANAGER.SCHEDULE_DETAIL(id));
+  const handleEdit = (id: number) => navigate(PATH.MANAGER.EDIT_SCHEDULE(id));
 
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
     await deleteSchedule(confirmDelete.scheduleId);
     setConfirmDelete(null);
-    fetchMySchedules(page, PAGE_SIZE); // ✅
+    fetchMySchedules(page, pageSize, selectedTourId, startDate, endDate, debouncedSearch);
   };
 
-  const handleClearSearch = () => {
+  const hasActiveFilters = search.trim() !== "" || selectedTourId !== null || startDate !== "" || endDate !== "";
+
+  const handleClearFilters = () => {
     setSearch("");
+    setSelectedTourId(null);
+    setStartDate("");
+    setEndDate("");
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
 
-  // ✅ Filter cục bộ theo search vì API /my chưa hỗ trợ tourName param
-  const filteredSchedules = useMemo(() => {
-    if (!debouncedSearch.trim()) return schedules;
-    const keyword = debouncedSearch.trim().toLowerCase();
-    return schedules.filter((item) =>
-      (item.tour?.name ?? "").toLowerCase().includes(keyword),
-    );
-  }, [schedules, debouncedSearch]);
+  // Lấy danh sách tour để lọc
+  const [availableTours, setAvailableTours] = useState<{id: number, name: string}[]>([]);
+  useEffect(() => {
+    import("../services/tour.service").then(({ tourService }) => {
+      tourService.getAllToursForDropdown()
+        .then(res => {
+          setAvailableTours(res.map(t => ({ id: t.id, name: t.name })));
+        })
+        .catch(console.error);
+    });
+  }, []);
 
-  const sortedSchedules = useMemo(() => {
-    return [...filteredSchedules].sort((a, b) => a.tourId - b.tourId);
-  }, [filteredSchedules]);
+  // Backend đã filter & sort (thường là order by departureDate descending)
+  const sortedSchedules = schedules;
 
   const columns: Column<TourSchedule>[] = useMemo(
     () => [
       {
         header: "",
         className: "w-24",
+        skeletonClassName: "h-10 w-10",
         render: (item) =>
           item.tour?.imageUrl ? (
             <img
               src={item.tour.imageUrl}
               alt={item.tour?.name ?? ""}
-              className="h-14 w-20 rounded-xl object-cover"
+              className="h-10 w-10 min-w-[40px] shrink-0 rounded-lg border border-slate-100 object-cover bg-slate-100"
             />
           ) : (
-            <div className="flex h-14 w-20 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-              <span className="text-xs font-medium">No Image</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-100 bg-slate-100 text-slate-400">
+              <span className="text-[10px] font-medium">{t("tour.noImg") || "No Image"}</span>
             </div>
           ),
       },
       {
-        header: t("tour.tourNameCol"),
-        className: "min-w-[280px]",
+        header: t("tour.scheduleId") || "Schedule ID",
+        className: "w-32 whitespace-nowrap",
         render: (item) => (
-          <div>
-            <div className="font-semibold text-slate-900">{item.tour?.name ?? "-"}</div>
-            <div className="text-sm text-slate-500">
-              ID: {item.tourId}
-            </div>
+          <span className="text-sm font-semibold text-slate-700 whitespace-nowrap">#{item.id}</span>
+        ),
+      },
+      {
+        header: t("tour.tourNameCol"),
+        className: "w-1/3 min-w-[250px]",
+        render: (item) => (
+          <div className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
+            {item.tour?.name ?? "-"}
           </div>
         ),
       },
       {
         header: t("tour.departureReturn"),
+        className: "min-w-[200px]",
         render: (item) => (
           <div className="flex items-center gap-2 text-sm text-slate-600">
-            <Calendar className="h-4 w-4 text-slate-400" />
-            <span className="font-medium">
+            <Calendar className="h-4 w-4 shrink-0 text-slate-400" />
+            <span className="font-medium whitespace-nowrap">
               {new Date(item.departureDate).toLocaleDateString("vi-VN")}
             </span>
             <span className="text-slate-300"> - </span>
-            <span className="font-medium">
+            <span className="font-medium whitespace-nowrap">
               {new Date(item.returnDate).toLocaleDateString("vi-VN")}
             </span>
           </div>
@@ -125,7 +162,8 @@ export const TourScheduleList: React.FC = () => {
       },
       {
         header: t("common.actions"),
-        className: "w-[160px]",
+        className: "w-[160px] min-w-[160px]",
+        skeletonClassName: "h-8 w-24",
         render: (item) => (
           <div className="flex items-center gap-1.5">
             <ActionButton
@@ -138,31 +176,27 @@ export const TourScheduleList: React.FC = () => {
               <Eye className="h-3.5 w-3.5" />
             </ActionButton>
 
-            {/* {canEditSchedule && (
-              <>
-                <ActionButton
-                  variant="secondary"
-                  aria-label={t("tour.edit")}
-                  onClick={() => handleEdit(item.id)}
-                  className="h-8 w-8"
-                  title={t("tour.editSchedule")}
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </ActionButton>
+            <ActionButton
+              variant="secondary"
+              aria-label={t("tour.edit")}
+              onClick={() => handleEdit(item.id)}
+              className="h-8 w-8"
+              title={t("tour.editSchedule")}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </ActionButton>
 
-                <ActionButton
-                  variant="warning"
-                  aria-label={t("tour.delete")}
-                  onClick={() =>
-                    setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })
-                  }
-                  className="h-8 w-8"
-                  title={t("tour.deleteSchedule")}
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </ActionButton>
-              </>
-            )} */}
+            <ActionButton
+              variant="warning"
+              aria-label={t("tour.delete")}
+              onClick={() =>
+                setConfirmDelete({ scheduleId: item.id, tourName: item.tour?.name })
+              }
+              className="h-8 w-8"
+              title={t("tour.deleteSchedule")}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </ActionButton>
           </div>
         ),
       },
@@ -180,15 +214,7 @@ export const TourScheduleList: React.FC = () => {
   return (
     <div className="rounded-2xl">
       {/* Header */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2.5">
-          <div>
-            <h2 className="text-[15px] font-bold leading-tight text-slate-900">
-              {t("tour.scheduleManagement")}
-            </h2>
-          </div>
-        </div>
-
+      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {/* Search input */}
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
@@ -199,21 +225,103 @@ export const TourScheduleList: React.FC = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            {search && (
-              <button
-                onClick={handleClearSearch}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
-                aria-label="Clear search"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+          </div>
+
+          <div className="relative" ref={filterRef}>
+            <button
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-white"
+              onClick={() => setShowFilter((v) => !v)}
+            >
+              <Filter className="h-3.5 w-3.5" />
+              {t("tour.filter") || "Filter"}
+            </button>
+            {showFilter && (
+              <div className="glass-dropdown absolute left-0 top-full z-50 mt-2 w-[320px] p-5 shadow-xl">
+                <div className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-500">{t("tour.tourNameCol")}</label>
+                    <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+                      <ListFilter className="h-4 w-4 shrink-0 text-slate-400" />
+                      <select
+                        className="w-full bg-transparent text-sm text-slate-700 outline-none truncate"
+                        value={selectedTourId ?? ""}
+                        onChange={(e) =>
+                          setSelectedTourId(e.target.value ? Number(e.target.value) : null)
+                        }
+                      >
+                        <option value="">{t("tour.allTours") || "All Tours"}</option>
+                        {availableTours.map((tour) => (
+                          <option key={tour.id} value={tour.id} className="truncate">
+                            {tour.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-500">{t("tour.departureDate") || "Departure Date"}</label>
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="w-10 text-xs font-semibold text-slate-400">{t("tour.from") || "Từ"}</span>
+                        <input 
+                          type="date"
+                          value={startDate}
+                          onChange={(e) => setStartDate(e.target.value)}
+                          className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus-within:border-slate-400 focus-within:bg-white transition-colors"
+                          title={t("tour.startDate") || "Start Date"}
+                        />
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="w-10 text-xs font-semibold text-slate-400">{t("tour.to") || "Đến"}</span>
+                        <input 
+                          type="date"
+                          value={endDate}
+                          onChange={(e) => setEndDate(e.target.value)}
+                          className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 outline-none focus-within:border-slate-400 focus-within:bg-white transition-colors"
+                          title={t("tour.endDate") || "End Date"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+            <select
+              className="bg-transparent text-sm text-slate-700 outline-none"
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+            >
+              <option value={5}>5 {t("common.perPage")}</option>
+              <option value={10}>10 {t("common.perPage")}</option>
+              <option value={15}>15 {t("common.perPage")}</option>
+              <option value={20}>20 {t("common.perPage")}</option>
+              <option value={50}>50 {t("common.perPage")}</option>
+            </select>
+          </div>
+
+          <ActionButton
+            variant="secondary"
+            onClick={handleClearFilters}
+            disabled={!hasActiveFilters}
+            className="gap-2 px-4 py-2 text-sm"
+          >
+            <X className="h-4 w-4" />
+            {t("tour.clear") || "Clear"}
+          </ActionButton>
+        </div>
+
+        <div className="flex items-center shrink-0 mt-3 sm:mt-0">
           <ActionButton
             variant="primary"
             onClick={handleCreate}
-            className="gap-2 px-4 py-2 text-sm"
+            className="gap-2 px-4 py-2 text-sm whitespace-nowrap"
           >
             <Plus className="h-4 w-4" />
             {t("tour.createSchedule")}
@@ -233,7 +341,7 @@ export const TourScheduleList: React.FC = () => {
           keyExtractor={(item) => item.id}
           emptyMessage={t("tour.noSchedulesFound")}
           isLoading={isLoading}
-          skeletonRows={PAGE_SIZE}
+          skeletonRows={pageSize}
         />
       )}
 
@@ -254,7 +362,7 @@ export const TourScheduleList: React.FC = () => {
         currentPage={pagination?.currentPage || 1}
         totalPages={pagination?.totalPages || 1}
         totalItems={pagination?.total || 0}
-        pageSize={pagination?.pageSize || PAGE_SIZE}
+        pageSize={pagination?.pageSize || pageSize}
         onPageChange={handlePageChange}
       />
     </div>

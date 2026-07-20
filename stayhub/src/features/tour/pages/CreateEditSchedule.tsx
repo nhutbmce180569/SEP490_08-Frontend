@@ -333,7 +333,7 @@ export const CreateEditSchedule: React.FC = () => {
           }}
           error={error}
           tours={tours}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isEdit}
           t={t}
         />
       ),

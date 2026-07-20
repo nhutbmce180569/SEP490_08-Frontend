@@ -1,5 +1,12 @@
 {
   "tours": "Tours",
+  "scheduleId": "Schedule ID",
+  "tourNameCol": "Tour Name",
+  "allTours": "All Tours",
+  "from": "From",
+  "to": "To",
+  "startDate": "Start Date",
+  "endDate": "End Date",
   "myTours": "My tours",
   "tourDetails": "Tour details",
   "createTour": "Create tour",

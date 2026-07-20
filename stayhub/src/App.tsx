@@ -127,7 +127,7 @@ import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
-import NotificationListPage from "./features/system/pages/Notificationlistpage";
+
 import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
 import { TrendPredictionPage } from "./features/ai/pages/TrendPredictionPage";
 const queryClient = new QueryClient();
@@ -377,10 +377,6 @@ const App: React.FC = () => {
                                   <Route
                                     path={PATH.CUSTOMER.SETTINGS}
                                     element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
-                                  />
-                                  <Route
-                                    path={PATH.CUSTOMER.NOTIFICATIONS}
-                                    element={<NotificationListPage />}
                                   />
 
                                   <Route

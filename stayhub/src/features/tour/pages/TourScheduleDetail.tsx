@@ -345,27 +345,7 @@ export const TourScheduleDetail: React.FC = () => {
               </div>
             </div>
 
-            {schedule.canEdit && (
-              <div className="flex shrink-0 items-center gap-3">
-                <ActionButton
-                  variant="secondary"
-                  onClick={() => navigate(PATH.MANAGER.EDIT_SCHEDULE(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Pencil className="h-4 w-4" />
-                  {t("tour.edit")}
-                </ActionButton>
-                <ActionButton
-                  type="button"
-                  variant="warning"
-                  onClick={() => navigate(PATH.MANAGER.DELETE_SCHEDULE(schedule.id))}
-                  className="gap-2 px-4 py-2 text-sm"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  {t("tour.delete")}
-                </ActionButton>
-              </div>
-            )}
+
           </div>
 
           <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2">

@@ -296,6 +296,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             return [...prev, data];
           });
         });
+
+        connection.on("ReceiveUserStoppedSharing", (userId: number) => {
+          if (isCancelled) return;
+          setFriendLocations((prev) => prev.filter((f) => String(f.userId) !== String(userId)));
+        });
       } catch (err) {
         if (!isCancelled) {
           console.warn("Error connecting to SignalR:", err);
@@ -309,6 +314,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       isCancelled = true;
       if (connection) {
         connection.off("ReceiveFriendLocation");
+        connection.off("ReceiveUserStoppedSharing");
         connection.stop();
       }
     };
@@ -1218,7 +1224,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       )}
 
       {/* Top Right Controls (Layers & Replay) */}
-      <div className="absolute top-20 md:top-4 right-4 z-20 flex flex-col gap-3">
+      <div className="absolute top-20 md:top-4 right-4 z-20 flex flex-row-reverse md:flex-col gap-3">
         <div className="relative">
           <button
             onClick={(e) => { e.stopPropagation(); setIsLayerMenuOpen(!isLayerMenuOpen); }}
@@ -1228,7 +1234,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           </button>
           
           {isLayerMenuOpen && (
-            <div className="absolute top-full right-0 mt-3 w-72 origin-top-right rounded-[2rem] glass-panel p-3 shadow-2xl animate-fade-in-down z-50" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute top-full right-0 mt-3 w-[calc(100vw-32px)] sm:w-72 max-w-[288px] origin-top-right rounded-[2rem] glass-panel p-3 shadow-2xl animate-fade-in-down z-50" onClick={(e) => e.stopPropagation()}>
               <div className="flex flex-col gap-1">
                 {/* Lộ trình hành trình */}
                 <div onClick={() => setShowTourRoute(!showTourRoute)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
@@ -1267,10 +1273,17 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Chia sẻ vị trí của tôi */}
-                <div onClick={() => {
+                <div onClick={async () => {
                   const newVal = !isSharingLocation;
                   setIsSharingLocation(newVal);
                   localStorage.setItem("share_my_location", newVal ? "true" : "false");
+                  if (!newVal) {
+                    try {
+                      await locationService.stopLocationSharing();
+                    } catch (err) {
+                      console.warn("Failed to stop location sharing on backend:", err);
+                    }
+                  }
                 }} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl transition-colors ${isSharingLocation ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}><MapPin className="w-5 h-5" /></div>
@@ -1544,7 +1557,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               ) : dockState === 'expanded' ? (
                 <div className="flex flex-col h-full animate-fade-in-up">
                   {/* Expanded Content */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
                      <div className="flex items-center gap-4">
                         <div className={`w-16 h-16 rounded-2xl overflow-hidden shadow-md border-2 border-white ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
                           <SafeImage src={timelineEvents[currentEventIndex]?.imageUrl} alt="Event" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-cyan-400 text-white" fallbackText={<MapPin className="w-8 h-8" />} />
@@ -1561,7 +1574,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                           </span>
                         </div>
                      </div>
-                     <div className="flex items-center gap-3">
+                     <div className="flex items-center gap-3 self-end sm:self-auto">
                        {!isReplayActive && (
                          <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(true); }} className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shadow-md hover:bg-brand-hover hover:scale-105 transition-all">
                             <Play className="w-4 h-4 ml-0.5 fill-current" />
@@ -1583,7 +1596,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   </div>
 
                   {/* Slider */}
-                  <div className="w-full mb-4 group relative px-2">
+                  <div className="w-full h-8 mb-4 group relative px-2">
                      <div className="absolute top-1/2 -translate-y-1/2 left-2 right-2 h-2 bg-slate-200/80 rounded-full overflow-hidden">
                         <div className="h-full bg-brand transition-all duration-300" style={{ width: `${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}%` }}></div>
                      </div>

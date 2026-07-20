@@ -410,7 +410,8 @@ export default function Header() {
                         type="button"
                         role="menuitem"
                         onClick={() => {
-                          navigate(PATH.CUSTOMER.PROFILE);
+                          const currentUserId = user ? (user.id || user.Id || (user as any).Id || (user as any).id) : null;
+                          navigate(currentUserId ? `/social/profile/${currentUserId}` : PATH.CUSTOMER.PROFILE);
                           setShowUserMenu(false);
                         }}
                         className="menu-item"

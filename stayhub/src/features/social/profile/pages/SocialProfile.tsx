@@ -1,11 +1,11 @@
 import React, { useContext, useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus, Settings } from 'lucide-react';
+import { Search, Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus, Settings } from 'lucide-react';
 import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
 import { getImg } from '../../../../config/api/api';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { AuthContext } from '../../../../contexts/AuthContext';
-import { useGetFriendshipStatus, useSendFriendRequest, useRespondToRequest, useDeleteFriendship } from '../../friends/hooks/useFriends';
+import { useGetFriendshipStatus, useSendFriendRequest, useRespondToRequest, useDeleteFriendship, useGetFriendships, useGetPendingRequests, useGetSentRequests } from '../../friends/hooks/useFriends';
 import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
 import { useToast } from '../../../../contexts/ToastContext';
 import { PATH } from '../../../../config/routes/route';
@@ -40,6 +40,11 @@ export const SocialProfile: React.FC = () => {
   const { mutate: respondToRequest } = useRespondToRequest();
   const { mutate: deleteFriend } = useDeleteFriendship();
   const { mutate: createChat } = useCreateChatRoom();
+  
+  const { data: allFriendships = [] } = useGetFriendships();
+  const { data: pendingRequests = [] } = useGetPendingRequests();
+  const { data: sentRequests = [] } = useGetSentRequests();
+
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -83,19 +88,26 @@ export const SocialProfile: React.FC = () => {
     ? (currentUser.id || currentUser.Id || currentUser.nameid || currentUser.sub || null)
     : null;
   
+  const selectedMomentLocal = useMemo(() => {
+    if (!selectedMomentId || !moments) return null;
+    return moments.find((m: any) => (m.id || m.Id) === selectedMomentId) || null;
+  }, [moments, selectedMomentId]);
+
+  const activeMoment = selectedMomentLocal || fetchedMoment;
+  
   const initialIsLiked = useMemo(() => {
-    if (!fetchedMoment || !currentUserId) return false;
-    const reactionList = fetchedMoment.reactions || [];
+    if (!activeMoment || !currentUserId) return false;
+    const reactionList = activeMoment.reactions || [];
     return reactionList.some((r: any) => 
       (r.isLike === true || r.IsLike === true) && String(r.userId || r.UserId) === String(currentUserId)
     );
-  }, [fetchedMoment, currentUserId]);
+  }, [activeMoment, currentUserId]);
 
   const initialLikeCount = useMemo(() => {
-    if (!fetchedMoment) return 0;
-    const reactionList = fetchedMoment.reactions || [];
+    if (!activeMoment) return 0;
+    const reactionList = activeMoment.reactions || [];
     return reactionList.length;
-  }, [fetchedMoment]);
+  }, [activeMoment]);
 
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(initialLikeCount);
@@ -106,21 +118,70 @@ export const SocialProfile: React.FC = () => {
   }, [initialIsLiked, initialLikeCount]);
 
   const handleToggleLike = useCallback(() => {
-    if (!fetchedMoment) return;
+    if (!activeMoment) return;
     if (!currentUser || !currentUserId) { error("Vui lòng đăng nhập."); return; }
     
     const newIsLiked = !isLiked;
     setIsLiked(newIsLiked);
     setLikeCount((prev: number) => newIsLiked ? prev + 1 : prev - 1);
     
-    toggleReaction({ momentId: Number(fetchedMoment.id), userId: Number(currentUserId), isLike: newIsLiked }, {
+    toggleReaction({ momentId: Number(activeMoment.id), userId: Number(currentUserId), isLike: newIsLiked }, {
       onError: () => { 
         setIsLiked(!newIsLiked); 
         setLikeCount(initialLikeCount); 
         error(t("social.failedReactMoment") || "Lỗi tương tác."); 
       }
     });
-  }, [fetchedMoment, currentUser, currentUserId, isLiked, toggleReaction, initialLikeCount, error, t]);
+  }, [activeMoment, currentUser, currentUserId, isLiked, toggleReaction, initialLikeCount, error, t]);
+
+  const currentMomentIndexInProfile = useMemo(() => {
+    if (!selectedMomentId || !moments) return -1;
+    return moments.findIndex((m: any) => (m.id || m.Id) === selectedMomentId);
+  }, [moments, selectedMomentId]);
+
+  const handleNextMomentInProfile = useMemo(() => {
+    if (currentMomentIndexInProfile !== -1 && moments && currentMomentIndexInProfile < moments.length - 1) {
+      return () => {
+        const next = moments[currentMomentIndexInProfile + 1];
+        setSelectedMomentId(next.id || next.Id);
+      };
+    }
+    return undefined;
+  }, [moments, currentMomentIndexInProfile]);
+
+  const handlePrevMomentInProfile = useMemo(() => {
+    if (currentMomentIndexInProfile > 0 && moments) {
+      return () => {
+        const prev = moments[currentMomentIndexInProfile - 1];
+        setSelectedMomentId(prev.id || prev.Id);
+      };
+    }
+    return undefined;
+  }, [moments, currentMomentIndexInProfile]);
+
+  // Preload next 5 moments for SocialProfile (increase visibleCount and cache images)
+  useEffect(() => {
+    if (currentMomentIndexInProfile === -1 || !moments || moments.length === 0) return;
+
+    // 1. If we are within 5 items of the end of visible count, increase visible count to reveal more
+    if (currentMomentIndexInProfile >= visibleCount - 5 && visibleCount < moments.length) {
+      setVisibleCount(prev => Math.min(prev + 12, moments.length));
+    }
+
+    // 2. Programmatically cache the images of the next 5 moments in the browser memory
+    const preloadCount = 5;
+    for (let i = 1; i <= preloadCount; i++) {
+      const targetIndex = currentMomentIndexInProfile + i;
+      if (targetIndex < moments.length) {
+        const nextMoment = moments[targetIndex];
+        const imgUrl = nextMoment?.imageUrl || nextMoment?.ImageUrl;
+        if (imgUrl) {
+          const img = new Image();
+          img.src = imgUrl;
+        }
+      }
+    }
+  }, [currentMomentIndexInProfile, moments, visibleCount]);
 
   if (isProfileLoading) {
     return (
@@ -177,7 +238,7 @@ export const SocialProfile: React.FC = () => {
           className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all cursor-pointer shadow-sm"
         >
           <Settings className="h-4 w-4" />
-          <span>Chỉnh sửa hồ sơ</span>
+          <span>{t('social.editProfile') || 'Edit Profile'}</span>
         </button>
       );
     }
@@ -334,46 +395,133 @@ export const SocialProfile: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8">
-      <div className="mb-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="h-32 w-full bg-gradient-to-r from-brand-light to-[var(--color-brand)]/20 sm:h-48"></div>
-        <div className="relative px-6 pb-8 sm:px-10">
-          <div className="relative -mt-16 mb-4 flex items-end sm:-mt-20">
-            <div className="flex h-32 w-32 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white shadow-md sm:h-40 sm:w-40">
-              {profile.avatarUrl ? (
-                <img 
-                  src={getImg(profile.avatarUrl)} 
-                  alt={profile.fullName} 
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-slate-100 text-4xl font-black text-slate-400">
-                  {avatarInitial}
-                </div>
-              )}
+    <div className="page-container py-4 md:py-6 animate-fade-in">
+      <div className="flex flex-col md:flex-row min-h-[82vh] bg-slate-50 border border-slate-100 rounded-3xl overflow-hidden shadow-sm">
+      {/* Sidebar - Cột bên trái */}
+      <div className="w-full md:w-80 bg-white border-r border-slate-200 p-6 flex flex-col gap-6 shrink-0 md:h-[82vh] overflow-y-auto custom-scrollbar">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">{t('social.friendsManagement') || 'Friends'}</h1>
+          <p className="text-[11px] text-slate-400 mt-1 font-medium">{t('social.friendsSubtitle') || 'Search, connect, and stay in touch'}</p>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <button
+            onClick={() => navigate(`${PATH.CUSTOMER.SOCIAL_FRIENDS}?tab=friends`)}
+            className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          >
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5" />
+              <span>{t('social.myFriends') || 'My Friends'}</span>
             </div>
+            <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-500 font-bold">
+              {allFriendships.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate(`${PATH.CUSTOMER.SOCIAL_FRIENDS}?tab=pending`)}
+            className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          >
+            <div className="flex items-center gap-3">
+              <UserCheck className="w-5 h-5" />
+              <span>{t('social.requests') || 'Received Requests'}</span>
+            </div>
+            {pendingRequests.length > 0 && (
+              <span className="text-xs bg-red-100 px-2 py-0.5 rounded-full text-red-600 font-bold animate-pulse">
+                {pendingRequests.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => navigate(`${PATH.CUSTOMER.SOCIAL_FRIENDS}?tab=sent`)}
+            className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          >
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5" />
+              <span>{t('social.sentRequests') || 'Sent Requests'}</span>
+            </div>
+            <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full text-slate-500 font-bold">
+              {sentRequests.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => navigate(`${PATH.CUSTOMER.SOCIAL_FRIENDS}?tab=add`)}
+            className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          >
+            <div className="flex items-center gap-3">
+              <Search className="w-5 h-5" />
+              <span>{t('social.findFriends') || 'Find Friends'}</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate(`${PATH.CUSTOMER.SOCIAL_FRIENDS}?tab=suggestions`)}
+            className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          >
+            <div className="flex items-center gap-3">
+              <UserPlus className="w-5 h-5" />
+              <span>{t('social.friendSuggestions') || 'Friend Suggestions'}</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 p-6 md:p-8 md:h-[82vh] overflow-y-auto custom-scrollbar">
+        <div className="mx-auto w-full max-w-5xl">
+          <div className="mb-10 rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-sm">
+        <div className="flex flex-col md:flex-row items-center md:items-start gap-8 md:gap-12">
+          {/* Avatar Column (Left side) */}
+          <div className="flex h-36 w-36 sm:h-40 sm:w-40 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-slate-100 bg-slate-50 shadow-sm relative group">
+            {profile.avatarUrl ? (
+              <img 
+                src={getImg(profile.avatarUrl)} 
+                alt={profile.fullName} 
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 text-5xl font-black text-slate-400">
+                {avatarInitial}
+              </div>
+            )}
           </div>
-          
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">{profile.fullName}</h1>
-              <div className="mt-3 flex flex-wrap items-center gap-5 text-sm font-medium text-slate-500">
-                {profile.gender && (
-                  <div className="flex items-center gap-1.5">
-                    <User className="h-4 w-4 text-slate-400" />
-                    {profile.gender}
-                  </div>
-                )}
-                {profile.createdAt && (
-                  <div className="flex items-center gap-1.5">
-                    <Calendar className="h-4 w-4 text-slate-400" />
-                    {t('social.joinedSince', { date: new Date(profile.createdAt).toLocaleDateString(dateLocale) })}
-                  </div>
-                )}
+
+          {/* Details Column (Right side) */}
+          <div className="flex-1 flex flex-col gap-5 text-center md:text-left w-full">
+            {/* Row 1: Name and Profile Actions */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 justify-between sm:justify-start sm:gap-6">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight sm:text-3xl">{profile.fullName}</h1>
+              <div className="flex items-center gap-3 shrink-0">
+                {renderProfileActions()}
               </div>
             </div>
-            
-            {renderProfileActions()}
+
+            {/* Row 2: Profile stats */}
+            <div className="flex items-center justify-center md:justify-start gap-8 py-1 border-y border-slate-100 md:border-none">
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-extrabold text-slate-900 text-lg">{moments?.length || 0}</span>
+                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">{t('social.moments') || 'Moments'}</span>
+              </div>
+            </div>
+
+            {/* Row 3: Bio and Metadata */}
+            <div className="flex flex-col gap-2 font-medium text-slate-500 text-sm">
+              <p className="text-slate-700 font-bold select-all">{profile.email}</p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-1.5 text-xs font-semibold text-slate-400 mt-1">
+                <div className="flex items-center gap-1.5">
+                  <User className="h-4 w-4 text-slate-300" />
+                  <span className="capitalize">{profile.gender || t('auth.unknown')}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4 text-slate-300" />
+                  <span>
+                    {profile.createdAt ? t('social.joinedSince', { date: new Date(profile.createdAt).toLocaleDateString(dateLocale) }) : t('common.na')}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -453,18 +601,20 @@ export const SocialProfile: React.FC = () => {
         variant="warning"
       />
 
-      {fetchedMoment && (
+      {activeMoment && (
         <MomentModal
-          moment={fetchedMoment}
+          moment={activeMoment}
           isOpen={!!selectedMomentId}
           onClose={() => setSelectedMomentId(null)}
           isLiked={isLiked}
           likeCount={likeCount}
           onToggleLike={handleToggleLike}
+          onNext={handleNextMomentInProfile}
+          onPrev={handlePrevMomentInProfile}
         />
       )}
 
-      {selectedMomentId !== null && !fetchedMoment && (
+      {selectedMomentId !== null && !activeMoment && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800">
             <Loader2 className="h-8 w-8 animate-spin text-brand" />
@@ -472,6 +622,9 @@ export const SocialProfile: React.FC = () => {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
+  </div>
   );
 };

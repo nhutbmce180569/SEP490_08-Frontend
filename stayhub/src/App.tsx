@@ -382,19 +382,18 @@ const App: React.FC = () => {
                                     path={PATH.CUSTOMER.NOTIFICATIONS}
                                     element={<NotificationListPage />}
                                   />
-
-                                  <Route
-                                    path={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                                    element={<FriendsManagement />}
-                                  />
                                 </Route>
-
-                                <Route
-                                  path={PATH.CUSTOMER.SOCIAL_CHAT}
-                                  element={<ChatPage />}
-                                />
                               </Route>
 
+                              <Route
+                                path={PATH.CUSTOMER.SOCIAL_CHAT}
+                                element={<ChatPage />}
+                              />
+
+                              <Route
+                                path={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                                element={<FriendsManagement />}
+                              />
                               <Route path="/social/moments" element={<MomentsRouteWrapper />} />
                             </Route>
                           </Route>

@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, MessageCircle, X, Loader2, Flag, Send, Trash2, MoreVertical } from 'lucide-react';
+import { Heart, MessageCircle, X, Loader2, Flag, Send, Trash2, MoreVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useAddComment, useUpdateComment, useDeleteComment, useDeleteMoment } from '../hooks/useMoments';
@@ -26,10 +26,12 @@ interface MomentModalProps {
   likeCount: number;
   onToggleLike: () => void;
   onReportSuccess?: (momentId: number) => void;
+  onNext?: () => void;
+  onPrev?: () => void;
 }
 
 export const MomentModal: React.FC<MomentModalProps> = ({ 
-  moment, isOpen, onClose, isLiked, likeCount, onToggleLike, onReportSuccess
+  moment, isOpen, onClose, isLiked, likeCount, onToggleLike, onReportSuccess, onNext, onPrev
 }) => {
   const { user } = useContext(AuthContext);
   const { mutate: addComment, isPending: isAdding } = useAddComment();
@@ -234,6 +236,26 @@ export const MomentModal: React.FC<MomentModalProps> = ({
       >
         <X className="h-6 w-6" />
       </button>
+
+      {onPrev && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          className="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-[10000] flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/75 hover:text-slate-200 p-2.5 border border-white/10 shadow-lg transition-all active:scale-95 cursor-pointer"
+          title="Previous Moment"
+        >
+          <ChevronLeft className="h-6 w-6 md:h-8 md:w-8" />
+        </button>
+      )}
+
+      {onNext && (
+        <button 
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          className="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-[10000] flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/75 hover:text-slate-200 p-2.5 border border-white/10 shadow-lg transition-all active:scale-95 cursor-pointer"
+          title="Next Moment"
+        >
+          <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
+        </button>
+      )}
  
       <div className="flex flex-col md:flex-row w-full max-w-5xl h-[90vh] md:h-[80vh] bg-white rounded-md overflow-hidden shadow-2xl">
         <div className="flex-1 bg-black flex items-center justify-center h-64 md:h-full border-r border-slate-200">
@@ -477,7 +499,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                   className="text-slate-900 hover:text-brand transition-colors cursor-pointer"
                   title="Chia sẻ qua Tin nhắn"
                 >
-                  <Send className="h-6 w-6 -rotate-45" />
+                  <Send className="h-6 w-6" />
                 </button>
               </div>
               <div className="text-sm font-bold text-slate-900">{t("social.momentLikesCount", { count: likeCount })}</div>

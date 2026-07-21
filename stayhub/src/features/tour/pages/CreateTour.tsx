@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Tag, MapPin, Layers } from "lucide-react";
+import { Tag, MapPin, Layers, Trash2 } from "lucide-react";
 import {
   DynamicForm,
   type FormField,
@@ -73,7 +73,7 @@ export const CreateTour: React.FC = () => {
       label: t("tour.tourName"),
       type: "text",
       placeholder: t("tour.tourNamePlaceholder"),
-      colSpan: 2,
+      colSpan: 1,
       required: true,
       maxLength: 100,
       validate: (value) => {
@@ -87,14 +87,28 @@ export const CreateTour: React.FC = () => {
       label: t("tour.category"),
       type: "select",
       icon: <Layers className="h-4 w-4" />,
+      colSpan: 1,
       options: categoryOptions,
       placeholder: t("tour.selectCategory"),
+      required: true,
+    },
+    {
+      name: "transportationType",
+      label: t("tour.transportationType") || "Transportation Type",
+      type: "select",
+      colSpan: 1,
+      options: [
+        { label: t("tour.transportation_coach") || "Coach", value: "Coach" },
+        { label: t("tour.transportation_flight") || "Flight", value: "Flight" }
+      ],
+      placeholder: t("tour.selectTransportation") || "Select transportation",
       required: true,
     },
     {
       name: "status",
       label: t("common.status"),
       type: "custom",
+      colSpan: 1,
       render: () => (
         <div className="flex flex-col gap-1.5">
           <div className="relative">
@@ -236,6 +250,105 @@ export const CreateTour: React.FC = () => {
           ? undefined
           : t("tour.imageTypeValidation");
       },
+    },
+    {
+      name: "tourImages",
+      label: t("tour.tourImages") || "Tour Gallery",
+      type: "custom",
+      colSpan: 2,
+      render: (value, onChange, error) => {
+        const fileInputRef = React.useRef<HTMLInputElement>(null);
+        const replaceInputRef = React.useRef<HTMLInputElement>(null);
+        const [replaceIndex, setReplaceIndex] = React.useState<number | null>(null);
+
+        const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+          if (e.target.files) {
+            const newFiles = Array.from(e.target.files).filter(f => f.type.startsWith("image/"));
+            onChange([...(value || []), ...newFiles]);
+          }
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        };
+
+        const handleReplaceFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+          if (e.target.files && e.target.files[0] && replaceIndex !== null) {
+            const file = e.target.files[0];
+            const updated = [...(value || [])];
+            updated[replaceIndex] = file;
+            onChange(updated);
+            setReplaceIndex(null);
+          }
+          if (replaceInputRef.current) replaceInputRef.current.value = "";
+        };
+
+        const removeFile = (index: number) => {
+          const newFiles = [...(value || [])];
+          newFiles.splice(index, 1);
+          onChange(newFiles);
+        };
+
+        return (
+          <div className="flex flex-col gap-3">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              ref={fileInputRef}
+              onChange={handleFilesChange}
+              className="hidden"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              ref={replaceInputRef}
+              onChange={handleReplaceFile}
+              className="hidden"
+            />
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2">
+              {(value || []).map((file: File, index: number) => (
+                <div key={index} className="relative group rounded-xl overflow-hidden border border-slate-200 aspect-[4/3]">
+                  <img src={URL.createObjectURL(file)} alt="" className="w-full h-full object-cover" />
+                  
+                  {/* Overlay for hover actions */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReplaceIndex(index);
+                        replaceInputRef.current?.click();
+                      }}
+                      className="text-xs font-semibold bg-white text-slate-800 px-3 py-1.5 rounded-lg hover:bg-slate-100"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  
+                  {/* Remove button */}
+                  <button
+                    type="button"
+                    onClick={() => removeFile(index)}
+                    className="absolute top-1 right-1 bg-rose-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-rose-600"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+
+              {/* Add New Button (Box with Plus) */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 hover:bg-brand/5 hover:border-brand/30 text-slate-400 hover:text-brand aspect-[4/3] transition-colors"
+              >
+                <div className="text-2xl font-light">+</div>
+                <div className="text-xs font-medium">{t("common.upload")}</div>
+              </button>
+            </div>
+            
+            {error && <p className="text-sm text-rose-500">{error}</p>}
+          </div>
+        );
+      }
     },
   ];
 

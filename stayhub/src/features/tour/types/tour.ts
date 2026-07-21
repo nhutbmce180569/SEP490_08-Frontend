@@ -24,12 +24,21 @@ export interface Tour {
   tourItineraries?: TourItinerary[];
   tourSchedules?: TourSchedule[];
   reviews? : Review[];
+  tourImages?: TourImage[];
+  transportationType?: string | null;
   totalReviews?: number;
   fiveStarCount?: number;
   fourStarCount?: number;
   threeStarCount?: number;
   twoStarCount?: number;
   oneStarCount?: number;
+}
+
+export interface TourImage {
+  id: number;
+  tourId: number;
+  imageUrl: string;
+  createdAt?: string;
 }
 
 export interface TourBasic {
@@ -50,6 +59,8 @@ export interface CreateTourRequest {
   address?: string | null;
   status?: string | null;
   image?: File | null;
+  transportationType: string;
+  tourImages?: File[] | null;
 }
 
 export interface UpdateTourRequest {
@@ -63,4 +74,7 @@ export interface UpdateTourRequest {
   status?: string | null;
   image?: File | null;
   removeImage?: boolean;
+  transportationType: string;
+  tourImages?: File[] | null;
+  removedTourImageIds?: number[];
 }

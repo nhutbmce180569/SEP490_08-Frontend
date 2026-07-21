@@ -21,6 +21,11 @@ import {
   Globe,
   Info,
   Hash,
+  Bus,
+  Plane,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useTour } from "../hooks/useTour";
 import { useGroupedItineraries } from "../hooks/useGroupedItineraries";
@@ -88,6 +93,7 @@ export const TourDetail: React.FC = () => {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [deletingItineraryId, setDeletingItineraryId] = useState<number | string | null>(null);
   const [isDeletingItinerary, setIsDeletingItinerary] = useState(false);
+  const [previewImageIndex, setPreviewImageIndex] = useState<number | null>(null);
   const { success: showSuccess, error: showError } = useToast();
 
   const { tour, categoryName, isLoading, error, refetch: fetchTour } = useTour(id);
@@ -242,7 +248,7 @@ export const TourDetail: React.FC = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl py-6 space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
 
       {/* ── HERO CARD ── */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
@@ -300,6 +306,16 @@ export const TourDetail: React.FC = () => {
             <Tag className="h-4 w-4 text-slate-400" />
             <span>{categoryName || `ID ${tour.categoryId}`}</span>
           </div>
+          {tour.transportationType && (
+            <div className="flex items-center gap-1.5">
+              {tour.transportationType.toLowerCase() === 'flight' ? (
+                <Plane className="h-4 w-4 text-indigo-400" />
+              ) : (
+                <Bus className="h-4 w-4 text-indigo-400" />
+              )}
+              <span>{t(`tour.transportation_${tour.transportationType.toLowerCase()}`, { defaultValue: tour.transportationType })}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             <Clock className="h-4 w-4 text-blue-400" />
             <span>{durationText}</span>
@@ -350,6 +366,24 @@ export const TourDetail: React.FC = () => {
             <p className="text-sm italic text-slate-400">{t("tour.noDescriptionProvided")}</p>
           )}
         </div>
+
+        {/* Gallery */}
+        {tour.tourImages && tour.tourImages.length > 0 && (
+          <div className="px-6 pb-6">
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-slate-400">{t("tour.tourImages", { defaultValue: "Tour Images" })}</h2>
+            <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+              {tour.tourImages.map((img, idx) => (
+                <button
+                  key={img.id}
+                  onClick={() => setPreviewImageIndex(idx)}
+                  className="shrink-0 transition-transform hover:scale-105"
+                >
+                  <img src={img.imageUrl} alt="Tour img" className="h-24 w-24 rounded-lg object-cover bg-slate-100 border border-slate-200" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── TABS CARD ── */}
@@ -754,6 +788,53 @@ export const TourDetail: React.FC = () => {
         variant="warning"
         icon={<Trash2 className="h-6 w-6 text-rose-500" />}
       />
+      {/* Image Preview Modal */}
+      {previewImageIndex !== null && tour.tourImages && tour.tourImages.length > 0 && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setPreviewImageIndex(null)}
+        >
+          <button 
+            className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+            onClick={() => setPreviewImageIndex(null)}
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          {/* Prev Button */}
+          {tour.tourImages.length > 1 && (
+            <button
+              className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/30 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewImageIndex((prev) => (prev === null ? 0 : prev === 0 ? tour.tourImages!.length - 1 : prev - 1));
+              }}
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+          )}
+
+          <img 
+            src={tour.tourImages[previewImageIndex].imageUrl} 
+            alt="Preview" 
+            className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain shadow-2xl transition-all duration-300" 
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Next Button */}
+          {tour.tourImages.length > 1 && (
+            <button
+              className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/30 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewImageIndex((prev) => (prev === null ? 0 : prev === tour.tourImages!.length - 1 ? 0 : prev + 1));
+              }}
+            >
+              <ChevronRight className="h-8 w-8" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

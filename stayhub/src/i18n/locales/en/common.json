@@ -161,5 +161,6 @@
   "removeImage": "Remove",
   "clickToUpload": "Click to upload or drag and drop",
   "uploadFormatHint": "SVG, PNG, JPG or WebP (max. 5MB)",
+  "upload": "Upload",
   "browseFiles": "Browse Files"
 }

@@ -18,8 +18,10 @@ import {
   Image as ImageIcon,
   ExternalLink,
   Loader2,
-  Phone,
+  Headset,
   Send,
+  Bus,
+  Plane,
 } from "lucide-react";
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
@@ -49,6 +51,7 @@ import { FloatingContactWidget } from "../layouts/shared/FloatingContactWidget";
 import { SimilarToursSection } from "../features/ai/components/SimilarToursSection";
 import { getTicketEffectivePriceInfo } from "../features/tour/utils/tourPrice";
 import { apiClient } from "../utils/axiosClient";
+import { TourImageGallery } from "../features/tour/components/TourImageGallery";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -478,11 +481,15 @@ export default function PublicTourDetail() {
   }
 
   const tourItineraries = tour.tourItineraries || [];
+  
+  const allImages = Array.from(
+    new Set((tour?.tourImages?.map((i) => i.imageUrl) || []).filter(Boolean))
+  ) as string[];
 
   return (
     <div className="-mt-[88px] bg-white">
       {/* HERO */}
-      <div className="relative h-[75vh] min-h-[560px] w-full overflow-hidden bg-slate-900">
+      <div className="relative pt-[138px] pb-8 md:pb-12 lg:pb-16 w-full overflow-hidden bg-slate-900">
         {displayImageUrl ? (
           <img
             src={displayImageUrl}
@@ -505,7 +512,7 @@ export default function PublicTourDetail() {
         </div>
 
         {/* Hero text */}
-        <div className="absolute bottom-0 left-0 right-0 pb-8 md:pb-12 lg:pb-16 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-300">
+        <div className="relative z-10 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-300">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             {/* Tags */}
             <div className="flex flex-wrap items-center gap-3 mb-5">
@@ -517,6 +524,12 @@ export default function PublicTourDetail() {
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
                   <MapPin size={11} />
                   {tour.address || [tour.city, tour.country].filter(Boolean).join(", ")}
+                </span>
+              )}
+              {tour.transportationType && (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
+                  {tour.transportationType.toLowerCase() === 'flight' ? <Plane size={11} /> : <Bus size={11} />}
+                  {t(`tour.transportation_${tour.transportationType.toLowerCase()}`, { defaultValue: tour.transportationType })}
                 </span>
               )}
             </div>
@@ -569,6 +582,8 @@ export default function PublicTourDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 xl:gap-14">
           {/* LEFT */}
           <div className="space-y-16 min-w-0">
+            {allImages.length > 0 && <TourImageGallery images={allImages} />}
+
             {/* Overview */}
             <section>
               <SectionLabel>{t("tour.overview")}</SectionLabel>
@@ -1049,7 +1064,7 @@ export default function PublicTourDetail() {
                       className="flex w-[72px] shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand hover:bg-brand hover:text-white transition-colors border border-brand/20 shadow-sm"
                       title={t("tour.requestConsultation", { defaultValue: "Yêu cầu tư vấn" })}
                     >
-                      <Phone size={24} className="fill-brand-light/20" />
+                      <Headset size={24} className="fill-brand-light/20" />
                     </button>
                   </div>
 

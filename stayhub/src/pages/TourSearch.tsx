@@ -507,7 +507,8 @@ function Sidebar({
                       <ul className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
                         {(() => {
                           const filtered = provinces.filter((p) =>
-                            p.label.toLowerCase().includes(localCity.toLowerCase())
+                            p.label.toLowerCase().includes(localCity.toLowerCase()) ||
+                            p.value.toLowerCase().includes(localCity.toLowerCase())
                           );
                           if (filtered.length === 0) {
                             return <div className="p-4 text-center text-sm text-slate-500">{t("common.noData", { defaultValue: "No matches found" })}</div>;
@@ -519,7 +520,7 @@ function Sidebar({
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 outline-none text-left"
                                 onMouseDown={(e) => {
                                   e.preventDefault();
-                                  setLocalCity(p.value);
+                                  setLocalCity(p.label);
                                   setShowCitySuggestions(false);
                                   upd({ searchTerm: localSearch, city: p.value });
                                 }}
@@ -689,6 +690,7 @@ function Pagination({
 
 export default function TourSearch() {
   const { t } = useTranslation();
+  const { provinces } = useProvinces();
   const [searchParams, setSearchParams] = useSearchParams();
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
@@ -739,7 +741,10 @@ export default function TourSearch() {
   ];
 
   useEffect(() => setLocalSearch(searchTerm), [searchTerm]);
-  useEffect(() => setLocalCity(city), [city]);
+  useEffect(() => {
+    const matched = provinces.find((opt) => opt.value === city);
+    setLocalCity(matched ? matched.label : city);
+  }, [city, provinces]);
   useEffect(() => setLocalStart(startDate), [startDate]);
   useEffect(() => setLocalEnd(endDate), [endDate]);
   useEffect(() => {
@@ -772,7 +777,14 @@ export default function TourSearch() {
     setSearchParams(p);
   };
 
-  const submitText = () => upd({ searchTerm: localSearch, city: localCity });
+  const submitText = () => {
+    const matchedCity = provinces.find(
+      (p) =>
+        p.label.toLowerCase() === localCity.toLowerCase() ||
+        p.value.toLowerCase() === localCity.toLowerCase()
+    );
+    upd({ searchTerm: localSearch, city: matchedCity ? matchedCity.value : localCity });
+  };
   const submitDates = () => upd({ startDate: localStart, endDate: localEnd });
   const submitPrice = () =>
     upd({

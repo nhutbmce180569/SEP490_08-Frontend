@@ -123,6 +123,7 @@ import { RevenueStatisticsPage } from "./features/booking/pages/RevenueStatistic
 import { QRCheckinPage } from "./features/booking/pages/QRCheckinPage";
 import TermsOfServicePage from "./pages/legal/TermsOfServicePage";
 import PrivacyPolicyPage from "./pages/legal/PrivacyPolicyPage";
+import BookingTermsPage from "./pages/legal/BookingTermsPage";
 import AboutPage from "./pages/about/AboutPage";
 import NhutPortfolioPage from "./pages/about/NhutPortfolioPage";
 import PublicInfoPage from "./pages/info/PublicInfoPage";
@@ -329,6 +330,7 @@ const App: React.FC = () => {
                             />
                             <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
                             <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
+                            <Route path={PATH.PUBLIC.BOOKING_TERMS} element={<BookingTermsPage />} />
                             <Route path={PATH.PUBLIC.ABOUT} element={<AboutPage />} />
                             <Route
                               path={PATH.PUBLIC.NHUT_PORTFOLIO}

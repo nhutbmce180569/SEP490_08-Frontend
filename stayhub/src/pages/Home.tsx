@@ -24,38 +24,44 @@ export default function Home() {
       <div className="home-page">
         <HomeDestinations />
         
-        <HomeFeaturedTours
-          tours={hot.tours}
-          isLoading={hot.isLoading}
-          error={hot.error}
-          eyebrow={t("home.topPicksEyebrow")}
-          title={t("home.topHotToursTitle")}
-          subtitle={t("home.top5HotToursSubtitle")}
-          onViewAll={() => navigate(PATH.PUBLIC.HOT_TOURS)}
-        />
+        <div id="home-hot-tours">
+          <HomeFeaturedTours
+            tours={hot.tours}
+            isLoading={hot.isLoading}
+            error={hot.error}
+            eyebrow={t("home.topPicksEyebrow")}
+            title={t("home.topHotToursTitle")}
+            subtitle={t("home.top5HotToursSubtitle")}
+            onViewAll={() => navigate(PATH.PUBLIC.HOT_TOURS)}
+          />
+        </div>
         
         {sale.tours.length > 0 && (
-          <HomePopularTours
-            tours={sale.tours}
-            isLoading={sale.isLoading}
-            error={sale.error}
-            eyebrow={t("home.specialOffersEyebrow")}
-            title={t("home.toursOnSaleTitle")}
-            subtitle={t("home.toursOnSaleSubtitle")}
-            onViewAll={() => navigate(PATH.PUBLIC.SALE_TOURS)}
-          />
+          <div id="home-sale-tours">
+            <HomePopularTours
+              tours={sale.tours}
+              isLoading={sale.isLoading}
+              error={sale.error}
+              eyebrow={t("home.specialOffersEyebrow")}
+              title={t("home.toursOnSaleTitle")}
+              subtitle={t("home.toursOnSaleSubtitle")}
+              onViewAll={() => navigate(PATH.PUBLIC.SALE_TOURS)}
+            />
+          </div>
         )}
 
         {upcoming.tours.length > 0 && (
-          <HomePopularTours
-            tours={upcoming.tours}
-            isLoading={upcoming.isLoading}
-            error={upcoming.error}
-            eyebrow={t("home.preparingToDepartEyebrow")}
-            title={t("home.upcomingToursTitle")}
-            subtitle={t("home.upcomingToursSubtitle")}
-            onViewAll={() => navigate(PATH.PUBLIC.UPCOMING_TOURS)}
-          />
+          <div id="home-upcoming-tours">
+            <HomePopularTours
+              tours={upcoming.tours}
+              isLoading={upcoming.isLoading}
+              error={upcoming.error}
+              eyebrow={t("home.preparingToDepartEyebrow")}
+              title={t("home.upcomingToursTitle")}
+              subtitle={t("home.upcomingToursSubtitle")}
+              onViewAll={() => navigate(PATH.PUBLIC.UPCOMING_TOURS)}
+            />
+          </div>
         )}
 
         <HomeRegions />

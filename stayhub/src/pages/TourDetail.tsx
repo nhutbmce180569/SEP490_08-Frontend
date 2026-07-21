@@ -130,6 +130,8 @@ const enrichTicketWithTypeDetail = (
       name: ticketType.name,
       description: ticket.ticketType?.description ?? ticketType.description,
       isActive: ticket.ticketType?.isActive ?? ticketType.isActive,
+      minAge: ticketType.minAge,
+      maxAge: ticketType.maxAge,
     },
   };
 };

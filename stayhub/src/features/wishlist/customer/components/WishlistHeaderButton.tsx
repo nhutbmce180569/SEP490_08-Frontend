@@ -15,7 +15,7 @@ export const WishlistHeaderButton: React.FC = () => {
     <button
       type="button"
       onClick={() => navigate(PATH.CUSTOMER.WISHLIST)}
-      className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 dark:text-slate-300 transition-all hover:bg-brand-light/30 hover:text-brand border-0 shadow-none"
+      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-600 dark:text-slate-300 transition-all hover:bg-slate-100 hover:text-rose-500 dark:hover:bg-slate-800 border-0 shadow-none"
       title={t('tour.myWishlistTitle')}
       aria-label={
         count > 0

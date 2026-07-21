@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
   Calendar,
@@ -442,6 +442,11 @@ export const BookingPage: React.FC = () => {
   const handleAddTicket = (ticketOption: TourScheduleTicket) => {
     if (isExcelProcessing) return;
 
+    if (ticketCount >= 9) {
+      showError(t("booking.maxTicketsPerOrderExceeded"));
+      return;
+    }
+
     const price = getTicketPrice(ticketOption);
     const available = getTicketAvailable(ticketOption);
     const quantity = ticketQuantities[ticketOption.id] ?? 0;
@@ -577,7 +582,25 @@ export const BookingPage: React.FC = () => {
         else if (new Date(value).getTime() > currentTime) {
           errors.dateOfBirth = t("booking.dobFuture");
         } else {
-          delete errors.dateOfBirth;
+          // Check ticket type age limits
+          const ticketOption = scheduleTicketOptions.find(t => t.id === newTickets[index].tourScheduleTicketId);
+          const minAge = ticketOption?.ticketType?.minAge;
+          const maxAge = ticketOption?.ticketType?.maxAge;
+          
+          if (minAge !== undefined || maxAge !== undefined) {
+            const ageDate = new Date(new Date().getTime() - new Date(value).getTime());
+            const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+            
+            if (minAge !== undefined && minAge !== null && age < minAge) {
+              errors.dateOfBirth = t("booking.minAgeError_self", { minAge });
+            } else if (maxAge !== undefined && maxAge !== null && age > maxAge) {
+              errors.dateOfBirth = t("booking.maxAgeError_self", { maxAge });
+            } else {
+              delete errors.dateOfBirth;
+            }
+          } else {
+            delete errors.dateOfBirth;
+          }
         }
       }
       if (field === "nationality") {
@@ -628,10 +651,18 @@ export const BookingPage: React.FC = () => {
       return;
     }
 
+    if (ticketCount > 9) {
+      showError(t("booking.maxTicketsPerOrderExceeded"));
+      return;
+    }
+
     if (ticketCount > scheduleAvailableSeats) {
       showError(t("booking.seatsAvailableForDeparture", { count: scheduleAvailableSeats }));
       return;
     }
+
+    let childCount = 0;
+    let adultCount = 0;
 
     for (const ticketOption of scheduleTicketOptions) {
       const quantity = ticketQuantities[ticketOption.id] ?? 0;
@@ -646,6 +677,23 @@ export const BookingPage: React.FC = () => {
       );
         return;
       }
+      
+      if (quantity > 0) {
+        const ticketName = getScheduleTicketName(ticketOption).toLowerCase();
+        const maxAge = ticketOption.ticketType?.maxAge;
+        const isChild = ticketName.includes("child") || ticketName.includes("children") || (maxAge != null && maxAge <= 12);
+        
+        if (isChild) {
+          childCount += quantity;
+        } else {
+          adultCount += quantity;
+        }
+      }
+    }
+
+    if (childCount > adultCount) {
+      showError(t("booking.adultRequiredForChild"));
+      return;
     }
 
     for (let index = 0; index < tickets.length; index += 1) {
@@ -674,6 +722,26 @@ export const BookingPage: React.FC = () => {
         showError(t("booking.dobFuturePassenger", { count: index + 1 }));
         openTicketModal(index);
         return;
+      }
+
+      const ticketOption = scheduleTicketOptions.find(t => t.id === ticket.tourScheduleTicketId);
+      const minAge = ticketOption?.ticketType?.minAge;
+      const maxAge = ticketOption?.ticketType?.maxAge;
+
+      if (minAge !== undefined || maxAge !== undefined) {
+        const ageDate = new Date(new Date().getTime() - new Date(ticket.dateOfBirth).getTime());
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        
+        if (minAge !== undefined && minAge !== null && age < minAge) {
+          showError(t("booking.minAgeError", { count: index + 1, minAge }));
+          openTicketModal(index);
+          return;
+        }
+        if (maxAge !== undefined && maxAge !== null && age > maxAge) {
+          showError(t("booking.maxAgeError", { count: index + 1, maxAge }));
+          openTicketModal(index);
+          return;
+        }
       }
     }
 
@@ -771,7 +839,7 @@ export const BookingPage: React.FC = () => {
         <div className="mb-8 flex items-center justify-between gap-4">
           <button
             onClick={() => navigate(-1)}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-brand shrink-0"
+            className="inline-flex items-center gap-2 rounded-[var(--radius-button)] border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 hover:text-brand shrink-0"
           >
             <ArrowLeft className="h-4 w-4 shrink-0" /> <span className="hidden sm:inline">{t("booking.backToTour")}</span>
           </button>
@@ -806,8 +874,17 @@ export const BookingPage: React.FC = () => {
                     >
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                          <div className="font-bold text-slate-900">
-                            {getScheduleTicketName(ticketOption)}
+                          <div className="font-bold text-slate-900 flex items-center gap-2">
+                            <span>{getScheduleTicketName(ticketOption)}</span>
+                            {(ticketOption.ticketType?.minAge != null || ticketOption.ticketType?.maxAge != null) && (
+                              <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">
+                                {ticketOption.ticketType?.minAge != null && ticketOption.ticketType?.maxAge != null
+                                  ? t("booking.ageRange", { min: ticketOption.ticketType.minAge, max: ticketOption.ticketType.maxAge })
+                                  : ticketOption.ticketType?.minAge != null
+                                  ? t("booking.minAge", { min: ticketOption.ticketType.minAge })
+                                  : t("booking.maxAge", { max: ticketOption.ticketType?.maxAge })}
+                              </span>
+                            )}
                           </div>
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
                             <span>
@@ -1169,13 +1246,13 @@ export const BookingPage: React.FC = () => {
                       className="text-xs font-medium leading-relaxed text-slate-600 select-none cursor-pointer"
                     >
                       {t("booking.agreeToCancellationTerms")}{" "}
-                      <button
-                        type="button"
-                        onClick={() => setIsTermsPolicyOpen(true)}
+                      <Link
+                        to={PATH.PUBLIC.BOOKING_TERMS}
+                        target="_blank"
                         className="font-bold text-brand hover:underline"
                       >
-                        {t("booking.cancellationPolicy") || "Chính sách hủy"}
-                      </button>
+                        {t("booking.cancellationPolicy") || "Quy định đặt tour"}
+                      </Link>
                     </label>
                   </div>
 

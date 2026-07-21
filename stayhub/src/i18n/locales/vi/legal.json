@@ -17,6 +17,11 @@
   "termsNavDesc": "Quy tắc đặt chỗ, hủy và sử dụng nền tảng",
   "privacyNavLabel": "Chính sách quyền riêng tư",
   "privacyNavDesc": "Cách chúng tôi thu thập và bảo vệ dữ liệu",
+  "bookingTermsTitle": "Quy định đặt tour & Hủy vé",
+  "bookingTermsSubtitle": "Chính sách hủy vé, sử dụng mã giảm giá, giới hạn độ tuổi và các quy định cần lưu ý khi đặt tour tại StayHub.",
+  "bookingTermsNavLabel": "Quy định đặt tour",
+  "bookingTermsNavDesc": "Lưu ý khi đặt tour, hủy vé, và voucher",
   "relatedTerms": "Điều khoản dịch vụ",
-  "relatedPrivacy": "Chính sách quyền riêng tư"
+  "relatedPrivacy": "Chính sách quyền riêng tư",
+  "relatedBookingTerms": "Quy định đặt tour"
 }

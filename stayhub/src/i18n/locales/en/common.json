@@ -18,6 +18,10 @@
   "loading": "Loading...",
   "noData": "No data available",
   "error": "Something went wrong",
+  "theme": "Theme",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "themeSystem": "System",
   "success": "Success",
   "retry": "Try again",
   "user": "User",
@@ -127,7 +131,10 @@
   },
 
   "header": {
-    "myProfile": "My Profile",
+    "myProfile": "My profile",
+    "accountManagement": "Account management",
+    "myBookings": "Account management",
+    "wishlist": "Wishlist",
     "changePassword": "Change Password",
     "signOut": "Sign Out"
   },
@@ -163,5 +170,21 @@
   "clickToUpload": "Click to upload or drag and drop",
   "uploadFormatHint": "SVG, PNG, JPG or WebP (max. 5MB)",
   "upload": "Upload",
-  "browseFiles": "Browse Files"
+  "browseFiles": "Browse Files",
+  "contact": {
+    "facebookTitle": "StayHub Official Fanpage",
+    "facebookSubtitle": "Connect directly via Facebook page",
+    "officialFanpage": "Official Fanpage",
+    "officialFanpageDesc": "Daily tour deals, promo codes & travel tips.",
+    "messengerSupport": "Messenger Support",
+    "messengerSupportDesc": "Chat directly via Facebook Messenger (Fast response within 5 mins).",
+    "visitFacebook": "Visit Facebook Fanpage",
+    "sendMessenger": "Send Messenger Message",
+    "hotlineTitle": "StayHub Support Hotline",
+    "hotlineSubtitle": "24/7 Customer Care",
+    "cskhHotline": "CSKH Hotline (Toll-Free)",
+    "quickBookingHotline": "Quick Booking Hotline",
+    "callNow": "Call Now",
+    "workingHours": "Working hours: 08:00 - 22:00 (All days of the week)"
+  }
 }

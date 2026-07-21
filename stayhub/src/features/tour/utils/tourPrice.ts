@@ -4,6 +4,8 @@ import { getNumberValue } from "./tourScheduleTicket";
 export interface TourPriceInfo {
   price: number | null;
   originalPrice: number | null;
+  discountType?: "PERCENTAGE" | "FIXED" | string;
+  discountValue?: number;
 }
 
 export const getTicketEffectivePriceInfo = (ticket: any): TourPriceInfo => {
@@ -21,7 +23,7 @@ export const getTicketEffectivePriceInfo = (ticket: any): TourPriceInfo => {
 
     if (isStarted && isNotEnded && promo.discountValue) {
       let discountAmount = 0;
-      if (promo.discountType === "PERCENTAGE") {
+      if (promo.discountType?.toLowerCase() === "percentage") {
         discountAmount = basePrice * (promo.discountValue / 100);
         if (promo.maxDiscountAmount && discountAmount > promo.maxDiscountAmount) {
           discountAmount = promo.maxDiscountAmount;
@@ -32,6 +34,8 @@ export const getTicketEffectivePriceInfo = (ticket: any): TourPriceInfo => {
       return {
         price: Math.max(0, basePrice - discountAmount),
         originalPrice: basePrice,
+        discountType: promo.discountType,
+        discountValue: promo.discountValue,
       };
     }
   }
@@ -42,6 +46,8 @@ export const getTicketEffectivePriceInfo = (ticket: any): TourPriceInfo => {
 export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
   let lowestEffectivePrice: number | null = null;
   let correspondingOriginalPrice: number | null = null;
+  let correspondingDiscountType: string | undefined = undefined;
+  let correspondingDiscountValue: number | undefined = undefined;
 
   const schedules = tour.tourSchedules || [];
   const now = new Date();
@@ -54,7 +60,7 @@ export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
     const tickets = schedule.tourScheduleTickets || [];
     
     for (const ticket of tickets) {
-      const { price: effectivePrice, originalPrice } = getTicketEffectivePriceInfo(ticket);
+      const { price: effectivePrice, originalPrice, discountType, discountValue } = getTicketEffectivePriceInfo(ticket);
 
       if (effectivePrice !== null) {
         if (
@@ -64,6 +70,8 @@ export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
         ) {
           lowestEffectivePrice = effectivePrice;
           correspondingOriginalPrice = originalPrice;
+          correspondingDiscountType = discountType;
+          correspondingDiscountValue = discountValue;
         }
       }
     }
@@ -74,7 +82,7 @@ export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
     for (const schedule of schedules) {
       const tickets = schedule.tourScheduleTickets || [];
       for (const ticket of tickets) {
-        const { price: effectivePrice, originalPrice } = getTicketEffectivePriceInfo(ticket);
+        const { price: effectivePrice, originalPrice, discountType, discountValue } = getTicketEffectivePriceInfo(ticket);
         if (effectivePrice !== null) {
           if (
             lowestEffectivePrice === null || 
@@ -83,6 +91,8 @@ export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
           ) {
             lowestEffectivePrice = effectivePrice;
             correspondingOriginalPrice = originalPrice;
+            correspondingDiscountType = discountType;
+            correspondingDiscountValue = discountValue;
           }
         }
       }
@@ -92,5 +102,7 @@ export const getTourPriceInfo = (tour: Tour): TourPriceInfo => {
   return {
     price: lowestEffectivePrice,
     originalPrice: correspondingOriginalPrice,
+    discountType: correspondingDiscountType,
+    discountValue: correspondingDiscountValue,
   };
 };

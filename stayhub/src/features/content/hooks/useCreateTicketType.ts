@@ -23,6 +23,8 @@ export const useCreateTicketType = () => {
       await ticketTypeService.create({
         name: String(data.name ?? "").trim(),
         description: data.description ? String(data.description).trim() : undefined,
+        minAge: data.minAge !== undefined && data.minAge !== "" && data.minAge !== null ? Number(data.minAge) : undefined,
+        maxAge: data.maxAge !== undefined && data.maxAge !== "" && data.maxAge !== null ? Number(data.maxAge) : undefined,
         isActive: data.isActive === "Active",
       });
 

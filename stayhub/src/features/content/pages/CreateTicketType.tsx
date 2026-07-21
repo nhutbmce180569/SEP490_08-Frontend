@@ -39,6 +39,36 @@ export const CreateTicketType: React.FC = () => {
         required: true,
       },
       {
+        name: "minAge",
+        label: t("content.minAge", { defaultValue: "Min Age" }),
+        type: "number",
+        colSpan: 1,
+        validate: (value, formData) => {
+          const val = value !== undefined && value !== null && value !== "" ? Number(value) : null;
+          if (val !== null && val < 0) return t("content.ageNegativeError");
+          
+          const maxVal = formData.maxAge !== undefined && formData.maxAge !== null && formData.maxAge !== "" ? Number(formData.maxAge) : null;
+          if (val !== null && maxVal !== null && val >= maxVal) return t("content.maxAgeError");
+          
+          return undefined;
+        }
+      },
+      {
+        name: "maxAge",
+        label: t("content.maxAge", { defaultValue: "Max Age" }),
+        type: "number",
+        colSpan: 1,
+        validate: (value, formData) => {
+          const val = value !== undefined && value !== null && value !== "" ? Number(value) : null;
+          if (val !== null && val < 0) return t("content.ageNegativeError");
+          
+          const minVal = formData.minAge !== undefined && formData.minAge !== null && formData.minAge !== "" ? Number(formData.minAge) : null;
+          if (val !== null && minVal !== null && val <= minVal) return t("content.maxAgeError");
+          
+          return undefined;
+        }
+      },
+      {
         name: "description",
         label: t("common.description"),
         type: "textarea",

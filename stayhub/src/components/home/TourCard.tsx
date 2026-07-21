@@ -16,6 +16,8 @@ export interface TourCardProps {
   price: number | null;
   originalPrice?: number | null;
   imageUrl: string;
+  discountType?: string;
+  discountValue?: number;
 }
 
 export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
@@ -84,8 +86,15 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
                     {t("home.priceFrom")}
                   </div>
                   {tour.originalPrice != null && (
-                    <div className="text-xs font-medium text-slate-400 line-through">
-                      <MoneyDisplay amountVnd={tour.originalPrice} compact />
+                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                      <div className="text-xs font-medium text-slate-400 line-through">
+                        <MoneyDisplay amountVnd={tour.originalPrice} compact />
+                      </div>
+                      {tour.discountType?.toLowerCase() === "percentage" && tour.discountValue && (
+                        <span className="rounded bg-emerald-100 px-1 py-0.5 text-[10px] font-bold text-emerald-700">
+                          -{tour.discountValue}%
+                        </span>
+                      )}
                     </div>
                   )}
                   <div className="text-lg font-black text-brand">

@@ -12,6 +12,7 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { SearchableSelect } from "../../../components/dashboard/SearchableSelect";
+import { TransportationSelect } from "../components/TransportationSelect";
 import { MapPickerModal } from "../components/MapPickerModal";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
@@ -95,13 +96,11 @@ export const CreateTour: React.FC = () => {
     {
       name: "transportationType",
       label: t("tour.transportationType") || "Transportation Type",
-      type: "select",
+      type: "custom",
       colSpan: 1,
-      options: [
-        { label: t("tour.transportation_coach") || "Coach", value: "Coach" },
-        { label: t("tour.transportation_flight") || "Flight", value: "Flight" }
-      ],
-      placeholder: t("tour.selectTransportation") || "Select transportation",
+      render: (value, onChange, error) => (
+        <TransportationSelect value={value} onChange={onChange} error={error} />
+      ),
       required: true,
     },
     {

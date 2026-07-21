@@ -13,7 +13,7 @@ export function TourImageGallery({ images }: TourImageGalleryProps) {
   if (!images || images.length === 0) return null;
 
   return (
-    <div className="bg-white p-1 rounded-2xl">
+    <div className="bg-white rounded-2xl">
       {/* Main Image */}
       <div className="relative aspect-[16/9] md:aspect-[2/1] w-full rounded-xl overflow-hidden bg-slate-100 group shadow-sm border border-slate-100">
         <img 

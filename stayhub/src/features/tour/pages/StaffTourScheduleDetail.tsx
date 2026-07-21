@@ -568,7 +568,7 @@ export const StaffTourScheduleDetail: React.FC = () => {
                         if (ticket.promotion && ticket.price != null && ticket.promotion.discountValue) {
                           const p = Number(ticket.price);
                           let discountAmount = 0;
-                          if (ticket.promotion.discountType === "PERCENTAGE") {
+                          if (ticket.promotion.discountType?.toLowerCase() === "percentage") {
                             discountAmount = p * (ticket.promotion.discountValue / 100);
                             if (ticket.promotion.maxDiscountAmount && discountAmount > ticket.promotion.maxDiscountAmount) {
                               discountAmount = ticket.promotion.maxDiscountAmount;
@@ -614,7 +614,12 @@ export const StaffTourScheduleDetail: React.FC = () => {
                                   </div>
                                 )}
                                 {ticket.promotion && (
-                                  <div>
+                                  <div className="flex items-center justify-end gap-1.5 mt-1">
+                                    {ticket.promotion.discountType?.toLowerCase() === "percentage" && ticket.promotion.discountValue && (
+                                      <span className="rounded bg-emerald-100 px-1 py-0.5 text-[10px] font-bold text-emerald-700">
+                                        -{ticket.promotion.discountValue}%
+                                      </span>
+                                    )}
                                     <span className="inline-block rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-700">
                                       {ticket.promotion.code}
                                     </span>

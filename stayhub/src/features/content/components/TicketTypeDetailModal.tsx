@@ -75,6 +75,18 @@ export const TicketTypeDetailModal: React.FC<TicketTypeDetailModalProps> = ({
 
           <div className="grid grid-cols-2 gap-4 pt-2">
             <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("content.ageRange", { defaultValue: "Age Range" })}</label>
+              <div className="mt-1">
+                <span className="text-sm font-medium text-slate-700">
+                  {ticketType.minAge == null && ticketType.maxAge == null && t("common.na")}
+                  {ticketType.minAge != null && ticketType.maxAge == null && `≥ ${ticketType.minAge}`}
+                  {ticketType.minAge == null && ticketType.maxAge != null && `≤ ${ticketType.maxAge}`}
+                  {ticketType.minAge != null && ticketType.maxAge != null && `${ticketType.minAge} - ${ticketType.maxAge}`}
+                </span>
+              </div>
+            </div>
+
+            <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("common.status")}</label>
               <div className="mt-1">
                 <span
@@ -90,6 +102,11 @@ export const TicketTypeDetailModal: React.FC<TicketTypeDetailModalProps> = ({
             <div>
               <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("content.created")}</label>
               <p className="text-sm font-medium text-slate-700 mt-1">{formatDate(ticketType.createdAt)}</p>
+            </div>
+            
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("content.updated")}</label>
+              <p className="text-sm font-medium text-slate-700 mt-1">{formatDate(ticketType.updatedAt)}</p>
             </div>
           </div>
         </div>

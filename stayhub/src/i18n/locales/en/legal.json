@@ -17,6 +17,11 @@
   "termsNavDesc": "Booking rules, cancellations, and platform use",
   "privacyNavLabel": "Privacy Policy",
   "privacyNavDesc": "How we collect and protect your data",
+  "bookingTermsTitle": "Booking & Cancellation Policy",
+  "bookingTermsSubtitle": "Cancellation policies, voucher usage, age limits, and important notes when booking a tour on StayHub.",
+  "bookingTermsNavLabel": "Booking Policy",
+  "bookingTermsNavDesc": "Notes for booking, cancellations, and vouchers",
   "relatedTerms": "Terms of Service",
-  "relatedPrivacy": "Privacy Policy"
+  "relatedPrivacy": "Privacy Policy",
+  "relatedBookingTerms": "Booking Policy"
 }

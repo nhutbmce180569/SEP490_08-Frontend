@@ -117,7 +117,11 @@ export default function NotificationBell() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`icon-btn relative ${isOpen ? "!bg-brand-light !text-brand" : ""}`}
+        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all border-0 shadow-none ${
+          isOpen
+            ? "bg-brand-light/40 text-brand"
+            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-brand dark:hover:bg-slate-800"
+        }`}
         aria-label={t("dashboard.notifications")}
         aria-expanded={isOpen}
       >

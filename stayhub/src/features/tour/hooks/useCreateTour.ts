@@ -25,6 +25,12 @@ const buildCreateTourFormData = (data: CreateTourRequest): FormData => {
   if (data.country) formData.append("country", data.country);
   if (data.city) formData.append("city", data.city);
   if (data.address) formData.append("address", data.address);
+  formData.append("transportationType", data.transportationType);
+  if (data.tourImages && data.tourImages.length > 0) {
+    data.tourImages.forEach((file) => {
+      formData.append("tourImages", file);
+    });
+  }
   return formData;
 };
 
@@ -62,7 +68,7 @@ export const useCreateTour = () => {
 
       const requestData: CreateTourRequest = {
         name: data.name,
-        operatorId: Number(user?.id),
+        operatorId: Number(user?.id) || 1,
         categoryId: Number(data.categoryId),
         status: data.status || "Draft",
         description: data.description,
@@ -70,6 +76,8 @@ export const useCreateTour = () => {
         country: data.country,
         city: data.city,
         address: data.address,
+        transportationType: data.transportationType,
+        tourImages: data.tourImages,
       };
 
       const payload = buildCreateTourFormData(requestData);

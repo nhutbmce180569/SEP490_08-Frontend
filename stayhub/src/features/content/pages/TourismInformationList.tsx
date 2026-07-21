@@ -9,7 +9,7 @@ import {
   Search,
   Tag,
   Unlock,
-  ListFilter,
+  Filter,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -240,7 +240,7 @@ export const TourismInformationList: React.FC = () => {
               onClick={() => setShowFilters(!showFilters)}
               className={`gap-2 px-3 py-2 text-sm shrink-0 ${hasActiveFilters ? "border-brand bg-brand-light/30 text-brand" : ""}`}
             >
-              <ListFilter className="h-4 w-4" />
+              <Filter className="h-4 w-4" />
               {t("common.filter") || "Filter"}
             </ActionButton>
 

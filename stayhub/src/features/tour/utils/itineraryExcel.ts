@@ -67,7 +67,7 @@ const asTime = (value: ExcelJS.CellValue, field: string) => {
 //
 // HÀM TẠO TEMPLATE FILE EXCEL MỚI CÓ SHEET HƯỚNG DẪN
 //
-export const downloadItineraryExcelTemplate = async () => {
+export const downloadItineraryExcelTemplate = async (tourismInformationList: TourismInformation[] = []) => {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = "StayHub";
   workbook.created = new Date();
@@ -76,6 +76,15 @@ export const downloadItineraryExcelTemplate = async () => {
   const itinerarySheet = workbook.addWorksheet("Itineraries", {
     views: [{ state: "frozen", ySplit: 1 }],
   });
+
+  // Sheet data ẩn chứa danh sách Tourism
+  const tourismNames = tourismInformationList.map(t => t.name).filter(Boolean);
+  if (tourismNames.length > 0) {
+    const dataSheet = workbook.addWorksheet("TourismData", { state: "hidden" });
+    tourismNames.forEach((name, idx) => {
+      dataSheet.getCell(`A${idx + 1}`).value = name;
+    });
+  }
 
   // Sheet hướng dẫn 
   const instructionSheet = workbook.addWorksheet("Instructions");
@@ -170,6 +179,20 @@ export const downloadItineraryExcelTemplate = async () => {
       errorTitle: "Sai định dạng giờ",
       error: "Vui lòng nhập giờ đúng định dạng HH:mm (Ví dụ: 10:30).",
     };
+
+    // 7. TourismName (Cột G) - Dropdown danh sách Tourism
+    if (tourismNames.length > 0) {
+      const tourismCell = itinerarySheet.getCell(`G${i}`);
+      tourismCell.dataValidation = {
+        type: "list",
+        allowBlank: true,
+        formulae: [`'TourismData'!$A$1:$A$${tourismNames.length}`],
+        showErrorMessage: true,
+        errorStyle: "warning",
+        errorTitle: "Địa điểm không có sẵn",
+        error: "Bạn đã nhập tên không có trong danh sách Tourism có sẵn, vui lòng đảm bảo tên chính xác hoặc chọn từ danh sách.",
+      };
+    }
   }
   // Ghi chú cho Sheet Hướng Dẫn
   instructionSheet.columns = [
@@ -183,7 +206,7 @@ export const downloadItineraryExcelTemplate = async () => {
   instructionSheet.addRow(["StartTime", "Yes", "HH:mm format (e.g., 08:30)."]);
   instructionSheet.addRow(["EndTime", "Yes", "HH:mm format (e.g., 10:30). Must be later than StartTime."]);
   instructionSheet.addRow(["LocationName", "Yes", "Phải chọn lại trên map ở UI khi import lên web để hệ thống lấy được dữ liệu giao diện."]);
-  instructionSheet.addRow(["TourismName", "No", "Tên địa điểm du lịch trong hệ thống nếu có."]);
+  instructionSheet.addRow(["TourismName", "No", "Tên địa điểm du lịch trong hệ thống nếu có. Nên chọn từ danh sách thả xuống."]);
 
   instructionSheet.getRow(1).eachCell((cell) => {
     cell.font = { bold: true };

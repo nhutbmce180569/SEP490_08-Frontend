@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowRight } from "lucide-react";
+import { Mail } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import { PATH } from "../../../config/routes/route";
@@ -87,10 +87,9 @@ export default function ForgotPassword() {
           type="submit"
           variant="primary"
           disabled={isSubmitting || !email || isCooldownActive}
-          className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+          className="!mt-6 !h-[50px] !w-full text-[15px]"
         >
           {isSubmitting ? t("errors.sending") : t("errors.sendResetCode")}
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>
     </AuthLayout>

@@ -236,5 +236,10 @@
   "removeSuggestion": "Remove",
   "chatRestrictionTooltip": "Direct messaging is restricted to friends, staff, managers, or admins",
   "moments": "Moments",
-  "editProfile": "Edit Profile"
+  "editProfile": "Edit Profile",
+  "systemSupport": "Support CSKH",
+  "backToChat": "Back to Chat",
+  "faqTitle": "Frequently Asked Questions",
+  "responding": "Responding...",
+  "askSupportPlaceholder": "Ask about StayHub (tours, vouchers...)..."
 }

@@ -15,6 +15,7 @@ export interface ReadVoucherDTO {
   discountType: string;
   discountValue: number;
   maxDiscountAmount?: number;
+  minOrderAmount?: number;
   usedCount: number;
   availableCount: number;
   remainingCount: number;
@@ -56,6 +57,7 @@ export interface CreateVoucherDTO {
   discountType: string;
   discountValue: number;
   maxDiscountAmount?: number;
+  minOrderAmount?: number;
   availableCount: number;
   startDate: string;
   endDate: string;
@@ -69,6 +71,7 @@ export interface UpdateVoucherDTO {
   discountType?: string;
   discountValue?: number;
   maxDiscountAmount?: number;
+  minOrderAmount?: number;
   availableCount?: number;
   startDate?: string;
   endDate?: string;

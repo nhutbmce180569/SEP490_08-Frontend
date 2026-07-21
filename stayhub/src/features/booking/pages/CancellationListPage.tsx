@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Eye, FileText, CheckCircle, Clock, XCircle } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
@@ -8,15 +9,15 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCancellationRequests } from "../hooks/useCancellationRequests";
 import type { CancellationRequestListDTO } from "../types/cancellation";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { tourService } from "../../tour/services/tour.service";
 
 const formatDate = (date?: string) => {
   if (!date) return "";
   return new Date(date).toLocaleString();
 };
 
-const formatCurrency = (amount?: number) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0);
-};
+
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -29,6 +30,11 @@ const getStatusDisplay = (status: string, t: any) => {
   if (normalized === "approved") return t("common.approved");
   if (normalized === "rejected") return t("common.rejected");
   if (normalized === "refunded") return t("common.refunded");
+  if (normalized === "active") return t("common.active");
+  if (normalized === "inactive") return t("common.inactive");
+  if (normalized === "cancelled" || normalized === "canceled") return t("common.cancelled");
+  if (normalized === "completed") return t("common.completed");
+  if (normalized === "draft") return t("common.draft") || "Bản nháp";
   return status;
 };
 
@@ -36,10 +42,16 @@ export const CancellationListPage: React.FC = () => {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [tourIdFilter, setTourIdFilter] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-  const { data, isLoading, error } = useCancellationRequests(statusFilter, dateFilter, page, pageSize);
+  const { data, isLoading, error } = useCancellationRequests(statusFilter, dateFilter, tourIdFilter, page, pageSize);
   const navigate = useNavigate();
+
+  const { data: myTours = [] } = useQuery({
+    queryKey: ["myToursDropdown"],
+    queryFn: () => tourService.getAllToursForDropdown(),
+  });
 
   const rawRequests = data?.data ?? [];
   const requests = useMemo(() => {
@@ -70,12 +82,25 @@ export const CancellationListPage: React.FC = () => {
         ),
       },
       {
+        header: t("booking.tour") || "Tour",
+        render: (item) => (
+          <div className="flex flex-col max-w-[220px]">
+            <span className="font-medium text-slate-800 text-sm truncate" title={item.tourName || ""}>
+              {item.tourName || t("common.na")}
+            </span>
+            {item.tourId && <span className="text-[11px] text-slate-400">ID: #{item.tourId}</span>}
+          </div>
+        ),
+      },
+      {
         header: t("booking.requestedAt"),
-        render: (item) => <span className="text-sm text-slate-500">{formatDate(item.requestedAt) || t("common.na")}</span>,
+        className: "text-right",
+        render: (item) => <div className="text-sm text-slate-500">{formatDate(item.requestedAt) || t("common.na")}</div>,
       },
       {
         header: t("booking.refundAmount"),
-        render: (item) => <span className="font-semibold text-emerald-600">{formatCurrency(item.refundAmount)}</span>,
+        className: "text-right",
+        render: (item) => <div className="font-semibold text-emerald-600"><MoneyDisplay amountVnd={item.refundAmount ?? 0} compact /></div>,
       },
       {
         header: t("common.status"),
@@ -146,6 +171,25 @@ export const CancellationListPage: React.FC = () => {
               <option value="Approved">{getStatusDisplay("Approved", t)}</option>
               <option value="Rejected">{getStatusDisplay("Rejected", t)}</option>
               <option value="Refunded">{getStatusDisplay("Refunded", t)}</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
+            <select
+              value={tourIdFilter}
+              onChange={(event) => {
+                setTourIdFilter(event.target.value);
+                setPage(1);
+              }}
+              className="bg-transparent text-sm text-slate-700 outline-none w-full truncate"
+              title={t("booking.filterByTour") || "Lọc theo tour"}
+            >
+              <option value="">{t("booking.allTours") || "Tất cả các tour"}</option>
+              {myTours.map((tour) => (
+                <option key={tour.id} value={tour.id}>
+                  #{tour.id} - {tour.name}
+                </option>
+              ))}
             </select>
           </div>
 

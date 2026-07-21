@@ -94,14 +94,14 @@ export const IntelligentChatWizard: React.FC<IntelligentChatWizardProps> = ({ on
         <div className="bg-gradient-to-r from-brand/5 to-indigo-500/5 border-b border-slate-200 px-4 py-2 flex items-center justify-between text-[11px] text-slate-700 font-semibold shrink-0">
           <span className="flex items-center gap-1.5">
             <span className="text-[10px]">💡</span>
-            Bạn có thể chuyển sang điền Form bất cứ lúc nào để có đề xuất ngay.
+            {t("ai.bannerTip")}
           </span>
           <button
             type="button"
             onClick={onSwitchToForm}
             className="text-brand hover:underline font-black text-[11px]"
           >
-            Mở Form khảo sát →
+            {t("ai.bannerBtn")}
           </button>
         </div>
       )}
@@ -127,18 +127,18 @@ export const IntelligentChatWizard: React.FC<IntelligentChatWizardProps> = ({ on
                     ⚡
                   </span>
                   <h4 className="text-xs font-black text-[var(--color-navy)] uppercase tracking-wider">
-                    Nhận đề xuất nhanh
+                    {t("ai.fastRecTitle")}
                   </h4>
                 </div>
                 <p className="text-[10px] text-[var(--text-muted)] font-medium leading-normal mb-3">
-                  Điền Form khảo sát ngắn (100% miễn phí, không tốn tài nguyên chat, trả kết quả tức thì).
+                  {t("ai.fastRecDesc")}
                 </p>
                 <button
                   type="button"
                   onClick={onSwitchToForm}
                   className="w-full py-2 px-3 text-xs font-bold text-white bg-brand rounded-xl hover:opacity-90 active:scale-[0.98] transition-all shadow-md shadow-brand/10 flex items-center justify-center gap-1.5"
                 >
-                  Chuyển sang điền Form khảo sát
+                  {t("ai.fastRecBtn")}
                 </button>
               </div>
             )}

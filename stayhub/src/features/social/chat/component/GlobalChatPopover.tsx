@@ -19,7 +19,9 @@ import {
   Search,
   CheckCheck,
   MapPin,
-  Camera
+  Camera,
+  Headphones,
+  ListChecks
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
@@ -27,6 +29,144 @@ import { useTranslation } from '../../../../contexts/LocaleContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useShareLocation } from '../../tracking/hooks/useLocationTracking';
 import { useChatNotification } from './ChatNotificationContext';
+import { useTourAssistantChat } from '../../../ai/hooks/useTourAssistantChat';
+import { SystemFaqBrowser } from '../../../ai/components/SystemFaqBrowser';
+
+const SystemSupportPanel: React.FC = () => {
+  const { t } = useTranslation();
+  const { messages, isSending, sendMessage } = useTourAssistantChat();
+  const [input, setInput] = useState('');
+  const [viewFaq, setViewFaq] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const systemSuggestions = useMemo(
+    () => [
+      t("ai.suggestionSystem"),
+      t("ai.suggestionBooking"),
+      t("ai.suggestionVoucher"),
+      t("ai.suggestionAiFeatures"),
+    ],
+    [t],
+  );
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, viewFaq]);
+
+  const handleSend = async (text?: string) => {
+    const msg = text ?? input;
+    if (!msg.trim() || isSending) return;
+    setInput('');
+    setViewFaq(false);
+    await sendMessage(msg);
+  };
+
+  return (
+    <div className="flex flex-col h-full bg-white">
+      {/* Sub Header for Support */}
+      <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-100 flex-none">
+        <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1.5">
+          <Headphones size={13} className="text-brand" />
+          {t("ai.systemHelpSubtitle")}
+        </span>
+        <button
+          type="button"
+          onClick={() => setViewFaq(!viewFaq)}
+          className="text-brand font-extrabold hover:underline flex items-center gap-1 text-[10px] cursor-pointer"
+        >
+          <ListChecks size={12} />
+          {viewFaq ? t("social.backToChat") : t("social.faqTitle")}
+        </button>
+      </div>
+
+      {/* Messages / FAQ content */}
+      <div className="flex-1 overflow-y-auto p-3.5 space-y-3 custom-scrollbar bg-white">
+        {viewFaq ? (
+          <SystemFaqBrowser onSelectQuestion={handleSend} />
+        ) : (
+          <div className="space-y-3">
+            {messages.length === 0 && (
+              <div className="py-6 text-center">
+                <div className="w-10 h-10 rounded-2xl bg-brand-light/60 text-brand flex items-center justify-center mx-auto mb-2.5">
+                  <Headphones size={20} />
+                </div>
+                <h4 className="text-xs font-extrabold text-slate-800 mb-1">
+                  {t("ai.systemGreeting")}
+                </h4>
+                <p className="text-[10px] text-slate-500 max-w-[220px] mx-auto mb-3.5 leading-normal">
+                  {t("ai.systemGreetingHint")}
+                </p>
+                <div className="flex flex-col gap-1.5 text-left">
+                  {systemSuggestions.map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => handleSend(q)}
+                      className="text-left text-[11px] font-semibold text-slate-700 bg-slate-50 hover:bg-brand-light/40 hover:text-brand border border-slate-200/80 px-3 py-2 rounded-xl transition-all cursor-pointer"
+                    >
+                      💡 {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg) => (
+              <div key={msg.id} className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}>
+                <div
+                  className={`max-w-[88%] text-xs px-3.5 py-2.5 rounded-2xl leading-relaxed whitespace-pre-line ${
+                    msg.role === "user"
+                      ? "bg-brand text-white rounded-br-sm"
+                      : "bg-slate-100 text-slate-800 rounded-bl-sm border border-slate-100/60"
+                  }`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+
+            {isSending && (
+              <div className="flex justify-start">
+                <div className="bg-slate-100 rounded-2xl px-4 py-2 text-xs text-slate-500 flex items-center gap-1.5">
+                  <Loader2 size={13} className="animate-spin text-brand" />
+                  <span className="text-[11px]">{t("social.responding")}</span>
+                </div>
+              </div>
+            )}
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </div>
+
+      {/* Input area */}
+      {!viewFaq && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSend();
+          }}
+          className="p-3 border-t border-slate-100 bg-white flex items-center gap-2 flex-none"
+        >
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={t("social.askSupportPlaceholder")}
+            className="flex-1 bg-slate-50 border border-slate-200/80 rounded-full px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand placeholder:text-slate-400"
+            disabled={isSending}
+          />
+          <button
+            type="submit"
+            disabled={!input.trim() || isSending}
+            className="p-2 rounded-full bg-brand text-white hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
+          >
+            <Send size={14} />
+          </button>
+        </form>
+      )}
+    </div>
+  );
+};
 
 export const GlobalChatPopover: React.FC = () => {
   const { t } = useTranslation();
@@ -47,6 +187,7 @@ export const GlobalChatPopover: React.FC = () => {
 
   // Trạng thái view nội bộ popover: 'list' (hộp thư), 'chat' (phòng chat), 'search' (tìm bạn tạo chat mới)
   const [viewState, setViewState] = useState<'list' | 'chat' | 'search'>('list');
+  const [mainTab, setMainTab] = useState<'inbox' | 'support'>('inbox');
   const [textValue, setTextValue] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
@@ -264,7 +405,7 @@ export const GlobalChatPopover: React.FC = () => {
       {viewState === 'list' && (
         <div className="flex flex-col h-full relative">
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 flex-none bg-white">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 flex-none bg-white">
             <h2 className="text-base font-extrabold text-slate-800 tracking-tight">{t('social.messages') || 'Messages'}</h2>
             <div className="flex items-center gap-2">
               <button 
@@ -283,8 +424,40 @@ export const GlobalChatPopover: React.FC = () => {
             </div>
           </div>
 
-          {/* Chat Rooms Scroll Area */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar bg-slate-50/30">
+          {/* Sub Navigation Tabs: Tin nhắn / Hỗ trợ CSKH */}
+          <div className="flex px-4 bg-white border-b border-slate-100 gap-1 flex-none">
+            <button
+              type="button"
+              onClick={() => setMainTab('inbox')}
+              className={`flex-1 py-2 text-xs font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 min-w-0 cursor-pointer ${
+                mainTab === 'inbox'
+                  ? 'border-brand text-brand font-black'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <MessageSquare size={14} className="shrink-0" />
+              <span className="truncate">{t('social.messages')}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMainTab('support')}
+              className={`flex-1 py-2 text-xs font-bold border-b-2 transition-all flex items-center justify-center gap-1.5 min-w-0 cursor-pointer ${
+                mainTab === 'support'
+                  ? 'border-brand text-brand font-black'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Headphones size={14} className="shrink-0" />
+              <span className="truncate">{t('social.systemSupport')}</span>
+            </button>
+          </div>
+
+          {mainTab === 'support' ? (
+            <SystemSupportPanel />
+          ) : (
+            <>
+              {/* Chat Rooms Scroll Area */}
+              <div className="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar bg-slate-50/30">
             {isLoadingRooms ? (
               <div className="flex flex-col justify-center items-center h-48 gap-3">
                 <Loader2 className="w-6 h-6 animate-spin text-brand" />
@@ -349,6 +522,8 @@ export const GlobalChatPopover: React.FC = () => {
           >
             <SquarePen size={18} />
           </button>
+          </>
+          )}
         </div>
       )}
 

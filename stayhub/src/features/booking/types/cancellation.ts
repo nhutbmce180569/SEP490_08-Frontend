@@ -18,6 +18,8 @@ export interface CancellationRequestListDTO {
   requestedAt?: string;
   refundAmount: number;
   status: string;
+  tourId?: number;
+  tourName?: string;
 }
 
 export interface CancellationRequestPaginationDTO {

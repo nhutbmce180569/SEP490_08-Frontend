@@ -3,6 +3,7 @@ import { Save, X, UploadCloud, Trash2, ChevronDown, Eye, EyeOff } from "lucide-r
 import { useTranslation } from "../../contexts/LocaleContext";
 import { ActionButton } from "./ActionButton";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
+import { SearchableSelect } from "./SearchableSelect";
 const DynamicFileInput: React.FC<{
   field: FormField;
   value: any;
@@ -144,10 +145,11 @@ const DynamicFileInput: React.FC<{
 export interface FormField {
   name: string;
   label: string;
-  type: "text" | "number" | "select" | "textarea" | "custom" | "file" | "date" | "datetime-local" | "time" | "multiselect" | "password" | "row";
+  type: "text" | "number" | "select" | "searchable-select" | "textarea" | "custom" | "file" | "date" | "datetime-local" | "time" | "multiselect" | "password" | "row";
   placeholder?: string;
   icon?: React.ReactNode;
   options?: { label: string; value: string | number }[];
+  searchable?: boolean;
   subFields?: FormField[]; // Để gom nhóm nhiều field trên cùng 1 hàng
   colSpan?: 1 | 2; // Hỗ trợ trải rộng 2 cột (ví dụ như mô tả hoặc hình ảnh)
   required?: boolean; // Tự động check field không được bỏ trống
@@ -319,6 +321,19 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
               value={value}
               maxLength={field.maxLength}
               onChange={(e) => handleChange(field.name, e.target.value)}
+            />
+          ) : field.type === "searchable-select" || (field.type === "select" && field.searchable) ? (
+            <SearchableSelect
+              options={field.options || []}
+              value={value}
+              onChange={(val) => {
+                handleChange(field.name, val);
+                if (field.onChangeCustom) field.onChangeCustom(val, setFormData);
+              }}
+              placeholder={field.placeholder || t("common.select")}
+              error={!!error}
+              disabled={field.readOnly}
+              icon={field.icon}
             />
           ) : field.type === "select" ? (
             <>

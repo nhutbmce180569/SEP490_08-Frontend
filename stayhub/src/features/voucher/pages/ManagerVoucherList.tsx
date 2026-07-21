@@ -6,7 +6,7 @@ import {
   Plus,
   Search,
   Unlock,
-  ListFilter,
+  Filter,
 } from "lucide-react";
 import { useContext } from "react";
 import { Table, type Column } from "../../../components/dashboard/Table";
@@ -129,6 +129,11 @@ export const ManagerVoucherList: React.FC = () => {
                 {t("voucher.max")} {formatVnd(voucher.maxDiscountAmount)}
               </div>
             )}
+            {voucher.minOrderAmount && voucher.minOrderAmount > 0 ? (
+              <div className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 inline-block mt-0.5">
+                {t("voucher.minOrderHint", { amount: formatVnd(voucher.minOrderAmount) })}
+              </div>
+            ) : null}
           </div>
         ),
       },
@@ -272,7 +277,7 @@ export const ManagerVoucherList: React.FC = () => {
               onClick={() => setShowFilters(!showFilters)}
               className={`gap-2 px-3 py-2 text-sm shrink-0 ${hasActiveFilters ? "border-brand bg-brand-light/30 text-brand" : ""}`}
             >
-              <ListFilter className="h-4 w-4" />
+              <Filter className="h-4 w-4" />
               {t("common.filter") || "Filter"}
             </ActionButton>
 

@@ -188,7 +188,7 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
               >
                 {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                   <option key={m} value={m}>
-                    {t('common.month', { defaultValue: 'Tháng' })} {m}/{currentYear} {m === new Date().getMonth() + 1 ? t('admin.currentMonthTag') : ''}
+                    {t('common.month', { defaultValue: 'Month' })} {m}/{currentYear} {m === new Date().getMonth() + 1 ? t('admin.currentMonthTag') : ''}
                   </option>
                 ))}
               </select>

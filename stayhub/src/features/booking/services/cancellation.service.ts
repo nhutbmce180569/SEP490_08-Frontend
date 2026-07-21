@@ -61,10 +61,11 @@ export const cancellationService = {
     );
   },
 
-  getRequests: async (status?: string, date?: string, page: number = 1, pageSize: number = 5) => {
+  getRequests: async (status?: string, date?: string, tourId?: number | string, page: number = 1, pageSize: number = 5) => {
     const params: Record<string, string | number> = { page, pageSize };
     if (status) params.status = status;
     if (date) params.date = date;
+    if (tourId) params.tourId = Number(tourId);
 
     const response = await apiClient.get<{ message: string; data: RawPagination } | RawPagination>(
       BOOKINGS_API.GET_CANCELLATION_REQUESTS,

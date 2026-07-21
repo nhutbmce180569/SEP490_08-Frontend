@@ -83,6 +83,8 @@
   "activate": "Activate",
   "deactivateTicketTypeConfirm": "This ticket type will no longer be available for new schedule ticket setup.",
   "activateTicketTypeConfirm": "This ticket type will be available for schedule ticket setup again.",
+  "deactivateBannerConfirm": "This banner will no longer be shown on the home page.",
+  "activateBannerConfirm": "This banner will be shown on the home page.",
   "viewDetails": "View details",
   "targetUrlLabel": "Target URL:",
   "addCategory": "Add Category",

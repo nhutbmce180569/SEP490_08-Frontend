@@ -11,6 +11,11 @@ import {
   ShoppingBag,
   Sparkles,
   MessageCircle,
+  Compass,
+  Camera,
+  Users,
+  Ticket,
+  UserCog,
 } from "lucide-react";
 
 import { ActionButton } from "../../components/home/ActionButton";
@@ -20,7 +25,7 @@ import { ConfirmDialog } from "../../components/dashboard/ConfirmDialog";
 import { LoadingOverlay } from "../../components/home/LoadingOverlay";
 import NotificationBell from "../../features/system/components/NotificationBell";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
-import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
+import { LanguageCurrencySelector } from "../../components/ui/LanguageCurrencySelector";
 import { PATH } from "../../config/routes/route";
 import { getDashboardPath } from "../../utils/jwt";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -28,7 +33,6 @@ import { AuthContext } from "../../contexts/AuthContext";
 import { useTranslation } from "../../contexts/LocaleContext";
 import { useToast } from "../../contexts/ToastContext";
 import { logout as logoutApi } from "../../features/auth/services/auth.service";
-import { CurrencyToggle } from "../../features/currency/CurrencyToggle";
 import { WishlistHeaderButton } from "../../features/wishlist/customer/components/WishlistHeaderButton";
 import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { useTourAssistantChatState } from "../../contexts/TourAssistantChatContext";
@@ -45,13 +49,6 @@ export default function Header() {
   const { user, logout: contextLogout } = useContext(AuthContext);
   const { open: openAiPlanner } = useAiPlanner();
   const { toggle: toggleTourAssistantChat } = useTourAssistantChatState();
-  const { isPopoverOpen, setIsPopoverOpen } = useChatNotification();
-  const { data: chatRooms = [] } = useQuery({
-    queryKey: ['chatRooms'],
-    queryFn: chatService.getChatRooms,
-    enabled: !!user,
-  });
-  const unreadChatCount = chatRooms.reduce((acc: number, r: any) => acc + (r.unreadCount || 0), 0);
 
   const userRoles = Array.isArray(user?.roles)
     ? user.roles
@@ -142,25 +139,43 @@ export default function Header() {
           </Link>
 
 
+          {/* Header Quick Search Input */}
+          <div className="relative hidden md:flex items-center ml-2">
+            <div className="relative flex items-center">
+              <Search size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder={t("header.searchPlaceholder", { defaultValue: "Tìm điểm đến, tour..." })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                    navigate(`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(e.currentTarget.value.trim())}`);
+                  }
+                }}
+                className="h-9 w-44 lg:w-56 pl-9 pr-3 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 outline-none focus:w-64 focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all duration-300 placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
           {/* Main Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-6 ml-6 shrink-0">
+          <nav className="hidden xl:flex items-center gap-1 ml-4 shrink-0">
             <Link
               to={PATH.PUBLIC.TOURS}
-              className={`text-sm font-semibold transition-colors !no-underline ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all !no-underline ${
                 pathname === PATH.PUBLIC.TOURS
-                  ? "text-brand"
-                  : "text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand"
+                  ? "bg-brand-light/40 text-brand"
+                  : "text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800"
               }`}
             >
-              {t("header.browseTours")}
+              <Compass size={15} className="shrink-0" />
+              <span>{t("header.browseTours")}</span>
             </Link>
             
             <button
               type="button"
               onClick={() => openAiPlanner(pathname)}
-              className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800 transition-all"
             >
-              <Sparkles size={14} className="text-brand animate-pulse" />
+              <Sparkles size={15} className="shrink-0" />
               <span>{t("header.aiGuide")}</span>
             </button>
 
@@ -168,23 +183,25 @@ export default function Header() {
               <>
                 <Link
                   to="/social/moments"
-                  className={`text-sm font-semibold transition-colors !no-underline ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all !no-underline ${
                     pathname === "/social/moments"
-                      ? "text-brand"
-                      : "text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand"
+                      ? "bg-brand-light/40 text-brand"
+                      : "text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
-                  {t("header.moments")}
+                  <Camera size={15} className="shrink-0" />
+                  <span>{t("header.moments")}</span>
                 </Link>
                 <Link
                   to={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                  className={`text-sm font-semibold transition-colors !no-underline ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all !no-underline ${
                     pathname === PATH.CUSTOMER.SOCIAL_FRIENDS
-                      ? "text-brand"
-                      : "text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand"
+                      ? "bg-brand-light/40 text-brand"
+                      : "text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800"
                   }`}
                 >
-                  {t("header.friends")}
+                  <Users size={15} className="shrink-0" />
+                  <span>{t("header.friends")}</span>
                 </Link>
               </>
             )}
@@ -217,15 +234,15 @@ export default function Header() {
           {user ? (
             <>
               {showDashboardButton && (
-                <ActionButton
-                  variant="ghost"
+                <button
+                  type="button"
                   onClick={handleGoToDashboard}
-                  className="hidden gap-1.5 md:inline-flex"
+                  className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800 transition-all border-0 shadow-none"
                   title={t("header.dashboard")}
                 >
-                  <LayoutDashboard className="h-4 w-4" />
+                  <LayoutDashboard className="h-4 w-4 shrink-0" />
                   <span className="hidden lg:inline">{t("header.dashboard")}</span>
-                </ActionButton>
+                </button>
               )}
 
               <button
@@ -237,61 +254,29 @@ export default function Header() {
               >
                 <Map className="h-5 w-5" />
               </button>
-
-              <WishlistHeaderButton />
             </>
           ) : null}
 
-          {/* Grouped Language & Currency Switcher (Traveloka style) */}
-          <div className="hidden md:flex items-center gap-1.5 border border-slate-200/80 bg-white/70 dark:border-slate-800 dark:bg-slate-900/60 rounded-full px-2.5 py-1 backdrop-blur-sm shadow-sm select-none">
-            <LanguageSwitcher variant="icon" className="!p-0 !h-auto !w-auto text-xs font-bold text-slate-600 hover:text-brand dark:text-slate-300 dark:hover:text-brand bg-transparent border-none shadow-none" />
-            <span className="text-slate-300 dark:text-slate-700 text-sm">|</span>
-            <CurrencyToggle className="!border-none !bg-transparent !p-0 !shadow-none !m-0" />
-          </div>
-
-          {/* AI Planner Icon Button (Mobile/Tablet) */}
-          <button
-            type="button"
-            onClick={() => openAiPlanner(pathname)}
-            className="lg:hidden icon-btn text-brand hover:bg-brand-light/40 relative"
-            title={t("header.aiGuideTitle")}
-            aria-label={t("header.aiGuideTitle")}
-          >
-            <Sparkles className="h-5 w-5" />
-            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-brand"></span>
-            </span>
-          </button>
-
           {user ? (
             <>
-              <button
-                type="button"
-                onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-                className={`icon-btn relative hover:bg-brand-light/40 ${isPopoverOpen ? 'text-brand bg-brand-light/20' : 'text-slate-600 dark:text-slate-300'}`}
-                title={t("nav.messages") || "Tin nhắn"}
-              >
-                <MessageCircle className="h-5 w-5" />
-                {unreadChatCount > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white animate-pulse">
-                    {unreadChatCount}
-                  </span>
-                )}
-              </button>
-
               <NotificationBell />
 
+              <WishlistHeaderButton />
+
+              <LanguageCurrencySelector className="hidden md:block" />
+
               <div className="relative ml-0.5" ref={userMenuRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowUserMenu((v) => !v)}
-                  className="flex items-center justify-center rounded-full p-0.5 transition-colors hover:bg-brand-light/40 ring-2 ring-transparent hover:ring-brand-light"
-                  aria-expanded={showUserMenu}
-                  aria-haspopup="menu"
-                >
-                  <UserAvatar name={displayName} avatarUrl={avatarUrl} size="md" />
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowUserMenu((v) => !v)}
+                    className={`flex items-center justify-center rounded-full p-0.5 transition-all hover:scale-105 ${
+                      showUserMenu ? 'ring-2 ring-brand ring-offset-2 dark:ring-offset-slate-900 shadow-sm' : 'hover:ring-2 hover:ring-brand/40'
+                    }`}
+                    aria-expanded={showUserMenu}
+                    aria-haspopup="menu"
+                  >
+                    <UserAvatar name={displayName} avatarUrl={avatarUrl} size="md" />
+                  </button>
 
                 {showUserMenu && (
                   <div
@@ -321,25 +306,13 @@ export default function Header() {
                         type="button"
                         role="menuitem"
                         onClick={() => {
-                          navigate(PATH.CUSTOMER.WISHLIST);
+                          navigate(PATH.CUSTOMER.MY_BOOKINGS);
                           setShowUserMenu(false);
                         }}
                         className="menu-item"
                       >
-                        <Heart className="h-4 w-4" />
-                        {t("header.wishlist")}
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        onClick={() => {
-                          setShowUserMenu(false);
-                          toggleTourAssistantChat();
-                        }}
-                        className="menu-item"
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        {t("ai.openAssistant")}
+                        <UserCog className="h-4 w-4" />
+                        {t("header.accountManagement")}
                       </button>
                       {!isSocialLogin && (
                         <button
@@ -358,8 +331,8 @@ export default function Header() {
                     </div>
 
                     <div className="border-t border-slate-100/80 px-3 py-2">
-                      <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        {t("common.theme") || "Theme Mode"}
+                      <p className="mb-1 text-[10px] font-bold text-slate-400">
+                        {t("common.theme")}
                       </p>
                       <ThemeToggle variant="menu" className="w-full" />
                     </div>
@@ -384,6 +357,7 @@ export default function Header() {
             </>
           ) : (
             <>
+              <LanguageCurrencySelector className="hidden md:block" />
               <ActionButton
                 variant="ghost"
                 onClick={() => navigate(PATH.PUBLIC.REGISTER)}

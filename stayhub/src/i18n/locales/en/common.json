@@ -42,6 +42,7 @@
   "refunded": "Refunded",
   "cancelled": "Cancelled",
   "completed": "Completed",
+  "draft": "Draft",
   "paid": "Paid",
   "unpaid": "Unpaid",
   "yes": "Yes",

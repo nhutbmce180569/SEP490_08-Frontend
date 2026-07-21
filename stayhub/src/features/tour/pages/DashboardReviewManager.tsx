@@ -330,13 +330,7 @@ const AdminReviewCard: React.FC<{
               ? t("tour.confirmHideReviewMsg")
               : t("tour.confirmUnhideReviewMsg")
         }
-        confirmText={
-          confirmDialog.action === "deleteReply"
-            ? t("tour.delete")
-            : confirmDialog.nextHideStatus
-              ? t("tour.hide")
-              : t("tour.unhide")
-        }
+        confirmText={t("common.confirm")}
         variant="warning"
       />
     </div>

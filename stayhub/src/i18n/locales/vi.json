@@ -12,6 +12,7 @@
     "english": "English",
     "vietnamese": "Tiếng Việt",
     "language": "Ngôn ngữ",
+    "currency": "Tiền tệ",
     "fieldRequired": "{{label}} là bắt buộc",
     "show": "Hiển thị"
   },

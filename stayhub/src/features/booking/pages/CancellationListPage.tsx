@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Eye, FileText, CheckCircle, Clock, XCircle } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
@@ -9,6 +10,7 @@ import { useCancellationRequests } from "../hooks/useCancellationRequests";
 import type { CancellationRequestListDTO } from "../types/cancellation";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { tourService } from "../../tour/services/tour.service";
 
 const formatDate = (date?: string) => {
   if (!date) return "";
@@ -28,6 +30,11 @@ const getStatusDisplay = (status: string, t: any) => {
   if (normalized === "approved") return t("common.approved");
   if (normalized === "rejected") return t("common.rejected");
   if (normalized === "refunded") return t("common.refunded");
+  if (normalized === "active") return t("common.active");
+  if (normalized === "inactive") return t("common.inactive");
+  if (normalized === "cancelled" || normalized === "canceled") return t("common.cancelled");
+  if (normalized === "completed") return t("common.completed");
+  if (normalized === "draft") return t("common.draft") || "Bản nháp";
   return status;
 };
 
@@ -35,10 +42,16 @@ export const CancellationListPage: React.FC = () => {
   const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
+  const [tourIdFilter, setTourIdFilter] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
-  const { data, isLoading, error } = useCancellationRequests(statusFilter, dateFilter, page, pageSize);
+  const { data, isLoading, error } = useCancellationRequests(statusFilter, dateFilter, tourIdFilter, page, pageSize);
   const navigate = useNavigate();
+
+  const { data: myTours = [] } = useQuery({
+    queryKey: ["myToursDropdown"],
+    queryFn: () => tourService.getAllToursForDropdown(),
+  });
 
   const rawRequests = data?.data ?? [];
   const requests = useMemo(() => {
@@ -65,6 +78,17 @@ export const CancellationListPage: React.FC = () => {
         render: (item) => (
           <div className="flex items-center gap-2 font-semibold text-slate-800">
             <FileText className="h-4 w-4 text-slate-400" /> #{item.orderId}
+          </div>
+        ),
+      },
+      {
+        header: t("booking.tour") || "Tour",
+        render: (item) => (
+          <div className="flex flex-col max-w-[220px]">
+            <span className="font-medium text-slate-800 text-sm truncate" title={item.tourName || ""}>
+              {item.tourName || t("common.na")}
+            </span>
+            {item.tourId && <span className="text-[11px] text-slate-400">ID: #{item.tourId}</span>}
           </div>
         ),
       },
@@ -147,6 +171,25 @@ export const CancellationListPage: React.FC = () => {
               <option value="Approved">{getStatusDisplay("Approved", t)}</option>
               <option value="Rejected">{getStatusDisplay("Rejected", t)}</option>
               <option value="Refunded">{getStatusDisplay("Refunded", t)}</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 max-w-[240px]">
+            <select
+              value={tourIdFilter}
+              onChange={(event) => {
+                setTourIdFilter(event.target.value);
+                setPage(1);
+              }}
+              className="bg-transparent text-sm text-slate-700 outline-none w-full truncate"
+              title={t("booking.filterByTour") || "Lọc theo tour"}
+            >
+              <option value="">{t("booking.allTours") || "Tất cả các tour"}</option>
+              {myTours.map((tour) => (
+                <option key={tour.id} value={tour.id}>
+                  #{tour.id} - {tour.name}
+                </option>
+              ))}
             </select>
           </div>
 

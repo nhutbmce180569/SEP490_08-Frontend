@@ -13,7 +13,7 @@ import {
 
 import { ActionButton } from "../../components/dashboard/ActionButton";
 import { ThemeToggle } from "../../components/ui/ThemeToggle";
-import { LanguageSwitcher } from "../../components/ui/LanguageSwitcher";
+import { LanguageCurrencySelector } from "../../components/ui/LanguageCurrencySelector";
 import { UserAvatar } from "../../components/ui/UserAvatar";
 import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
@@ -149,7 +149,7 @@ export function DashboardTopBar({
           <span className="text-xs font-semibold">{t("dashboard.home")}</span>
         </ActionButton>
 
-        <LanguageSwitcher variant="icon" />
+        <LanguageCurrencySelector />
         <ThemeToggle />
 
         <div className="relative" ref={menuRef}>

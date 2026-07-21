@@ -1,5 +1,7 @@
+import React from "react";
 import type { ReadTicketTypeDTO } from "../../content/types/ticketType";
 import type { TourScheduleTicket } from "../types/tourScheduleTicket";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 export const getNumberValue = (value?: number | string | null) => {
   if (value === undefined || value === null || value === "") return null;
@@ -8,9 +10,9 @@ export const getNumberValue = (value?: number | string | null) => {
   return Number.isFinite(numberValue) ? numberValue : null;
 };
 
-export const formatTicketCurrency = (value?: number | string | null) => {
+export const formatTicketCurrency = (value?: number | string | null): React.ReactNode => {
   const numberValue = getNumberValue(value);
-  return numberValue === null ? "No price" : `${numberValue.toLocaleString("vi-VN")} VND`;
+  return numberValue === null ? "No price" : React.createElement(MoneyDisplay, { amountVnd: numberValue, compact: true });
 };
 
 export const getScheduleTicketTypeId = (ticket: TourScheduleTicket) =>

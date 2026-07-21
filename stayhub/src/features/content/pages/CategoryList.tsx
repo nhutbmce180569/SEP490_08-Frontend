@@ -185,7 +185,7 @@ export const CategoryList: React.FC = () => {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
-          <div className="relative w-full sm:max-w-xs">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -240,9 +240,10 @@ export const CategoryList: React.FC = () => {
             )}
           </div>
         }
-        confirmText={isDeleting ? t("common.loading") : t("content.yesDeleteCategory")}
+        confirmText={t("common.confirm")}
         cancelText={t("common.cancel")}
         variant="warning"
+        isLoading={isDeleting}
       />
 
       <ConfirmDialog
@@ -265,13 +266,7 @@ export const CategoryList: React.FC = () => {
             )}
           </div>
         }
-        confirmText={
-          selectedCategoryForStatus && updatingId === selectedCategoryForStatus.id
-            ? t("common.loading")
-            : selectedCategoryForStatus?.isActive
-            ? t("content.deactivate")
-            : t("content.activate")
-        }
+        confirmText={t("common.confirm")}
         cancelText={t("common.cancel")}
         variant={selectedCategoryForStatus?.isActive ? "warning" : "primary"}
         isLoading={Boolean(selectedCategoryForStatus && updatingId === selectedCategoryForStatus.id)}
@@ -314,11 +309,6 @@ export const CategoryList: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </div>
-            <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end shrink-0">
-              <ActionButton variant="secondary" onClick={() => setViewModalOpen(false)} className="px-5 py-2 text-sm">
-                {t("common.close")}
-              </ActionButton>
             </div>
           </div>
         </div>

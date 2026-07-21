@@ -291,7 +291,7 @@ export const CreateScheduleItinerary: React.FC = () => {
 
   const handleDownloadTemplate = async () => {
     try {
-      await downloadScheduleItineraryExcelTemplate();
+      await downloadScheduleItineraryExcelTemplate(tourismInformationList);
     } catch (error: any) {
       showError(error.message || t("tour.downloadTemplateFailed"));
     }
@@ -427,21 +427,21 @@ export const CreateScheduleItinerary: React.FC = () => {
             </ActionButton>
           </div>
         </div>
-        <div className="flex flex-col gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-white p-2.5 text-indigo-600 shadow-sm">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-indigo-600">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900">
                 {t("tour.excelToolsTitle")}
               </p>
-              <p className="mt-0.5 text-xs leading-5 text-slate-600">
+              <p className="mt-0.5 text-xs text-slate-500">
                 {t("tour.excelToolsDescription")}
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex shrink-0 gap-3">
             <input
               ref={importInputRef}
               type="file"
@@ -471,7 +471,7 @@ export const CreateScheduleItinerary: React.FC = () => {
           </div>
         </div>
         {isCloneVisible && (
-          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-indigo-200 bg-indigo-50/30 p-4">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <p className="flex-1 text-sm font-medium text-indigo-800">
               {t("tour.cloneFromTourPrompt")}
             </p>
@@ -479,7 +479,7 @@ export const CreateScheduleItinerary: React.FC = () => {
               type="button"
               variant="primary"
               onClick={handleCloneFromTour}
-              className="gap-2 px-4 py-2 shadow-sm"
+              className="gap-2 px-4 py-2 shadow-sm shrink-0"
             >
               <Copy className="h-4 w-4" /> {t("tour.cloneFromTour")}
             </ActionButton>

@@ -13,6 +13,7 @@
   "previous": "Previous",
   "search": "Search",
   "filter": "Filter",
+  "clearFilter": "Clear filter",
   "export": "Export",
   "loading": "Loading...",
   "noData": "No data available",
@@ -42,6 +43,7 @@
   "refunded": "Refunded",
   "cancelled": "Cancelled",
   "completed": "Completed",
+  "draft": "Draft",
   "paid": "Paid",
   "unpaid": "Unpaid",
   "yes": "Yes",
@@ -160,5 +162,6 @@
   "removeImage": "Remove",
   "clickToUpload": "Click to upload or drag and drop",
   "uploadFormatHint": "SVG, PNG, JPG or WebP (max. 5MB)",
+  "upload": "Upload",
   "browseFiles": "Browse Files"
 }

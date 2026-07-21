@@ -1,4 +1,4 @@
-import React, { useState, type ReactNode } from "react";
+import React, { useState, useEffect, type ReactNode } from "react";
 import { StayHubLogo } from "../../../components/brand/StayHubLogo";
 import { ThemeToggle } from "../../../components/ui/ThemeToggle";
 import { LanguageSwitcher } from "../../../components/ui/LanguageSwitcher";
@@ -78,6 +78,13 @@ export function AuthLayout({
     setSceneIndex((prev) => (prev === SCENIC_SCENES.length - 1 ? 0 : prev + 1));
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSceneIndex((prev) => (prev + 1) % SCENIC_SCENES.length);
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, [sceneIndex]);
+
   return (
     <div className="relative min-h-screen w-full font-sans text-slate-900 dark:text-slate-100 flex overflow-hidden">
       {/* 1. FULL-SCREEN VIDEO BACKGROUND LAYER */}
@@ -85,11 +92,11 @@ export function AuthLayout({
         <video
           key={currentScene.videoUrl}
           autoPlay
-          loop
           muted
           playsInline
+          onEnded={handleNextScene}
           poster={currentScene.poster}
-          className="h-full w-full object-cover transition-all duration-1000 scale-[1.02]"
+          className="h-full w-full object-cover transition-all duration-1000 scale-[1.02] animate-in fade-in duration-700"
         >
           <source src={currentScene.videoUrl} type="video/mp4" />
         </video>
@@ -216,7 +223,7 @@ export function AuthLayout({
                   <h2 className="text-2xl sm:text-3xl font-black text-navy dark:text-white tracking-tight leading-snug mb-1.5">
                     {title}
                   </h2>
-                  <p className="text-sm text-text-muted leading-relaxed">{subtitle}</p>
+                  {subtitle ? <p className="text-sm text-text-muted leading-relaxed">{subtitle}</p> : null}
                 </div>
 
                 <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/90 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-slate-700/80 shadow-sm shrink-0 mt-0.5">

@@ -37,8 +37,6 @@ export interface RegisterDTO {
   password: string;
   fullName: string;
   phoneNumber: string;
-  gender: string;
-  dateOfBirth: string | null;
   otpCode?: string;
 }
 

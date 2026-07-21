@@ -29,12 +29,27 @@ export const CategoryList: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ReadCategoryDTO | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [selectedCategoryForStatus, setSelectedCategoryForStatus] = useState<ReadCategoryDTO | null>(null);
+
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedCategoryForView, setSelectedCategoryForView] = useState<ReadCategoryDTO | null>(null);
 
   const handleViewClick = (category: ReadCategoryDTO) => {
     setSelectedCategoryForView(category);
     setViewModalOpen(true);
+  };
+
+  const handleStatusClick = (category: ReadCategoryDTO) => {
+    setSelectedCategoryForStatus(category);
+    setStatusModalOpen(true);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    if (!selectedCategoryForStatus) return;
+    await executeStatusChange(selectedCategoryForStatus.id, Boolean(selectedCategoryForStatus.isActive));
+    setStatusModalOpen(false);
+    setSelectedCategoryForStatus(null);
   };
 
   const handleDeleteClick = (category: ReadCategoryDTO) => {
@@ -149,7 +164,7 @@ export const CategoryList: React.FC = () => {
             </ActionButton>
             <ActionButton 
               variant="secondary" 
-              onClick={() => executeStatusChange(cat.id, Boolean(cat.isActive))}
+              onClick={() => handleStatusClick(cat)}
               className={`h-8 w-8 ${updatingId === cat.id ? "opacity-50 cursor-wait" : ""} ${cat.isActive ? "text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200" : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"}`}
               title={cat.isActive ? t("content.deactivate") : t("content.activate")}
               disabled={updatingId === cat.id}
@@ -163,14 +178,14 @@ export const CategoryList: React.FC = () => {
         ),
       },
     ],
-    [t, handleEdit, handleDeleteClick, executeStatusChange, updatingId]
+    [t, handleEdit, handleDeleteClick, handleStatusClick, updatingId]
   );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
-          <div className="relative w-full sm:max-w-xs">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -225,9 +240,36 @@ export const CategoryList: React.FC = () => {
             )}
           </div>
         }
-        confirmText={isDeleting ? t("common.loading") : t("content.yesDeleteCategory")}
+        confirmText={t("common.confirm")}
         cancelText={t("common.cancel")}
         variant="warning"
+        isLoading={isDeleting}
+      />
+
+      <ConfirmDialog
+        open={statusModalOpen}
+        onClose={() => !(selectedCategoryForStatus && updatingId === selectedCategoryForStatus.id) && setStatusModalOpen(false)}
+        onConfirm={handleConfirmStatusChange}
+        title={selectedCategoryForStatus?.isActive ? t("content.confirmDeactivateTitle") : t("content.confirmActivateTitle")}
+        message={
+          <div>
+            <p className="mb-2">
+              {selectedCategoryForStatus?.isActive
+                ? t("content.confirmDeactivateMessage")
+                : t("content.confirmActivateMessage")}
+            </p>
+            {selectedCategoryForStatus && (
+              <div className="rounded-lg bg-slate-50 p-3 text-left">
+                <p><strong>{t("content.name")}:</strong> {selectedCategoryForStatus.name}</p>
+                <p><strong>{t("content.slug")}:</strong> {selectedCategoryForStatus.slug}</p>
+              </div>
+            )}
+          </div>
+        }
+        confirmText={t("common.confirm")}
+        cancelText={t("common.cancel")}
+        variant={selectedCategoryForStatus?.isActive ? "warning" : "primary"}
+        isLoading={Boolean(selectedCategoryForStatus && updatingId === selectedCategoryForStatus.id)}
       />
 
       {viewModalOpen && selectedCategoryForView && (
@@ -267,11 +309,6 @@ export const CategoryList: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </div>
-            <div className="border-t border-slate-100 bg-slate-50/50 px-6 py-4 flex justify-end shrink-0">
-              <ActionButton variant="secondary" onClick={() => setViewModalOpen(false)} className="px-5 py-2 text-sm">
-                {t("common.close")}
-              </ActionButton>
             </div>
           </div>
         </div>

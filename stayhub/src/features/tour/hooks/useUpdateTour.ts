@@ -4,6 +4,7 @@ import { updateTour } from "../services/tour.service";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import { useTour } from "./useTour";
+import type { UpdateTourRequest } from "../types/tour";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { categoryService } from "../../content/services/category.service";
 
@@ -28,6 +29,19 @@ const buildUpdateTourFormData = (data: Record<string, any>): FormData => {
   if (data.country) formData.append("country", data.country);
   if (data.city) formData.append("city", data.city);
   if (data.address) formData.append("address", data.address);
+  formData.append("transportationType", data.transportationType);
+  
+  if (data.tourImages && data.tourImages.length > 0) {
+    data.tourImages.forEach((file: File) => {
+      formData.append("tourImages", file);
+    });
+  }
+
+  if (data.removedTourImageIds && data.removedTourImageIds.length > 0) {
+    data.removedTourImageIds.forEach((id: number) => {
+      formData.append("removedTourImageIds", String(id));
+    });
+  }
   return formData;
 };
 
@@ -64,10 +78,22 @@ export const useUpdateTour = () => {
     try {
       setIsSubmitting(true);
 
-      const payload = buildUpdateTourFormData({
-        ...data,
-        operatorId: Number(user?.id) // Tự động chèn ID người dùng hiện tại
-      });
+      const requestData: UpdateTourRequest = {
+        name: data.name,
+        operatorId: Number(user?.id) || 1, // Fallback if no user
+        categoryId: Number(data.categoryId),
+        status: data.status,
+        description: data.description,
+        image: data.image,
+        country: data.country,
+        city: data.city,
+        address: data.address,
+        transportationType: data.transportationType,
+        tourImages: data.tourImages,
+        removedTourImageIds: data.removedTourImageIds,
+      };
+
+      const payload = buildUpdateTourFormData(requestData);
       await updateTour(id, payload);
       success("Tour updated successfully!");
       navigate(PATH.MANAGER.MY_TOURS);

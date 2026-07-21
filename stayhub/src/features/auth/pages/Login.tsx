@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useLogin } from "../hooks/useLogin";
 import { SocialAuthButtons } from "../components/SocialAuthButtons";
@@ -96,10 +96,9 @@ export default function Login() {
           type="submit"
           variant="primary"
           disabled={isSubmitting}
-          className="group !mt-5 !h-[50px] !w-full gap-2 text-[15px] font-bold shadow-lg"
+          className="!mt-5 !h-[50px] !w-full text-[15px] font-bold shadow-lg"
         >
           {isSubmitting ? t("auth.signingIn") : t("auth.signIn")}
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </ActionButton>
       </form>
 

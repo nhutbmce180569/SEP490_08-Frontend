@@ -13,6 +13,7 @@
   "previous": "Trước",
   "search": "Tìm kiếm",
   "filter": "Lọc",
+  "clearFilter": "Xóa bộ lọc",
   "export": "Xuất",
   "loading": "Đang tải...",
   "noData": "Không có dữ liệu",
@@ -42,6 +43,7 @@
   "refunded": "Đã hoàn tiền",
   "cancelled": "Đã hủy",
   "completed": "Hoàn thành",
+  "draft": "Bản nháp",
   "paid": "Đã thanh toán",
   "unpaid": "Chưa thanh toán",
   "yes": "Có",
@@ -155,5 +157,6 @@
   "removeImage": "Gỡ ảnh",
   "clickToUpload": "Nhấn để tải lên hoặc kéo thả",
   "uploadFormatHint": "SVG, PNG, JPG hoặc WebP (tối đa 5MB)",
+  "upload": "Tải lên",
   "browseFiles": "Duyệt file"
 }

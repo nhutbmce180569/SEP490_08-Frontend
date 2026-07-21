@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { AuthContext } from "../../../contexts/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { Check, X, ArrowLeft, HelpCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -22,9 +23,9 @@ const getErrorMessage = (error: unknown, fallback: string) => {
 };
 
 const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-    <span className="text-xs font-bold uppercase text-slate-400">{label}</span>
-    <span className="text-sm font-semibold text-slate-800 sm:text-right">{value}</span>
+  <div className="flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+    <span className="text-xs font-bold uppercase text-slate-400 shrink-0 sm:mr-4 sm:pt-0.5">{label}</span>
+    <span className="text-sm font-semibold text-slate-800 sm:text-right flex-1 min-w-0 break-words">{value}</span>
   </div>
 );
 
@@ -35,11 +36,17 @@ const getStatusDisplay = (status: string, t: any) => {
   if (normalized === "approved") return t("common.approved");
   if (normalized === "rejected") return t("common.rejected");
   if (normalized === "refunded") return t("common.refunded");
+  if (normalized === "active") return t("common.active");
+  if (normalized === "inactive") return t("common.inactive");
+  if (normalized === "cancelled" || normalized === "canceled") return t("common.cancelled");
+  if (normalized === "completed") return t("common.completed");
+  if (normalized === "draft") return t("common.draft") || t("tour.draft") || "Bản nháp";
   return status;
 };
 
 export const ProcessCancellationPage: React.FC = () => {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
   const { id } = useParams<{ id: string }>();
   const requestId = Number(id);
   const navigate = useNavigate();
@@ -81,6 +88,10 @@ export const ProcessCancellationPage: React.FC = () => {
     if (value === null || value === undefined || value === "") return t("common.na");
     if (typeof value === "number") return value.toLocaleString("vi-VN");
     if (typeof value === "boolean") return value ? t("common.yes") : t("common.no");
+    if (typeof value === "string") {
+      const display = getStatusDisplay(value, t);
+      if (display && display !== value) return display;
+    }
     if (typeof value === "object") return JSON.stringify(value);
     return String(value);
   };
@@ -98,6 +109,7 @@ export const ProcessCancellationPage: React.FC = () => {
 
   const normalizedStatus = detail.status?.toLowerCase();
   const isPending = normalizedStatus === "pending";
+  const isOwnTour = detail.tour?.operatorId ? Number(detail.tour.operatorId) === Number(user?.id) : true;
   const knownDetailKeys = new Set([
     "id",
     "tour",
@@ -157,20 +169,20 @@ export const ProcessCancellationPage: React.FC = () => {
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-4 border-b border-slate-100 bg-slate-50 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">
+          <div className="flex-1 min-w-0 sm:pr-4">
+            <h2 className="text-xl font-bold text-slate-900 break-words">
               {t("booking.requestDetails", { id: detail.id })}
             </h2>
-            <span className="text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500 break-words">
               {t("booking.tourCustomer", {
                 tour: detail.tour?.name || t("booking.tourNa"),
                 id: detail.customer?.id ?? t("common.na"),
               })}
-            </span>
+            </p>
           </div>
 
-          {isPending && (
-            <div className="flex flex-wrap gap-2">
+          {isPending && isOwnTour && (
+            <div className="flex flex-wrap gap-2 shrink-0">
               <ActionButton
                 variant="warning"
                 onClick={() => handleProcessClick("Reject")}
@@ -187,6 +199,11 @@ export const ProcessCancellationPage: React.FC = () => {
               >
                 <Check className="h-4 w-4" /> {t("booking.approveRefund")}
               </ActionButton>
+            </div>
+          )}
+          {isPending && !isOwnTour && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-800 shrink-0">
+              {t("booking.onlyOwnTourProcess") || "⚠️ Bạn chỉ có thể duyệt/từ chối yêu cầu hủy khi tour này thuộc quyền quản lý của bạn."}
             </div>
           )}
         </div>
@@ -221,7 +238,7 @@ export const ProcessCancellationPage: React.FC = () => {
                 <DetailRow label={t("booking.processedAt")} value={formatDate(detail.processedAt)} />
               </div>
               {detail.rejectReason && (
-                <p className="mt-3 whitespace-pre-wrap rounded-lg border border-rose-100 bg-white/70 p-3 text-sm text-rose-700">
+                <p className="mt-3 whitespace-pre-wrap break-words rounded-lg border border-rose-100 bg-white/70 p-3 text-sm text-rose-700">
                   {detail.rejectReason}
                 </p>
               )}
@@ -298,9 +315,9 @@ export const ProcessCancellationPage: React.FC = () => {
                     <img
                       src={detail.customer.avatarUrl}
                       alt={t("booking.customerAvatar")}
-                      className="h-12 w-12 rounded-full object-cover"
+                      className="h-12 w-12 rounded-full object-cover shrink-0"
                     />
-                    <span className="text-sm font-semibold text-slate-800">
+                    <span className="text-sm font-semibold text-slate-800 min-w-0 break-words">
                       {t("booking.customerAvatar")}
                     </span>
                   </div>
@@ -345,8 +362,8 @@ export const ProcessCancellationPage: React.FC = () => {
             <h3 className="border-b border-slate-100 pb-2 font-semibold text-slate-800">
               {t("booking.tourInformation")}
             </h3>
-            <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+            <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 shrink-0">
                 {detail.tour?.imageUrl ? (
                   <img
                     src={detail.tour.imageUrl}
@@ -359,7 +376,7 @@ export const ProcessCancellationPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2 min-w-0">
                 <DetailRow
                   label={t("booking.tourId")}
                   value={detail.tour?.id ? `#${detail.tour.id}` : t("common.na")}
@@ -380,7 +397,7 @@ export const ProcessCancellationPage: React.FC = () => {
               </div>
             </div>
             {detail.tour?.description && (
-              <p className="whitespace-pre-wrap rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+              <p className="whitespace-pre-wrap break-words rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
                 {detail.tour.description}
               </p>
             )}
@@ -388,7 +405,7 @@ export const ProcessCancellationPage: React.FC = () => {
 
           <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">
             <h3 className="font-semibold text-slate-800">{t("booking.customerReason")}</h3>
-            <p className="whitespace-pre-wrap rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
+            <p className="whitespace-pre-wrap break-words rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
               {detail.reason || t("common.na")}
             </p>
           </section>
@@ -398,7 +415,7 @@ export const ProcessCancellationPage: React.FC = () => {
               <h3 className="border-b border-slate-100 pb-2 font-semibold text-slate-800">
                 {t("booking.additionalInformation")}
               </h3>
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3 min-w-0">
                 {additionalDetails.map(([key, value]) => (
                   <DetailRow key={key} label={key} value={formatValue(value)} />
                 ))}

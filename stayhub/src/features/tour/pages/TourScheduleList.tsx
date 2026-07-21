@@ -352,7 +352,7 @@ export const TourScheduleList: React.FC = () => {
         onConfirm={handleConfirmDelete}
         title={t("tour.deleteScheduleMgr")}
         message={deleteMessage}
-        confirmText={t("tour.delete")}
+        confirmText={t("common.confirm")}
         cancelText={t("common.cancel")}
         variant="warning"
       />

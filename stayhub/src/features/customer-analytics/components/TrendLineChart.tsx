@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from '../../../contexts/LocaleContext';
 import { CHART_COLORS, formatPeriodLabel } from '../utils/analyticsHelpers';
 import type { Granularity } from '../types/customerAnalytics.types';
-
 function makeLinePath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) return '';
   return points

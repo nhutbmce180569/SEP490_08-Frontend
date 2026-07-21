@@ -62,7 +62,6 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   const [isLiked, setIsLiked] = useState(initialIsLiked);
   const [likeCount, setLikeCount] = useState(reactionList.length);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isHidden, setIsHidden] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [reportReason, setReportReason] = useState('Spam');
@@ -73,11 +72,16 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
     setIsSubmittingReport(true);
     try {
       await reportContent('Moment', moment.id, reportReason as any, reportDetails.trim() || undefined);
-      success("Report submitted successfully");
+      success("Đã gửi báo cáo thành công. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.");
       setIsReportModalOpen(false);
-      setIsHidden(true);
     } catch (err: any) {
-      error(err.message || "Failed to submit report.");
+      const msg: string = err?.response?.data?.message || err?.message || "Failed to submit report.";
+      if (msg.includes("đã báo cáo") || msg.toLowerCase().includes("already reported")) {
+        warning("Bạn đã báo cáo nội dung này rồi. Vui lòng chờ kiểm duyệt viên xem xét.");
+        setIsReportModalOpen(false);
+      } else {
+        error(msg);
+      }
     } finally {
       setIsSubmittingReport(false);
     }

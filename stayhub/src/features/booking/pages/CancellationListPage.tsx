@@ -9,6 +9,7 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCancellationRequests } from "../hooks/useCancellationRequests";
 import type { CancellationRequestListDTO } from "../types/cancellation";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { tourService } from "../../tour/services/tour.service";
 
 const formatDate = (date?: string) => {
@@ -16,9 +17,7 @@ const formatDate = (date?: string) => {
   return new Date(date).toLocaleString();
 };
 
-const formatCurrency = (amount?: number) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0);
-};
+
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -95,11 +94,13 @@ export const CancellationListPage: React.FC = () => {
       },
       {
         header: t("booking.requestedAt"),
-        render: (item) => <span className="text-sm text-slate-500">{formatDate(item.requestedAt) || t("common.na")}</span>,
+        className: "text-right",
+        render: (item) => <div className="text-sm text-slate-500">{formatDate(item.requestedAt) || t("common.na")}</div>,
       },
       {
         header: t("booking.refundAmount"),
-        render: (item) => <span className="font-semibold text-emerald-600">{formatCurrency(item.refundAmount)}</span>,
+        className: "text-right",
+        render: (item) => <div className="font-semibold text-emerald-600"><MoneyDisplay amountVnd={item.refundAmount ?? 0} compact /></div>,
       },
       {
         header: t("common.status"),

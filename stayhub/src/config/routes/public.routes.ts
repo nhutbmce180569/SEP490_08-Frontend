@@ -14,6 +14,7 @@ export const PUBLIC_ROUTES = {
   UNAUTHORIZED: '/unauthorized',
   TERMS: '/terms',
   PRIVACY: '/privacy',
+  BOOKING_TERMS: '/booking-terms',
   ABOUT: '/about',
   NHUT_PORTFOLIO: '/portfolio/bui-minh-nhut',
   INFO: (slug: string = ':slug') => `/info/${slug}`,

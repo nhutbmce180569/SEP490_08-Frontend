@@ -602,18 +602,25 @@ export const OrderDetailPage: React.FC = () => {
                         className="flex items-start justify-between gap-4"
                       >
                         <div className="min-w-0">
-                          <p className="font-semibold leading-snug text-slate-800">
-                            {getTicketTypeName(detail.ticketTypeId)}
-                          </p>
-                          <p className="mt-0.5 text-xs font-medium text-slate-400">
-                            {t("booking.quantityLabel", {
-                              count: detail.quantity,
-                            })}
-                          </p>
+                          <div className="flex items-baseline gap-2">
+                            <p className="font-semibold leading-snug text-slate-800">
+                              {getTicketTypeName(detail.ticketTypeId)}
+                            </p>
+                            <span className="text-xs text-slate-400">
+                              x{detail.quantity}
+                            </span>
+                          </div>
                         </div>
-                        <p className="shrink-0 whitespace-nowrap font-bold text-slate-950">
-                          <MoneyDisplay amountVnd={detail.totalPrice} compact />
-                        </p>
+                        <div className="text-right">
+                          <p className="shrink-0 whitespace-nowrap font-bold text-slate-950">
+                            <MoneyDisplay amountVnd={detail.totalPrice} compact />
+                          </p>
+                          {detail.promotionDiscountValue && detail.promotionDiscountValue > 0 ? (
+                            <p className="mt-1 text-xs font-medium text-emerald-600">
+                              - <MoneyDisplay amountVnd={detail.promotionDiscountValue} compact />
+                            </p>
+                          ) : null}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -624,7 +631,7 @@ export const OrderDetailPage: React.FC = () => {
                       {ticketCount} x{" "}
                       <MoneyDisplay
                         amountVnd={
-                          (order.finalAmount + (order.discountValue || 0)) /
+                          (order.finalAmount + (order.discountValue || 0) + (order.promotionDiscountValue || 0)) /
                           Math.max(ticketCount, 1)
                         }
                         compact
@@ -640,9 +647,18 @@ export const OrderDetailPage: React.FC = () => {
                       <MoneyDisplay amountVnd={subtotalAmount} compact />
                     </span>
                   </div>
+                  {order.promotionDiscountValue && order.promotionDiscountValue > 0 ? (
+                    <div className="flex justify-between gap-4 text-emerald-600">
+                      <span>{t("booking.promotionDiscount", { defaultValue: "Promotion Discount" })}</span>
+                      <span>
+                        -
+                        <MoneyDisplay amountVnd={order.promotionDiscountValue} compact />
+                      </span>
+                    </div>
+                  ) : null}
                   {order.discountValue && order.discountValue > 0 ? (
                     <div className="flex justify-between gap-4 text-rose-600">
-                      <span>{t("booking.discount")}</span>
+                      <span>{t("booking.voucherDiscount", { defaultValue: "Voucher Discount" })}</span>
                       <span>
                         -
                         <MoneyDisplay amountVnd={order.discountValue} compact />

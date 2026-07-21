@@ -40,6 +40,7 @@ export interface ReadOrderDTO {
   ticketCount: number;
   totalAmount: number;
   discountValue?: number | null;
+  promotionDiscountValue?: number | null;
   voucherCode?: string | null;
   finalAmount: number;
   note?: string | null;
@@ -56,6 +57,7 @@ export interface ReadOrderDTO {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
+    promotionDiscountValue?: number | null;
     tickets?: ReadTicketDTO[] | null;
   }[];
   tickets?: ReadTicketDTO[] | null;

@@ -54,24 +54,24 @@ export const TicketTypeList: React.FC = () => {
     () => [
       {
         header: t("content.ticketType"),
-        className: "w-1/4 min-w-[200px]",
+        className: "w-[250px] min-w-[250px] max-w-[250px]",
         render: (ticketType) => (
           <div className="flex items-center gap-3">
             <div className="flex shrink-0 h-10 w-10 items-center justify-center rounded-lg border border-slate-100 bg-slate-50 text-brand">
               <Ticket className="h-5 w-5" />
             </div>
             <span className="font-semibold text-slate-800 truncate" title={ticketType.name}>
-              {ticketType.name.length > 30 ? `${ticketType.name.substring(0, 30)}...` : ticketType.name}
+              {ticketType.name.length > 25 ? `${ticketType.name.substring(0, 25)}...` : ticketType.name}
             </span>
           </div>
         ),
       },
       {
         header: t("common.description"),
-        className: "w-1/3 min-w-[250px]",
+        className: "w-[300px] min-w-[300px] max-w-[300px]",
         render: (ticketType) => (
           <span
-            className="block max-w-[320px] truncate text-sm text-slate-500"
+            className="block w-full truncate text-sm text-slate-500"
             title={ticketType.description || undefined}
           >
             {ticketType.description || t("common.na")}
@@ -79,8 +79,18 @@ export const TicketTypeList: React.FC = () => {
         ),
       },
       {
+        header: t("content.ageRange", { defaultValue: "Age Range" }),
+        className: "w-[150px] min-w-[150px] max-w-[150px]",
+        render: (ticketType) => {
+          if (ticketType.minAge == null && ticketType.maxAge == null) return <span className="text-sm text-slate-500">{t("common.na")}</span>;
+          if (ticketType.minAge != null && ticketType.maxAge == null) return <span className="text-sm text-slate-500">≥ {ticketType.minAge}</span>;
+          if (ticketType.minAge == null && ticketType.maxAge != null) return <span className="text-sm text-slate-500">≤ {ticketType.maxAge}</span>;
+          return <span className="text-sm text-slate-500">{ticketType.minAge} - {ticketType.maxAge}</span>;
+        },
+      },
+      {
         header: t("common.status"),
-        className: "w-36",
+        className: "w-[120px] min-w-[120px] max-w-[120px]",
         render: (ticketType) => {
           const isActive = ticketType.isActive === true;
           return (
@@ -97,22 +107,8 @@ export const TicketTypeList: React.FC = () => {
         },
       },
       {
-        header: t("content.created"),
-        className: "w-36 text-right",
-        render: (ticketType) => (
-          <span className="text-sm text-slate-500">{formatDate(ticketType.createdAt)}</span>
-        ),
-      },
-      {
-        header: t("content.updated"),
-        className: "w-36 text-right",
-        render: (ticketType) => (
-          <span className="text-sm text-slate-500">{formatDate(ticketType.updatedAt)}</span>
-        ),
-      },
-      {
         header: t("common.actions"),
-        className: "w-36",
+        className: "w-[120px] min-w-[120px] max-w-[120px]",
         render: (ticketType) => {
           const isActive = ticketType.isActive === true;
           return (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowRight, Phone, Calendar, Users, KeyRound } from "lucide-react";
+import { Mail, Lock, User, Phone, KeyRound } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useRegister } from "../hooks/useRegister";
 import { sendRegisterOtp } from "../services/auth.service";
@@ -40,8 +40,6 @@ export default function Register() {
     password: "",
     confirmPassword: "",
     phoneNumber: "",
-    gender: "",
-    dateOfBirth: "",
     otpCode: "",
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -154,7 +152,6 @@ export default function Register() {
     const { confirmPassword, ...payload } = formData;
     await handleRegisterSubmit({
       ...payload,
-      dateOfBirth: payload.dateOfBirth || null,
       otpCode: formData.otpCode,
     });
   };
@@ -227,54 +224,6 @@ export default function Register() {
               required
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  {t("common.gender")}
-                </label>
-                <div className="relative">
-                  <Users className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className={authInputClass(Boolean(errors.gender))}
-                    required
-                  >
-                    <option value="" disabled>
-                      {t("common.select")}
-                    </option>
-                    <option value="Male">{t("common.male")}</option>
-                    <option value="Female">{t("common.female")}</option>
-                    <option value="Other">{t("common.other")}</option>
-                  </select>
-                </div>
-                {errors.gender && (
-                  <span className="text-xs font-medium text-rose-500">{errors.gender}</span>
-                )}
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                  {t("common.dateOfBirth")}
-                </label>
-                <div className="relative">
-                  <Calendar className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    className={authInputClass(Boolean(errors.dateOfBirth))}
-                    required
-                  />
-                </div>
-                {errors.dateOfBirth && (
-                  <span className="text-xs font-medium text-rose-500">{errors.dateOfBirth}</span>
-                )}
-              </div>
-            </div>
-
             <AuthFormField
               label={t("auth.password")}
               name="password"
@@ -335,10 +284,9 @@ export default function Register() {
               type="submit"
               variant="primary"
               disabled={isSendingOtp || isSubmitting}
-              className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+              className="!mt-6 !h-[50px] !w-full text-[15px]"
             >
               {isSendingOtp ? t("errors.sendingOtp") : t("errors.createAccountBtn")}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </ActionButton>
           </form>
 
@@ -388,12 +336,11 @@ export default function Register() {
             type="submit"
             variant="primary"
             disabled={isSubmitting || isSendingOtp}
-            className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+            className="!mt-6 !h-[50px] !w-full text-[15px]"
           >
             {isSubmitting
               ? t("errors.completingRegistration")
               : t("errors.completeRegistrationBtn")}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </ActionButton>
 
           <div className="mt-6 text-center">

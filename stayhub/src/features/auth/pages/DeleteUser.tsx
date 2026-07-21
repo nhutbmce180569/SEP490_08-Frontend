@@ -58,7 +58,7 @@ export const DeleteUserConfirm: React.FC = () => {
         <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/50 px-6 py-4">
           <ActionButton variant="secondary" onClick={handleCancel} className="px-5 py-2.5 text-sm">{t("common.cancel")}</ActionButton>
           <ActionButton variant="warning" onClick={handleConfirmDelete} className="gap-2 px-5 py-2.5 text-sm !bg-rose-600 !text-white !border-rose-600 hover:!bg-rose-700">
-            <Trash2 className="h-4 w-4" /> {t("auth.yesDeleteUser")}
+            <Trash2 className="h-4 w-4" /> {t("common.confirm")}
           </ActionButton>
         </div>
       </div>

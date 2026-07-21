@@ -13,19 +13,20 @@ import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { getGenderDisplay } from "../../auth/pages/UserList";
 import { categoryService } from "../../content/services/category.service";
-
-const formatCurrency = (amount?: number | null) => {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount ?? 0);
-};
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   return error instanceof Error && error.message ? error.message : fallback;
 };
 
-const DetailRow = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
-    <span className="text-xs font-bold uppercase text-slate-400 shrink-0 sm:mr-4 sm:pt-0.5">{label}</span>
-    <span className="text-sm font-semibold text-slate-800 sm:text-right flex-1 min-w-0 break-words">{value}</span>
+const DetailRow = ({ label, value, vertical = false }: { label: string; value: React.ReactNode; vertical?: boolean }) => (
+  <div className={`flex flex-col gap-1 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 ${
+    vertical ? "justify-between" : "sm:flex-row sm:items-start sm:justify-between"
+  }`}>
+    <span className={`text-xs font-bold uppercase text-slate-400 shrink-0 ${vertical ? "pt-0.5" : "sm:mr-4 sm:pt-0.5"}`}>{label}</span>
+    <span className={`font-semibold text-slate-800 ${
+      vertical ? "text-base sm:text-left mt-0.5 whitespace-nowrap overflow-x-auto" : "text-sm sm:text-right flex-1 min-w-0 break-words"
+    }`}>{value}</span>
   </div>
 );
 
@@ -262,18 +263,20 @@ export const ProcessCancellationPage: React.FC = () => {
           )}
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <DetailRow label={t("booking.requestId")} value={`#${detail.id}`} />
+            <DetailRow label={t("booking.requestId")} value={`#${detail.id}`} vertical />
             <DetailRow
               label={t("booking.tourId")}
               value={detail.tour?.id ? `#${detail.tour.id}` : t("common.na")}
+              vertical
             />
             <DetailRow
               label={t("booking.customerId")}
               value={detail.customer?.id ? `#${detail.customer.id}` : t("common.na")}
+              vertical
             />
-            <DetailRow label={t("common.status")} value={getStatusDisplay(detail.status || "", t) || t("common.na")} />
-            <DetailRow label={t("booking.requestedAt")} value={formatDate(detail.requestedAt)} />
-            <DetailRow label={t("booking.processedAt")} value={formatDate(detail.processedAt)} />
+            <DetailRow label={t("common.status")} value={getStatusDisplay(detail.status || "", t) || t("common.na")} vertical />
+            <DetailRow label={t("booking.requestedAt")} value={formatDate(detail.requestedAt)} vertical />
+            <DetailRow label={t("booking.processedAt")} value={formatDate(detail.processedAt)} vertical />
           </div>
 
           <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5">
@@ -291,15 +294,17 @@ export const ProcessCancellationPage: React.FC = () => {
               </button>
             </div>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <DetailRow label={t("booking.originalAmount")} value={formatCurrency(detail.originalAmount)} />
-              <DetailRow label={t("booking.feePercent")} value={`${detail.feePercent ?? 0}%`} />
+              <DetailRow label={t("booking.originalAmount")} value={<MoneyDisplay amountVnd={detail.originalAmount ?? 0} compact />} vertical />
+              <DetailRow label={t("booking.feePercent")} value={`${detail.feePercent ?? 0}%`} vertical />
               <DetailRow
                 label={t("booking.cancellationFeeLabel")}
-                value={formatCurrency(detail.cancellationFee)}
+                value={<MoneyDisplay amountVnd={detail.cancellationFee ?? 0} compact />}
+                vertical
               />
               <DetailRow
                 label={t("booking.refundAmount")}
-                value={<span className="text-emerald-600">{formatCurrency(detail.refundAmount)}</span>}
+                value={<span className="text-emerald-600 font-bold"><MoneyDisplay amountVnd={detail.refundAmount ?? 0} compact /></span>}
+                vertical
               />
             </div>
           </section>
@@ -439,10 +444,10 @@ export const ProcessCancellationPage: React.FC = () => {
             ? t("booking.approveConfirm")
             : t("booking.rejectConfirm")
         }
-        confirmText={
-          confirmState.action === "Approve" ? t("booking.yesApprove") : t("booking.yesReject")
-        }
+        confirmText={t("common.confirm")}
+        cancelText={t("common.cancel")}
         variant={confirmState.action === "Approve" ? "primary" : "warning"}
+        isLoading={isProcessing}
       />
       {isPolicyOpen && (
         <div
@@ -509,15 +514,6 @@ export const ProcessCancellationPage: React.FC = () => {
               <p className="text-xs text-slate-500 italic">
                 {t("booking.policyFeeNote") || "* Phí hủy được trừ trực tiếp vào tổng tiền thanh toán ban đầu để tính ra số tiền hoàn lại cho khách hàng."}
               </p>
-            </div>
-            <div className="border-t border-slate-100 bg-slate-50 px-5 py-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsPolicyOpen(false)}
-                className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-brand/90"
-              >
-                {t("common.close")}
-              </button>
             </div>
           </div>
         </div>

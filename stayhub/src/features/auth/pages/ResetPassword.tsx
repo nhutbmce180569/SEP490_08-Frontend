@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Mail, Lock, KeyRound, ArrowRight } from "lucide-react";
+import { Mail, Lock, KeyRound } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useResetPassword } from "../hooks/useResetPassword";
 import { useForgotPassword } from "../hooks/useForgotPassword";
@@ -138,7 +138,7 @@ export default function ResetPassword() {
       }
       subtitle={
         step === "VERIFY_OTP"
-          ? t("auth.verifyOtpSubtitle")
+          ? ""
           : t("auth.setNewPasswordSubtitle")
       }
       heroTitle={t("auth.resetHeroTitle")}
@@ -199,12 +199,11 @@ export default function ResetPassword() {
             type="submit"
             variant="primary"
             disabled={isVerifyingOtp || !formData.code}
-            className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+            className="!mt-6 !h-[50px] !w-full text-[15px]"
           >
             {isVerifyingOtp
               ? t("auth.verifyingOtp")
               : t("auth.verifyOtpBtn")}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </ActionButton>
         </form>
       ) : (
@@ -244,10 +243,9 @@ export default function ResetPassword() {
             type="submit"
             variant="primary"
             disabled={isSubmitting || !formData.newPassword || !formData.confirmPassword}
-            className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
+            className="!mt-6 !h-[50px] !w-full text-[15px]"
           >
             {isSubmitting ? t("errors.resetting") : t("errors.resetBtn")}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </ActionButton>
         </form>
       )}

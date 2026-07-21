@@ -155,5 +155,6 @@
   "removeImage": "Gỡ ảnh",
   "clickToUpload": "Nhấn để tải lên hoặc kéo thả",
   "uploadFormatHint": "SVG, PNG, JPG hoặc WebP (tối đa 5MB)",
+  "upload": "Tải lên",
   "browseFiles": "Duyệt file"
 }

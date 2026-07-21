@@ -207,7 +207,7 @@ export const CreateItinerary: React.FC = () => {
 
   const handleDownloadTemplate = async () => {
     try {
-      await downloadItineraryExcelTemplate();
+      await downloadItineraryExcelTemplate(tourismInformationList);
     } catch (error: any) {
       showError(error.message || t("tour.downloadTemplateFailed"));
     }
@@ -350,21 +350,21 @@ export const CreateItinerary: React.FC = () => {
             </ActionButton>
           </div>
         </div>
-        <div className="flex flex-col gap-4 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="rounded-xl bg-white p-2.5 text-indigo-600 shadow-sm">
+        <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="text-indigo-600">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-900">
                 {t("tour.excelToolsTitle")}
               </p>
-              <p className="mt-0.5 text-xs leading-5 text-slate-600">
+              <p className="mt-0.5 text-xs text-slate-500">
                 {t("tour.excelToolsDescription")}
               </p>
             </div>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
+          <div className="flex shrink-0 gap-3">
             <input
               ref={importInputRef}
               type="file"

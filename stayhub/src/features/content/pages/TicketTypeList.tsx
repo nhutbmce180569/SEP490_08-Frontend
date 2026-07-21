@@ -238,8 +238,8 @@ export const TicketTypeList: React.FC = () => {
             )}
           </span>
         }
-        confirmText="Confirm"
-        cancelText="Cancel"
+        confirmText={t("common.confirm")}
+        cancelText={t("common.cancel")}
         variant={statusTargetIsActive ? "warning" : "primary"}
         icon={
           statusTargetIsActive ? (

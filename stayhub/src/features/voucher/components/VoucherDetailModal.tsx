@@ -212,6 +212,15 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
                 label={t('voucher.createdBy')}
                 value={voucher.creatorName || t('voucher.userId', { id: voucher.creatorId })}
               />
+              <DetailCard
+                icon={<Tag className="h-4 w-4" />}
+                label={t('voucher.minOrderAmount')}
+                value={
+                  voucher.minOrderAmount && voucher.minOrderAmount > 0
+                    ? formatVnd(voucher.minOrderAmount)
+                    : t('voucher.noMinOrder')
+                }
+              />
             </div>
 
             {/* Customer Assignments Table */}

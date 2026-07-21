@@ -46,7 +46,7 @@ export const UpdateVoucher: React.FC = () => {
       {
         name: 'tourId',
         label: t('voucher.applicableTour'),
-        type: 'select',
+        type: 'searchable-select',
         icon: <Ticket className="h-4 w-4" />,
         colSpan: 2,
         readOnly: isUsed,
@@ -96,6 +96,19 @@ export const UpdateVoucher: React.FC = () => {
             if (!value || Number(value) <= 0) {
               return t('voucher.maxDiscountRequired');
             }
+          }
+          return undefined;
+        },
+      },
+      {
+        name: 'minOrderAmount',
+        label: t('voucher.minOrderAmount'),
+        type: 'number',
+        placeholder: t('voucher.minOrderAmountPlaceholder'),
+        icon: <Hash className="h-4 w-4" />,
+        validate: (value) => {
+          if (value !== undefined && value !== null && value !== '' && Number(value) > 0) {
+            if (Number(value) < 10000) return t('voucher.minOrderAmountMin');
           }
           return undefined;
         },
@@ -212,6 +225,7 @@ export const UpdateVoucher: React.FC = () => {
           discountType: voucher.discountType,
           discountValue: voucher.discountValue,
           maxDiscountAmount: voucher.maxDiscountAmount ?? '',
+          minOrderAmount: voucher.minOrderAmount ?? '',
           availableCount: voucher.availableCount,
           startDate: toDateTimeLocal(voucher.startDate),
           endDate: toDateTimeLocal(voucher.endDate),

@@ -95,6 +95,11 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
               <Clock className="h-3.5 w-3.5 shrink-0 text-slate-400" />
               <span>{t('voucher.walletValidUntil', { date: formatDateTime(voucher.endDate) })}</span>
             </div>
+            {voucher.minOrderAmount && voucher.minOrderAmount > 0 && (
+              <div className="mt-1 text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 inline-block">
+                {t('voucher.minOrderHint', { amount: formatVnd(voucher.minOrderAmount) })}
+              </div>
+            )}
           </div>
 
           {expiryHint && isUsable && (

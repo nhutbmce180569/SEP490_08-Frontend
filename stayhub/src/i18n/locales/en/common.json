@@ -65,6 +65,7 @@
   "from": "From",
   "to": "To",
   "date": "Date",
+  "month": "Month",
   "time": "Time",
   "price": "Price",
   "quantity": "Quantity",

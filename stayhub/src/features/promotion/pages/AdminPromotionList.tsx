@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pencil, Plus, Search, Lock, Unlock, ListFilter } from 'lucide-react';
+import { Pencil, Plus, Search, Lock, Unlock, Filter } from 'lucide-react';
 import { Table, type Column } from '../../../components/dashboard/Table';
 import { PaginationButton } from '../../../components/dashboard/PaginationButton';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
@@ -175,7 +175,7 @@ export const AdminPromotionList: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
-            <ListFilter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+            <Filter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <select
               value={status}
               onChange={(e) => {

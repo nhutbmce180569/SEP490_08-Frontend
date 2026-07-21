@@ -7,6 +7,7 @@ export interface ReadSavedVoucherDTO {
   discountType: string;
   discountValue: number;
   maxDiscountAmount?: number;
+  minOrderAmount?: number;
   startDate: string;
   endDate: string;
   description?: string;
@@ -35,6 +36,7 @@ export interface ApplyVoucherResultDTO {
   discountType: string;
   discountValue: number;
   maxDiscountAmount?: number;
+  minOrderAmount?: number;
   billAmount: number;
   discountAmount: number;
   finalAmount: number;

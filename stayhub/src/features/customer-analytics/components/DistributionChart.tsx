@@ -52,36 +52,70 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
   const totalPages = usePagination && pageSize ? Math.ceil(data.length / pageSize) : 1;
   const pageStart = usePagination && pageSize ? (currentPage - 1) * pageSize : 0;
 
+  const getTranslatedLabel = (rawLabel: string): string => {
+    const norm = rawLabel.trim();
+    const lower = norm.toLowerCase();
+    
+    if (lower === 'male') return t('analytics.customer.genderMale');
+    if (lower === 'female') return t('analytics.customer.genderFemale');
+    if (lower === 'other') return t('analytics.customer.genderOther');
+    if (lower === 'unspecified') return t('analytics.customer.genderUnspecified');
+
+    if (lower === 'local') return t('analytics.customer.providerLocal');
+    if (lower === 'google') return t('analytics.customer.providerGoogle');
+    if (lower === 'facebook') return t('analytics.customer.providerFacebook');
+
+    if (lower === 'active') return t('analytics.customer.activeStatus');
+    if (lower === 'blocked') return t('analytics.customer.blockedStatus');
+    if (lower === 'inactive') return t('analytics.customer.inactiveStatus');
+
+    if (lower === 'paid') return t('analytics.customer.statusPaid');
+    if (lower === 'completed') return t('analytics.customer.statusCompleted');
+    if (lower === 'pending') return t('analytics.customer.statusPending');
+    if (lower === 'cancelled') return t('analytics.customer.statusCancelled');
+
+    if (norm === 'NeverPurchased') return t('analytics.customer.neverPurchased');
+    if (norm === 'OneTimeBuyer') return t('analytics.customer.oneTimeBuyer');
+    if (norm === 'RepeatBuyer') return t('analytics.customer.repeatBuyer');
+
+    if (lower.includes('star')) return norm.replace(/stars?/i, '★');
+
+    return norm;
+  };
+
   return (
-    <section className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h3 className="text-base font-bold text-slate-900">{title}</h3>
+    <section className="rounded-2xl bg-white p-5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)] border border-slate-100 transition-all hover:shadow-md">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="text-base font-bold text-slate-900 tracking-tight">{title}</h3>
         {data.length > 0 && (
-          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-500">
+          <span className="shrink-0 rounded-full bg-brand/10 px-3 py-1 text-xs font-extrabold text-brand">
             {data.length} {data.length === 1 ? t('analytics.customer.item') : t('analytics.customer.items')}
           </span>
         )}
       </div>
 
       {data.length === 0 ? (
-        <p className="py-8 text-center text-sm text-slate-400">{resolvedEmpty}</p>
+        <p className="py-8 text-center text-sm font-medium text-slate-400">{resolvedEmpty}</p>
       ) : (
         <>
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {visibleData.map((item, i) => {
               const colorIndex = usePagination ? pageStart + i : i;
+              const displayLabel = getTranslatedLabel(item.label);
               return (
-                <div key={`${item.label}-${colorIndex}`}>
-                  <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-                    <span className="min-w-0 truncate font-semibold text-slate-700">{item.label}</span>
-                    <span className="shrink-0 text-slate-500">
+                <div key={`${item.label}-${colorIndex}`} className="group">
+                  <div className="mb-1.5 flex items-center justify-between gap-3 text-xs font-bold">
+                    <span className="min-w-0 truncate text-slate-800 group-hover:text-brand transition-colors">
+                      {displayLabel}
+                    </span>
+                    <span className="shrink-0 text-slate-600">
                       {formatNumber(item.count)}{' '}
-                      <span className="text-slate-400">({formatPercent(item.percentage)})</span>
+                      <span className="text-slate-400 font-semibold">({formatPercent(item.percentage)})</span>
                     </span>
                   </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-3 overflow-hidden rounded-full bg-slate-100 p-0.5 shadow-inner">
                     <div
-                      className="h-full rounded-full transition-all duration-500"
+                      className="h-full rounded-full transition-all duration-700 ease-out shadow-sm"
                       style={{
                         width: `${(item.count / maxCount) * 100}%`,
                         backgroundColor: CHART_COLORS[colorIndex % CHART_COLORS.length],
@@ -116,11 +150,11 @@ export const DistributionChart: React.FC<DistributionChartProps> = ({
           {usePagination && pageSize && (
             <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
               <p className="text-xs text-slate-500">
-                Showing{' '}
-                <span className="font-semibold text-slate-700">
-                  {pageStart + 1}–{Math.min(pageStart + pageSize, data.length)}
-                </span>{' '}
-                of <span className="font-semibold text-slate-700">{data.length}</span>
+                {t('analytics.platform.showingPagination', {
+                  start: pageStart + 1,
+                  end: Math.min(pageStart + pageSize, data.length),
+                  total: data.length,
+                })}
               </p>
               <div className="flex items-center gap-1">
                 <button

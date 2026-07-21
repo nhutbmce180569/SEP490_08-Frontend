@@ -7,6 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
@@ -125,6 +127,14 @@ export const StaffTicketListPage: React.FC = () => {
       showError((ticketsError as Error).message || t("booking.unableLoadTickets"));
   }, [ticketsError, showError, t]);
 
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const selectedSchedule = useMemo(
     () => schedules.find((item) => item.scheduleId === selectedScheduleId) ?? null,
     [schedules, selectedScheduleId],
@@ -140,7 +150,7 @@ export const StaffTicketListPage: React.FC = () => {
       {
         header: t("booking.attendee"),
         render: (ticket) => (
-          <div className="min-w-[200px]">
+          <div className="min-w-[150px]">
             <div className="font-semibold text-slate-900">
               {ticket.attendeeName}
             </div>
@@ -153,7 +163,7 @@ export const StaffTicketListPage: React.FC = () => {
             </div>
           </div>
         ),
-        className: "w-[250px]",
+        className: "w-[200px]",
       },
       {
         header: t("booking.checkInStatus"),
@@ -164,14 +174,14 @@ export const StaffTicketListPage: React.FC = () => {
             {ticket.checkInStatus || t("common.pending")}
           </span>
         ),
-        className: "w-[130px] whitespace-nowrap",
+        className: "w-[120px] whitespace-nowrap",
       },
       {
         header: t("booking.ticketTypeCol"),
         accessor: "ticketTypeName",
-        className: "text-sm whitespace-nowrap",
+        className: "text-sm whitespace-nowrap max-w-[150px] truncate",
         render: (ticket) => (
-          <span className="font-medium text-slate-700">
+          <span className="font-medium text-slate-700 truncate" title={ticket.ticketTypeName || `Type #${ticket.ticketTypeId}`}>
             {ticket.ticketTypeName || `Type #${ticket.ticketTypeId}`}
           </span>
         ),
@@ -179,17 +189,33 @@ export const StaffTicketListPage: React.FC = () => {
       { header: t("booking.nationalityCol"), accessor: "nationality" },
       {
         header: "QR Code",
+        className: "w-[150px]",
         render: (ticket) => (
-          <div
-            className="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded w-fit max-w-[150px] truncate"
-            title={ticket.qrCode}
-          >
-            {ticket.qrCode || "-"}
+          <div className="flex items-center gap-1.5">
+            <div
+              className="font-mono text-xs text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded max-w-[90px] truncate"
+              title={ticket.qrCode}
+            >
+              {ticket.qrCode || "-"}
+            </div>
+            {ticket.qrCode && (
+              <button
+                onClick={() => handleCopy(ticket.qrCode, ticket.id.toString())}
+                className="text-slate-400 hover:text-[#0068E0] transition-colors p-1"
+                title={t("booking.copyQrCode")}
+              >
+                {copiedId === ticket.id.toString() ? (
+                  <Check className="h-3.5 w-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+              </button>
+            )}
           </div>
         ),
       },
     ],
-    [t],
+    [t, copiedId],
   );
 
   return (
@@ -287,7 +313,7 @@ export const StaffTicketListPage: React.FC = () => {
         <div className="flex flex-col min-w-0 rounded-3xl border border-slate-100 bg-white shadow-sm h-[calc(100vh-140px)] sticky top-6">
           <div className="flex flex-col gap-4 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-1">
-              <h2 className="text-[15px] font-bold text-slate-900" title={selectedSchedule?.tourName}>
+              <h2 className="text-[15px] font-bold text-slate-900" title={selectedSchedule?.tourName || undefined}>
                 {selectedSchedule ? (selectedSchedule.tourName || `Schedule #${selectedSchedule.scheduleId}`) : t("booking.ticketListTitle")}
               </h2>
               {selectedSchedule && (

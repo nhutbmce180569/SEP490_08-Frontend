@@ -9,6 +9,35 @@ import { type ReadUserDTO } from "../types/user";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useTranslation } from "../../../contexts/LocaleContext";
 
+export const getRoleDisplay = (role?: string | null, t?: any) => {
+  if (!role || !t) return role || "";
+  const normalized = role.toLowerCase();
+  if (normalized === "admin") return t("auth.admin", { defaultValue: "Admin" });
+  if (normalized === "manager") return t("auth.manager", { defaultValue: "Manager" });
+  if (normalized === "staff") return t("auth.staff", { defaultValue: "Staff" });
+  if (normalized === "customer") return t("auth.customer", { defaultValue: "Customer" });
+  if (normalized === "tourguide") return t("auth.tourGuide", { defaultValue: "Tour Guide" });
+  return role;
+};
+
+export const getGenderDisplay = (gender?: string | null, t?: any) => {
+  if (!gender || !t) return gender || (t ? t("common.na") : "N/A");
+  const normalized = gender.toLowerCase();
+  if (normalized === "male") return t("common.male");
+  if (normalized === "female") return t("common.female");
+  if (normalized === "other") return t("common.other");
+  return gender;
+};
+
+export const getStatusDisplay = (status?: string | null, t?: any) => {
+  if (!status || !t) return status || (t ? t("auth.unknown") : "");
+  const normalized = status.toLowerCase();
+  if (normalized === "active") return t("common.active");
+  if (normalized === "inactive") return t("common.inactive");
+  if (normalized === "blocked") return t("auth.blocked");
+  return status;
+};
+
 export const UserList: React.FC = () => {
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState("");
@@ -95,7 +124,7 @@ export const UserList: React.FC = () => {
             {user.roles?.length > 0 ? (
               user.roles.map((role, idx) => (
                 <span key={idx} className="inline-block rounded bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand">
-                  {role}
+                  {getRoleDisplay(role, t)}
                 </span>
               ))
             ) : (
@@ -115,7 +144,7 @@ export const UserList: React.FC = () => {
                   isActive ? "bg-emerald-50 text-emerald-600" : "bg-slate-100 text-slate-600"
                 }`}
               >
-                {isActive ? t("common.active") : t("auth.blocked")}
+                {getStatusDisplay(user.status, t)}
               </span>
           );
         },
@@ -186,10 +215,10 @@ export const UserList: React.FC = () => {
               className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
             >
               <option value="">{t("auth.allRoles")}</option>
-              <option value="Admin">Admin</option>
-              <option value="Manager">Manager</option>
-              <option value="Staff">Staff</option>
-              <option value="Customer">Customer</option>
+              <option value="Admin">{getRoleDisplay("Admin", t)}</option>
+              <option value="Manager">{getRoleDisplay("Manager", t)}</option>
+              <option value="Staff">{getRoleDisplay("Staff", t)}</option>
+              <option value="Customer">{getRoleDisplay("Customer", t)}</option>
             </select>
           </div>
           
@@ -271,7 +300,7 @@ export const UserList: React.FC = () => {
                     </div>
                     <div className="flex justify-between items-center gap-4">
                       <span className="font-semibold text-slate-500 shrink-0">{t("common.gender")}:</span>
-                      <span className="font-medium text-right">{selectedUserForView.gender || t("common.na")}</span>
+                      <span className="font-medium text-right">{getGenderDisplay(selectedUserForView.gender, t)}</span>
                     </div>
                     <div className="flex justify-between items-center gap-4">
                       <span className="font-semibold text-slate-500 shrink-0">{t("common.dateOfBirth")}:</span>
@@ -285,7 +314,7 @@ export const UserList: React.FC = () => {
                       <span className="font-semibold text-slate-500 shrink-0">{t("auth.rolesLabel")}:</span>
                       <div className="flex flex-wrap gap-1 justify-end">
                         {selectedUserForView.roles?.length ? (
-                           selectedUserForView.roles.map((r, i) => <span key={i} className="rounded bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand">{r}</span>)
+                           selectedUserForView.roles.map((r, i) => <span key={i} className="rounded bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand">{getRoleDisplay(r, t)}</span>)
                         ) : (
                            <span className="font-medium">{t("auth.none")}</span>
                         )}
@@ -294,7 +323,7 @@ export const UserList: React.FC = () => {
                     <div className="flex justify-between items-center gap-4">
                       <span className="font-semibold text-slate-500 shrink-0">{t("common.status")}:</span>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${selectedUserForView.status === "Active" ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-700"}`}>
-                        {selectedUserForView.status || t("auth.unknown")}
+                        {getStatusDisplay(selectedUserForView.status, t)}
                       </span>
                     </div>
                     <div className="flex justify-between items-center gap-4 border-t border-slate-200 pt-3">

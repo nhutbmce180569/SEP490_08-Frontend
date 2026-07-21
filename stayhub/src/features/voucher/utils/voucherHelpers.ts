@@ -20,6 +20,16 @@ export const formatDateTime = (iso: string) => {
   });
 };
 
+export const formatDateOnly = (iso: string) => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return 'N/A';
+  return date.toLocaleDateString('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+};
+
 export const toDateTimeLocal = (iso: string) => {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
@@ -33,9 +43,35 @@ export const toIsoDateTime = (localValue: string) => {
 };
 
 export const STATUS_STYLES: Record<string, string> = {
-  Active: 'bg-emerald-50 text-emerald-600',
-  Inactive: 'bg-slate-100 text-slate-600',
-  Expired: 'bg-amber-50 text-amber-600',
+  Active: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
+  Inactive: 'bg-slate-100 text-slate-600 border border-slate-200',
+  Expired: 'bg-amber-50 text-amber-600 border border-amber-200',
+  Available: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
+  Used: 'bg-indigo-50 text-indigo-600 border border-indigo-200',
+  Redeemed: 'bg-indigo-50 text-indigo-600 border border-indigo-200',
+  Cancelled: 'bg-rose-50 text-rose-600 border border-rose-200',
+  Scheduled: 'bg-sky-50 text-sky-600 border border-sky-200',
+  Depleted: 'bg-rose-50 text-rose-600 border border-rose-200',
+};
+
+export const getSafeUsage = (used?: number, available?: number, remaining?: number) => {
+  const safeUsed = Math.max(0, used ?? 0);
+  const rawAvailable = Math.max(0, available ?? 0);
+
+  let totalAvailable = rawAvailable;
+  let safeRemaining = remaining != null && remaining >= 0 ? remaining : (rawAvailable - safeUsed);
+
+  // Handle legacy DB seed data where AvailableCount was stored as remaining count instead of total count
+  if (rawAvailable < safeUsed || safeRemaining < 0) {
+    totalAvailable = safeUsed + rawAvailable;
+    safeRemaining = rawAvailable;
+  }
+
+  return {
+    usedCount: safeUsed,
+    availableCount: totalAvailable,
+    remainingCount: safeRemaining,
+  };
 };
 
 export const CODE_PATTERN = /^[A-Za-z0-9_-]+$/;
@@ -54,8 +90,8 @@ export const validateVoucherCode = (code: string) => {
 export const validateDiscountValue = (discountType: string, value: number) => {
   if (discountType === 'Percent') {
     if (value < 1 || value > 100) return 'Percent discount must be between 1 and 100.';
-  } else if (value <= 0) {
-    return 'Amount discount must be greater than 0.';
+  } else if (value < 10000) {
+    return 'Discount amount must be at least 10,000 VND.';
   }
   return undefined;
 };

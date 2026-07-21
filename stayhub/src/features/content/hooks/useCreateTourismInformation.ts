@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { tourismInformationService } from "../services/tourismInformation.service";
 import type { CreateTourismInformationDTO } from "../types/tourismInformation";
@@ -18,6 +19,7 @@ import {
 export const useCreateTourismInformation = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { success, error: showError } = useToast();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
@@ -25,7 +27,7 @@ export const useCreateTourismInformation = () => {
     mutationFn: (data: CreateTourismInformationDTO) => tourismInformationService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tourism-information"] });
-      success("Tourism information created successfully.");
+      success(t("content.creatingTourismInfo") || "Tourism information created successfully.");
       navigate(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT);
     },
     onError: (err: unknown) => {
@@ -38,10 +40,27 @@ export const useCreateTourismInformation = () => {
   });
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const clientErrors = validateTourismInformationForm(data, { requireImage: true });
+    const clientErrors = validateTourismInformationForm(data, t, { requireImage: false });
     if (Object.keys(clientErrors).length > 0) {
       setServerErrors(clientErrors);
       return;
+    }
+    try {
+      const isDuplicate = await tourismInformationService.checkDuplicate(
+        String(data.name || ""),
+        String(data.address || "")
+      );
+      if (isDuplicate) {
+        const duplicateErrorMsg = t("content.duplicateTourismInfo");
+        setServerErrors({
+          name: duplicateErrorMsg,
+          address: duplicateErrorMsg,
+        });
+        showError(duplicateErrorMsg);
+        return;
+      }
+    } catch (err) {
+      // ignore
     }
 
     setServerErrors({});
@@ -53,7 +72,7 @@ export const useCreateTourismInformation = () => {
     });
   };
 
-  const handleCancel = () => navigate(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT);
+  const handleCancel = () => navigate(-1);
 
   return {
     handleSubmit,

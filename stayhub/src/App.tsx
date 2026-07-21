@@ -24,6 +24,10 @@ import { ProfileLayout } from "./layouts/ProfileLayout";
 import { StaffLayout } from "./layouts/StaffLayout";
 import Unauthorized from "./pages/Unauthorized";
 import Home from "./pages/Home";
+import HotTours from "./pages/HotTours";
+import SaleTours from "./pages/SaleTours";
+import UpcomingTours from "./pages/UpcomingTours";
+import RegionTours from "./pages/RegionTours";
 
 import Login from "./features/auth/pages/Login";
 import Register from "./features/auth/pages/Register";
@@ -66,7 +70,6 @@ import { UpdateTicketType } from "./features/content/pages/UpdateTicketType";
 import { TourismInformationList } from "./features/content/pages/TourismInformationList";
 import { CreateTourismInformation } from "./features/content/pages/CreateTourismInformation";
 import { UpdateTourismInformation } from "./features/content/pages/UpdateTourismInformation";
-import { TourismInformationDetail } from "./features/content/pages/TourismInformationDetail";
 import { CreateItinerary } from "./features/tour/pages/CreateItinerary";
 import { UpdateItinerary } from "./features/tour/pages/UpdateItinerary";
 import { DeleteItineraryConfirm } from "./features/tour/pages/DeleteItinerary";
@@ -127,7 +130,7 @@ import { useTranslation } from "./contexts/LocaleContext";
 import { StaffTourScheduleDetail } from "./features/tour/pages/StaffTourScheduleDetail";
 import { CurrencyProvider } from "./features/currency/CurrencyContext";
 import { useGetEligibleSchedules } from "./features/social/moments/hooks/useEligibleSchedules";
-import NotificationListPage from "./features/system/pages/Notificationlistpage";
+
 import { DeleteTourSchedule } from "./features/tour/pages/DeleteTourSchedule";
 import { TrendPredictionPage } from "./features/ai/pages/TrendPredictionPage";
 const queryClient = new QueryClient();
@@ -304,6 +307,10 @@ const App: React.FC = () => {
                           <Route element={<MainLayout />}>
                             <Route path={PATH.PUBLIC.HOME} element={<Home />} />
                             <Route path={PATH.PUBLIC.TOURS} element={<TourSearch />} />
+                            <Route path={PATH.PUBLIC.HOT_TOURS} element={<HotTours />} />
+                            <Route path={PATH.PUBLIC.SALE_TOURS} element={<SaleTours />} />
+                            <Route path={PATH.PUBLIC.UPCOMING_TOURS} element={<UpcomingTours />} />
+                            <Route path={PATH.PUBLIC.REGION_TOURS} element={<RegionTours />} />
                             <Route
                               path={PATH.PUBLIC.TOUR_SEARCH}
                               element={<TourSearch />}
@@ -328,10 +335,6 @@ const App: React.FC = () => {
                               element={<NhutPortfolioPage />}
                             />
                             <Route path={PATH.PUBLIC.INFO()} element={<PublicInfoPage />} />
-                            <Route
-                              path={PATH.CUSTOMER.CHECKOUT()}
-                              element={<BookingPage />}
-                            />
                             {/* <Route
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
@@ -340,6 +343,10 @@ const App: React.FC = () => {
 
                             {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                             <Route element={<ProtectedRoute />}>
+                              <Route
+                                path={PATH.CUSTOMER.CHECKOUT()}
+                                element={<BookingPage />}
+                              />
                               <Route
                                 path="/chat"
                                 element={<Navigate to={PATH.CUSTOMER.SOCIAL_CHAT} replace />}
@@ -377,10 +384,6 @@ const App: React.FC = () => {
                                   <Route
                                     path={PATH.CUSTOMER.SETTINGS}
                                     element={mock("app.titles.settings", "app.mockSettings", "app.sectionCustomer")}
-                                  />
-                                  <Route
-                                    path={PATH.CUSTOMER.NOTIFICATIONS}
-                                    element={<NotificationListPage />}
                                   />
                                 </Route>
                               </Route>
@@ -528,6 +531,10 @@ const App: React.FC = () => {
                                 element={<BookingStatisticsPage />}
                               />
                               <Route
+                                path={childPath(PATH.MANAGER.REVENUE_STATISTICS)}
+                                element={<RevenueStatisticsPage />}
+                              />
+                              <Route
                                 path={childPath(PATH.MANAGER.PAYOUT)}
                                 element={mock("app.titles.payout", "app.mockPayout", "app.sectionPartner")}
                               />
@@ -586,18 +593,6 @@ const App: React.FC = () => {
                               <Route
                                 path={childPath(PATH.ADMIN.PLATFORM_ANALYTICS)}
                                 element={<PlatformAnalyticsPage />}
-                              />
-                              <Route
-                                path={childPath(PATH.ADMIN.CUSTOMER_ANALYTICS)}
-                                element={<CustomerAnalyticsPage />}
-                              />
-                              <Route
-                                path={childPath(PATH.ADMIN.BOOKING_STATISTICS)}
-                                element={<BookingStatisticsPage />}
-                              />
-                              <Route
-                                path={childPath(PATH.ADMIN.REVENUE_STATISTICS)}
-                                element={<RevenueStatisticsPage />}
                               />
                               <Route path={childPath(PATH.ADMIN.USER_MANAGEMENT)}>
                                 <Route index element={<UserList />} />
@@ -660,7 +655,6 @@ const App: React.FC = () => {
                                 <Route index element={<TourismInformationList />} />
                                 <Route path="create" element={<CreateTourismInformation />} />
                                 <Route path=":id/edit" element={<UpdateTourismInformation />} />
-                                <Route path=":id" element={<TourismInformationDetail />} />
                               </Route>
                               <Route
                                 path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}

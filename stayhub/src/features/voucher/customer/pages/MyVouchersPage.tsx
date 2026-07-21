@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { AlertCircle, TicketPercent } from 'lucide-react';
+import React from 'react';
+import { AlertCircle, ShieldCheck, TicketPercent } from 'lucide-react';
 import { PaginationButton } from '../../../../components/dashboard/PaginationButton';
 import { SaveVoucherInput } from '../components/SaveVoucherInput';
 import { VoucherWalletCard } from '../components/VoucherWalletCard';
@@ -7,28 +7,13 @@ import { useMyVouchers } from '../hooks/useMyVouchers';
 import { useSaveVoucher } from '../hooks/useSaveVoucher';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
-import type { WalletTab } from '../types/customerVoucher';
 
 export const MyVouchersPage: React.FC = () => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<WalletTab>('all');
   const { success } = useToast();
 
-  const tabs = useMemo(
-    () =>
-      [
-        { key: 'all' as WalletTab, label: t('voucher.tabAll') },
-        { key: 'available' as WalletTab, label: t('voucher.tabAvailable') },
-        { key: 'used' as WalletTab, label: t('voucher.tabUsed') },
-        { key: 'expired' as WalletTab, label: t('voucher.tabExpired') },
-      ],
-    [t],
-  );
-
-  const { vouchers, isLoading, error, pageSize, setPage, resetPage, data } = useMyVouchers(activeTab);
+  const { vouchers, isLoading, error, pageSize, setPage, resetPage, data } = useMyVouchers();
   const { code, setCode, error: saveError, isSaving, handleSave } = useSaveVoucher(resetPage);
-
-  useEffect(() => { resetPage(); }, [activeTab, resetPage]);
 
   const handleCopyCode = async (voucherCode: string) => {
     try {
@@ -39,37 +24,25 @@ export const MyVouchersPage: React.FC = () => {
     }
   };
 
-  const activeTabLabel = tabs.find((tab) => tab.key === activeTab)?.label ?? activeTab;
-
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
-          <TicketPercent className="text-brand" size={24} />
-          {t('voucher.myVouchers')}
-        </h1>
-        <p className="mt-1.5 text-sm text-slate-500">{t('voucher.myVouchersDesc')}</p>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="flex items-center gap-2.5 text-2xl font-extrabold text-slate-900">
+            <TicketPercent className="text-brand" size={26} />
+            {t('voucher.myVouchers')}
+          </h1>
+          <p className="mt-1.5 text-sm text-slate-500">{t('voucher.myVouchersDesc')}</p>
+        </div>
+
+        <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 border border-emerald-200/60 shadow-xs">
+          <ShieldCheck className="h-4 w-4 text-emerald-600" />
+          <span>{t('voucher.tabAvailable')} ({vouchers.length})</span>
+        </div>
       </div>
 
       <div className="mb-6">
         <SaveVoucherInput code={code} error={saveError} isSaving={isSaving} onCodeChange={setCode} onSave={handleSave} />
-      </div>
-
-      <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-100 pb-4">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
-              activeTab === tab.key
-                ? 'bg-brand text-white shadow-md shadow-brand/20'
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {isLoading ? (
@@ -86,10 +59,10 @@ export const MyVouchersPage: React.FC = () => {
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-16 text-center">
           <TicketPercent size={40} className="text-slate-300" />
           <p className="font-semibold text-slate-700">
-            {activeTab === 'all' ? t('voucher.emptyAll') : t('voucher.emptyTab', { tab: activeTabLabel })}
+            {t('voucher.emptyAll')}
           </p>
           <p className="max-w-sm text-sm text-slate-400">
-            {activeTab === 'all' ? t('voucher.emptyAllHint') : t('voucher.emptyTabHint')}
+            {t('voucher.emptyAllHint')}
           </p>
         </div>
       ) : (

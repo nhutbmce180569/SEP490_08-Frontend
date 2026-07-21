@@ -10,6 +10,7 @@ export const VOUCHER_API = {
   DEACTIVATE: (id: string | number) => `${FULL_API}/vouchers/${id}/deactivate`,
   DISTRIBUTE_BIRTHDAY: `${FULL_API}/vouchers/birthday-distribute`,
   DISTRIBUTE_BIRTHDAY_STATUS: `${FULL_API}/vouchers/birthday-distribute/status`,
+  DISTRIBUTE_BIRTHDAY_PREVIEW: `${FULL_API}/vouchers/birthday-distribute/preview`,
 
   // Customer
   SAVE_VOUCHER: `${FULL_API}/customer/vouchers`,

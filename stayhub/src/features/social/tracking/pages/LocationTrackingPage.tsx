@@ -163,16 +163,18 @@ export const LocationTrackingPage: React.FC = () => {
         header: t("common.actions"),
         className: "w-[120px]",
         render: (item) => (
-          <ActionButton
-            variant="secondary"
-            onClick={() =>
-              navigate(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS(item.scheduleId))
-            }
-            className="h-9 w-full"
-            aria-label={t("common.track")}
-          >
-            <Navigation className="h-4 w-4" />
-          </ActionButton>
+          <div className="flex items-center gap-1.5">
+            <ActionButton
+              variant="secondary"
+              onClick={() =>
+                navigate(PATH.STAFF.TRACK_SCHEDULE_LOCATIONS(item.scheduleId))
+              }
+              className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
+              aria-label={t("common.track")}
+            >
+              <Navigation className="h-3.5 w-3.5" />
+            </ActionButton>
+          </div>
         ),
       },
     ],

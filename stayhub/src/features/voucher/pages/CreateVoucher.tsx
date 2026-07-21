@@ -62,6 +62,15 @@ export const CreateVoucher: React.FC = () => {
         placeholder: t('voucher.discountValuePlaceholder'),
         icon: <Hash className="h-4 w-4" />,
         required: true,
+        validate: (value, formData) => {
+          const val = Number(value);
+          if (formData.discountType === 'Percent') {
+            if (val < 1 || val > 100) return t('voucher.percentInvalidRange');
+          } else if (val <= 0) {
+            return t('voucher.amountInvalidMin');
+          }
+          return undefined;
+        },
       },
       {
         name: 'maxDiscountAmount',
@@ -71,6 +80,14 @@ export const CreateVoucher: React.FC = () => {
         icon: <Hash className="h-4 w-4" />,
         visible: (formData) => formData.discountType === 'Percent',
         required: true,
+        validate: (value, formData) => {
+          if (formData.discountType === 'Percent') {
+            if (!value || Number(value) <= 0) {
+              return t('voucher.maxDiscountRequired');
+            }
+          }
+          return undefined;
+        },
       },
       {
         name: 'availableCount',

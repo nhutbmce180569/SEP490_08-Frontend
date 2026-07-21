@@ -79,10 +79,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h4 className="text-sm font-semibold text-slate-800">{t('voucher.targetAudience')}</h4>
-        <p className="text-xs text-slate-500">{t('voucher.targetAudienceDesc')}</p>
-      </div>
+      <p className="-mt-1 text-xs text-slate-500">{t('voucher.targetAudienceDesc')}</p>
 
       <div className="grid gap-2 sm:grid-cols-3">
         {([

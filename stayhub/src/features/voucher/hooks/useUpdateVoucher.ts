@@ -17,7 +17,12 @@ import {
   validateMaxDiscountAmount,
 } from '../utils/voucherHelpers';
 
+import { useToast } from '../../../contexts/ToastContext';
+import { useTranslation } from '../../../contexts/LocaleContext';
+
 export const useUpdateVoucher = () => {
+  const { t } = useTranslation();
+  const toast = useToast();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,6 +41,7 @@ export const useUpdateVoucher = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vouchers'] });
       queryClient.invalidateQueries({ queryKey: ['voucher', id] });
+      toast.success(t('voucher.updateSuccess'));
       navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
     },
     onError: (err: unknown) => {
@@ -52,6 +58,7 @@ export const useUpdateVoucher = () => {
     if (!voucher) return;
     setServerErrors({});
 
+    const isUsed = (voucher.usedCount ?? 0) > 0;
     const discountType = (data.discountType || voucher.discountType) as string;
     const discountValue = data.discountValue !== undefined && data.discountValue !== ''
       ? Number(data.discountValue)
@@ -64,12 +71,13 @@ export const useUpdateVoucher = () => {
     const voucherTarget = (data.voucherTarget || { type: 'public', customerAssignments: [], topCustomerAssignment: { top: 10, revenuePeriod: 'Month', quantity: 1 } }) as VoucherTargetValue;
 
     const localErrors: Record<string, string> = {};
-    const discountError = validateDiscountValue(discountType, discountValue);
-    const maxDiscountError = validateMaxDiscountAmount(discountType, maxDiscountAmount);
+    if (!isUsed) {
+      const discountError = validateDiscountValue(discountType, discountValue);
+      const maxDiscountError = validateMaxDiscountAmount(discountType, maxDiscountAmount);
+      if (discountError) localErrors.discountValue = discountError;
+      if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
+    }
     const dateError = validateDateRange(startDate, endDate);
-
-    if (discountError) localErrors.discountValue = discountError;
-    if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
     if (dateError) localErrors.endDate = dateError;
 
     if (voucherTarget.type === 'specific') {
@@ -97,12 +105,16 @@ export const useUpdateVoucher = () => {
     }
 
     mutation.mutate({
-      tourId: data.tourId ? Number(data.tourId) : undefined,
-      discountType: data.discountType ? String(data.discountType) : undefined,
-      discountValue: data.discountValue !== undefined && data.discountValue !== ''
-        ? Number(data.discountValue)
-        : undefined,
-      maxDiscountAmount: discountType === 'Percent' ? maxDiscountAmount : undefined,
+      tourId: isUsed ? undefined : (data.tourId ? Number(data.tourId) : undefined),
+      discountType: isUsed ? undefined : (data.discountType ? String(data.discountType) : undefined),
+      discountValue: isUsed
+        ? undefined
+        : (data.discountValue !== undefined && data.discountValue !== ''
+            ? Number(data.discountValue)
+            : undefined),
+      maxDiscountAmount: isUsed
+        ? undefined
+        : (discountType === 'Percent' ? maxDiscountAmount : undefined),
       availableCount: data.availableCount !== undefined && data.availableCount !== ''
         ? Number(data.availableCount)
         : undefined,

@@ -28,10 +28,22 @@ const STATUS_STYLES: Record<string, string> = {
 const getStatusStyle = (status?: string | null) =>
   STATUS_STYLES[status ?? ""] ?? "bg-slate-100 text-slate-600";
 
+const getTranslatedStatus = (status: string | null | undefined, t: any) => {
+  if (!status) return t("common.pending");
+  switch (status) {
+    case "Paid": return t("common.paid");
+    case "Cancelled": return t("common.cancelled");
+    case "Request to Cancel": return t("booking.requestToCancel");
+    case "Completed": return t("common.completed");
+    case "Pending": return t("common.pending");
+    default: return status;
+  }
+};
+
 type OrderStatusFilter = "All" | "Paid" | "Cancelled" | "Request to Cancel";
 
 export const MyBookingsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { user } = useContext(AuthContext);
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -141,7 +153,7 @@ export const MyBookingsPage: React.FC = () => {
           <p className="font-semibold text-slate-700">
             {activeStatus === "All"
               ? t("booking.noBookingsYet")
-              : t("booking.noStatusBookings", { status: activeStatus })}
+              : t("booking.noStatusBookings", { status: getTranslatedStatus(activeStatus, t) })}
           </p>
           <p className="text-sm text-slate-400">
             {activeStatus === "All" ? t("booking.futureBookingsHint") : t("booking.tryAnotherFilter")}
@@ -175,7 +187,7 @@ export const MyBookingsPage: React.FC = () => {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}
                       >
-                        {order.status ?? t("common.pending")}
+                        {getTranslatedStatus(order.status, t)}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-400 mb-2.5">
@@ -185,7 +197,7 @@ export const MyBookingsPage: React.FC = () => {
                           <span className="h-1 w-1 rounded-full bg-slate-300"></span>
                           <span>
                             {t("booking.bookedOn", {
-                              date: new Date(order.orderedAt).toLocaleDateString("en-US", {
+                              date: new Date(order.orderedAt).toLocaleDateString(locale, {
                                 month: "short",
                                 day: "numeric",
                                 year: "numeric",
@@ -199,11 +211,11 @@ export const MyBookingsPage: React.FC = () => {
                       <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
                         <Calendar size={13} className="text-indigo-500" />
                         {order.schedule
-                          ? new Date(order.schedule.departureDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          ? new Date(order.schedule.departureDate).toLocaleDateString(locale, { month: "short", day: "numeric" })
                           : t("common.na")}
                         {" - "}
                         {order.schedule
-                          ? new Date(order.schedule.returnDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+                          ? new Date(order.schedule.returnDate).toLocaleDateString(locale, { month: "short", day: "numeric" })
                           : t("common.na")}
                       </span>
                       <span className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">

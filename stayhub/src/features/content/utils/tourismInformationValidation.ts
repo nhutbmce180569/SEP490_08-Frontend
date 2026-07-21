@@ -15,6 +15,7 @@ const isValidHttpUrl = (value: string) => {
 
 export const validateTourismInformationForm = (
   data: Record<string, unknown>,
+  t: (key: string) => string,
   options: { requireImage?: boolean } = {},
 ) => {
   const errors: Record<string, string> = {};
@@ -33,42 +34,49 @@ export const validateTourismInformationForm = (
     longitudeRaw !== undefined && longitudeRaw !== null && longitudeRaw !== "";
 
   if (!name) {
-    errors.name = "Name is required.";
+    errors.name = t("content.nameRequired");
   } else if (name.length > 255) {
-    errors.name = "Name cannot exceed 255 characters.";
+    errors.name = t("content.nameTooLong");
   }
 
   if (!type) {
-    errors.type = "Type is required.";
-  } else if (!TOURISM_INFORMATION_TYPES.includes(type as (typeof TOURISM_INFORMATION_TYPES)[number])) {
-    errors.type = `Invalid type. Allowed values: ${TOURISM_INFORMATION_TYPES.join(", ")}.`;
+    errors.type = t("content.typeRequired");
+  } else if (type === "Custom") {
+    const customType = String(data.customType ?? "").trim();
+    if (!customType) {
+      errors.customType = t("content.typeRequired");
+    } else if (customType.length > 50) {
+      errors.customType = t("content.typeTooLong");
+    }
+  } else if (type.length > 50) {
+    errors.type = t("content.typeTooLong");
   }
 
   if (!address || isCoordinateOnlyAddress(address)) {
-    errors.address = "Please pick a location on the map or search by place name.";
+    errors.address = t("content.locationPickRequired");
   } else if (address.length > 255) {
-    errors.address = "Address cannot exceed 255 characters.";
+    errors.address = t("content.addressTooLong");
   }
 
   if (!city) {
-    errors.address = errors.address || "Could not detect city from map. Try searching again.";
+    errors.address = errors.address || t("content.locationCityCountryRequired");
   } else if (city.length > 100) {
-    errors.city = "City cannot exceed 100 characters.";
+    errors.city = t("content.cityTooLong");
   }
 
   if (!country) {
-    errors.address = errors.address || "Could not detect country from map. Try searching again.";
+    errors.address = errors.address || t("content.locationCityCountryRequired");
   } else if (country.length > 100) {
-    errors.country = "Country cannot exceed 100 characters.";
+    errors.country = t("content.countryTooLong");
   }
 
   if (address && (!hasLatitude || !hasLongitude)) {
-    errors.address = errors.address || "Please drop a pin on the map to save coordinates.";
+    errors.address = errors.address || t("content.locationCoordinatesRequired");
   }
 
   if (hasLatitude !== hasLongitude) {
-    errors.latitude = "Latitude and longitude must both be provided or both be omitted.";
-    errors.longitude = "Latitude and longitude must both be provided or both be omitted.";
+    errors.latitude = t("content.latitudeLongitudeMismatch");
+    errors.longitude = t("content.latitudeLongitudeMismatch");
   }
 
   if (hasLatitude && hasLongitude) {
@@ -76,24 +84,24 @@ export const validateTourismInformationForm = (
     const longitude = Number(longitudeRaw);
 
     if (Number.isNaN(latitude) || latitude < -90 || latitude > 90) {
-      errors.latitude = "Latitude must be between -90 and 90.";
+      errors.latitude = t("content.latitudeInvalid");
     }
 
     if (Number.isNaN(longitude) || longitude < -180 || longitude > 180) {
-      errors.longitude = "Longitude must be between -180 and 180.";
+      errors.longitude = t("content.longitudeInvalid");
     }
   }
 
   if (options.requireImage && !(data.imageFile instanceof File)) {
-    errors.imageFile = "Image is required.";
+    errors.imageFile = t("content.imageRequired");
   }
 
   if (sourceName.length > 255) {
-    errors.sourceName = "Source name cannot exceed 255 characters.";
+    errors.sourceName = t("content.sourceNameTooLong");
   }
 
   if (sourceUrl && !isValidHttpUrl(sourceUrl)) {
-    errors.sourceUrl = "Source URL must be a valid HTTP or HTTPS URL.";
+    errors.sourceUrl = t("content.sourceUrlInvalid");
   }
 
   return errors;
@@ -107,9 +115,12 @@ export const mapTourismFormToPayload = (data: Record<string, unknown>) => {
   const hasLongitude =
     longitudeRaw !== undefined && longitudeRaw !== null && longitudeRaw !== "";
 
+  const baseType = String(data.type ?? "").trim();
+  const finalType = baseType === "Custom" ? String(data.customType ?? "").trim() : baseType;
+
   return {
     name: String(data.name ?? "").trim(),
-    type: String(data.type ?? "").trim(),
+    type: finalType,
     description: data.description ? String(data.description).trim() : undefined,
     address: data.address ? String(data.address).trim() : undefined,
     city: data.city ? String(data.city).trim() : undefined,

@@ -60,8 +60,40 @@ export const voucherService = {
     return unwrap<ReadVoucherDTO>(response);
   },
 
-  distributeBirthdayVouchers: async (month?: number): Promise<{ voucherCode: string, totalEligibleCustomers: number, emailsSent: number, message: string }> => {
-    const params = month ? { month } : undefined;
+  getBirthdayVoucherPreview: async (
+    month: number,
+    year?: number,
+  ): Promise<{
+    month: number;
+    year: number;
+    voucherCode: string;
+    isDistributed: boolean;
+    totalEligibleCustomers: number;
+    customers: Array<{ id: number; fullName: string; email: string; status: string }>;
+  }> => {
+    const params = { month, year: year ?? new Date().getFullYear() };
+    const response = await apiClient.get(VOUCHER_API.DISTRIBUTE_BIRTHDAY_PREVIEW, { params });
+    return unwrap(response);
+  },
+
+  distributeBirthdayVouchers: async (
+    month?: number,
+    options?: {
+      discountType?: string;
+      discountValue?: number;
+      maxDiscountAmount?: number;
+      startDate?: string;
+      endDate?: string;
+    },
+  ): Promise<{ voucherCode: string; totalEligibleCustomers: number; emailsSent: number; message: string }> => {
+    const params: Record<string, string | number> = {};
+    if (month) params.month = month;
+    if (options?.discountType) params.discountType = options.discountType;
+    if (options?.discountValue) params.discountValue = options.discountValue;
+    if (options?.maxDiscountAmount) params.maxDiscountAmount = options.maxDiscountAmount;
+    if (options?.startDate) params.startDate = options.startDate;
+    if (options?.endDate) params.endDate = options.endDate;
+
     const response = await apiClient.post(VOUCHER_API.DISTRIBUTE_BIRTHDAY, undefined, { params });
     return unwrap(response);
   },

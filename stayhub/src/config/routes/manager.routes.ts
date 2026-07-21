@@ -19,6 +19,7 @@ export const MANAGER_ROUTES = {
   REVIEWS: '/manager/reviews',
   CUSTOMER_ANALYTICS: '/manager/customer-analytics',
   BOOKING_STATISTICS: '/manager/booking-statistics',
+  REVENUE_STATISTICS: '/manager/revenue-statistics',
   PAYOUT: '/manager/payout',
   MODERATION: '/manager/moderation',
   TREND_PREDICTION: '/manager/trend-prediction',

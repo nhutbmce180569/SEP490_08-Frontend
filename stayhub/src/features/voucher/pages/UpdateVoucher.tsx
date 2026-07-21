@@ -70,6 +70,17 @@ export const UpdateVoucher: React.FC = () => {
         type: 'number',
         icon: <Hash className="h-4 w-4" />,
         readOnly: isUsed,
+        validate: (value, formData) => {
+          if (isUsed) return undefined;
+          const val = Number(value);
+          const type = formData.discountType || voucher.discountType;
+          if (type === 'Percent') {
+            if (val < 1 || val > 100) return t('voucher.percentInvalidRange');
+          } else if (val <= 0) {
+            return t('voucher.amountInvalidMin');
+          }
+          return undefined;
+        },
       },
       {
         name: 'maxDiscountAmount',
@@ -78,6 +89,16 @@ export const UpdateVoucher: React.FC = () => {
         icon: <Hash className="h-4 w-4" />,
         readOnly: isUsed,
         visible: (formData) => (formData.discountType || voucher.discountType) === 'Percent',
+        validate: (value, formData) => {
+          if (isUsed) return undefined;
+          const type = formData.discountType || voucher.discountType;
+          if (type === 'Percent') {
+            if (!value || Number(value) <= 0) {
+              return t('voucher.maxDiscountRequired');
+            }
+          }
+          return undefined;
+        },
       },
       {
         name: 'availableCount',

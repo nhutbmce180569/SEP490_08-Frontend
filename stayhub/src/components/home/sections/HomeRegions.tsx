@@ -92,7 +92,7 @@ export const HomeRegions = () => {
 
       <div className="mb-4 flex items-center justify-between">
         <button
-          onClick={() => navigate(`${PATH.PUBLIC.TOUR_SEARCH}?region=${activeRegion}`)}
+          onClick={() => navigate(`${PATH.PUBLIC.REGION_TOURS}?region=${activeRegion}`)}
           className="text-brand font-bold hover:underline text-sm ml-auto mr-4"
         >
           {t("common.seeAll")}

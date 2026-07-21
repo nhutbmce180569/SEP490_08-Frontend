@@ -2,12 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useContext } from 'react';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { customerWishlistService } from '../services/customerWishlist.service';
-import type { WishlistTab } from '../types/customerWishlist';
-import { filterWishlistByTab } from '../utils/wishlistHelpers';
+import { isTourActive } from '../utils/wishlistHelpers';
 
 export const WISHLIST_QUERY_KEY = ['myWishlist'] as const;
 
-export const useMyWishlist = (activeTab: WishlistTab = 'all') => {
+export const useMyWishlist = () => {
   const { user } = useContext(AuthContext);
 
   const query = useQuery({
@@ -16,8 +15,8 @@ export const useMyWishlist = (activeTab: WishlistTab = 'all') => {
     enabled: !!user,
   });
 
-  const allItems = query.data ?? [];
-  const items = filterWishlistByTab(allItems, activeTab);
+  const allItems = (query.data ?? []).filter((item) => isTourActive(item.tourStatus));
+  const items = allItems;
 
   return {
     allItems,

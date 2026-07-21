@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { tourismInformationService } from "../services/tourismInformation.service";
 import type { UpdateTourismInformationDTO } from "../types/tourismInformation";
@@ -19,6 +20,7 @@ export const useUpdateTourismInformation = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const { success, error: showError } = useToast();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
@@ -37,7 +39,7 @@ export const useUpdateTourismInformation = () => {
       tourismInformationService.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tourism-information"] });
-      success("Tourism information updated successfully.");
+      success(t("content.updatingTourismInfo") || "Tourism information updated successfully.");
       navigate(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT);
     },
     onError: (err: unknown) => {
@@ -50,10 +52,28 @@ export const useUpdateTourismInformation = () => {
   });
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const clientErrors = validateTourismInformationForm(data, { requireImage: false });
+    const clientErrors = validateTourismInformationForm(data, t, { requireImage: false });
     if (Object.keys(clientErrors).length > 0) {
       setServerErrors(clientErrors);
       return;
+    }
+    try {
+      const isDuplicate = await tourismInformationService.checkDuplicate(
+        String(data.name || ""),
+        String(data.address || ""),
+        id
+      );
+      if (isDuplicate) {
+        const duplicateErrorMsg = t("content.duplicateTourismInfo");
+        setServerErrors({
+          name: duplicateErrorMsg,
+          address: duplicateErrorMsg,
+        });
+        showError(duplicateErrorMsg);
+        return;
+      }
+    } catch (err) {
+      // ignore
     }
 
     setServerErrors({});
@@ -62,10 +82,11 @@ export const useUpdateTourismInformation = () => {
     mutation.mutate({
       ...payload,
       imageFile: data.imageFile instanceof File ? data.imageFile : undefined,
+      removeImage: data.imageFile === null,
     });
   };
 
-  const handleCancel = () => navigate(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT);
+  const handleCancel = () => navigate(-1);
 
   return {
     id,

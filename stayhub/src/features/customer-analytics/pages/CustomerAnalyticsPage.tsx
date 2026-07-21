@@ -39,7 +39,7 @@ import {
 import { useTranslation } from '../../../contexts/LocaleContext';
 
 export const CustomerAnalyticsPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { preset, setPreset, from, setFrom, to, setTo, dateParams } = useDateRangeState();
 
   const TABS = useMemo<{ id: AnalyticsTab; label: string; icon: React.ReactNode }[]>(
@@ -114,14 +114,17 @@ export const CustomerAnalyticsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand">
+            Manager · {t('analytics.customer.title')}
+          </span>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">
             {t('analytics.customer.title')}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm font-medium text-slate-500">
             {t('analytics.customer.subtitle')}
             {overview && (
-              <span className="ml-1">
-                · {formatDate(overview.periodFrom)} – {formatDate(overview.periodTo)}
+              <span className="ml-1.5 font-bold text-slate-700">
+                · {formatDate(overview.periodFrom, locale)} – {formatDate(overview.periodTo, locale)}
               </span>
             )}
           </p>
@@ -131,15 +134,15 @@ export const CustomerAnalyticsPage: React.FC = () => {
           type="button"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-brand ${isRefreshing ? 'animate-spin' : ''}`} />
           {t('analytics.refresh')}
         </button>
       </div>
 
       {activeTab !== 'engagement' && (
-        <section className="rounded-2xl bg-white p-4 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
+        <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.04)]">
           <DateRangeFilter
             preset={preset}
             from={from}
@@ -151,16 +154,16 @@ export const CustomerAnalyticsPage: React.FC = () => {
         </section>
       )}
 
-      <div className="flex flex-wrap gap-1.5 rounded-2xl bg-white p-1.5 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.05)]">
+      <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-100 bg-white p-2 shadow-[6px_6px_54px_0px_rgba(0,0,0,0.04)]">
         {TABS.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-extrabold transition-all duration-200 ${
               activeTab === tab.id
-                ? 'bg-brand text-white shadow-sm'
-                : 'text-slate-600 hover:bg-slate-50'
+                ? 'bg-brand text-white shadow-md shadow-brand/20 scale-[1.02]'
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
             {tab.icon}

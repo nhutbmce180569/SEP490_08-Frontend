@@ -59,11 +59,18 @@ export const useTourSchedule = () => {
   );
 
   const fetchMySchedules = useCallback(
-  async (page: number = 1, pageSize: number = 10) => {
+  async (
+    page: number = 1,
+    pageSize: number = 10,
+    tourId?: number | null,
+    startDate?: string,
+    endDate?: string,
+    search?: string,
+  ) => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await tourScheduleService.getMySchedules(page, pageSize);
+      const response = await tourScheduleService.getMySchedules(page, pageSize, tourId, startDate, endDate, search);
       setSchedules(response.data || []);
       setPagination({
         total: response.total || 0,

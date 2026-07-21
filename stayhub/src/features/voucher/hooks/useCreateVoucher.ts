@@ -18,7 +18,12 @@ import {
   validateVoucherCode,
 } from '../utils/voucherHelpers';
 
+import { useToast } from '../../../contexts/ToastContext';
+import { useTranslation } from '../../../contexts/LocaleContext';
+
 export const useCreateVoucher = () => {
+  const { t } = useTranslation();
+  const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
@@ -29,6 +34,7 @@ export const useCreateVoucher = () => {
     mutationFn: (data: CreateVoucherDTO) => voucherService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vouchers'] });
+      toast.success(t('voucher.createSuccess'));
       navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);
     },
     onError: (error: unknown) => {

@@ -27,6 +27,7 @@ type HomeFeaturedToursProps = {
   title?: string;
   subtitle?: string;
   eyebrow?: string;
+  onViewAll?: () => void;
 };
 
 export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
@@ -36,6 +37,7 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
   title,
   subtitle,
   eyebrow,
+  onViewAll,
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -77,8 +79,8 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
         eyebrow={eyebrow || t("home.editorsPicks")}
         title={title || t("home.tripsTravelersBook")}
         subtitle={subtitle || t("home.featuredHandpicked")}
-        showSeeAll
-        onSeeAll={() => navigate(PATH.PUBLIC.TOUR_SEARCH)}
+        showSeeAll={!!onViewAll}
+        onSeeAll={onViewAll}
       />
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">

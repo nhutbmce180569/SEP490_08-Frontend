@@ -1,5 +1,12 @@
 {
   "tours": "Tour",
+  "scheduleId": "Mã Lịch trình",
+  "tourNameCol": "Tên Tour",
+  "allTours": "Tất cả Tour",
+  "from": "Từ",
+  "to": "Đến",
+  "startDate": "Ngày bắt đầu",
+  "endDate": "Ngày kết thúc",
   "myTours": "Tour của tôi",
   "tourDetails": "Chi tiết tour",
   "createTour": "Tạo tour",
@@ -592,6 +599,20 @@
   "warning": {
     "allDaysExistNoClone": "Tất cả các ngày trong tour gốc đã có trong form. Không có gì để sao chép."
   },
+  "consultationTitle": "Yêu cầu tư vấn",
+  "fullName": "Họ và tên",
+  "fullNamePlaceholder": "Nhập họ và tên của bạn",
+  "phone": "Số điện thoại",
+  "phonePlaceholder": "Nhập số điện thoại",
+  "email": "Email",
+  "emailPlaceholder": "Nhập địa chỉ email",
+  "note": "Ghi chú",
+  "notePlaceholder": "Nhập yêu cầu tư vấn cụ thể của bạn...",
+  "sendingConsultation": "Đang gửi...",
+  "sendConsultationRequest": "Gửi yêu cầu",
+  "consultationSuccess": "Yêu cầu tư vấn đã được gửi thành công!",
+  "consultationError": "Đã có lỗi xảy ra khi gửi yêu cầu tư vấn.",
+  "requestConsultation": "Yêu cầu tư vấn",
   "success": {
     "clonedMissingDays": "Đã sao chép và thêm thành công {{count}} ngày còn thiếu từ tour gốc."
   }

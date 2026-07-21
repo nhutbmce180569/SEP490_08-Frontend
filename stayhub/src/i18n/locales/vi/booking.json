@@ -228,6 +228,11 @@
   "accountHolder": "Chủ tài khoản",
   "tourInformation": "Thông tin tour",
   "categoryId": "Mã danh mục",
+  "categoryName": "Tên danh mục",
+  "cancellationPolicyInfo": "Chính sách hủy & hoàn tiền",
+  "policyTimeBeforeDeparture": "Thời gian trước khởi hành",
+  "policyCancellationFeeRate": "Phí hủy (%)",
+  "policyFeeNote": "* Phí hủy được trừ trực tiếp vào tổng tiền thanh toán ban đầu để tính ra số tiền hoàn lại cho khách hàng.",
   "averageStar": "Điểm trung bình",
   "country": "Quốc gia",
   "city": "Thành phố",
@@ -362,5 +367,10 @@
   "genderLabel": "Giới tính",
   "copyQrCode": "Sao chép mã QR",
   "qrCodeCopied": "Đã sao chép mã QR vào clipboard!",
-  "qrCodeCopyFailed": "Không thể sao chép mã QR."
+  "qrCodeCopyFailed": "Không thể sao chép mã QR.",
+  "passengerExcelTitle": "Nhập danh sách hành khách",
+  "passengerExcelDescription": "Tải file mẫu về, điền thông tin và nhập lên lại để nhanh chóng thêm {{count}} hành khách.",
+  "passengerExcelDownload": "Tải File Mẫu",
+  "passengerExcelImport": "Nhập File Excel",
+  "passengerExcelReview": "Đã tải lên thành công thông tin của {{count}} hành khách."
 }

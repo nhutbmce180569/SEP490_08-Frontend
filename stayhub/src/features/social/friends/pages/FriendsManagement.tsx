@@ -303,28 +303,14 @@ export const FriendsManagement: React.FC = () => {
           <button
             onClick={() => handleTabChange('add')}
             className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
-              activeTab === 'add'
-                ? 'bg-brand/10 text-brand'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <Search className="w-5 h-5" />
-              <span>{t('social.findFriends') || 'Find Friends'}</span>
-            </div>
-          </button>
-
-          <button
-            onClick={() => handleTabChange('suggestions')}
-            className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
-              activeTab === 'suggestions'
+              activeTab === 'add' || activeTab === 'suggestions'
                 ? 'bg-brand/10 text-brand'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-3">
               <UserPlus className="w-5 h-5" />
-              <span>{t('social.friendSuggestions') || 'Friend Suggestions'}</span>
+              <span>{t('social.findFriends') || 'Find & Suggestions'}</span>
             </div>
             {filteredSuggestions.length > 0 && (
               <span className="text-xs bg-brand/20 px-2 py-0.5 rounded-full text-brand font-bold">
@@ -599,7 +585,7 @@ export const FriendsManagement: React.FC = () => {
                             <button 
                               onClick={() => handleUnfriendClick(req?.id)}
                               disabled={isDeleting}
-                              className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50 transition-colors disabled:opacity-50 cursor-pointer"
+                              className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                             >
                               <UserX className="w-3.5 h-3.5" />
                               <span>{t('social.cancelRequest') || 'Cancel Request'}</span>
@@ -627,9 +613,10 @@ export const FriendsManagement: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4: TÌM BẠN BÈ */}
-        {activeTab === 'add' && (
-          <div className="flex flex-col gap-6">
+        {/* TAB 4 & 5: TÌM BẠN BÈ & GỢI Ý KẾT BẠN (COMBINED SEARCH + SUGGESTIONS) */}
+        {(activeTab === 'add' || activeTab === 'suggestions') && (
+          <div className="flex flex-col gap-8">
+            {/* Search Box Header */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">
               <div>
                 <h2 className="text-lg font-black text-slate-900">{t('social.findPeople')}</h2>
@@ -650,231 +637,231 @@ export const FriendsManagement: React.FC = () => {
               </div>
             </div>
 
-            {searchInput.trim() !== '' && (isSearching || isFetchingSearch) && (
-              <div className="flex justify-center py-16">
-                <Loader2 className="animate-spin text-slate-400 w-8 h-8" />
-              </div>
-            )}
-
-            {!isSearching && !isFetchingSearch && searchInput.trim() !== '' && (!searchResult || !Array.isArray(searchResult.data) || searchResult.data.length === 0) && (
-              <div className="text-center py-16 text-slate-500 border border-dashed border-slate-200 rounded-2xl bg-white shadow-sm">
-                {t('social.noMatchingUsers') || 'No matching users found.'}
-              </div>
-            )}
-
-            {!isSearching && !isSearchError && searchResult && Array.isArray(searchResult.data) && searchResult.data.length > 0 && (
+            {/* Search Results (Visible when search input is typed) */}
+            {searchInput.trim() !== '' && (
               <div className="flex flex-col gap-4">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('social.results', { count: searchResult.total })}</h3>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {searchResult.data
-                    .filter(user => user?.id !== currentUser?.id)
-                    .map(user => {
-                      const sAvatar = user?.avatarUrl || (user as any)?.AvatarUrl || (user as any)?.Picture || null;
-                      const isFriend = allFriendships.some((f: any) => (f.friendId || f.FriendId) === user?.id);
-                      const isSent = sentRequests.some((r: any) => (r.senderId || r.SenderId) === user?.id);
-                      const incomingReq = pendingRequests.find((r: any) => (r.senderId || r.SenderId) === user?.id);
-                      const hasIncoming = !!incomingReq;
-                      
-                      const targetIsStaffOrAdmin = user?.roleNames?.some(
-                        (r: string) => ['admin', 'manager', 'staff'].includes(r.toLowerCase())
-                      );
-                      const canChat = isFriend || targetIsStaffOrAdmin || currentUserIsStaffOrAdmin;
+                {(isSearching || isFetchingSearch) && (
+                  <div className="flex justify-center py-12">
+                    <Loader2 className="animate-spin text-slate-400 w-8 h-8" />
+                  </div>
+                )}
 
-                      return (
-                        <div 
-                          key={user?.id} 
-                          className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-brand/20 transition-all duration-300 flex flex-col group"
-                        >
-                          <div 
-                            className="relative aspect-square w-full bg-slate-100 cursor-pointer overflow-hidden"
-                            onClick={() => navigate(`/social/profile/${user?.id}`)}
-                          >
-                            {sAvatar ? (
-                              <img src={sAvatar} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 text-3xl font-black text-slate-400 group-hover:scale-105 transition-transform duration-300">
-                                {(user?.fullName || 'U').charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                          </div>
-                          <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
-                            <div>
-                              <div className="flex flex-col gap-1">
-                                <h3 
-                                  className="font-bold text-slate-900 hover:text-brand transition-colors cursor-pointer line-clamp-1 text-sm"
-                                  onClick={() => navigate(`/social/profile/${user?.id}`)}
-                                >
-                                  {user?.fullName || t('auth.unknown')}
-                                </h3>
-                                {isFriend ? (
-                                  <span className="text-[9px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded-full uppercase tracking-wider self-start">
-                                    {t('social.friend') || 'Friend'}
-                                  </span>
-                                ) : targetIsStaffOrAdmin ? (
-                                  <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider self-start">
-                                    System {user?.roleNames?.find((r: string) => r === "Admin" || r === "Manager" || r === "Staff")}
-                                  </span>
-                                ) : null}
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1 line-clamp-1 select-all">{user?.email}</p>
-                            </div>
+                {!isSearching && !isFetchingSearch && (!searchResult || !Array.isArray(searchResult.data) || searchResult.data.length === 0) && (
+                  <div className="text-center py-12 text-slate-500 border border-dashed border-slate-200 rounded-2xl bg-white shadow-sm">
+                    {t('social.noMatchingUsers') || 'No matching users found.'}
+                  </div>
+                )}
 
-                            <div className="flex flex-col gap-1.5 mt-2">
-                              {isFriend ? (
-                                <button 
-                                  disabled
-                                  className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
-                                >
-                                  <UserCheck className="w-3.5 h-3.5" />
-                                  <span>{t('social.friend') || 'Friend'}</span>
-                                </button>
-                              ) : isSent ? (
-                                <button
-                                  disabled
-                                  className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-100 text-slate-400 text-xs font-semibold rounded-lg border border-slate-200 cursor-not-allowed"
-                                >
-                                  <Clock className="w-3.5 h-3.5" />
-                                  <span>{t('social.requestSent') || 'Request Sent'}</span>
-                                </button>
-                              ) : hasIncoming ? (
-                                <button
-                                  onClick={() => handleRespond(incomingReq.id, true)}
-                                  disabled={isResponding}
-                                  className="flex items-center justify-center gap-1.5 w-full py-2 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-50 cursor-pointer"
-                                >
-                                  <UserCheck className="w-3.5 h-3.5" />
-                                  <span>{t('social.accept') || 'Accept'}</span>
-                                </button>
-                              ) : targetIsStaffOrAdmin ? null : (
-                                <button
-                                  onClick={() => handleSendRequest(user?.id)}
-                                  disabled={isSending}
-                                  className="flex items-center justify-center gap-1.5 w-full py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50 cursor-pointer"
-                                >
-                                  <UserPlus className="w-3.5 h-3.5" />
-                                  <span>{t('social.addFriend') || 'Add Friend'}</span>
-                                </button>
-                              )}
-                              
-                              <button
-                                onClick={() => canChat && handleCreateChat(user?.id)}
-                                disabled={isCreatingChat || !canChat}
-                                className={`flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold rounded-lg transition-colors border ${
-                                  canChat
-                                    ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-brand hover:border-brand/30 cursor-pointer"
-                                    : "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
-                                }`}
-                                title={!canChat ? t('social.chatRestrictionTooltip') || "Direct messaging is restricted to friends, staff, managers, or admins" : ""}
+                {!isSearching && !isSearchError && searchResult && Array.isArray(searchResult.data) && searchResult.data.length > 0 && (
+                  <div className="flex flex-col gap-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">{t('social.results', { count: searchResult.total })}</h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {searchResult.data
+                        .filter(user => user?.id !== currentUser?.id)
+                        .map(user => {
+                          const sAvatar = user?.avatarUrl || (user as any)?.AvatarUrl || (user as any)?.Picture || null;
+                          const isFriend = allFriendships.some((f: any) => (f.friendId || f.FriendId) === user?.id);
+                          const isSent = sentRequests.some((r: any) => (r.senderId || r.SenderId) === user?.id);
+                          const incomingReq = pendingRequests.find((r: any) => (r.senderId || r.SenderId) === user?.id);
+                          const hasIncoming = !!incomingReq;
+                          
+                          const targetIsStaffOrAdmin = user?.roleNames?.some(
+                            (r: string) => ['admin', 'manager', 'staff'].includes(r.toLowerCase())
+                          );
+                          const canChat = isFriend || targetIsStaffOrAdmin || currentUserIsStaffOrAdmin;
+
+                          return (
+                            <div 
+                              key={user?.id} 
+                              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-brand/20 transition-all duration-300 flex flex-col group"
+                            >
+                              <div 
+                                className="relative aspect-square w-full bg-slate-100 cursor-pointer overflow-hidden"
+                                onClick={() => navigate(`/social/profile/${user?.id}`)}
                               >
-                                <MessageCircle className="w-3.5 h-3.5" />
-                                <span>{t('social.message') || 'Message'}</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                </div>
+                                {sAvatar ? (
+                                  <img src={sAvatar} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 text-3xl font-black text-slate-400 group-hover:scale-105 transition-transform duration-300">
+                                    {(user?.fullName || 'U').charAt(0).toUpperCase()}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
+                                <div>
+                                  <div className="flex flex-col gap-1">
+                                    <h3 
+                                      className="font-bold text-slate-900 hover:text-brand transition-colors cursor-pointer line-clamp-1 text-sm"
+                                      onClick={() => navigate(`/social/profile/${user?.id}`)}
+                                    >
+                                      {user?.fullName || t('auth.unknown')}
+                                    </h3>
+                                    {isFriend ? (
+                                      <span className="text-[9px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded-full uppercase tracking-wider self-start">
+                                        {t('social.friend') || 'Friend'}
+                                      </span>
+                                    ) : targetIsStaffOrAdmin ? (
+                                      <span className="text-[9px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full uppercase tracking-wider self-start">
+                                        System {user?.roleNames?.find((r: string) => r === "Admin" || r === "Manager" || r === "Staff")}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                  <p className="text-[10px] text-slate-400 mt-1 line-clamp-1 select-all">{user?.email}</p>
+                                </div>
 
-                {searchResult.total > pageSize && (
-                  <div className="mt-4">
-                    <PaginationButton
-                      currentPage={searchPage}
-                      totalPages={Math.ceil(searchResult.total / pageSize)}
-                      totalItems={searchResult.total}
-                      pageSize={pageSize}
-                      onPageChange={(p) => setSearchPage(p)}
-                    />
+                                <div className="flex flex-col gap-1.5 mt-2">
+                                  {isFriend ? (
+                                    <button 
+                                      disabled
+                                      className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-slate-400 bg-slate-100 border border-slate-200 rounded-lg cursor-not-allowed"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                      <span>{t('social.friend') || 'Friend'}</span>
+                                    </button>
+                                  ) : isSent ? (
+                                    <button
+                                      disabled
+                                      className="flex items-center justify-center gap-1.5 w-full py-2 bg-slate-100 text-slate-400 text-xs font-semibold rounded-lg border border-slate-200 cursor-not-allowed"
+                                    >
+                                      <Clock className="w-3.5 h-3.5" />
+                                      <span>{t('social.requestSent') || 'Request Sent'}</span>
+                                    </button>
+                                  ) : hasIncoming ? (
+                                    <button
+                                      onClick={() => handleRespond(incomingReq.id, true)}
+                                      disabled={isResponding}
+                                      className="flex items-center justify-center gap-1.5 w-full py-2 bg-brand text-white text-xs font-semibold rounded-lg hover:bg-brand-hover transition-colors disabled:opacity-50 cursor-pointer"
+                                    >
+                                      <UserCheck className="w-3.5 h-3.5" />
+                                      <span>{t('social.accept') || 'Accept'}</span>
+                                    </button>
+                                  ) : targetIsStaffOrAdmin ? null : (
+                                    <button
+                                      onClick={() => handleSendRequest(user?.id)}
+                                      disabled={isSending}
+                                      className="flex items-center justify-center gap-1.5 w-full py-2 bg-[#0068E0] text-white text-xs font-semibold rounded-lg hover:bg-[#0058D0] transition-colors disabled:opacity-50 cursor-pointer"
+                                    >
+                                      <UserPlus className="w-3.5 h-3.5" />
+                                      <span>{t('social.addFriend') || 'Add Friend'}</span>
+                                    </button>
+                                  )}
+                                  
+                                  <button
+                                    onClick={() => canChat && handleCreateChat(user?.id)}
+                                    disabled={isCreatingChat || !canChat}
+                                    className={`flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold rounded-lg transition-colors border ${
+                                      canChat
+                                        ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-50 hover:text-brand hover:border-brand/30 cursor-pointer"
+                                        : "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
+                                    }`}
+                                    title={!canChat ? t('social.chatRestrictionTooltip') || "Direct messaging is restricted to friends, staff, managers, or admins" : ""}
+                                  >
+                                    <MessageCircle className="w-3.5 h-3.5" />
+                                    <span>{t('social.message') || 'Message'}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    {searchResult.total > pageSize && (
+                      <div className="mt-4">
+                        <PaginationButton
+                          currentPage={searchPage}
+                          totalPages={Math.ceil(searchResult.total / pageSize)}
+                          totalItems={searchResult.total}
+                          pageSize={pageSize}
+                          onPageChange={(p) => setSearchPage(p)}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             )}
-          </div>
-        )}
 
-        {/* TAB 5: GỢI Ý BẠN BÈ */}
-        {activeTab === 'suggestions' && (
-          <div className="flex flex-col gap-6 h-full">
-            <div>
-              <h2 className="text-lg font-black text-slate-900">{t('social.friendSuggestions') || 'Friend Suggestions'}</h2>
-              <p className="text-xs text-slate-400 mt-0.5">{t('social.suggestionsDesc') || 'People you may know from shared tour schedules or mutual friends'}</p>
-            </div>
-
-            {isLoadingSuggestions && (
-              <div className="flex justify-center py-16 flex-1 items-center">
-                <Loader2 className="animate-spin text-slate-400 w-8 h-8" />
+            {/* Friend Suggestions Section (Directly underneath the Search bar / Search results) */}
+            <div className="flex flex-col gap-6 pt-2 border-t border-slate-200/60">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">{t('social.friendSuggestions') || 'Friend Suggestions'}</h2>
+                <p className="text-xs text-slate-400 mt-0.5">{t('social.suggestionsDesc') || 'People you may know from shared tour schedules or mutual friends'}</p>
               </div>
-            )}
 
-            {!isLoadingSuggestions && filteredSuggestions.length === 0 && (
-              <div className="text-center py-20 text-slate-500 border border-dashed border-slate-200 rounded-2xl bg-white shadow-sm flex flex-col items-center justify-center gap-3 flex-1">
-                <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                  <UserPlus className="w-7 h-7" />
+              {isLoadingSuggestions && (
+                <div className="flex justify-center py-16 flex-1 items-center">
+                  <Loader2 className="animate-spin text-slate-400 w-8 h-8" />
                 </div>
-                <div>
-                  <p className="font-semibold text-slate-800 text-sm">{t('social.noSuggestions') || 'No suggestions'}</p>
-                  <p className="text-xs text-slate-400 mt-1">{t('social.noSuggestionsSub') || 'We will suggest connections when you join new trips or share mutual friends.'}</p>
-                </div>
-              </div>
-            )}
+              )}
 
-            {filteredSuggestions.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredSuggestions.map(sug => {
-                  return (
-                    <div 
-                      key={sug?.id} 
-                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-brand/20 transition-all duration-300 flex flex-col group"
-                    >
+              {!isLoadingSuggestions && filteredSuggestions.length === 0 && (
+                <div className="text-center py-16 text-slate-500 border border-dashed border-slate-200 rounded-2xl bg-white shadow-sm flex flex-col items-center justify-center gap-3">
+                  <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
+                    <UserPlus className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 text-sm">{t('social.noSuggestions') || 'No suggestions'}</p>
+                    <p className="text-xs text-slate-400 mt-1">{t('social.noSuggestionsSub') || 'We will suggest connections when you join new trips or share mutual friends.'}</p>
+                  </div>
+                </div>
+              )}
+
+              {filteredSuggestions.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredSuggestions.map(sug => {
+                    return (
                       <div 
-                        className="relative aspect-square w-full bg-slate-100 cursor-pointer overflow-hidden"
-                        onClick={() => navigate(`/social/profile/${sug?.id}`)}
+                        key={sug?.id} 
+                        className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-brand/20 transition-all duration-300 flex flex-col group"
                       >
-                        {sug?.avatarUrl ? (
-                          <img src={sug.avatarUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 text-3xl font-black text-slate-400 group-hover:scale-105 transition-transform duration-300">
-                            {(sug?.fullName || 'U').charAt(0).toUpperCase()}
+                        <div 
+                          className="relative aspect-square w-full bg-slate-100 cursor-pointer overflow-hidden"
+                          onClick={() => navigate(`/social/profile/${sug?.id}`)}
+                        >
+                          {sug?.avatarUrl ? (
+                            <img src={sug.avatarUrl} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 text-3xl font-black text-slate-400 group-hover:scale-105 transition-transform duration-300">
+                              {(sug?.fullName || 'U').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
+                          <div>
+                            <h3 
+                              className="font-bold text-slate-900 hover:text-brand transition-colors cursor-pointer line-clamp-1 text-sm"
+                              onClick={() => navigate(`/social/profile/${sug?.id}`)}
+                            >
+                              {sug?.fullName || t('auth.unknown')}
+                            </h3>
+                            <p className="text-[10px] text-slate-400 mt-1 line-clamp-1 select-all">{sug?.email}</p>
                           </div>
-                        )}
-                      </div>
-                      <div className="p-4 flex flex-col gap-3 flex-1 justify-between">
-                        <div>
-                          <h3 
-                            className="font-bold text-slate-900 hover:text-brand transition-colors cursor-pointer line-clamp-1 text-sm"
-                            onClick={() => navigate(`/social/profile/${sug?.id}`)}
-                          >
-                            {sug?.fullName || t('auth.unknown')}
-                          </h3>
-                          <span className="text-[9px] font-bold text-brand bg-brand/10 px-2 py-0.5 rounded-full uppercase tracking-wider self-start inline-block mt-1">
-                            {t('social.friendSuggestions') || 'Suggested Friend'}
-                          </span>
-                          <p className="text-[10px] text-slate-400 mt-1 line-clamp-1 select-all">{sug?.email}</p>
-                        </div>
 
-                        <div className="flex flex-col gap-1.5 mt-2">
-                          <button 
-                            onClick={() => handleSendRequest(sug?.id)}
-                            disabled={isSending}
-                            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-white bg-brand hover:bg-brand-hover rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
-                          >
-                            <UserPlus className="w-3.5 h-3.5" />
-                            <span>{t('social.addFriend') || 'Add Friend'}</span>
-                          </button>
-                          <button 
-                            onClick={() => setHiddenSuggestionIds(prev => [...prev, sug.id])}
-                            className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <span>{t('social.removeSuggestion') || 'Remove'}</span>
-                          </button>
+                          <div className="flex flex-col gap-1.5 mt-2">
+                            <button 
+                              onClick={() => handleSendRequest(sug?.id)}
+                              disabled={isSending}
+                              className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-white bg-brand hover:bg-brand-hover rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+                            >
+                              <UserPlus className="w-3.5 h-3.5" />
+                              <span>{t('social.addFriend') || 'Add Friend'}</span>
+                            </button>
+                            <button 
+                              onClick={() => setHiddenSuggestionIds(prev => [...prev, sug.id])}
+                              className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-slate-500 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <span>{t('social.removeSuggestion') || 'Remove'}</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

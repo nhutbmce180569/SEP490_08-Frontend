@@ -143,7 +143,7 @@ export const SocialProfile: React.FC = () => {
     if (currentMomentIndexInProfile !== -1 && moments && currentMomentIndexInProfile < moments.length - 1) {
       return () => {
         const next = moments[currentMomentIndexInProfile + 1];
-        setSelectedMomentId(next.id || next.Id);
+        setSelectedMomentId(next.id || (next as any).Id);
       };
     }
     return undefined;
@@ -153,7 +153,7 @@ export const SocialProfile: React.FC = () => {
     if (currentMomentIndexInProfile > 0 && moments) {
       return () => {
         const prev = moments[currentMomentIndexInProfile - 1];
-        setSelectedMomentId(prev.id || prev.Id);
+        setSelectedMomentId(prev.id || (prev as any).Id);
       };
     }
     return undefined;
@@ -174,7 +174,7 @@ export const SocialProfile: React.FC = () => {
       const targetIndex = currentMomentIndexInProfile + i;
       if (targetIndex < moments.length) {
         const nextMoment = moments[targetIndex];
-        const imgUrl = nextMoment?.imageUrl || nextMoment?.ImageUrl;
+        const imgUrl = nextMoment?.imageUrl || (nextMoment as any)?.ImageUrl;
         if (imgUrl) {
           const img = new Image();
           img.src = imgUrl;
@@ -491,7 +491,7 @@ export const SocialProfile: React.FC = () => {
           {/* Details Column (Right side) */}
           <div className="flex-1 flex flex-col gap-5 text-center md:text-left w-full">
             {/* Row 1: Name and Profile Actions */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 justify-between sm:justify-start sm:gap-6">
+            <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
               <h1 className="text-2xl font-black text-slate-900 tracking-tight sm:text-3xl">{profile.fullName}</h1>
               <div className="flex items-center gap-3 shrink-0">
                 {renderProfileActions()}

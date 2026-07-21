@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from '../../../contexts/LocaleContext';
 import { CHART_COLORS, formatPeriodLabel } from '../utils/analyticsHelpers';
 import type { Granularity } from '../types/customerAnalytics.types';
 

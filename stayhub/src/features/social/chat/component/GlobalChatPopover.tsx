@@ -160,7 +160,7 @@ export const GlobalChatPopover: React.FC = () => {
     
     const container = chatContainerRef.current;
     const lastMsg = allMessages[allMessages.length - 1];
-    const lastMsgId = lastMsg?.id ?? lastMsg?.Id;
+    const lastMsgId = (lastMsg as any)?.id ?? (lastMsg as any)?.Id;
     
     // 1. Switched rooms -> scroll to bottom immediately
     if (activeRoomId !== lastRoomIdRef.current) {
@@ -172,7 +172,7 @@ export const GlobalChatPopover: React.FC = () => {
 
     // 2. New message arrived -> scroll to bottom ONLY if the user is already near bottom OR if they sent the message themselves
     if (lastMsgId !== lastMessageIdRef.current) {
-      const isMe = String(lastMsg?.senderId ?? lastMsg?.SenderId ?? '') === String(currentUserId);
+      const isMe = String((lastMsg as any)?.senderId ?? (lastMsg as any)?.SenderId ?? '') === String(currentUserId);
       const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
       
       if (isMe || isNearBottom) {
@@ -479,16 +479,16 @@ export const GlobalChatPopover: React.FC = () => {
               </div>
             ) : (
               allMessages.map((msg: any, index) => {
-                const senderName = msg.senderName ?? msg.SenderName ?? '';
-                const senderId = msg.senderId ?? msg.SenderId;
+                const senderName = (msg as any).senderName ?? (msg as any).SenderName ?? '';
+                const senderId = (msg as any).senderId ?? (msg as any).SenderId;
                 const isMe = String(senderId ?? '') === String(currentUserId);
                 
                 const nextMsg = allMessages[index + 1];
                 const prevMsg = allMessages[index - 1];
-                const nextSenderId = nextMsg?.senderId ?? nextMsg?.SenderId;
-                const prevSenderId = prevMsg?.senderId ?? prevMsg?.SenderId;
-                const isNextSystem = nextMsg?.senderName === 'System' || nextMsg?.SenderName === 'System';
-                const isPrevSystem = prevMsg?.senderName === 'System' || prevMsg?.SenderName === 'System';
+                const nextSenderId = (nextMsg as any)?.senderId ?? (nextMsg as any)?.SenderId;
+                const prevSenderId = (prevMsg as any)?.senderId ?? (prevMsg as any)?.SenderId;
+                const isNextSystem = (nextMsg as any)?.senderName === 'System' || (nextMsg as any)?.SenderName === 'System';
+                const isPrevSystem = (prevMsg as any)?.senderName === 'System' || (prevMsg as any)?.SenderName === 'System';
 
                 const isLastInGroup = !nextMsg || isNextSystem || String(nextSenderId ?? '') !== String(senderId ?? '');
                 const isFirstInGroup = !prevMsg || isPrevSystem || String(prevSenderId ?? '') !== String(senderId ?? '');

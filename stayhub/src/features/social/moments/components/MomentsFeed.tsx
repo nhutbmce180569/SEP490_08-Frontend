@@ -138,7 +138,7 @@ export const MomentsFeed: React.FC = () => {
     if (currentMomentIndexInFeed !== -1 && currentMomentIndexInFeed < filteredMoments.length - 1) {
       return () => {
         const next = filteredMoments[currentMomentIndexInFeed + 1];
-        setSelectedMomentId(next.id || next.Id);
+        setSelectedMomentId(next.id || (next as any).Id);
       };
     }
     return undefined;
@@ -148,7 +148,7 @@ export const MomentsFeed: React.FC = () => {
     if (currentMomentIndexInFeed > 0) {
       return () => {
         const prev = filteredMoments[currentMomentIndexInFeed - 1];
-        setSelectedMomentId(prev.id || prev.Id);
+        setSelectedMomentId(prev.id || (prev as any).Id);
       };
     }
     return undefined;
@@ -169,7 +169,7 @@ export const MomentsFeed: React.FC = () => {
       const targetIndex = currentMomentIndexInFeed + i;
       if (targetIndex < filteredMoments.length) {
         const nextMoment = filteredMoments[targetIndex];
-        const imgUrl = nextMoment?.imageUrl || nextMoment?.ImageUrl;
+        const imgUrl = nextMoment?.imageUrl || (nextMoment as any)?.ImageUrl;
         if (imgUrl) {
           const img = new Image();
           img.src = imgUrl;
@@ -194,14 +194,14 @@ export const MomentsFeed: React.FC = () => {
     <div className="w-full h-full flex flex-col bg-slate-50 overflow-hidden select-none relative">
       {/* Sleek Immersive Apple-style Floating Header Bar (Light Theme) */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white/80 border border-slate-200/60 backdrop-blur-xl px-3 py-1.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 w-auto max-w-[95%] sm:max-w-max h-12">
-        {/* Center Switcher Buttons (Dynamic Island Style - Dark High Contrast) */}
-        <div className="flex items-center bg-black/95 p-1 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.15)] border border-slate-800 h-9">
+        {/* Center Switcher Buttons (iOS 26 Liquid Glass Style) */}
+        <div className="flex items-center bg-slate-200/60 backdrop-blur-md p-1 rounded-full border border-white/60 h-9.5 shadow-[inner_0_1px_2px_rgba(0,0,0,0.05)]">
           <button
             onClick={() => setViewMode('feed')}
-            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-200 cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${
               viewMode === 'feed'
-                ? 'bg-brand text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
             }`}
           >
             <LayoutList className="h-3 w-3" />
@@ -209,10 +209,10 @@ export const MomentsFeed: React.FC = () => {
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-200 cursor-pointer ${
+            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${
               viewMode === 'map'
-                ? 'bg-brand text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
             }`}
           >
             <Map className="h-3 w-3" />
@@ -220,10 +220,10 @@ export const MomentsFeed: React.FC = () => {
           </button>
         </div>
 
-        {/* Right Selector Filter Dropdown */}
-        <div className="relative h-8 shrink-0 max-w-[95px] xs:max-w-[125px] sm:max-w-[180px] md:max-w-[260px]">
+        {/* Right Selector Filter Dropdown (iOS 26 Liquid Glass) */}
+        <div className="relative h-9 shrink-0 max-w-[95px] xs:max-w-[125px] sm:max-w-[180px] md:max-w-[260px]">
           <select
-            className="appearance-none bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 text-slate-650 font-bold text-[11px] h-full pl-3 pr-8 rounded-full focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand cursor-pointer transition-colors shadow-sm w-full truncate"
+            className="appearance-none bg-slate-100/80 hover:bg-white/90 border border-slate-200/80 text-slate-800 font-bold text-[11px] h-full pl-3.5 pr-8 rounded-full focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand cursor-pointer transition-all shadow-sm w-full truncate backdrop-blur-md"
             onChange={(e) => setScheduleId(e.target.value ? Number(e.target.value) : null)}
             value={scheduleId || ""}
           >
@@ -234,7 +234,7 @@ export const MomentsFeed: React.FC = () => {
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
             <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>
@@ -350,18 +350,12 @@ export const MomentsFeed: React.FC = () => {
           <div 
             onClick={() => setIsCreateOpen(true)}
             className="group flex flex-col items-center gap-1.5 cursor-pointer select-none transition-transform duration-300 hover:scale-105 active:scale-95"
+            title={t("social.postMoment") || "POST MOMENT"}
           >
             {/* Circular Camera Button with White Ring */}
             <div className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand text-white border-4 border-white shadow-[0_8px_25px_rgba(0,104,224,0.4)] transition-all duration-300 group-hover:shadow-[0_12px_32px_rgba(0,104,224,0.55)] overflow-hidden">
               <Camera className="w-6 h-6 md:w-7 md:h-7 text-white" />
               <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
-            </div>
-
-            {/* Label Pill Card */}
-            <div className="px-3.5 py-1 rounded-xl bg-white/95 border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-md">
-              <span className="text-[10px] md:text-[11px] font-black tracking-wider uppercase text-slate-700 whitespace-nowrap">
-                {t("social.postMoment") || "POST MOMENT"}
-              </span>
             </div>
           </div>
         </div>

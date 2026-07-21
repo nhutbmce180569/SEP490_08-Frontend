@@ -258,7 +258,7 @@ const ProtectedRoute: React.FC<{ allowedRoles?: string[] }> = ({
 // Wrapper để hứng ID từ URL và truyền vào MomentsFeed
 const MomentsRouteWrapper = () => {
   return (
-    <div className="w-full h-[calc(100vh-80px)] overflow-hidden">
+    <div className="w-full h-[calc(100vh-64px)] md:h-[calc(100vh-72px)] overflow-hidden m-0 p-0 flex flex-col">
       <MomentsFeed />
     </div>
   );

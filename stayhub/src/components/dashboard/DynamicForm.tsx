@@ -420,7 +420,7 @@ export const DynamicForm: React.FC<DynamicFormProps> = ({
             variant="primary" 
             onClick={(e) => {
               e.preventDefault();
-              handleSubmit(e as any);
+              handleSubmit();
             }} 
             className="shrink-0 whitespace-nowrap gap-2 px-4 py-2 text-sm"
           >

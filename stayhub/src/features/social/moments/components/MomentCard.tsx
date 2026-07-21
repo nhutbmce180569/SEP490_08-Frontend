@@ -67,6 +67,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
   const [reportReason, setReportReason] = useState('Spam');
   const [reportDetails, setReportDetails] = useState('');
   const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
 
   const handleSendReport = async () => {
     setIsSubmittingReport(true);

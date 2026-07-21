@@ -200,7 +200,7 @@ export const StaffTicketListPage: React.FC = () => {
             </div>
             {ticket.qrCode && (
               <button
-                onClick={() => handleCopy(ticket.qrCode, ticket.id.toString())}
+                onClick={() => handleCopy(ticket.qrCode!, ticket.id.toString())}
                 className="text-slate-400 hover:text-[#0068E0] transition-colors p-1"
                 title={t("booking.copyQrCode")}
               >

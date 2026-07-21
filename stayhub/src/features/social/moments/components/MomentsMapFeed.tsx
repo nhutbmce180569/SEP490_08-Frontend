@@ -909,21 +909,21 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   if (isMomentsLoading || isRouteLoading) {
     return (
-      <div className="w-full h-[80vh] flex items-center justify-center bg-slate-100 rounded-3xl">
+      <div className="w-full h-full flex items-center justify-center bg-slate-100">
         <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-[80vh] overflow-hidden rounded-3xl shadow-xl border border-slate-200 bg-slate-100">
+    <div className="relative w-full h-full overflow-hidden bg-slate-100">
       <Map
         ref={mapRef}
         {...viewState}
         onMove={handleMapMove}
         onLoad={onMapLoad}
         mapboxAccessToken={apiKey}
-        mapStyle={isNightMode ? "mapbox://styles/mapbox/navigation-night-v1" : "mapbox://styles/mapbox/navigation-day-v1"}
+        mapStyle={isNightMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
         style={{ width: "100%", height: "100%" }}
         onClick={handleMapClick}
         attributionControl={false}
@@ -1281,7 +1281,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             style={{ transition: 'color 300ms ease, transform 300ms ease' }}
             className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${
               selectedDay === 'ALL'
-                ? 'text-white font-black scale-105'
+                ? 'text-white font-black scale-105 bg-gradient-to-r from-brand to-cyan-500 shadow-sm'
                 : 'text-slate-700 hover:text-brand hover:scale-102'
             }`}
           >
@@ -1309,8 +1309,12 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       <div className="absolute top-20 md:top-4 right-4 z-20 flex flex-row-reverse md:flex-col gap-3">
         <div className="relative">
           <button
-            onClick={(e) => { e.stopPropagation(); setIsLayerMenuOpen(!isLayerMenuOpen); }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none"
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (!isLayerMenuOpen) setIsReplayMode(false);
+              setIsLayerMenuOpen(!isLayerMenuOpen); 
+            }}
+            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none shadow-md"
           >
             <Layers className="h-6 w-6" />
           </button>
@@ -1449,12 +1453,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           <button
             onClick={(e) => { 
               e.stopPropagation(); 
+              setIsLayerMenuOpen(false);
               setIsReplayMode(!isReplayMode); 
               if (isSpecificTour) setIsPlaying(!isReplayMode); 
               setCurrentEventIndex(0); 
               setDockState('expanded');
             }}
-            className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
+            className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none shadow-md ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
             title="Timeline Replay"
           >
             <History className="h-6 w-6" />
@@ -1474,13 +1479,31 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         </button>
       </div>
 
-      {/* Nút Điều hướng Nhanh (Góc dưới phải) */}
+      {/* Nút Điều hướng Nhanh & Ảnh mới nhất (Góc dưới trái) */}
+      <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-2.5">
+        {!isReplayMode && (
+          <button 
+            onClick={handleJumpToNewest} 
+            disabled={points.length === 0}
+            className={`glass-button flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all shadow-md ${
+              points.length === 0 
+                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70' 
+                : 'text-slate-800 hover:scale-105 active:scale-95 bg-white/95 backdrop-blur-md'
+            }`}
+          >
+            <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
+            {t("social.mapNewestPhoto")}
+          </button>
+        )}
+      </div>
+
+      {/* Floating Location Buttons (Lower Right) */}
       <div 
         className={`absolute ${
           isReplayMode 
-            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[320px]' : 'bottom-[100px]') 
-            : 'bottom-28'
-        } right-4 z-20 flex flex-col gap-3 transition-all duration-300`}
+            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[230px]' : 'bottom-[90px]') 
+            : 'bottom-6'
+        } right-4 z-20 flex flex-col gap-2.5 transition-all duration-300`}
       >
         {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
           <button
@@ -1501,10 +1524,10 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 );
               }
             }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-lg border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-md border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none backdrop-blur-md"
             title="Vị trí của bạn"
           >
-            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
+            <Navigation className={`h-4.5 w-4.5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
           </button>
         )}
         {tourStops && tourStops.length > 0 && (
@@ -1520,31 +1543,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 ], { padding: 60, duration: 1000 });
               }
             }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-md border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none backdrop-blur-md"
             title="Tiêu điểm Tour"
           >
-            <Compass className="h-5 w-5" />
+            <Compass className="h-4.5 w-4.5" />
           </button>
         )}
       </div>
-
-      {/* Nút quay về ảnh mới nhất */}
-      {!isReplayMode && (
-        <div className="absolute bottom-6 left-4 z-20">
-          <button 
-            onClick={handleJumpToNewest} 
-            disabled={points.length === 0}
-            className={`glass-button flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-bold transition-all ${
-              points.length === 0 
-                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70' 
-                : 'text-slate-800 hover:scale-105 active:scale-95'
-            }`}
-          >
-            <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
-            {t("social.mapNewestPhoto")}
-          </button>
-        </div>
-      )}
 
       {/* Floating Central Actions (Playback Controls) */}
       <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out flex flex-col items-center gap-2 ${isReplayActive ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
@@ -1567,168 +1572,137 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
          </span>
       </div>
 
-      {/* Immersive Floating Post Moment Button (Matching Screenshot) */}
+      {/* Immersive Floating Post Moment Button (Clean Icon Only) */}
       {onPostMomentClick && !isReplayMode && !isPostButtonHidden && (
         <div 
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onClick={(e) => { e.stopPropagation(); onPostMomentClick(); }}
-          className="group absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-300"
+          className="group absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-300"
+          title={t("social.postMoment") || "POST MOMENT"}
         >
-          {/* Circular Camera Button with White Ring */}
           <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-brand text-white border-4 border-white shadow-[0_8px_25px_rgba(0,104,224,0.35)] transition-all duration-300 group-hover:shadow-[0_12px_30px_rgba(0,104,224,0.5)] overflow-hidden">
             <Camera className="w-6.5 h-6.5 text-white" />
-            <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
-          </div>
-
-          {/* Label Pill Card */}
-          <div className="flex items-center gap-2 pl-3.5 pr-2 py-1 rounded-xl bg-white/95 border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-md">
-            <span className="text-[10px] font-black tracking-wider uppercase text-slate-700 whitespace-nowrap">
-              {t("social.postMoment") || "POST MOMENT"}
-            </span>
-            
-            <div className="h-3.5 w-[1px] bg-slate-200"></div>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsPostButtonHidden(true);
-                localStorage.setItem("post_button_hidden", "true");
-              }}
-              className="flex items-center justify-center w-5 h-5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
-              title={t("social.hideButton") || (locale === 'vi' ? "Thu gọn" : "Collapse")}
-            >
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
       )}
 
-      {/* Timeline Replay Dock */}
+      {/* Timeline Replay Dock (iOS 26 Liquid Glass Style - Downsized) */}
       {isReplayMode && (!isSpecificTour || timelineEvents.length > 0) && (
-        <div className={`absolute bottom-0 left-0 right-0 z-30 transition-all duration-500 ease-in-out flex justify-center ${(!isSpecificTour || dockState === 'expanded') ? 'h-[300px]' : 'h-[80px]'}`}>
-          <div className="w-full max-w-4xl h-full glass-panel rounded-t-[2rem] border-b-0 flex flex-col relative overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.1)]">
+        <div className={`absolute bottom-0 left-0 right-0 z-30 transition-all duration-500 ease-in-out flex justify-center ${(!isSpecificTour || dockState === 'expanded') ? 'h-[210px] md:h-[220px]' : 'h-[70px]'}`}>
+          <div className="w-full max-w-3xl h-full bg-white/80 backdrop-blur-2xl border border-white/80 rounded-t-[2.5rem] flex flex-col relative overflow-hidden shadow-[0_-12px_40px_rgba(0,0,0,0.12)]">
             
             {/* Expand/Collapse Handle */}
             {isSpecificTour && (
               <div 
-                className="w-full h-6 flex items-center justify-center cursor-pointer hover:bg-black/5 transition-colors absolute top-0 left-0 right-0 z-10"
+                className="w-full h-5 flex items-center justify-center cursor-pointer hover:bg-black/5 transition-colors absolute top-0 left-0 right-0 z-10"
                 onClick={() => setDockState(prev => prev === 'expanded' ? 'collapsed' : 'expanded')}
               >
-                <div className="w-12 h-1.5 bg-slate-300 rounded-full mt-2"></div>
+                <div className="w-10 h-1 bg-slate-300/80 rounded-full mt-1.5"></div>
               </div>
             )}
 
-            <div className="flex-1 flex flex-col px-6 pb-6 pt-8">
+            <div className="flex-1 flex flex-col px-5 pt-5 pb-3">
               {!isSpecificTour ? (
-                <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in-up pb-20 relative">
-                  <button onClick={() => setIsReplayMode(false)} className="absolute -top-4 right-0 p-2 bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition-colors">
+                <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in-up relative">
+                  <button onClick={() => setIsReplayMode(false)} className="absolute top-0 right-0 p-1.5 bg-slate-100/80 rounded-full text-slate-500 hover:text-slate-800 transition-colors">
                      <X className="w-4 h-4" />
                   </button>
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                    <History className="w-6 h-6 text-brand" />
+                  <div className="w-10 h-10 rounded-full bg-brand/10 text-brand flex items-center justify-center mb-2">
+                    <History className="w-5 h-5" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-800 mb-1">✨ Open a specific tour to relive your memories</h3>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4 leading-relaxed">
+                  <h3 className="text-sm font-bold text-slate-800 mb-0.5">✨ Open a specific tour to relive your memories</h3>
+                  <p className="text-[11px] text-slate-500 max-w-sm mx-auto mb-3">
                     Timeline Replay is designed to replay one journey at a time.
                   </p>
-                  <button onClick={() => setIsReplayMode(false)} className="px-6 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-full shadow-md hover:scale-105 transition-all">
+                  <button onClick={() => setIsReplayMode(false)} className="px-5 py-2 bg-slate-900 text-white text-xs font-bold rounded-full shadow-md hover:scale-105 transition-all">
                     Browse My Tours
                   </button>
                 </div>
               ) : dockState === 'expanded' ? (
-                <div className="flex flex-col h-full animate-fade-in-up">
-                  {/* Expanded Content */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                     <div className="flex items-center gap-4">
-                        <div className={`w-16 h-16 rounded-2xl overflow-hidden shadow-md border-2 border-white ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
-                          <SafeImage src={timelineEvents[currentEventIndex]?.imageUrl} alt="Event" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-cyan-400 text-white" fallbackText={<MapPin className="w-8 h-8" />} />
+                <div className="flex flex-col h-full justify-between animate-fade-in-up">
+                  {/* Expanded Header Info */}
+                  <div className="flex items-center justify-between gap-3">
+                     <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-xl overflow-hidden shadow-sm border border-white/80 shrink-0 ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
+                          <SafeImage src={timelineEvents[currentEventIndex]?.imageUrl} alt="Event" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-cyan-400 text-white" fallbackText={<MapPin className="w-5 h-5" />} />
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs font-black text-brand tracking-widest uppercase">
+                          <span className="text-[10px] font-black text-brand tracking-widest uppercase">
                              {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
                           </span>
-                          <span className="text-lg font-bold text-slate-800 line-clamp-1">
+                          <span className="text-base font-bold text-slate-800 line-clamp-1">
                              {timelineEvents[currentEventIndex]?.title}
                           </span>
-                          <span className="text-sm text-slate-500 line-clamp-1">
+                          <span className="text-xs text-slate-500 line-clamp-1">
                              {timelineEvents[currentEventIndex]?.desc}
                           </span>
                         </div>
                      </div>
-                     <div className="flex items-center gap-3 self-end sm:self-auto">
+                     <div className="flex items-center gap-2 shrink-0">
                        {!isReplayActive && (
-                         <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(true); }} className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shadow-md hover:bg-brand-hover hover:scale-105 transition-all">
-                            <Play className="w-4 h-4 ml-0.5 fill-current" />
+                         <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(true); }} className="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center shadow-md hover:bg-brand-hover hover:scale-105 transition-all">
+                            <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />
                          </button>
                        )}
                        {isRecording ? (
-                          <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
-                             <span className="w-3 h-3 bg-white rounded-sm"></span>
+                          <button onClick={stopRecording} title="Stop Recording" className="w-9 h-9 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
+                             <span className="w-2.5 h-2.5 bg-white rounded-sm"></span>
                           </button>
                         ) : (
-                          <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                          <button onClick={startRecording} title="Export Journey Video" className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
                              <Film className="w-4 h-4" />
                           </button>
                         )}
-                       <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
-                          <X className="w-5 h-5" />
+                       <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
+                          <X className="w-4.5 h-4.5" />
                        </button>
                      </div>
                   </div>
 
-                  {/* Slider */}
-                  <div className="w-full h-8 mb-4 group relative px-2">
-                     <div className="absolute top-1/2 -translate-y-1/2 left-2 right-2 h-2 bg-slate-200/80 rounded-full overflow-hidden">
+                  {/* Slider Progress */}
+                  <div className="w-full h-6 group relative px-1 my-1">
+                     <div className="absolute top-1/2 -translate-y-1/2 left-1 right-1 h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
                         <div className="h-full bg-brand transition-all duration-300" style={{ width: `${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}%` }}></div>
-                     </div>
+                      </div>
                      <input 
                        type="range" min="0" max={Math.max(0, timelineEvents.length - 1)} 
                        value={currentEventIndex} 
                        onChange={(e) => { setCurrentEventIndex(Number(e.target.value)); setIsPlaying(false); }}
-                       className="absolute top-1/2 -translate-y-1/2 w-full h-8 opacity-0 cursor-pointer z-10"
+                       className="absolute top-1/2 -translate-y-1/2 w-full h-6 opacity-0 cursor-pointer z-10"
                      />
                      <div 
-                       className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-4 border-brand rounded-full shadow-md pointer-events-none transition-all duration-300" 
-                       style={{ left: `calc(${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}% - 10px)` }}
+                       className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-3 border-brand rounded-full shadow-md pointer-events-none transition-all duration-300" 
+                       style={{ left: `calc(${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}% - 8px)` }}
                      ></div>
-                  </div>
-
-                  {/* Safe Area for Post Moment FAB / Central Actions */}
-                  <div className="h-[96px] w-full shrink-0 flex items-center justify-center">
-                     {!isReplayActive && currentEventIndex >= timelineEvents.length - 1 && (
-                       <span className="text-sm font-medium text-slate-500 animate-fade-in-up bg-slate-100/80 px-5 py-2.5 rounded-full border border-slate-200/60 shadow-sm backdrop-blur-sm">
-                         Ready to capture your next moment?
-                       </span>
-                     )}
                   </div>
                 </div>
               ) : (
                 <div className="flex items-center justify-between h-full animate-fade-in-up">
                   {/* Collapsed Content */}
-                   <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-cyan-400 flex items-center justify-center text-white shadow-md">
-                        <History className="w-5 h-5" />
+                   <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand to-cyan-400 flex items-center justify-center text-white shadow-md shrink-0">
+                        <History className="w-4.5 h-4.5" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800">Timeline Replay</span>
-                        <span className="text-xs text-slate-500 line-clamp-1">{new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})} • {timelineEvents[currentEventIndex]?.title}</span>
+                        <span className="text-xs font-bold text-slate-800">Timeline Replay</span>
+                        <span className="text-[11px] text-slate-500 line-clamp-1">{new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})} • {timelineEvents[currentEventIndex]?.title}</span>
                       </div>
                    </div>
-                   <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-2">
                      {isRecording ? (
-                        <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
-                           <span className="w-3 h-3 bg-white rounded-sm"></span>
+                        <button onClick={stopRecording} title="Stop Recording" className="w-9 h-9 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
+                           <span className="w-2.5 h-2.5 bg-white rounded-sm"></span>
                         </button>
                       ) : (
-                        <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
+                        <button onClick={startRecording} title="Export Journey Video" className="w-9 h-9 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
                            <Film className="w-4 h-4" />
                         </button>
                       )}
-                     <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-10 h-10 bg-slate-900 text-white rounded-full shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                        {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
+                     <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-9 h-9 bg-slate-900 text-white rounded-full shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
+                        {isPlaying ? <Pause className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 ml-0.5 fill-current" />}
                      </button>
-                     <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
+                     <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-9 h-9 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
                         <X className="w-4 h-4" />
                      </button>
                    </div>

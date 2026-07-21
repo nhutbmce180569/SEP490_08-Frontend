@@ -40,7 +40,6 @@ export const CommentSection = ({ momentId, comments }: any) => {
   const [newComment, setNewComment] = useState('');
   const { warning, success, error } = useToast();
 
-  const [hiddenCommentIds, setHiddenCommentIds] = useState<number[]>([]);
   const [reportingCommentId, setReportingCommentId] = useState<number | null>(null);
   const [openMenuCommentId, setOpenMenuCommentId] = useState<number | null>(null);
   const [commentReason, setCommentReason] = useState('Spam');
@@ -100,11 +99,16 @@ export const CommentSection = ({ momentId, comments }: any) => {
     setIsSubmittingCommentReport(true);
     try {
       await reportContent('Comment', reportingCommentId, commentReason as any, commentDetails.trim() || undefined);
-      success("Report submitted successfully");
-      setHiddenCommentIds(prev => [...prev, reportingCommentId]);
+      success("Đã gửi báo cáo thành công. Chúng tôi sẽ xem xét và xử lý trong thời gian sớm nhất.");
       setReportingCommentId(null);
     } catch (err: any) {
-      error(err.message || "Failed to submit report.");
+      const msg: string = err?.response?.data?.message || err?.message || "Failed to submit report.";
+      if (msg.includes("đã báo cáo") || msg.toLowerCase().includes("already reported")) {
+        warning("Bạn đã báo cáo bình luận này rồi. Vui lòng chờ kiểm duyệt viên xem xét.");
+        setReportingCommentId(null);
+      } else {
+        error(msg);
+      }
     } finally {
       setIsSubmittingCommentReport(false);
     }
@@ -114,7 +118,6 @@ export const CommentSection = ({ momentId, comments }: any) => {
     <div className="flex flex-col px-4 pt-2">
       <div className="flex flex-col gap-2 mb-2">
         {comments
-          .filter((c: any) => !hiddenCommentIds.includes(c.id))
           .map((c: any) => {
             const fullName =
               c.user?.fullName || c.userName || t("common.anonymous");

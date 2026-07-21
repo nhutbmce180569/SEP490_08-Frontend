@@ -10,7 +10,11 @@ import {
   Calendar,
   User,
   MessageSquare,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Mail,
+  Clock,
+  ChevronRight,
+  Ban
 } from "lucide-react";
 import {
   getPendingReports,
@@ -21,6 +25,34 @@ import { useToast } from "../contexts/ToastContext";
 import { useTranslation } from "../contexts/LocaleContext";
 import { getImg } from "../config/api/api";
 import { ActionButton } from "../components/dashboard/ActionButton";
+import { PaginationButton } from "../components/dashboard/PaginationButton";
+
+/* ── Reason color map ── */
+const REASON_COLOR: Record<string, string> = {
+  "Spam":        "bg-yellow-50 text-yellow-800 ring-yellow-400/30 dark:bg-yellow-500/10 dark:text-yellow-300",
+  "Hate Speech": "bg-red-50 text-red-800 ring-red-400/30 dark:bg-red-500/10 dark:text-red-300",
+  "Harassment":  "bg-orange-50 text-orange-800 ring-orange-400/30 dark:bg-orange-500/10 dark:text-orange-300",
+  "Violence":    "bg-rose-50 text-rose-800 ring-rose-400/30 dark:bg-rose-500/10 dark:text-rose-300",
+  "Other":       "bg-slate-100 text-slate-700 ring-slate-300/30 dark:bg-slate-700 dark:text-slate-300",
+};
+const reasonColor = (r: string) => REASON_COLOR[r] ?? REASON_COLOR["Other"];
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+const fmtTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
+
+/* ── Skeleton row ── */
+const SkeletonRow = () => (
+  <div className="flex animate-pulse items-center gap-4 border-b border-slate-100 px-5 py-4 dark:border-slate-800">
+    <div className="h-12 w-12 shrink-0 rounded-lg bg-slate-200 dark:bg-slate-700" />
+    <div className="flex-1 space-y-2">
+      <div className="h-3 w-40 rounded bg-slate-200 dark:bg-slate-700" />
+      <div className="h-2.5 w-56 rounded bg-slate-100 dark:bg-slate-800" />
+    </div>
+    <div className="h-6 w-20 rounded-full bg-slate-200 dark:bg-slate-700" />
+  </div>
+);
 
 const ModerationDashboard: React.FC = () => {
   const { t } = useTranslation();
@@ -30,6 +62,15 @@ const ModerationDashboard: React.FC = () => {
   const [filterType, setFilterType] = useState<string>("All");
   const [selectedReport, setSelectedReport] = useState<ContentReport | null>(null);
   const [blurImage, setBlurImage] = useState<boolean>(true);
+  const [resolvingId, setResolvingId] = useState<number | null>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
+
+  const handleFilterChange = (key: string) => {
+    setFilterType(key);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     setBlurImage(true);
@@ -41,7 +82,7 @@ const ModerationDashboard: React.FC = () => {
       const data = await getPendingReports();
       setReports(data);
     } catch (err: any) {
-      toast.error("Không thể tải danh sách báo cáo vi phạm.");
+      toast.error(t("manager.moderationDashboard.msgFetchFail"));
     } finally {
       setLoading(false);
     }
@@ -52,282 +93,377 @@ const ModerationDashboard: React.FC = () => {
   }, []);
 
   const handleResolve = async (reportId: number, action: "Approve" | "Reject" | "Dismiss") => {
+    setResolvingId(reportId);
     try {
       await resolveReport(reportId, action);
-      
-      let message = "Báo cáo đã được xử lý.";
-      if (action === "Approve") {
-        message = "Nội dung đã được duyệt an toàn và giữ lại.";
-        toast.success(message);
-      } else if (action === "Reject") {
-        message = "Nội dung vi phạm đã bị ẩn khỏi hệ thống.";
-        toast.warning(message);
-      } else {
-        message = "Đã bỏ qua báo cáo vi phạm này.";
-        toast.info(message);
-      }
+      if (action === "Approve") toast.success(t("manager.moderationDashboard.msgApproveSuccess"));
+      else if (action === "Reject") toast.warning(t("manager.moderationDashboard.msgRejectSuccess"));
+      else toast.info(t("manager.moderationDashboard.msgDismissSuccess"));
 
       setReports((prev) => prev.filter((r) => r.id !== reportId));
-      if (selectedReport?.id === reportId) {
-        setSelectedReport(null);
-      }
+      if (selectedReport?.id === reportId) setSelectedReport(null);
     } catch (err: any) {
-      toast.error("Thao tác thất bại. Vui lòng thử lại.");
+      toast.error(t("manager.moderationDashboard.msgActionFail"));
+    } finally {
+      setResolvingId(null);
     }
   };
+
+  const momentCount  = reports.filter(r => r.contentType === "Moment").length;
+  const commentCount = reports.filter(r => r.contentType === "Comment").length;
 
   const filteredReports = reports.filter((r) => {
     if (filterType === "All") return true;
     return r.contentType.toLowerCase() === filterType.toLowerCase();
   });
 
+  const totalPages = Math.ceil(filteredReports.length / pageSize);
+  const paginatedReports = filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 dark:bg-slate-900/50">
-      {/* Header */}
-      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 dark:bg-slate-900/50">
+
+      {/* ── Header ── */}
+      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="flex items-center gap-3 text-2xl font-bold text-slate-800 dark:text-white">
+          <h1 className="flex items-center gap-2.5 text-2xl font-bold text-slate-800 dark:text-white">
             <ShieldAlert className="h-7 w-7 text-brand" />
-            Kiểm Duyệt Nội Dung
+            {t("manager.moderationDashboard.title")}
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Xem xét và xử lý các báo cáo vi phạm tiêu chuẩn cộng đồng từ người dùng.
+            {t("manager.moderationDashboard.subtitle")}
           </p>
         </div>
         <button
           onClick={fetchReports}
           disabled={loading}
-          className="flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm border border-slate-200 hover:bg-slate-50 focus:outline-none dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+          className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          Làm mới
+          {t("manager.moderationDashboard.refresh")}
         </button>
       </div>
 
-      {/* Stats and Filter */}
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          {["All", "Moment", "Comment"].map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={`rounded-lg px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
-                filterType === type
-                  ? "bg-brand text-white shadow-sm"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
-              }`}
-            >
-              {type === "All" ? "Tất cả" : type === "Moment" ? "Khoảnh khắc" : "Bình luận"}
-            </button>
-          ))}
-        </div>
-        <div className="text-xs font-medium text-slate-500 dark:text-slate-400">
-          Đang hiển thị <span className="font-bold text-slate-700 dark:text-white">{filteredReports.length}</span> báo cáo chưa xử lý
-        </div>
+      {/* ── Stats ── */}
+      <div className="mb-6 grid grid-cols-3 gap-4">
+        {[
+          { label: t("manager.moderationDashboard.totalReports"), value: reports.length,  color: "text-brand",                                          bg: "bg-brand/5 dark:bg-brand/10"             },
+          { label: t("manager.moderationDashboard.moments"), value: momentCount,      color: "text-indigo-600 dark:text-indigo-400",                bg: "bg-indigo-50 dark:bg-indigo-500/10"      },
+          { label: t("manager.moderationDashboard.comments"),   value: commentCount,     color: "text-teal-600 dark:text-teal-400",                   bg: "bg-teal-50 dark:bg-teal-500/10"          },
+        ].map(({ label, value, color, bg }) => (
+          <div key={label} className={`rounded-xl border border-slate-200/70 ${bg} p-4 dark:border-slate-800`}>
+            <div className={`text-2xl font-bold ${color}`}>{value}</div>
+            <div className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">{label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Table List (Left 2 cols) */}
-        <div className="lg:col-span-2">
-          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-800">
+      {/* ── Filters ── */}
+      <div className="mb-4 flex items-center gap-2">
+        {[
+          { key: "All",     label: t("manager.moderationDashboard.all"),      count: reports.length },
+          { key: "Moment",  label: t("manager.moderationDashboard.moments"), count: momentCount    },
+          { key: "Comment", label: t("manager.moderationDashboard.comments"),   count: commentCount   },
+        ].map(({ key, label, count }) => (
+          <button
+            key={key}
+            onClick={() => handleFilterChange(key)}
+            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
+              filterType === key
+                ? "bg-brand text-white shadow-sm"
+                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+            }`}
+          >
+            {label}
+            <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+              filterType === key
+                ? "bg-white/20 text-white"
+                : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+            }`}>
+              {count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Main Grid ── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+
+        {/* ── Report List (Left 3 cols) ── */}
+        <div className="lg:col-span-3">
+          <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-800/80">
             {loading ? (
-              <div className="flex h-64 flex-col items-center justify-center gap-2">
-                <RefreshCw className="h-8 w-8 animate-spin text-brand" />
-                <span className="text-sm text-slate-500">Đang tải danh sách...</span>
-              </div>
+              <div>{Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)}</div>
             ) : filteredReports.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center gap-2 text-slate-400 dark:text-slate-500">
-                <CheckCircle className="h-12 w-12 text-emerald-500/80" />
-                <span className="text-sm font-medium mt-2">Hộp thư kiểm duyệt trống!</span>
-                <span className="text-xs">Không có báo cáo vi phạm nào chưa xử lý.</span>
+                <CheckCircle className="h-12 w-12 text-emerald-500/70" />
+                <span className="mt-2 text-sm font-semibold">{t("manager.moderationDashboard.emptyTitle")}</span>
+                <span className="text-xs">{t("manager.moderationDashboard.emptyDesc")}</span>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-sm">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-xs font-semibold uppercase text-slate-500 dark:bg-slate-700/50 dark:border-slate-800 dark:text-slate-400">
-                    <tr>
-                      <th className="px-6 py-4">Nội dung</th>
-                      <th className="px-6 py-4">Lý do</th>
-                      <th className="px-6 py-4">Chi tiết</th>
-                      <th className="px-6 py-4 text-right">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {filteredReports.map((report) => (
-                      <tr
-                        key={report.id}
-                        onClick={() => setSelectedReport(report)}
-                        className={`cursor-pointer transition-colors duration-150 hover:bg-slate-50/50 dark:hover:bg-slate-700/20 ${
-                          selectedReport?.id === report.id
-                            ? "bg-brand/5 dark:bg-brand/10 border-l-4 border-l-brand"
-                            : ""
-                        }`}
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">
-                              {report.contentType === "Moment" ? (
-                                <ImageIcon className="h-5 w-5 text-indigo-500" />
-                              ) : (
-                                <MessageSquare className="h-5 w-5 text-teal-500" />
-                              )}
-                            </div>
-                            <div>
-                              <span className="font-semibold text-slate-800 dark:text-slate-200">
-                                #{report.targetId} ({report.contentType === "Moment" ? "Ảnh" : "Bình luận"})
-                              </span>
-                              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                                <User className="h-3 w-3" />
-                                Người báo cáo: {report.reporterName || `ID: ${report.reporterId}`}
-                              </div>
-                            </div>
+              <div className="divide-y divide-slate-100 dark:divide-slate-700/60">
+                {paginatedReports.map((report) => {
+                  const isMoment    = report.contentType === "Moment";
+                  const isSelected  = selectedReport?.id === report.id;
+                  const isResolving = resolvingId === report.id;
+
+                  return (
+                    <div
+                      key={report.id}
+                      onClick={() => setSelectedReport(report)}
+                      className={`group flex cursor-pointer items-start gap-3 px-4 py-3.5 transition-all duration-150 ${
+                        isSelected
+                          ? "border-l-4 border-l-brand bg-brand/5 dark:bg-brand/10"
+                          : "border-l-4 border-l-transparent hover:bg-slate-50 dark:hover:bg-slate-700/30"
+                      }`}
+                    >
+                      {/* Thumbnail / Icon */}
+                      <div className="relative shrink-0">
+                        {isMoment && report.contentImageUrl ? (
+                          <div className="h-12 w-12 overflow-hidden rounded-lg border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900">
+                            <img
+                              src={getImg(report.contentImageUrl)}
+                              alt="thumb"
+                              className="h-full w-full object-cover blur-sm transition-all duration-200 group-hover:blur-0"
+                            />
                           </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-600/20 dark:bg-amber-500/10 dark:text-amber-400">
-                            <AlertTriangle className="h-3 w-3" />
+                        ) : (
+                          <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${
+                            isMoment
+                              ? "bg-indigo-100 dark:bg-indigo-500/15"
+                              : "bg-teal-100 dark:bg-teal-500/15"
+                          }`}>
+                            {isMoment
+                              ? <ImageIcon className="h-6 w-6 text-indigo-500" />
+                              : <MessageSquare className="h-6 w-6 text-teal-500" />
+                            }
+                          </div>
+                        )}
+                        {/* Content-type mini badge */}
+                        <span className={`absolute -bottom-1 -right-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold ring-2 ring-white dark:ring-slate-800/90 ${
+                          isMoment
+                            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300"
+                            : "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300"
+                        }`}>
+                          {isMoment ? t("manager.moderationDashboard.image") : t("manager.moderationDashboard.cmt")}
+                        </span>
+                      </div>
+
+                      {/* Main info */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                            {report.contentText
+                              ? `"${report.contentText}"`
+                              : (isMoment ? `${t("manager.moderationDashboard.moments")} #${report.targetId}` : `${t("manager.moderationDashboard.comments")} #${report.targetId}`)
+                            }
+                          </p>
+                          <ChevronRight className={`h-4 w-4 shrink-0 transition-transform ${
+                            isSelected ? "rotate-90 text-brand" : "text-slate-300 group-hover:text-slate-400"
+                          }`} />
+                        </div>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                          {/* Reason badge */}
+                          <span className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-semibold ring-1 ring-inset ${reasonColor(report.reason)}`}>
+                            <AlertTriangle className="h-2.5 w-2.5" />
                             {report.reason}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 max-w-[180px] truncate text-slate-600 dark:text-slate-300">
-                          {report.details || "Không có mô tả chi tiết."}
-                        </td>
-                        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex justify-end gap-1.5">
-                            <button
-                              onClick={() => handleResolve(report.id, "Approve")}
-                              title="Duyệt sạch (Giữ nội dung)"
-                              className="rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
-                            >
-                              <CheckCircle className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => handleResolve(report.id, "Reject")}
-                              title="Vi phạm (Ẩn nội dung)"
-                              className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
-                            >
-                              <XCircle className="h-5 w-5" />
-                            </button>
-                            <button
-                              onClick={() => handleResolve(report.id, "Dismiss")}
-                              title="Bác bỏ báo cáo"
-                              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          {/* Reporter */}
+                          <span className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400">
+                            <User className="h-3 w-3" />
+                            {report.reporterName || `#${report.reporterId}`}
+                          </span>
+                          {/* Date & Time */}
+                          <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
+                            <Clock className="h-3 w-3" />
+                            {fmtDate(report.createdAt)} · {fmtTime(report.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Quick-action buttons (visible on hover) */}
+                      <div
+                        className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          onClick={() => handleResolve(report.id, "Approve")}
+                          disabled={isResolving}
+                          title={t("manager.moderationDashboard.approve")}
+                          className="rounded-md p-1.5 text-emerald-600 hover:bg-emerald-50 disabled:opacity-40 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleResolve(report.id, "Reject")}
+                          disabled={isResolving}
+                          title={t("manager.moderationDashboard.reject")}
+                          className="rounded-md p-1.5 text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-500/10"
+                        >
+                          <Ban className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleResolve(report.id, "Dismiss")}
+                          disabled={isResolving}
+                          title={t("manager.moderationDashboard.dismiss")}
+                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-500 dark:hover:bg-slate-700"
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
+            )}
+            
+            {!loading && filteredReports.length > 0 && (
+              <PaginationButton
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredReports.length}
+                pageSize={pageSize}
+                onPageChange={setCurrentPage}
+              />
             )}
           </div>
         </div>
 
-        {/* Detailed Side Panel (Right 1 col) */}
-        <div>
+        {/* ── Detail Panel (Right 2 cols) ── */}
+        <div className="lg:col-span-2">
           {selectedReport ? (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-800">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Chi tiết Báo cáo</h3>
-              <p className="text-xs text-slate-500 mt-1 dark:text-slate-400">
-                Xem xét kỹ thông tin báo cáo trước khi đưa ra quyết định xử lý.
-              </p>
+            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-800/80">
+              {/* Panel header */}
+              <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-700">
+                <div>
+                  <h3 className="font-bold text-slate-800 dark:text-white">{t("manager.moderationDashboard.detailTitle")} #{selectedReport.id}</h3>
+                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                    {t("manager.moderationDashboard.detailSubtitle")}
+                  </p>
+                </div>
+                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+                  selectedReport.contentType === "Moment"
+                    ? "bg-indigo-50 text-indigo-700 ring-indigo-300/40 dark:bg-indigo-500/15 dark:text-indigo-300"
+                    : "bg-teal-50 text-teal-700 ring-teal-300/40 dark:bg-teal-500/15 dark:text-teal-300"
+                }`}>
+                  {selectedReport.contentType === "Moment" ? t("manager.moderationDashboard.moments") : t("manager.moderationDashboard.comments")}
+                </span>
+              </div>
 
-              <div className="mt-6 flex flex-col gap-4">
-                {/* Preview Content Area */}
+              <div className="flex flex-col gap-4 p-5">
+                {/* Content preview */}
                 {selectedReport.contentType === "Moment" ? (
-                  <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-700/30">
-                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 block mb-2">Hình ảnh khoảnh khắc</span>
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                      {t("manager.moderationDashboard.imageMoment")} #{selectedReport.targetId}
+                    </span>
                     {selectedReport.contentImageUrl ? (
-                      <div className="relative overflow-hidden rounded-lg bg-slate-100 border border-slate-200 h-48 flex items-center justify-center dark:bg-slate-900 dark:border-slate-800">
+                      <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100 dark:border-slate-700 dark:bg-slate-900">
                         <img
                           src={getImg(selectedReport.contentImageUrl)}
-                          alt="Báo cáo vi phạm"
-                          className={`w-full h-full object-cover transition-all duration-300 ${
-                            blurImage ? "blur-xl scale-105 select-none" : "blur-0"
+                          alt="Vi phạm"
+                          className={`h-52 w-full object-cover transition-all duration-500 ${
+                            blurImage ? "scale-110 select-none blur-xl" : "blur-0"
                           }`}
                         />
                         {blurImage && (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/35 p-2 text-center">
-                            <span className="text-xs font-semibold text-white bg-slate-950/80 px-3 py-1.5 rounded-full shadow-sm">
-                              Hình ảnh đang che mờ
-                            </span>
-                            <span className="text-[10px] text-white/80 mt-1">Giúp giảm căng thẳng cho nhân viên kiểm duyệt</span>
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/30">
+                            <Eye className="h-8 w-8 text-white/70" />
+                            <span className="text-xs font-semibold text-white">{t("manager.moderationDashboard.imageBlurred")}</span>
                           </div>
                         )}
-                      </div>
-                    ) : (
-                      <div className="flex h-24 items-center justify-center rounded-lg border border-dashed border-slate-200 text-xs text-slate-400">
-                        Không có hình ảnh.
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-slate-500">ID Khoảnh khắc: #{selectedReport.targetId}</span>
-                      {selectedReport.contentImageUrl && (
                         <button
                           onClick={() => setBlurImage(!blurImage)}
-                          className="text-xs font-semibold text-brand hover:underline focus:outline-none"
+                          className="absolute bottom-2 right-2 rounded-full bg-black/50 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm hover:bg-black/70"
                         >
-                          {blurImage ? "Hiện ảnh" : "Mơ ảnh (Giảm stress)"}
+                          {blurImage ? t("manager.moderationDashboard.viewImage") : t("manager.moderationDashboard.hideImage")}
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-28 items-center justify-center rounded-xl border border-dashed border-slate-200 text-xs text-slate-400 dark:border-slate-700">
+                        {t("manager.moderationDashboard.noImage")}
+                      </div>
+                    )}
                     {selectedReport.contentText && (
-                      <div className="mt-3 p-3 bg-white border border-slate-100 rounded-lg text-sm text-slate-700 italic dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">
-                        &ldquo;{selectedReport.contentText}&ldquo;
+                      <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm italic text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                        &ldquo;{selectedReport.contentText}&rdquo;
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-700/30">
-                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 block mb-1">Nội dung bình luận bị báo cáo</span>
-                    <div className="p-3 bg-white border border-slate-100 rounded-lg text-sm font-medium text-slate-800 italic dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
-                      &ldquo;{selectedReport.contentText || "Bình luận trống hoặc không tải được."}&ldquo;
+                  <div>
+                    <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                      {t("manager.moderationDashboard.comments")} #{selectedReport.targetId}
+                    </span>
+                    <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+                      <MessageSquare className="mb-2 h-4 w-4 text-teal-400" />
+                      <p className="text-sm font-medium italic text-slate-800 dark:text-slate-200">
+                        &ldquo;{selectedReport.contentText || t("manager.moderationDashboard.cantLoadComment")}&rdquo;
+                      </p>
                     </div>
-                    <div className="text-xs text-slate-500 mt-2">ID Bình luận: #{selectedReport.targetId}</div>
                   </div>
                 )}
 
-                <div>
-                  <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">Chi tiết lý do vi phạm</span>
-                  <div className="mt-2 text-sm text-slate-700 dark:text-slate-300">
-                    <span className="font-semibold text-amber-800 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded text-xs mr-2">
+                {/* Violation reason */}
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                    {t("manager.moderationDashboard.violationReason")}
+                  </span>
+                  <div className="flex flex-wrap items-start gap-2">
+                    <span className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${reasonColor(selectedReport.reason)}`}>
+                      <AlertTriangle className="h-3 w-3" />
                       {selectedReport.reason}
                     </span>
-                    {selectedReport.details || "Không có chi tiết mô tả."}
+                    {selectedReport.details ? (
+                      <span className="text-sm text-slate-600 dark:text-slate-300">{selectedReport.details}</span>
+                    ) : (
+                      <span className="text-xs italic text-slate-400 dark:text-slate-500">{t("manager.moderationDashboard.noDetail")}</span>
+                    )}
                   </div>
                 </div>
 
-                <div className="border-t border-slate-100 pt-4 dark:border-slate-700">
-                  <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <User className="h-3.5 w-3.5" /> Người báo cáo: {selectedReport.reporterName || `ID: #${selectedReport.reporterId}`}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5" /> {new Date(selectedReport.createdAt).toLocaleDateString("vi-VN")}
-                    </span>
+                {/* Reporter info */}
+                <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+                  <span className="mb-3 block text-[11px] font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                    {t("manager.moderationDashboard.reporter")}
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                      <User className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span className="font-medium">
+                        {selectedReport.reporterName || `${t("manager.moderationDashboard.user")} #${selectedReport.reporterId}`}
+                      </span>
+                    </div>
+                    {selectedReport.reporterEmail && (
+                      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <Mail className="h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="truncate">{selectedReport.reporterEmail}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                      <Calendar className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      <span>{t("manager.moderationDashboard.reportedAt")} {fmtTime(selectedReport.createdAt)} · {fmtDate(selectedReport.createdAt)}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-6 flex flex-col gap-2">
+                {/* Action buttons */}
+                <div className="flex flex-col gap-2.5 pt-1">
                   <ActionButton
                     onClick={() => handleResolve(selectedReport.id, "Approve")}
                     variant="primary"
                     className="w-full gap-2 py-2.5"
                   >
                     <CheckCircle className="h-4 w-4" />
-                    Nội dung Sạch (Giữ lại)
+                    {t("manager.moderationDashboard.actionApprove")}
                   </ActionButton>
                   <ActionButton
                     onClick={() => handleResolve(selectedReport.id, "Reject")}
                     variant="warning"
                     className="w-full gap-2 py-2.5"
                   >
-                    <XCircle className="h-4 w-4" />
-                    Vi phạm (Ẩn nội dung)
+                    <Ban className="h-4 w-4" />
+                    {t("manager.moderationDashboard.actionReject")}
                   </ActionButton>
                   <ActionButton
                     onClick={() => handleResolve(selectedReport.id, "Dismiss")}
@@ -335,16 +471,18 @@ const ModerationDashboard: React.FC = () => {
                     className="w-full gap-2 py-2.5"
                   >
                     <Trash2 className="h-4 w-4" />
-                    Bác bỏ báo cáo (Bỏ qua)
+                    {t("manager.moderationDashboard.actionDismiss")}
                   </ActionButton>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 p-6 text-slate-400 dark:border-slate-800 dark:text-slate-500">
+            <div className="flex h-64 flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 p-6 text-slate-400 dark:border-slate-700 dark:text-slate-500">
               <Eye className="h-10 w-10 text-slate-300 dark:text-slate-600" />
-              <span className="text-sm font-medium mt-2">Chọn một báo cáo</span>
-              <span className="text-center text-xs mt-1">Click vào một báo cáo vi phạm ở danh sách bên trái để xem chi tiết thông tin.</span>
+              <span className="mt-3 text-sm font-semibold">{t("manager.moderationDashboard.selectReport")}</span>
+              <span className="mt-1 text-center text-xs">
+                {t("manager.moderationDashboard.selectDesc")}
+              </span>
             </div>
           )}
         </div>
@@ -354,3 +492,4 @@ const ModerationDashboard: React.FC = () => {
 };
 
 export default ModerationDashboard;
+

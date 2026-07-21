@@ -29,10 +29,10 @@ export const useGetMomentFeed = (scheduleId: number | null) => {
   });
 };
 
-export const useGetMyFootprints = () => {
+export const useGetMyFootprints = (scheduleId: number | null) => {
   return useQuery({
-    queryKey: [...momentQueryKeys.all, "footprints"],
-    queryFn: getMyFootprints,
+    queryKey: [...momentQueryKeys.all, "footprints", scheduleId ?? "global"],
+    queryFn: () => getMyFootprints(scheduleId),
   });
 };
 

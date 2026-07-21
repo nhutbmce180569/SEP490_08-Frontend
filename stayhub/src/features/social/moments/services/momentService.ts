@@ -100,8 +100,9 @@ export const getMomentById = async (momentId: number): Promise<Moment | null> =>
 
 // FIX: footprint lay tu LocationLogs (di chuyen) qua /locations/footprints,
 // KHONG phai tu anh (/moments/my-footprints). Khop voi mobile.
-export const getMyFootprints = async (): Promise<{ lat: number; lng: number }[]> => {
-  const raw: any = await apiClient.get<any>(`/locations/footprints`);
+export const getMyFootprints = async (scheduleId?: number | null): Promise<{ lat: number; lng: number }[]> => {
+  const scheduleQuery = scheduleId ? `scheduleId=${scheduleId}` : "";
+  const raw: any = await apiClient.get<any>(`/locations/footprints?${scheduleQuery}`);
   return extractList(raw).map((f: any) => ({
     lat: Number(f.lat ?? f.Lat),
     lng: Number(f.lng ?? f.Lng),

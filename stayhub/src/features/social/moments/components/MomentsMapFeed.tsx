@@ -53,7 +53,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   // --- API FETCHING ---
   const { data: moments, isLoading: isMomentsLoading } = useGetMomentFeed(scheduleId);
-  const { data: footprints } = useGetMyFootprints();
+  const { data: footprints } = useGetMyFootprints(scheduleId);
   const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleId);
   const { data: scheduleLocations } = useGetScheduleLiveLocations(scheduleId ?? 0);
 
@@ -699,67 +699,106 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     }
   }, [currentEventIndex, isReplayMode, timelineEvents]);
 
-  // --- FOG OF WAR ---
-  const fogGeoJSON = useMemo(() => {
-    const worldBounds = [
-      [-180, 85], [-90, 85], [0, 85], [90, 85], [180, 85],
-      [180, -85], [90, -85], [0, -85], [-90, -85], [-180, -85], [-180, 85]
+  // --- BUMP-STYLE FOG OF WAR (Proper Tessellating Hex Grid) ---
+  // Dùng hệ tọa độ axial (q, r) của hexagon để đảm bảo tất cả các ô
+  // thuộc cùng 1 lưới cố định (tessellate hoàn hảo), giống hệt BUMP.
+  const bumpFogData = useMemo(() => {
+    const worldBox: [number, number][] = [
+      [-179.9, 85], [179.9, 85], [179.9, -85], [-179.9, -85], [-179.9, 85]
     ];
+    const fogOverlay = {
+      type: "Feature" as const,
+      properties: {},
+      geometry: { type: "Polygon" as const, coordinates: [worldBox] },
+    };
 
-    if (!dynamicFootprints || !Array.isArray(dynamicFootprints) || dynamicFootprints.length === 0) {
-      return {
-        type: "FeatureCollection" as const,
-        features: [{
-          type: "Feature" as const,
-          geometry: { type: "Polygon" as const, coordinates: [worldBounds] },
-          properties: {},
-        }],
-      };
+    const valid = (dynamicFootprints || []).filter(
+      (fp: any) => fp && fp.lat != null && fp.lng != null &&
+        !isNaN(Number(fp.lat)) && !isNaN(Number(fp.lng))
+    );
+
+    if (valid.length === 0) {
+      return { fogOverlay, hexTiles: { type: "FeatureCollection" as const, features: [] } };
     }
 
-    // Khử trùng lặp các điểm quá gần nhau (< 0.0003 độ ~ 30m) để tránh đục lỗ đè lên nhau gây vỡ đa giác
-    const uniqueFootprints = dynamicFootprints
-      .filter((fp: any) => fp && fp.lat != null && fp.lng != null && !isNaN(Number(fp.lat)) && !isNaN(Number(fp.lng)))
-      .reduce((acc: any[], current: any) => {
-        const isDuplicate = acc.some((item) => {
-          return Math.abs(Number(item.lat) - Number(current.lat)) < 0.0003 && 
-                 Math.abs(Number(item.lng) - Number(current.lng)) < 0.0003;
-        });
-        if (!isDuplicate) acc.push(current);
-        return acc;
-      }, []);
+    const R_EARTH = 6378137;
+    const HEX_R = 220; // bán kính hex (mét, center → vertex) — giống BUMP scale
+    const sqrt3 = Math.sqrt(3);
 
-    const hexagonHoles = uniqueFootprints
-      .map((fp: any) => {
-        const path = [];
-        const r_earth = 6378137; // Bán kính chuẩn xích đạo (mét)
-        const radius = 300;     // Bán kính vùng đục lỗ (mét)
-        
-        const centerLat = Number(fp.lat);
-        const centerLng = Number(fp.lng);
+    // Điểm gốc tọa độ cục bộ (tránh sai số floating point ở tọa độ lớn)
+    const refLat = valid.reduce((s: number, fp: any) => s + Number(fp.lat), 0) / valid.length;
+    const refLng = valid.reduce((s: number, fp: any) => s + Number(fp.lng), 0) / valid.length;
+    const cosRef = Math.cos(refLat * Math.PI / 180);
 
-        for (let i = 0; i < 6; i++) {
-          const angle = (i * 60 * Math.PI) / 180;
-          // Tính toán độ dịch vĩ độ và kinh độ chuẩn xác theo mét ra độ (degrees)
-          const latOffset = (radius * Math.sin(angle)) / r_earth;
-          const lngOffset = (radius * Math.cos(angle)) / (r_earth * Math.cos((centerLat * Math.PI) / 180));
-          
-          const pLat = centerLat + (latOffset * 180) / Math.PI;
-          const pLng = centerLng + (lngOffset * 180) / Math.PI;
-          path.push([pLng, pLat]); // Định dạng [lng, lat] chuẩn Mapbox
-        }
-        path.push(path[0]); // BẮT BUỘC: Khép kín điểm đầu-cuối để chống vỡ hình đa giác (Oops vát góc)
-        return path;
-      })
-      .filter(path => path.length > 0);
+    // Chuyển lat/lng → tọa độ cục bộ (mét)
+    const toLocal = (lat: number, lng: number): [number, number] => [
+      (lng - refLng) * (Math.PI / 180) * R_EARTH * cosRef,
+      (lat - refLat) * (Math.PI / 180) * R_EARTH,
+    ];
+
+    // Chuyển tọa độ cục bộ → lat/lng [lng, lat] (GeoJSON format)
+    const toGeo = (x: number, y: number): [number, number] => [
+      refLng + (x / (R_EARTH * cosRef)) * (180 / Math.PI),
+      refLat + (y / R_EARTH) * (180 / Math.PI),
+    ];
+
+    // Flat-top hex: chuyển xy → tọa độ axial phân số
+    const xyToFracHex = (x: number, y: number): [number, number] => ([
+      (2 / 3 * x) / HEX_R,
+      (-1 / 3 * x + sqrt3 / 3 * y) / HEX_R,
+    ]);
+
+    // Làm tròn tọa độ axial phân số → ô hex nguyên (cube rounding)
+    const hexRound = (fq: number, fr: number): [number, number] => {
+      const fs = -fq - fr;
+      let rq = Math.round(fq), rr = Math.round(fr), rs = Math.round(fs);
+      const dq = Math.abs(rq - fq), dr = Math.abs(rr - fr), ds = Math.abs(rs - fs);
+      if (dq > dr && dq > ds) rq = -rr - rs;
+      else if (dr > ds) rr = -rq - rs;
+      return [rq, rr];
+    };
+
+    // Tọa độ axial → tâm ô hex (mét, flat-top)
+    const hexCenter = (q: number, r: number): [number, number] => ([
+      HEX_R * (3 / 2 * q),
+      HEX_R * (sqrt3 / 2 * q + sqrt3 * r),
+    ]);
+
+    // Xây dựng ring polygon cho 1 hex (flat-top, 6 đỉnh)
+    const buildRing = (cx: number, cy: number): [number, number][] => {
+      const ring: [number, number][] = [];
+      for (let i = 0; i < 6; i++) {
+        const a = (i * 60) * (Math.PI / 180); // flat-top: góc 0°,60°,120°...
+        ring.push(toGeo(cx + HEX_R * Math.cos(a), cy + HEX_R * Math.sin(a)));
+      }
+      ring.push(ring[0]); // khép kín
+      return ring;
+    };
+
+    // Tìm tất cả ô hex mà footprint đi qua (unique axial coords)
+    // Dùng plain object thay vì new Map() vì 'Map' bị shadow bởi import Map từ react-map-gl
+    const hexSet: Record<string, [number, number]> = {};
+    valid.forEach((fp: any) => {
+      const [x, y] = toLocal(Number(fp.lat), Number(fp.lng));
+      const [fq, fr] = xyToFracHex(x, y);
+      const [q, r] = hexRound(fq, fr);
+      const key = `${q},${r}`;
+      if (!hexSet[key]) hexSet[key] = [q, r];
+    });
+
+    const hexFeatures: any[] = [];
+    Object.values(hexSet).forEach(([q, r]) => {
+      const [cx, cy] = hexCenter(q, r);
+      hexFeatures.push({
+        type: "Feature" as const,
+        properties: {},
+        geometry: { type: "Polygon" as const, coordinates: [buildRing(cx, cy)] },
+      });
+    });
 
     return {
-      type: "FeatureCollection" as const,
-      features: [{
-        type: "Feature" as const,
-        geometry: { type: "Polygon" as const, coordinates: [worldBounds, ...hexagonHoles] },
-        properties: {},
-      }],
+      fogOverlay,
+      hexTiles: { type: "FeatureCollection" as const, features: hexFeatures },
     };
   }, [dynamicFootprints]);
 
@@ -974,11 +1013,54 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               );
             })}
 
-            {/* Lớp Dấu chân (Fog of War) */}
-            {showFootprints && fogGeoJSON && (
-              <Source id="fog-source" type="geojson" data={fogGeoJSON}>
-                <Layer id="fog-layer" type="fill" paint={{ "fill-color": isNightMode ? "#0f172a" : "#94a3b8", "fill-opacity": 0.6 }} />
-              </Source>
+            {/* ===== BUMP-STYLE FOG OF WAR ===== */}
+            {showFootprints && (
+              <>
+                {/* 1. Dark navy overlay — BUMP fog color: deep blue-black */}
+                <Source id="fog-overlay-source" type="geojson" data={bumpFogData.fogOverlay}>
+                  <Layer
+                    id="fog-overlay-layer"
+                    type="fill"
+                    paint={{
+                      // BUMP uses a deep navy-indigo fog, NOT pure black
+                      "fill-color": "#0d1b3e",
+                      "fill-opacity": 0.78,
+                    }}
+                  />
+                </Source>
+
+                {/* 2. Hexagon tiles — BUMP explored cell style */}
+                {bumpFogData.hexTiles.features.length > 0 && (
+                  <Source id="hex-tiles-source" type="geojson" data={bumpFogData.hexTiles}>
+                    {/* Inner fill: pale sky-blue so map shows through */}
+                    <Layer
+                      id="hex-tiles-fill"
+                      type="fill"
+                      paint={{
+                        // BUMP cells: translucent light-blue/white tint
+                        "fill-color": "#bae6ff", // sky-200
+                        "fill-opacity": 0.28,
+                      }}
+                    />
+                    {/* Border: BUMP uses a crisp light-blue/white border */}
+                    <Layer
+                      id="hex-tiles-border"
+                      type="line"
+                      paint={{
+                        "line-color": "#e0f2fe", // sky-100
+                        "line-width": ["interpolate", ["linear"], ["zoom"],
+                          10, 0.8,
+                          13, 1.4,
+                          15, 2,
+                          17, 2.8
+                        ],
+                        "line-opacity": 0.85,
+                      }}
+                      layout={{ "line-join": "round" }}
+                    />
+                  </Source>
+                )}
+              </>
             )}
 
             {/* Lớp Heatmap (Social Energy) */}

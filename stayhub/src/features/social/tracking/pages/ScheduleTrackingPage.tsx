@@ -34,8 +34,6 @@ export const ScheduleTrackingPage: React.FC = () => {
   const token = localStorage.getItem("accessToken");
   console.log("[DEBUG] Token tồn tại:", !!token, token?.substring(0, 20));
 
-  const [scheduleOptions, setScheduleOptions] = useState<{ id: number; name: string }[]>([]);
-  const [isOptionsLoading, setIsOptionsLoading] = useState(false);
   const navigate = useNavigate();
   const isManager = window.location.pathname.startsWith("/manager");
 
@@ -98,42 +96,6 @@ export const ScheduleTrackingPage: React.FC = () => {
     return result;
   }, [locations, myLocation, viewState.zoom]);
 
-  useEffect(() => {
-    const fetchOptions = async () => {
-      setIsOptionsLoading(true);
-      try {
-        if (isManager) {
-          const res = await tourScheduleService.getMySchedules(1, 100);
-          const mapped = (res?.data || []).map((item) => {
-            const dateStr = item.departureDate ? new Date(item.departureDate).toLocaleDateString("vi-VN") : "";
-            const name = item.tour?.name || `Schedule #${item.id}`;
-            return {
-              id: item.id,
-              name: dateStr ? `${name} - ${dateStr}` : name,
-            };
-          });
-          setScheduleOptions(mapped);
-        } else {
-          const res = await tourScheduleStaffService.getAssignedSchedules(1, 100, false);
-          const mapped = (res?.data || []).map((item) => {
-            const dateStr = item.departureDate ? new Date(item.departureDate).toLocaleDateString("vi-VN") : "";
-            const name = item.tourName || `Schedule #${item.scheduleId}`;
-            return {
-              id: item.scheduleId,
-              name: dateStr ? `${name} - ${dateStr}` : name,
-            };
-          });
-          setScheduleOptions(mapped);
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải danh sách chuyến đi:", err);
-      } finally {
-        setIsOptionsLoading(false);
-      }
-    };
-
-    fetchOptions();
-  }, [isManager]);
   const apiKey = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
   // 🔍 DEBUG: log mọi response từ REST API để biết data có về không
@@ -234,6 +196,24 @@ export const ScheduleTrackingPage: React.FC = () => {
       connection.stop().catch(() => { });
     };
   }, [scheduleIdNumber]);
+  // Fix mapbox canvas size issue (khoảng trắng bên phải)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      mapRef.current?.resize();
+    }, 300);
+    
+    const handleResize = () => {
+      if (mapRef.current) {
+        mapRef.current.resize();
+      }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   if (isLoading) {
     return (
@@ -244,65 +224,33 @@ export const ScheduleTrackingPage: React.FC = () => {
   }
 
   return (
-    <div className="relative h-[85vh] w-full overflow-hidden rounded-2xl bg-slate-100">
-      {/* Selector chuyến đi & Nút Quay lại */}
-      <div className="absolute top-4 left-4 z-10 w-72 sm:w-80 flex items-center gap-2">
+    <div className="relative h-[calc(100vh-130px)] min-h-[500px] w-full overflow-hidden rounded-2xl bg-slate-100">
+      {/* Nút Quay lại */}
+      <div className="absolute top-6 left-6 z-10 flex items-center gap-2">
         <button
           onClick={() => navigate(isManager ? "/manager/locations" : "/staff/locations")}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/95 text-slate-600 shadow-lg border border-slate-200/80 backdrop-blur-md transition-all hover:scale-105 hover:text-brand focus:outline-none"
+          className="group flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/30 text-slate-700 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border border-white/50 backdrop-blur-xl transition-all duration-300 hover:scale-105 hover:bg-white/50 hover:shadow-[0_8px_32px_rgba(0,0,0,0.15)] focus:outline-none"
           title="Quay lại danh sách"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 transition-transform duration-300 group-hover:-translate-x-1" />
         </button>
-        <div className="flex-1 flex flex-col gap-1 rounded-2xl bg-white/95 p-3 shadow-lg border border-slate-200/80 backdrop-blur-md">
-          <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-            {t("social.trackingSelectTour") || "Chọn chuyến đi để theo dõi"}
-          </label>
-          <div className="relative">
-            <select
-              value={scheduleIdNumber || ""}
-              onChange={(e) => {
-                const targetId = e.target.value;
-                if (targetId) {
-                  navigate(
-                    isManager
-                      ? `/manager/locations/${targetId}`
-                      : `/staff/locations/${targetId}`
-                  );
-                }
-              }}
-              disabled={isOptionsLoading}
-              className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-1.5 pl-3 pr-8 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-slate-300 focus:border-slate-400 focus:bg-white cursor-pointer disabled:opacity-50"
-            >
-              {isOptionsLoading ? (
-                <option value="">{t("common.loading") || "Đang tải..."}</option>
-              ) : scheduleOptions.length === 0 ? (
-                <option value="">{t("social.trackingNoSchedulesShort") || "Không tìm thấy chuyến đi nào"}</option>
-              ) : (
-                scheduleOptions.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.name}
-                  </option>
-                ))
-              )}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          </div>
-        </div>
       </div>
 
       {/* Badge số người online */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg border border-white/60">
+      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 transition-all duration-300">
+        <div className={`flex items-center gap-2.5 backdrop-blur-xl px-4 py-1.5 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.15)] border transition-all duration-500 ${
+          locations.length > 0
+            ? "bg-white/50 border-white/60 text-slate-800"
+            : "bg-white/40 border-white/50 text-slate-500"
+        }`}>
           <div className="relative flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-            <div className="absolute w-2.5 h-2.5 rounded-full bg-green-500 animate-ping opacity-60" />
+            <div className={`w-2 h-2 rounded-full ${locations.length > 0 ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "bg-slate-400/80"}`} />
+            {locations.length > 0 && (
+              <div className="absolute w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-70" />
+            )}
           </div>
-          <Users className="w-4 h-4 text-[#0068E0]" />
-          <span className="text-sm font-bold text-slate-800">
-            {locations.length > 0
-              ? `${locations.length} ${t("social.trackingOnlineCount") || "người đang online"}`
-              : t("social.trackingNoOneOnline") || "Chưa có ai online"}
+          <span className="text-[11px] font-black uppercase tracking-[0.15em] pt-[1px]">
+            {locations.length > 0 ? `${locations.length} Online` : "Offline"}
           </span>
         </div>
       </div>

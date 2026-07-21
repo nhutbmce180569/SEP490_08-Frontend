@@ -13,6 +13,7 @@
   "previous": "Previous",
   "search": "Search",
   "filter": "Filter",
+  "clearFilter": "Clear filter",
   "export": "Export",
   "loading": "Loading...",
   "noData": "No data available",

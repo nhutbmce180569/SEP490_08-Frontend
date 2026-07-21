@@ -238,6 +238,7 @@
   "policyTimeBeforeDeparture": "Time before departure",
   "policyCancellationFeeRate": "Cancellation fee (%)",
   "policyFeeNote": "* Cancellation fee is deducted directly from the original payment amount to calculate the refund.",
+  "onlyOwnTourProcess": "⚠️ You can only approve/reject cancellation requests for tours under your management.",
   "averageStar": "Average Star",
   "country": "Country",
   "city": "City",

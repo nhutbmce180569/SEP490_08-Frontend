@@ -3,21 +3,56 @@ import { Pencil, Trash2, Plus, Image as ImageIcon, Lock, Unlock, Search } from "
 import { Table, type Column } from "../../../components/dashboard/Table";
 import { PaginationButton } from "../../../components/dashboard/PaginationButton";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
+import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { useBanners } from "../hooks/useBanners";
 import { type ReadBannerDTO } from "../types/banner";
 import { getImg } from "../../../config/api/api";
 import { useChangeBannerStatus } from "../hooks/useChangeBannerStatus";
 
+import { bannerService } from "../services/banner.service";
+import { useToast } from "../../../contexts/ToastContext";
+
 const PAGE_SIZE = 5;
 
 export const BannerList: React.FC = () => {
   const { t } = useTranslation();
+  const { success, error: showError } = useToast();
   const [searchInput, setSearchInput] = useState("");
   const [keyword, setKeyword] = useState("");
+  const [statusTarget, setStatusTarget] = useState<ReadBannerDTO | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ReadBannerDTO | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, handleDelete, refetch } = useBanners(PAGE_SIZE, keyword);
+  const { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, refetch } = useBanners(PAGE_SIZE, keyword);
   const { executeStatusChange, updatingId } = useChangeBannerStatus(refetch);
+
+  const statusTargetIsActive = Boolean(statusTarget?.isActive);
+
+  const handleConfirmStatusChange = async () => {
+    if (!statusTarget) return;
+    await executeStatusChange(statusTarget.id, statusTargetIsActive);
+    setStatusTarget(null);
+  };
+
+  const handleDeleteClick = (banner: ReadBannerDTO) => {
+    setDeleteTarget(banner);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await bannerService.delete(deleteTarget.id);
+      success(t("content.bannerDeleted") || "Banner deleted successfully");
+      refetch();
+    } catch (err: any) {
+      showError(err.response?.data?.message || t("content.failedToDeleteBanner") || "Failed to delete banner");
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,28 +129,28 @@ export const BannerList: React.FC = () => {
             </ActionButton>
             <ActionButton 
               variant="secondary" 
-              onClick={() => executeStatusChange(banner.id, Boolean(banner.isActive))}
+              onClick={() => setStatusTarget(banner)}
               className={`h-8 w-8 ${updatingId === banner.id ? "opacity-50 cursor-wait" : ""} ${banner.isActive ? "text-rose-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200" : "text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"}`}
               title={banner.isActive ? t("content.deactivate") : t("content.activate")}
               disabled={updatingId === banner.id}
             >
               {banner.isActive ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
             </ActionButton>
-            <ActionButton variant="warning" onClick={() => handleDelete(banner.id)} className="h-8 w-8" title={t("common.delete")}>
+            <ActionButton variant="warning" onClick={() => handleDeleteClick(banner)} className="h-8 w-8" title={t("common.delete")}>
               <Trash2 className="h-3.5 w-3.5" />
             </ActionButton>
           </div>
         ),
       },
     ],
-    [t, handleEdit, handleDelete, executeStatusChange, updatingId]
+    [t, handleEdit, handleDeleteClick, updatingId]
   );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
-          <div className="relative w-full sm:max-w-xs">
+          <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
@@ -153,6 +188,56 @@ export const BannerList: React.FC = () => {
         : <Table data={banners} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("content.noBannersFound")} tableClassName="w-full min-w-[750px] border-collapse table-fixed" />}
 
       <PaginationButton currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />
+
+      <ConfirmDialog
+        open={!!statusTarget}
+        onClose={() => setStatusTarget(null)}
+        onConfirm={handleConfirmStatusChange}
+        title={statusTargetIsActive ? t("content.deactivate") : t("content.activate")}
+        message={
+          <span>
+            {statusTargetIsActive
+              ? t("content.deactivateBannerConfirm")
+              : t("content.activateBannerConfirm")}
+            {statusTarget && (
+              <span className="mt-2 block font-semibold text-slate-700">
+                {statusTarget.title}
+              </span>
+            )}
+          </span>
+        }
+        confirmText={t("common.confirm")}
+        cancelText={t("common.cancel")}
+        variant={statusTargetIsActive ? "warning" : "primary"}
+        icon={
+          statusTargetIsActive ? (
+            <Lock className="h-6 w-6 text-rose-500" />
+          ) : (
+            <Unlock className="h-6 w-6 text-emerald-500" />
+          )
+        }
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => !isDeleting && setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        title={t("content.deleteBannerConfirm") || "Delete Banner"}
+        message={
+          <div>
+            <p className="mb-2">{t("content.deleteBannerWarning") || "Are you sure you want to delete this banner?"}</p>
+            {deleteTarget && (
+              <div className="rounded-lg bg-slate-50 p-3 text-left font-semibold text-slate-700">
+                {deleteTarget.title}
+              </div>
+            )}
+          </div>
+        }
+        confirmText={t("common.confirm")}
+        cancelText={t("common.cancel")}
+        variant="warning"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

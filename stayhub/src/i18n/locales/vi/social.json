@@ -236,5 +236,10 @@
   "removeSuggestion": "Gỡ",
   "chatRestrictionTooltip": "Chỉ được nhắn tin với bạn bè, Staff, Manager hoặc Admin",
   "moments": "Khoảnh khắc",
-  "editProfile": "Chỉnh sửa hồ sơ"
+  "editProfile": "Chỉnh sửa hồ sơ",
+  "systemSupport": "Hỗ trợ CSKH",
+  "backToChat": "Trở lại chat",
+  "faqTitle": "Câu hỏi thường gặp",
+  "responding": "Đang phản hồi...",
+  "askSupportPlaceholder": "Hỏi về StayHub (đặt tour, voucher...)..."
 }

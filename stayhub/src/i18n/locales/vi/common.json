@@ -18,6 +18,10 @@
   "loading": "Đang tải...",
   "noData": "Không có dữ liệu",
   "error": "Đã xảy ra lỗi",
+  "theme": "Giao diện",
+  "themeLight": "Sáng",
+  "themeDark": "Tối",
+  "themeSystem": "Hệ thống",
   "success": "Thành công",
   "user": "Người dùng",
   "seeAll": "Xem tất cả",
@@ -127,6 +131,9 @@
 
   "header": {
     "myProfile": "Hồ sơ của tôi",
+    "accountManagement": "Quản lý tài khoản",
+    "myBookings": "Quản lý tài khoản",
+    "wishlist": "Danh sách yêu thích",
     "changePassword": "Đổi mật khẩu",
     "signOut": "Đăng xuất"
   },
@@ -158,5 +165,21 @@
   "clickToUpload": "Nhấn để tải lên hoặc kéo thả",
   "uploadFormatHint": "SVG, PNG, JPG hoặc WebP (tối đa 5MB)",
   "upload": "Tải lên",
-  "browseFiles": "Duyệt file"
+  "browseFiles": "Duyệt file",
+  "contact": {
+    "facebookTitle": "StayHub Official Fanpage",
+    "facebookSubtitle": "Kết nối trực tiếp qua trang Facebook",
+    "officialFanpage": "Trang Fanpage Chính Thức",
+    "officialFanpageDesc": "Cập nhật các chương trình ưu đãi tour, mã giảm giá hot và kinh nghiệm du lịch hữu ích mỗi ngày.",
+    "messengerSupport": "Hỗ Trợ Qua Messenger",
+    "messengerSupportDesc": "Nhắn tin trực tiếp với tư vấn viên StayHub qua Facebook Messenger (Phản hồi trong 5 phút).",
+    "visitFacebook": "Truy cập Facebook Fanpage",
+    "sendMessenger": "Gửi tin nhắn qua Messenger",
+    "hotlineTitle": "Tổng Đài Hỗ Trợ StayHub",
+    "hotlineSubtitle": "Chăm sóc khách hàng 24/7",
+    "cskhHotline": "Tổng đài CSKH (Miễn phí)",
+    "quickBookingHotline": "Hotline Đặt Tour Nhanh",
+    "callNow": "Gọi Ngay",
+    "workingHours": "Giờ làm việc: 08:00 - 22:00 (Tất cả các ngày trong tuần)"
+  }
 }

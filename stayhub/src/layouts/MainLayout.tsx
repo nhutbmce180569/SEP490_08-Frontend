@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 
 import Header from "./home/Header";
 import Footer from "./home/Footer";
-import { TourAssistantChatWidget } from "../features/ai/components/TourAssistantChatWidget";
+import { FloatingContactWidget } from "./shared/FloatingContactWidget";
 
 /** Trang auth full-screen — không header/footer */
 const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
@@ -16,11 +16,6 @@ export const MainLayout = () => {
     return (
       <div className="public-shell public-shell--minimal min-h-screen">
         <Outlet />
-        {!isAuthPage && (
-          <>
-            <TourAssistantChatWidget />
-          </>
-        )}
       </div>
     );
   }
@@ -34,7 +29,7 @@ export const MainLayout = () => {
       </main>
 
       <Footer />
-      <TourAssistantChatWidget />
+      <FloatingContactWidget />
     </div>
   );
 };

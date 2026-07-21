@@ -74,7 +74,7 @@ export const QuestionnaireWizard: React.FC<Props> = ({
     const start = values.preferredStartDate as string;
     const end = values.preferredEndDate as string;
     if (start && end && end < start) {
-      fieldErrors.preferredEndDate = t("ai.endDateError") || "Ngày kết thúc phải sau ngày bắt đầu";
+      fieldErrors.preferredEndDate = t("ai.endDateError");
     }
 
     setErrors(fieldErrors);

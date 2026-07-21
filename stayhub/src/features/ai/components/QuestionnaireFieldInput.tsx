@@ -1,6 +1,6 @@
 import React from "react";
 import { Minus, Plus } from "lucide-react";
-import { useTranslation } from "../../../contexts/LocaleContext";
+import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 import type { QuestionnaireField } from "../types/tourAssistant";
 
 const inputBase =
@@ -25,6 +25,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
   onChange,
 }) => {
   const { t } = useTranslation();
+  const { locale } = useLocale();
 
   switch (field.inputType) {
     case "single_select": {
@@ -125,10 +126,10 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
         <div className="space-y-4 rounded-xl border border-[var(--border-default)] bg-[var(--surface-input)] p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[13px] font-semibold text-[var(--text-muted)]">
-              {t("ai.perPersonVnd") ?? "Ngân sách tối đa"}
+              {t("ai.perPersonVnd") || t("ai.maxBudget")}
             </span>
             <span className="text-xl font-bold text-brand">
-              {numericValue > 0 ? numericValue.toLocaleString("en-US") : "Không giới hạn"}{" "}
+              {numericValue > 0 ? numericValue.toLocaleString(locale === "vi" ? "vi-VN" : "en-US") : t("ai.unlimited")}{" "}
               {numericValue > 0 && <span className="text-sm font-medium text-[var(--text-muted)]">VND</span>}
             </span>
           </div>
@@ -145,7 +146,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
             className="h-2.5 w-full cursor-pointer appearance-none rounded-full bg-[var(--border-subtle)] accent-brand outline-none transition-all focus:ring-2 focus:ring-brand/30"
           />
           <div className="flex justify-between text-[11px] font-medium text-[var(--text-muted)]">
-            <span>Không giới hạn</span>
+            <span>{t("ai.unlimited")}</span>
             <span>20,000,000+ VND</span>
           </div>
           {error && <p className="mt-1 text-xs font-bold text-rose-500">{error}</p>}

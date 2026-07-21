@@ -40,10 +40,10 @@ export const LanguageCurrencySelector: React.FC<LanguageCurrencySelectorProps> =
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-all select-none border-0 shadow-none ${
+        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs sm:text-sm font-bold transition-all select-none border-0 shadow-none ${
           isOpen
-            ? "bg-brand-light/40 text-brand"
-            : "text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800"
+            ? "bg-white text-brand shadow-xs dark:bg-slate-700 dark:text-brand"
+            : "text-slate-700 hover:bg-white/90 hover:text-brand dark:text-slate-200 dark:hover:bg-slate-700"
         }`}
         aria-expanded={isOpen}
         aria-label="Language and Currency Selector"

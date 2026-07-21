@@ -228,5 +228,13 @@
   "admin": {
     "promotionManagement": "Promotions",
     "voucherManagement": "Vouchers"
+  },
+  "content": {
+    "ticketTypeName": "Ticket Type Name",
+    "ageRange": "Age Range",
+    "minAge": "Min Age",
+    "maxAge": "Max Age",
+    "ageNegativeError": "Age cannot be negative",
+    "maxAgeError": "Max age must be greater than min age"
   }
 }

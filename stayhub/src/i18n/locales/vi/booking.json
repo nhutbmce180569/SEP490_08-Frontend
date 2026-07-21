@@ -377,4 +377,7 @@
   "passengerExcelDownload": "Tải File Mẫu",
   "passengerExcelImport": "Nhập File Excel",
   "passengerExcelReview": "Đã tải lên thành công thông tin của {{count}} hành khách."
+,
+  "promotionDiscount": "Giảm giá khuyến mãi",
+  "voucherDiscount": "Mã giảm giá"
 }

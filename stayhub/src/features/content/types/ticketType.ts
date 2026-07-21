@@ -2,6 +2,8 @@ export interface ReadTicketTypeDTO {
   id: number;
   name: string;
   description?: string | null;
+  minAge?: number | null;
+  maxAge?: number | null;
   isActive?: boolean | null;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -10,12 +12,16 @@ export interface ReadTicketTypeDTO {
 export interface CreateTicketTypeDTO {
   name: string;
   description?: string | null;
+  minAge?: number | null;
+  maxAge?: number | null;
   isActive?: boolean;
 }
 
 export interface UpdateTicketTypeDTO {
   name: string;
   description?: string | null;
+  minAge?: number | null;
+  maxAge?: number | null;
   isActive?: boolean;
 }
 

@@ -123,27 +123,6 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
             </div>
           </>
         )}
-
-        {billAmount > 0 && (
-          <div className="space-y-1.5 rounded-xl bg-slate-50 px-3 py-2.5 text-sm">
-            <div className="flex justify-between text-slate-600">
-              <span>{t('voucher.subtotal')}</span>
-              <span><MoneyDisplay amountVnd={billAmount} compact /></span>
-            </div>
-            {appliedVoucher && (
-              <div className="flex justify-between font-medium text-emerald-700">
-                <span>{t('voucher.discount')}</span>
-                <span>-<MoneyDisplay amountVnd={appliedVoucher.discountAmount} compact /></span>
-              </div>
-            )}
-            <div className="flex justify-between border-t border-slate-200 pt-1.5 font-bold text-slate-900">
-              <span>{t('voucher.total')}</span>
-              <span className="text-brand">
-                <MoneyDisplay amountVnd={appliedVoucher?.finalAmount ?? billAmount} compact />
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -64,6 +64,7 @@ type PassengerTicket = Omit<
   ticketTypeId?: number | null;
   ticketTypeName: string;
   price: number;
+  originalPrice: number | null;
   dateOfBirth: string;
   gender: string;
   nationality: string;
@@ -73,6 +74,7 @@ type TicketSummaryItem = {
   scheduleTicketId: number;
   name: string;
   price: number;
+  originalPrice: number | null;
   quantity: number;
 };
 
@@ -271,8 +273,13 @@ export const BookingPage: React.FC = () => {
     ? getCheckoutScheduleAvailableSeats(schedule)
     : 0;
   const ticketCount = tickets.length;
-  const totalPrice = tickets.reduce((sum, ticket) => sum + ticket.price, 0);
-  const finalPayable = appliedVoucher?.finalAmount ?? totalPrice;
+  const totalPrice = tickets.reduce((sum, ticket) => sum + (ticket.originalPrice ?? ticket.price), 0);
+  const totalPromotionDiscount = tickets.reduce(
+    (sum, ticket) => sum + (ticket.originalPrice ? ticket.originalPrice - ticket.price : 0),
+    0
+  );
+  const effectiveTotalPrice = totalPrice - totalPromotionDiscount;
+  const finalPayable = appliedVoucher?.finalAmount ?? effectiveTotalPrice;
   const paymentProviderLabel = paymentProvider === "momo" ? "MoMo" : "VNPay";
 
   const ticketQuantities = useMemo(() => {
@@ -296,6 +303,7 @@ export const BookingPage: React.FC = () => {
         scheduleTicketId: ticket.tourScheduleTicketId,
         name: ticket.ticketTypeName,
         price: ticket.price,
+        originalPrice: ticket.originalPrice,
         quantity: 1,
       });
     });
@@ -422,6 +430,7 @@ export const BookingPage: React.FC = () => {
       ticketTypeId,
       ticketTypeName,
       price: getTicketPrice(ticketOption) ?? 0,
+      originalPrice: getTicketOriginalPrice(ticketOption),
       attendeeName: "",
       idCard: "",
       dateOfBirth: "",
@@ -805,9 +814,16 @@ export const BookingPage: React.FC = () => {
                               {price === null ? t("booking.noPrice") : (
                                 <>
                                   {getTicketOriginalPrice(ticketOption) !== null && (
-                                    <span className="text-[10px] text-slate-400 line-through mr-1">
-                                      <MoneyDisplay amountVnd={getTicketOriginalPrice(ticketOption)!} compact />
-                                    </span>
+                                    <div className="flex items-center gap-1.5 mr-1">
+                                      <span className="text-[10px] text-slate-400 line-through">
+                                        <MoneyDisplay amountVnd={getTicketOriginalPrice(ticketOption)!} compact />
+                                      </span>
+                                      {ticketOption.promotion && ticketOption.promotion.discountType?.toLowerCase() === "percentage" && (
+                                        <span className="rounded bg-emerald-100 px-1 py-0.5 text-[10px] font-bold text-emerald-700">
+                                          -{ticketOption.promotion.discountValue}%
+                                        </span>
+                                      )}
+                                    </div>
                                   )}
                                   <MoneyDisplay amountVnd={price} compact />
                                 </>
@@ -1044,10 +1060,6 @@ export const BookingPage: React.FC = () => {
                         {t("booking.noTicketsSelected")}
                       </div>
                     )}
-                    <div className="flex justify-between border-t border-slate-100 pt-3">
-                      <span>{t("common.quantity")}</span>
-                      <span className="font-medium">x {ticketCount}</span>
-                    </div>
                   </div>
 
                   <div className="mb-5">
@@ -1522,6 +1534,17 @@ export const BookingPage: React.FC = () => {
                       <MoneyDisplay amountVnd={totalPrice} compact />
                     </span>
                   </div>
+                  {totalPromotionDiscount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium text-emerald-600">
+                        {t("booking.promotionDiscount", { defaultValue: "Promotion Discount" })}
+                      </span>
+                      <span className="font-bold text-emerald-600">
+                        -
+                        <MoneyDisplay amountVnd={totalPromotionDiscount} compact />
+                      </span>
+                    </div>
+                  )}
                   {appliedVoucher && (
                     <div className="flex justify-between text-sm">
                       <span className="font-medium text-rose-600">{t("booking.discount")}</span>

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { MapPin, Layers, Tag, Trash2 } from "lucide-react";
+import { MapPin, Layers, Tag, Trash2, X, Upload, Plus } from "lucide-react";
+import { TransportationSelect } from "../components/TransportationSelect";
 import {
   DynamicForm,
   type FormField,
@@ -120,13 +121,11 @@ export const UpdateTour: React.FC = () => {
     {
       name: "transportationType",
       label: t("tour.transportationType") || "Transportation Type",
-      type: "select",
+      type: "custom",
       colSpan: 1,
-      options: [
-        { label: t("tour.transportation_coach") || "Coach", value: "Coach" },
-        { label: t("tour.transportation_flight") || "Flight", value: "Flight" }
-      ],
-      placeholder: t("tour.selectTransportation") || "Select transportation",
+      render: (value, onChange, error) => (
+        <TransportationSelect value={value} onChange={onChange} error={error} />
+      ),
       required: true,
     },
     {

@@ -248,7 +248,7 @@ export const TourDetail: React.FC = () => {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl py-6 space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
 
       {/* ── HERO CARD ── */}
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">

@@ -160,26 +160,28 @@ export const ProcessCancellationPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <button
-        onClick={() => navigate(MANAGER_ROUTES.CANCELLATION_REQUESTS)}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-800"
-      >
-        <ArrowLeft className="h-4 w-4" /> {t("booking.backToRequests")}
-      </button>
-
+    <div className="mx-auto max-w-7xl">
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b border-slate-100 bg-slate-50 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1 min-w-0 sm:pr-4">
-            <h2 className="text-xl font-bold text-slate-900 break-words">
-              {t("booking.requestDetails", { id: detail.id })}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500 break-words">
-              {t("booking.tourCustomer", {
-                tour: detail.tour?.name || t("booking.tourNa"),
-                id: detail.customer?.id ?? t("common.na"),
-              })}
-            </p>
+        <div className="flex flex-col gap-4 border-b border-slate-100 bg-slate-50 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4 flex-1 min-w-0 sm:pr-4">
+            <button
+              onClick={() => navigate(MANAGER_ROUTES.CANCELLATION_REQUESTS)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800"
+              title={t("booking.backToRequests")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold text-slate-900 break-words">
+                {t("booking.requestDetails", { id: detail.id })}
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 break-words">
+                {t("booking.tourCustomer", {
+                  tour: detail.tour?.name || t("booking.tourNa"),
+                  id: detail.customer?.id ?? t("common.na"),
+                })}
+              </p>
+            </div>
           </div>
 
           {isPending && isOwnTour && (

@@ -88,9 +88,9 @@ export const RevenueStatisticsPage: React.FC = () => {
           type="button"
           onClick={() => statisticsQuery.refetch()}
           disabled={statisticsQuery.isFetching}
-          className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200/80 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${statisticsQuery.isFetching ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-brand ${statisticsQuery.isFetching ? 'animate-spin' : ''}`} />
           {t('booking.statistics.refresh')}
         </button>
       </div>
@@ -205,27 +205,6 @@ export const RevenueStatisticsPage: React.FC = () => {
                 <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} />
               </AnalyticsPanel>
 
-              <ChartGrid columns={2}>
-                <AnalyticsPanel
-                  title={t('booking.statistics.salesByTicketType')}
-                  subtitle={t('booking.statistics.revenueShare')}
-                >
-                  <TicketTypePieChart
-                    data={data.salesByTicketType.map((item) => ({
-                      label: ticketTypes[item.ticketTypeId] || t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
-                      count: item.quantitySold,
-                      value: item.revenue,
-                    }))}
-                  />
-                </AnalyticsPanel>
-
-                <AnalyticsPanel
-                  title={t('booking.statistics.checkInRatio')}
-                  subtitle={t('booking.statistics.checkInSubtitle')}
-                >
-                  <CheckInDonutChart data={data.checkInRatio} />
-                </AnalyticsPanel>
-              </ChartGrid>
             </div>
           )}
         </div>
@@ -238,10 +217,6 @@ const BookingStatisticsSkeleton = () => (
   <div className="space-y-5">
     <LoadingPanel height="h-24" />
     <LoadingPanel height="h-80" />
-    <div className="grid gap-5 lg:grid-cols-2">
-      <LoadingPanel height="h-72" />
-      <LoadingPanel height="h-72" />
-    </div>
   </div>
 );
 
@@ -327,125 +302,23 @@ const RevenueLineChart: React.FC<{
   );
 };
 
-const TicketTypePieChart: React.FC<{
-  data: Array<{ label: string; count: number; value: number }>;
-}> = ({ data }) => {
-  const { t } = useTranslation();
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-  let current = 0;
+function formatPeriod(period: string, groupBy: BookingStatisticsGroupBy) {
+  if (groupBy === 'Day') {
+    const [, month, day] = period.split('-');
+    return `${month}/${day}`;
+  }
+  if (groupBy === 'Month') {
+    const [year, month] = period.split('-');
+    return `${month}/${year.slice(2)}`;
+  }
+  return period;
+}
 
-  if (data.length === 0 || total <= 0) return <EmptyChart icon={<Ticket className="h-5 w-5" />} />;
-
-  return (
-    <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
-      <svg viewBox="0 0 120 120" className="mx-auto h-40 w-40" role="img">
-        {data.length === 1 ? (
-          <circle cx="60" cy="60" r="52" fill={CHART_COLORS[0]} />
-        ) : (
-          data.map((item, index) => {
-            const start = current;
-            const fraction = item.value / total;
-            current += fraction;
-            return (
-              <path
-                key={item.label}
-                d={describeArc(60, 60, 52, start, current)}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
-            );
-          })
-        )}
-      </svg>
-      <LegendList
-        data={data.map((item, index) => ({
-          label: item.label,
-          value: t('booking.statistics.ticketValue', {
-            amount: formatVnd(item.value),
-            count: formatNumber(item.count),
-          }),
-          color: CHART_COLORS[index % CHART_COLORS.length],
-        }))}
-      />
-    </div>
-  );
-};
-
-const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) => {
-  const { t } = useTranslation();
-  const total = data.reduce((sum, item) => sum + item.ticketCount, 0);
-  let current = 0;
-
-  if (data.length === 0 || total <= 0) return <EmptyChart icon={<RotateCcw className="h-5 w-5" />} />;
-
-  return (
-    <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
-      <div className="relative mx-auto h-40 w-40">
-        <svg viewBox="0 0 120 120" className="h-40 w-40 -rotate-90" role="img">
-          {data.length === 1 ? (
-            <circle
-              cx="60"
-              cy="60"
-              r="48"
-              fill="none"
-              stroke={CHART_COLORS[0]}
-              strokeWidth="18"
-            />
-          ) : (
-            data.map((item, index) => {
-              const start = current;
-              const fraction = item.ticketCount / total;
-              current += fraction;
-              return (
-                <path
-                  key={item.status}
-                  d={describeArc(60, 60, 48, start, current)}
-                  fill="none"
-                  stroke={CHART_COLORS[index % CHART_COLORS.length]}
-                  strokeWidth="18"
-                  strokeLinecap="round"
-                />
-              );
-            })
-          )}
-        </svg>
-        <div className="absolute inset-0 grid place-items-center text-center">
-          <div>
-            <div className="text-2xl font-black text-slate-900">{formatNumber(total)}</div>
-            <div className="text-xs font-semibold text-slate-400">
-              {t('booking.statistics.ticketTotalLabel')}
-            </div>
-          </div>
-        </div>
-      </div>
-      <LegendList
-        data={data.map((item, index) => ({
-          label: normalizeCheckInStatus(item.status, t),
-          value: `${formatNumber(item.ticketCount)} (${formatPercent(item.percentage)})`,
-          color: CHART_COLORS[index % CHART_COLORS.length],
-        }))}
-      />
-    </div>
-  );
-};
-
-const LegendList: React.FC<{
-  data: Array<{ label: string; value: string; color: string }>;
-}> = ({ data }) => (
-  <div className="space-y-2">
-    {data.map((item) => (
-      <div key={item.label} className="flex items-start justify-between gap-3 text-sm">
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: item.color }}
-          />
-          <span className="min-w-0 truncate font-semibold text-slate-700">{item.label}</span>
-        </div>
-        <span className="shrink-0 text-right text-xs font-semibold text-slate-500">{item.value}</span>
-      </div>
-    ))}
-  </div>
-);
+function groupByLabelKey(groupBy: BookingStatisticsGroupBy) {
+  if (groupBy === 'Month') return 'booking.statistics.groupMonth';
+  if (groupBy === 'Year') return 'booking.statistics.groupYear';
+  return 'booking.statistics.groupDay';
+}
 
 const EmptyChart: React.FC<{ icon: React.ReactNode }> = ({ icon }) => (
   <EmptyChartContent icon={icon} />
@@ -465,40 +338,5 @@ const EmptyChartContent: React.FC<{ icon: React.ReactNode }> = ({ icon }) => {
     </div>
   );
 };
-
-function describeArc(cx: number, cy: number, r: number, startFraction: number, endFraction: number) {
-  const startAngle = startFraction * Math.PI * 2 - Math.PI / 2;
-  const endAngle = endFraction * Math.PI * 2 - Math.PI / 2;
-  const x1 = cx + r * Math.cos(startAngle);
-  const y1 = cy + r * Math.sin(startAngle);
-  const x2 = cx + r * Math.cos(endAngle);
-  const y2 = cy + r * Math.sin(endAngle);
-  const largeArc = endFraction - startFraction > 0.5 ? 1 : 0;
-  return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-}
-
-function formatPeriod(period: string, groupBy: BookingStatisticsGroupBy) {
-  if (groupBy === 'Day') {
-    const [, month, day] = period.split('-');
-    return `${month}/${day}`;
-  }
-  if (groupBy === 'Month') {
-    const [year, month] = period.split('-');
-    return `${month}/${year.slice(2)}`;
-  }
-  return period;
-}
-
-function groupByLabelKey(groupBy: BookingStatisticsGroupBy) {
-  if (groupBy === 'Month') return 'booking.statistics.groupMonth';
-  if (groupBy === 'Year') return 'booking.statistics.groupYear';
-  return 'booking.statistics.groupDay';
-}
-
-function normalizeCheckInStatus(status: string, t: (key: string) => string) {
-  return status === 'CheckedIn'
-    ? t('booking.statistics.checkedIn')
-    : t('booking.statistics.notCheckedIn');
-}
 
 export default RevenueStatisticsPage;

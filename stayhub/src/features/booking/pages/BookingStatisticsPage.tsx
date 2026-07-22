@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   BarChart3,
   CircleDollarSign,
-  Clock3,
   RefreshCw,
   RotateCcw,
   Ticket,
@@ -13,6 +12,8 @@ import {
 } from '../../customer-analytics/components/DateRangeFilter';
 import {
   CHART_COLORS,
+  formatAnalyticsMoney,
+  formatCompactAnalyticsMoney,
   formatCompactVnd,
   formatDate,
   formatNumber,
@@ -27,11 +28,13 @@ import {
   MetricStrip,
 } from '../../platform-analytics/components/AnalyticsLayout';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { useCurrency } from '../../currency/CurrencyContext';
+import { CurrencyToggle } from '../../currency/CurrencyToggle';
 import { useBookingStatistics } from '../hooks/useBookingStatistics';
 import type {
   BookingStatisticsGroupBy,
   CheckInStatusRatio,
-  OrdersByHour,
+  DiscountBreakdown,
   RevenueTrendPoint,
 } from '../types/bookingStatistics.types';
 
@@ -39,6 +42,7 @@ const GROUP_BY_OPTIONS: BookingStatisticsGroupBy[] = ['Day', 'Month', 'Year'];
 
 export const BookingStatisticsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { mode, usdToVndRate } = useCurrency();
   const { preset, setPreset, from, setFrom, to, setTo } = useDateRangeState();
   const [groupBy, setGroupBy] = useState<BookingStatisticsGroupBy>('Day');
 
@@ -90,22 +94,25 @@ export const BookingStatisticsPage: React.FC = () => {
             onToChange={setTo}
           />
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-600">{t('booking.statistics.groupBy')}</span>
-            <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-              {GROUP_BY_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setGroupBy(option)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${groupBy === option
-                    ? 'bg-brand text-white shadow-sm'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                    }`}
-                >
-                  {t(groupByLabelKey(option))}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center gap-4">
+            <CurrencyToggle className="inline-flex" />
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-600">{t('booking.statistics.groupBy')}</span>
+              <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+                {GROUP_BY_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setGroupBy(option)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${groupBy === option
+                      ? 'bg-brand text-white shadow-sm'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      }`}
+                  >
+                    {t(groupByLabelKey(option))}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -121,21 +128,26 @@ export const BookingStatisticsPage: React.FC = () => {
           ) : (
             <div className="space-y-5">
               <MetricStrip
-                columns={5}
+                columns={6}
                 items={[
                   {
                     label: t('booking.statistics.actualRevenue'),
-                    value: formatVnd(data.metrics.totalRevenue),
+                    value: formatAnalyticsMoney(data.metrics.totalRevenue, mode, usdToVndRate),
                     hint: t('booking.statistics.actualRevenueHint'),
                   },
                   {
+                    label: 'Khuyến mãi (Promotions)',
+                    value: formatAnalyticsMoney(data.metrics.totalPromotionDiscount ?? 0, mode, usdToVndRate),
+                    hint: 'Tổng giá trị ưu đãi từ các chương trình khuyến mãi',
+                  },
+                  {
                     label: t('booking.statistics.discounts'),
-                    value: formatVnd(data.metrics.totalDiscount),
+                    value: formatAnalyticsMoney(data.metrics.totalDiscount, mode, usdToVndRate),
                     hint: t('booking.statistics.discountsHint'),
                   },
                   {
                     label: t('booking.statistics.refunded'),
-                    value: formatVnd(data.metrics.totalRefundAmount),
+                    value: formatAnalyticsMoney(data.metrics.totalRefundAmount, mode, usdToVndRate),
                     hint: t('booking.statistics.refundedHint'),
                   },
                   {
@@ -157,28 +169,23 @@ export const BookingStatisticsPage: React.FC = () => {
                   group: t(groupByLabelKey(groupBy)).toLowerCase(),
                 })}
               >
-                <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} />
+                <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} mode={mode} usdToVndRate={usdToVndRate} />
               </AnalyticsPanel>
 
-              <ChartGrid columns={3}>
+              <ChartGrid columns={2}>
                 <AnalyticsPanel
                   title={t('booking.statistics.salesByTicketType')}
                   subtitle={t('booking.statistics.revenueShare')}
                 >
                   <TicketTypePieChart
                     data={data.salesByTicketType.map((item) => ({
-                      label: t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
+                      label: item.ticketTypeName || t('booking.statistics.ticketTypeLabel', { id: item.ticketTypeId }),
                       count: item.quantitySold,
                       value: item.revenue,
                     }))}
+                    mode={mode}
+                    usdToVndRate={usdToVndRate}
                   />
-                </AnalyticsPanel>
-
-                <AnalyticsPanel
-                  title={t('booking.statistics.goldenHours')}
-                  subtitle={t('booking.statistics.ordersByHour')}
-                >
-                  <HourlyBarChart data={data.ordersByHour} />
                 </AnalyticsPanel>
 
                 <AnalyticsPanel
@@ -189,17 +196,33 @@ export const BookingStatisticsPage: React.FC = () => {
                 </AnalyticsPanel>
               </ChartGrid>
 
-              <AnalyticsPanel
-                title={t('booking.statistics.topCancellationReasons')}
-                subtitle={t('booking.statistics.cancellationReasonsSubtitle')}
-              >
-                <HorizontalReasonBars
-                  data={data.topCancellationReasons.map((item) => ({
-                    label: item.reason,
-                    count: item.count,
-                  }))}
-                />
-              </AnalyticsPanel>
+              <ChartGrid columns={2}>
+                <AnalyticsPanel
+                  title="Ưu đãi & Khuyến mãi (Promotions vs Vouchers)"
+                  subtitle="So sánh tỷ trọng giảm giá giữa chương trình khuyến mãi và mã giảm giá"
+                >
+                  <DiscountDonutChart
+                    data={data.discountBreakdown || [
+                      { type: 'Promotion', totalAmount: data.metrics.totalPromotionDiscount ?? 0, orderCount: 0 },
+                      { type: 'Voucher', totalAmount: data.metrics.totalDiscount, orderCount: 0 },
+                    ]}
+                    mode={mode}
+                    usdToVndRate={usdToVndRate}
+                  />
+                </AnalyticsPanel>
+
+                <AnalyticsPanel
+                  title={t('booking.statistics.topCancellationReasons')}
+                  subtitle={t('booking.statistics.cancellationReasonsSubtitle')}
+                >
+                  <HorizontalReasonBars
+                    data={data.topCancellationReasons.map((item) => ({
+                      label: item.reason,
+                      count: item.count,
+                    }))}
+                  />
+                </AnalyticsPanel>
+              </ChartGrid>
             </div>
           )}
         </div>
@@ -223,7 +246,9 @@ const BookingStatisticsSkeleton = () => (
 const RevenueLineChart: React.FC<{
   data: RevenueTrendPoint[];
   groupBy: BookingStatisticsGroupBy;
-}> = ({ data, groupBy }) => {
+  mode?: string | null;
+  usdToVndRate?: number | null;
+}> = ({ data, groupBy, mode, usdToVndRate }) => {
   const width = 920;
   const height = 260;
   const padding = 28;
@@ -261,7 +286,7 @@ const RevenueLineChart: React.FC<{
                   strokeWidth="1"
                 />
                 <text x="0" y={y + 4} fontSize="11" fontWeight="700" fill="#94a3b8">
-                  {formatCompactVnd(value)}
+                  {formatCompactAnalyticsMoney(value, mode, usdToVndRate)}
                 </text>
               </g>
             );
@@ -299,38 +324,61 @@ const RevenueLineChart: React.FC<{
 
 const TicketTypePieChart: React.FC<{
   data: Array<{ label: string; count: number; value: number }>;
-}> = ({ data }) => {
+  mode?: string | null;
+  usdToVndRate?: number | null;
+}> = ({ data, mode, usdToVndRate }) => {
   const { t } = useTranslation();
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const totalValue = data.reduce((sum, item) => sum + item.value, 0);
+  const totalTickets = data.reduce((sum, item) => sum + item.count, 0);
   let current = 0;
 
-  if (data.length === 0 || total <= 0) return <EmptyChart icon={<Ticket className="h-5 w-5" />} />;
+  if (data.length === 0 || totalValue <= 0) return <EmptyChart icon={<Ticket className="h-5 w-5" />} />;
 
   return (
-    <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
-      <svg viewBox="0 0 120 120" className="mx-auto h-40 w-40" role="img">
-        {data.length === 1 ? (
-          <circle cx="60" cy="60" r="52" fill={CHART_COLORS[0]} />
-        ) : (
-          data.map((item, index) => {
-            const start = current;
-            const fraction = item.value / total;
-            current += fraction;
-            return (
-              <path
-                key={item.label}
-                d={describeArc(60, 60, 52, start, current)}
-                fill={CHART_COLORS[index % CHART_COLORS.length]}
-              />
-            );
-          })
-        )}
-      </svg>
+    <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center gap-5 sm:gap-6 xl:gap-5 2xl:gap-6 w-full">
+      <div className="relative mx-auto h-40 w-40 shrink-0">
+        <svg viewBox="0 0 120 120" className="h-40 w-40 -rotate-90" role="img">
+          {data.length === 1 ? (
+            <circle
+              cx="60"
+              cy="60"
+              r="48"
+              fill="none"
+              stroke={CHART_COLORS[0]}
+              strokeWidth="18"
+            />
+          ) : (
+            data.map((item, index) => {
+              const start = current;
+              const fraction = item.value / totalValue;
+              current += fraction;
+              return (
+                <path
+                  key={item.label}
+                  d={describeStrokeArc(60, 60, 48, start, current)}
+                  fill="none"
+                  stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+              );
+            })
+          )}
+        </svg>
+        <div className="absolute inset-0 grid place-items-center text-center">
+          <div>
+            <div className="text-2xl font-black text-slate-900">{formatNumber(totalTickets)}</div>
+            <div className="text-xs font-semibold text-slate-400">
+              {t('booking.statistics.ticketTotalLabel')}
+            </div>
+          </div>
+        </div>
+      </div>
       <LegendList
         data={data.map((item, index) => ({
           label: item.label,
           value: t('booking.statistics.ticketValue', {
-            amount: formatVnd(item.value),
+            amount: formatAnalyticsMoney(item.value, mode, usdToVndRate),
             count: formatNumber(item.count),
           }),
           color: CHART_COLORS[index % CHART_COLORS.length],
@@ -340,38 +388,6 @@ const TicketTypePieChart: React.FC<{
   );
 };
 
-const HourlyBarChart: React.FC<{ data: OrdersByHour[] }> = ({ data }) => {
-  const { t } = useTranslation();
-  const hours = Array.from({ length: 24 }, (_, hour) => ({
-    hour,
-    orderCount: data.find((item) => item.hour === hour)?.orderCount ?? 0,
-  }));
-  const max = Math.max(...hours.map((item) => item.orderCount), 1);
-
-  if (data.length === 0) return <EmptyChart icon={<Clock3 className="h-5 w-5" />} />;
-
-  return (
-    <div>
-      <div className="flex h-52 items-end gap-1.5">
-        {hours.map((item) => (
-          <div key={item.hour} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-            <div
-              className="w-full rounded-t-md bg-brand transition-all"
-              style={{ height: `${Math.max(6, (item.orderCount / max) * 180)}px` }}
-              title={t('booking.statistics.hourOrdersTitle', {
-                hour: item.hour,
-                count: item.orderCount,
-              })}
-            />
-            {item.hour % 4 === 0 && (
-              <span className="text-[10px] font-bold text-slate-400">{item.hour}</span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) => {
   const { t } = useTranslation();
@@ -381,8 +397,8 @@ const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) =
   if (data.length === 0 || total <= 0) return <EmptyChart icon={<RotateCcw className="h-5 w-5" />} />;
 
   return (
-    <div className="grid gap-4 md:grid-cols-[160px_1fr] md:items-center">
-      <div className="relative mx-auto h-40 w-40">
+    <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center gap-5 sm:gap-6 xl:gap-5 2xl:gap-6 w-full">
+      <div className="relative mx-auto h-40 w-40 shrink-0">
         <svg viewBox="0 0 120 120" className="h-40 w-40 -rotate-90" role="img">
           {data.length === 1 ? (
             <circle
@@ -401,7 +417,7 @@ const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) =
               return (
                 <path
                   key={item.status}
-                  d={describeArc(60, 60, 48, start, current)}
+                  d={describeStrokeArc(60, 60, 48, start, current)}
                   fill="none"
                   stroke={CHART_COLORS[index % CHART_COLORS.length]}
                   strokeWidth="18"
@@ -425,6 +441,82 @@ const CheckInDonutChart: React.FC<{ data: CheckInStatusRatio[] }> = ({ data }) =
           label: normalizeCheckInStatus(item.status, t),
           value: `${formatNumber(item.ticketCount)} (${formatPercent(item.percentage)})`,
           color: CHART_COLORS[index % CHART_COLORS.length],
+        }))}
+      />
+    </div>
+  );
+};
+
+const DiscountDonutChart: React.FC<{
+  data: DiscountBreakdown[];
+  mode?: string | null;
+  usdToVndRate?: number | null;
+}> = ({ data, mode, usdToVndRate }) => {
+  const totalValue = data.reduce((sum, item) => sum + item.totalAmount, 0);
+  let current = 0;
+
+  if (data.length === 0 || totalValue <= 0) {
+    return <EmptyChart icon={<CircleDollarSign className="h-5 w-5" />} />;
+  }
+
+  const formattedData = data.map((item, index) => {
+    const isPromo = item.type.toLowerCase() === 'promotion';
+    const label = isPromo ? 'Khuyến mãi (Promotions)' : 'Mã giảm giá (Vouchers)';
+    return {
+      label,
+      amount: item.totalAmount,
+      count: item.orderCount,
+      color: CHART_COLORS[index % CHART_COLORS.length],
+    };
+  });
+
+  return (
+    <div className="flex flex-col sm:flex-row xl:flex-col 2xl:flex-row items-center gap-5 sm:gap-6 xl:gap-5 2xl:gap-6 w-full">
+      <div className="relative mx-auto h-40 w-40 shrink-0">
+        <svg viewBox="0 0 120 120" className="h-40 w-40 -rotate-90" role="img">
+          {formattedData.length === 1 ? (
+            <circle
+              cx="60"
+              cy="60"
+              r="48"
+              fill="none"
+              stroke={formattedData[0].color}
+              strokeWidth="18"
+            />
+          ) : (
+            formattedData.map((item) => {
+              const start = current;
+              const fraction = item.amount / totalValue;
+              current += fraction;
+              return (
+                <path
+                  key={item.label}
+                  d={describeStrokeArc(60, 60, 48, start, current)}
+                  fill="none"
+                  stroke={item.color}
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+              );
+            })
+          )}
+        </svg>
+        <div className="absolute inset-0 grid place-items-center text-center">
+          <div>
+            <div className="text-xl font-black text-slate-900">
+              {formatCompactAnalyticsMoney(totalValue, mode, usdToVndRate)}
+            </div>
+            <div className="text-xs font-semibold text-slate-400">
+              {mode === 'USD' ? 'Total Savings' : 'Tổng ưu đãi'}
+            </div>
+          </div>
+        </div>
+      </div>
+      <LegendList
+        data={formattedData.map((item) => ({
+          label: item.label,
+          value: `${formatAnalyticsMoney(item.amount, mode, usdToVndRate)} ${item.count > 0 ? `(${formatNumber(item.count)} ${mode === 'USD' ? 'orders' : 'đơn'})` : ''}`,
+          color: item.color,
         }))}
       />
     </div>
@@ -464,17 +556,17 @@ const HorizontalReasonBars: React.FC<{
 const LegendList: React.FC<{
   data: Array<{ label: string; value: string; color: string }>;
 }> = ({ data }) => (
-  <div className="space-y-2">
+  <div className="w-full min-w-0 flex-1 space-y-3">
     {data.map((item) => (
-      <div key={item.label} className="flex items-start justify-between gap-3 text-sm">
-        <div className="flex min-w-0 items-center gap-2">
+      <div key={item.label} className="flex flex-col gap-0.5 text-sm">
+        <div className="flex items-center gap-2">
           <span
             className="h-2.5 w-2.5 shrink-0 rounded-full"
             style={{ backgroundColor: item.color }}
           />
-          <span className="min-w-0 truncate font-semibold text-slate-700">{item.label}</span>
+          <span className="font-bold text-slate-800 break-words">{item.label}</span>
         </div>
-        <span className="shrink-0 text-right text-xs font-semibold text-slate-500">{item.value}</span>
+        <div className="pl-4 text-xs font-semibold text-slate-500 break-words">{item.value}</div>
       </div>
     ))}
   </div>
@@ -508,6 +600,17 @@ function describeArc(cx: number, cy: number, r: number, startFraction: number, e
   const y2 = cy + r * Math.sin(endAngle);
   const largeArc = endFraction - startFraction > 0.5 ? 1 : 0;
   return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+}
+
+function describeStrokeArc(cx: number, cy: number, r: number, startFraction: number, endFraction: number) {
+  const startAngle = startFraction * Math.PI * 2 - Math.PI / 2;
+  const endAngle = endFraction * Math.PI * 2 - Math.PI / 2;
+  const x1 = cx + r * Math.cos(startAngle);
+  const y1 = cy + r * Math.sin(startAngle);
+  const x2 = cx + r * Math.cos(endAngle);
+  const y2 = cy + r * Math.sin(endAngle);
+  const largeArc = endFraction - startFraction > 0.5 ? 1 : 0;
+  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
 }
 
 function formatPeriod(period: string, groupBy: BookingStatisticsGroupBy) {

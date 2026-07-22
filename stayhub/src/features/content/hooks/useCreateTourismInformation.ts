@@ -11,10 +11,8 @@ import {
   getApiValidationErrors,
   normalizeServerErrors,
 } from "../utils/apiError";
-import {
-  mapTourismFormToPayload,
-  validateTourismInformationForm,
-} from "../utils/tourismInformationValidation";
+import { mapTourismFormToPayload } from "../utils/tourismInformationValidation";
+import { tourismInfoSchema } from "../schemas/tourismInfoSchema";
 
 export const useCreateTourismInformation = () => {
   const navigate = useNavigate();
@@ -27,44 +25,43 @@ export const useCreateTourismInformation = () => {
     mutationFn: (data: CreateTourismInformationDTO) => tourismInformationService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tourism-information"] });
-      success(t("content.creatingTourismInfo") || "Tourism information created successfully.");
+      success(t("content.creatingTourismInfo", { defaultValue: "Tourism information created successfully." }));
       navigate(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT);
     },
     onError: (err: unknown) => {
       const validationErrors = getApiValidationErrors(err);
       if (validationErrors) {
         setServerErrors(normalizeServerErrors(validationErrors) as Record<string, string>);
+      } else {
+        const errMsg = getApiErrorMessage(err, t('content.createFailed', { defaultValue: "Failed to create tourism information." }));
+        setServerErrors({ _form: errMsg });
+        showError(errMsg);
       }
-      showError(getApiErrorMessage(err, "Failed to create tourism information."));
     },
   });
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const clientErrors = validateTourismInformationForm(data, t, { requireImage: false });
-    if (Object.keys(clientErrors).length > 0) {
-      setServerErrors(clientErrors);
-      return;
-    }
-    try {
-      const isDuplicate = await tourismInformationService.checkDuplicate(
-        String(data.name || ""),
-        String(data.address || "")
-      );
-      if (isDuplicate) {
-        const duplicateErrorMsg = t("content.duplicateTourismInfo");
-        setServerErrors({
-          name: duplicateErrorMsg,
-          address: duplicateErrorMsg,
-        });
-        showError(duplicateErrorMsg);
-        return;
-      }
-    } catch (err) {
-      // ignore
-    }
-
     setServerErrors({});
     const payload = mapTourismFormToPayload(data);
+
+    const validationResult = tourismInfoSchema.safeParse(payload);
+    const localErrors: Record<string, string> = {};
+
+    if (!validationResult.success) {
+      validationResult.error.errors.forEach(err => {
+        const path = err.path.join('.');
+        localErrors[path] = t(`content.${err.message}`, { defaultValue: err.message });
+      });
+    }
+
+    if (!data.imageFile && false /* requireImage is false by default in create? wait, original said requireImage: false in validate call */) {
+      // If we ever need to force image on create
+    }
+
+    if (Object.keys(localErrors).length > 0) {
+      setServerErrors(localErrors);
+      return;
+    }
 
     mutation.mutate({
       ...payload,

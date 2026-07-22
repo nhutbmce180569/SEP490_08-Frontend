@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../../contexts/LocaleContext";
 import { useState } from 'react';
 import { customerVoucherService } from '../services/customerVoucher.service';
 import { useToast } from '../../../../contexts/ToastContext';
@@ -32,6 +33,7 @@ export const useApplyVoucher = () => {
   const [isApplying, setIsApplying] = useState(false);
   const [appliedVoucher, setAppliedVoucher] = useState<AppliedVoucherState | null>(null);
   const { success, error: showError } = useToast();
+  const { t } = useTranslation();
 
   const clearAppliedVoucher = () => {
     setAppliedVoucher(null);
@@ -41,7 +43,7 @@ export const useApplyVoucher = () => {
   const applyVoucher = async (tourId: number, billAmount: number, codeOverride?: string) => {
     const code = (codeOverride ?? voucherCode).trim();
     if (!code) {
-      showError('Please enter a voucher code.');
+      showError(t('voucher.enterVoucherCode', { defaultValue: 'Please enter a voucher code.' }));
       return null;
     }
 
@@ -52,7 +54,7 @@ export const useApplyVoucher = () => {
     }
 
     if (billAmount <= 0) {
-      showError('Bill amount must be greater than 0 to apply a voucher.');
+      showError(t('voucher.billAmountInvalid', { defaultValue: 'Bill amount must be greater than 0 to apply a voucher.' }));
       return null;
     }
 
@@ -73,7 +75,7 @@ export const useApplyVoucher = () => {
       const applied = toAppliedState(result);
       setAppliedVoucher(applied);
       setVoucherCode(result.code);
-      success(result.message || `Voucher ${result.code} applied successfully.`);
+      success(result.message || t('voucher.applySuccess', { code: result.code, defaultValue: `Voucher ${result.code} applied successfully.` }));
       return applied;
     } catch (err: unknown) {
       setAppliedVoucher(null);
@@ -85,11 +87,11 @@ export const useApplyVoucher = () => {
         const text = messages.map((m) => String(m)).join(' · ');
         // eslint-disable-next-line no-console
         console.debug('[voucher] apply error validation', validation, norm);
-        showError(text || getApiErrorMessage(err, 'Failed to apply voucher.'));
+        showError(text || getApiErrorMessage(err, t('voucher.applyFailed', { defaultValue: 'Failed to apply voucher.' })));
         return null;
       }
 
-      showError(getApiErrorMessage(err, 'Failed to apply voucher.'));
+      showError(getApiErrorMessage(err, t('voucher.applyFailed', { defaultValue: 'Failed to apply voucher.' })));
       return null;
     } finally {
       setIsApplying(false);

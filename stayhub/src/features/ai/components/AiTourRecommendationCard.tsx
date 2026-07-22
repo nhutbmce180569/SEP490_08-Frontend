@@ -8,7 +8,7 @@ import {
   ChevronUp,
   Sparkles,
   ArrowRight,
-  CalendarDays,
+  CalendarDays, CloudRain, SunMedium,
 } from "lucide-react";
 import { PATH } from "../../../config/routes/route";
 import { getImg } from "../../../config/api/api";
@@ -277,9 +277,12 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               )}
               {tour.destinationWeather && (
                 <div className="mt-1 flex gap-1 items-center font-semibold text-sky-600">
-                  <span className="text-[10px]">⛅ {tour.destinationWeather.avgMaxTempC?.toFixed(0)}°C</span>
+                  <span className="text-[10px] flex items-center gap-0.5">
+                    <SunMedium size={12} className="text-amber-500" />
+                    {tour.destinationWeather.avgMaxTempC?.toFixed(0)}°C
+                  </span>
                   {tour.destinationWeather.totalRainMm != null && tour.destinationWeather.totalRainMm > 20 && (
-                     <span className="text-[10px]">☔</span>
+                     <CloudRain size={12} className="text-blue-500" />
                   )}
                 </div>
               )}

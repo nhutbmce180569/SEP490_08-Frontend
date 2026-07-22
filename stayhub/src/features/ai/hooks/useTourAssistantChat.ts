@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCallback, useContext, useState } from "react";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
@@ -16,6 +17,7 @@ export interface ChatMessage {
 export const useTourAssistantChat = () => {
   const { error: showError } = useToast();
   const { user } = useContext(AuthContext);
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [sessionId] = useState(() => getOrCreateAiSessionId());
@@ -24,11 +26,11 @@ export const useTourAssistantChat = () => {
     async (message: string) => {
       const trimmed = message.trim();
       if (trimmed.length < 2) {
-        showError("Message must be at least 2 characters.");
+        showError(t('ai.messageTooShort', { defaultValue: "Message must be at least 2 characters." }));
         return null;
       }
       if (trimmed.length > 2000) {
-        showError("Message must be 2000 characters or fewer.");
+        showError(t('ai.messageTooLong', { defaultValue: "Message must be 2000 characters or fewer." }));
         return null;
       }
 
@@ -51,13 +53,13 @@ export const useTourAssistantChat = () => {
         setMessages((prev) => [...prev, assistantMsg]);
         return response;
       } catch (err: unknown) {
-        showError(getApiErrorMessage(err, "Unable to send message."));
+        showError(getApiErrorMessage(err, t('ai.messageFailed', { defaultValue: "Unable to send message." })));
         return null;
       } finally {
         setIsSending(false);
       }
     },
-    [sessionId, showError],
+    [sessionId, showError, t],
   );
 
   const logInteraction = useCallback(

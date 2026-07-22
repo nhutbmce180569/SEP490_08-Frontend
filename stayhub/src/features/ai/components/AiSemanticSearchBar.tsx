@@ -1,3 +1,4 @@
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import React, { useState } from "react";
 import { Search, Sparkles, X } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -101,10 +102,9 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
                   className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
                 >
                   <p className="text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-1">{tour.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                    {[tour.city, tour.minPrice != null ? `${tour.minPrice.toLocaleString("vi-VN")} đ` : null]
-                      .filter(Boolean)
-                      .join(" · ")}
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 flex gap-1 items-center">
+                    {tour.city && <span>{tour.city} {tour.minPrice != null ? " · " : ""}</span>}
+                    {tour.minPrice != null && <MoneyDisplay amountVnd={tour.minPrice} compact />}
                   </p>
                   {tour.snippet && (
                     <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 line-clamp-1">{tour.snippet}</p>

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { PATH } from '../../../../config/routes/route';
 import { useToast } from '../../../../contexts/ToastContext';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 import { getApiErrorMessage } from '../../../content/utils/apiError';
 import { customerWishlistService } from '../services/customerWishlist.service';
 import type { ReadWishlistItemDTO } from '../types/customerWishlist';
@@ -15,6 +16,7 @@ export const useWishlistToggle = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { success, error: showError, info } = useToast();
+  const { t } = useTranslation();
   const { wishlistIds } = useMyWishlist();
   const [pendingTourId, setPendingTourId] = useState<number | null>(null);
 
@@ -35,7 +37,7 @@ export const useWishlistToggle = () => {
           {
             wishlistId: -tourId,
             tourId,
-            tourName: 'Saved tour',
+            tourName: t('wishlist.savedTour', { defaultValue: 'Saved tour' }),
             tourStatus: 'Active',
           },
           ...current,
@@ -44,14 +46,14 @@ export const useWishlistToggle = () => {
       return { previous };
     },
     onSuccess: (saved) => {
-      success(`"${saved.tourName}" added to your wishlist.`);
+      success(t('wishlist.addSuccess', { name: saved.tourName, defaultValue: `"${saved.tourName}" added to your wishlist.` }));
       queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
     },
     onError: (err: unknown, _tourId, context) => {
       if (context?.previous) {
         queryClient.setQueryData(WISHLIST_QUERY_KEY, context.previous);
       }
-      showError(getApiErrorMessage(err, 'Failed to add tour to wishlist.'));
+      showError(getApiErrorMessage(err, t('wishlist.addFailed', { defaultValue: 'Failed to add tour to wishlist.' })));
     },
     onSettled: () => setPendingTourId(null),
   });
@@ -69,20 +71,20 @@ export const useWishlistToggle = () => {
       return { previous };
     },
     onSuccess: () => {
-      success('Removed from your wishlist.');
+      success(t('wishlist.removeSuccess', { defaultValue: 'Removed from your wishlist.' }));
       queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
     },
     onError: (err: unknown, _tourId, context) => {
       if (context?.previous) {
         queryClient.setQueryData(WISHLIST_QUERY_KEY, context.previous);
       }
-      showError(getApiErrorMessage(err, 'Failed to remove tour from wishlist.'));
+      showError(getApiErrorMessage(err, t('wishlist.removeFailed', { defaultValue: 'Failed to remove tour from wishlist.' })));
     },
     onSettled: () => setPendingTourId(null),
   });
 
   const requireAuth = () => {
-    info('Please log in to save tours to your wishlist.');
+    info(t('wishlist.loginRequired', { defaultValue: 'Please log in to save tours to your wishlist.' }));
     navigate(PATH.PUBLIC.LOGIN);
     return false;
   };
@@ -91,15 +93,15 @@ export const useWishlistToggle = () => {
     if (!user) return requireAuth();
     const validationError = validateTourId(tourId);
     if (validationError) {
-      showError(validationError);
+      showError(t(`wishlist.${validationError}`, { defaultValue: validationError }));
       return;
     }
     if (tourStatus && !isTourActive(tourStatus)) {
-      showError('Only active tours can be added to your wishlist.');
+      showError(t('wishlist.onlyActiveTours', { defaultValue: 'Only active tours can be added to your wishlist.' }));
       return;
     }
     if (isInWishlist(tourId)) {
-      info('This tour is already in your wishlist.');
+      info(t('wishlist.alreadyInWishlist', { defaultValue: 'This tour is already in your wishlist.' }));
       return;
     }
     addMutation.mutate(tourId);
@@ -109,7 +111,7 @@ export const useWishlistToggle = () => {
     if (!user) return requireAuth();
     const validationError = validateTourId(tourId);
     if (validationError) {
-      showError(validationError);
+      showError(t(`wishlist.${validationError}`, { defaultValue: validationError }));
       return;
     }
     removeMutation.mutate(tourId);

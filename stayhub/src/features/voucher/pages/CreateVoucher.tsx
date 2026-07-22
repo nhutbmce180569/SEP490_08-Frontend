@@ -14,7 +14,6 @@ import { AuthContext } from '../../../contexts/AuthContext';
 import { createDefaultVoucherTarget, VoucherTargetEditor, type VoucherTargetValue } from '../components/VoucherTargetEditor';
 import { useCreateVoucher } from '../hooks/useCreateVoucher';
 import { useTourOptions } from '../hooks/useTourOptions';
-import { validateVoucherCode } from '../utils/voucherHelpers';
 
 export const CreateVoucher: React.FC = () => {
   const { t } = useTranslation();
@@ -33,7 +32,6 @@ export const CreateVoucher: React.FC = () => {
         icon: <Type className="h-4 w-4" />,
         colSpan: 2,
         required: true,
-        validate: (value) => validateVoucherCode(String(value || '')),
       },
       {
         name: 'tourId',
@@ -62,15 +60,6 @@ export const CreateVoucher: React.FC = () => {
         placeholder: t('voucher.discountValuePlaceholder'),
         icon: <Hash className="h-4 w-4" />,
         required: true,
-        validate: (value, formData) => {
-          const val = Number(value);
-          if (formData.discountType === 'Percent') {
-            if (val < 1 || val > 100) return t('voucher.percentInvalidRange');
-          } else if (val <= 0) {
-            return t('voucher.amountInvalidMin');
-          }
-          return undefined;
-        },
       },
       {
         name: 'maxDiscountAmount',
@@ -80,14 +69,6 @@ export const CreateVoucher: React.FC = () => {
         icon: <Hash className="h-4 w-4" />,
         visible: (formData) => formData.discountType === 'Percent',
         required: true,
-        validate: (value, formData) => {
-          if (formData.discountType === 'Percent') {
-            if (!value || Number(value) <= 0) {
-              return t('voucher.maxDiscountRequired');
-            }
-          }
-          return undefined;
-        },
       },
       {
         name: 'minOrderAmount',
@@ -96,12 +77,6 @@ export const CreateVoucher: React.FC = () => {
         placeholder: t('voucher.minOrderAmountPlaceholder'),
         icon: <Hash className="h-4 w-4" />,
         required: false,
-        validate: (value) => {
-          if (value !== undefined && value !== null && value !== '' && Number(value) > 0) {
-            if (Number(value) < 10000) return t('voucher.minOrderAmountMin');
-          }
-          return undefined;
-        },
       },
       {
         name: 'availableCount',
@@ -110,10 +85,6 @@ export const CreateVoucher: React.FC = () => {
         placeholder: t('voucher.availableCountPlaceholder'),
         icon: <Hash className="h-4 w-4" />,
         required: true,
-        validate: (value) => {
-          if (!value || Number(value) < 1) return t('voucher.availableCountMin');
-          return undefined;
-        },
       },
       {
         name: 'startDate',
@@ -128,13 +99,6 @@ export const CreateVoucher: React.FC = () => {
         type: 'datetime-local',
         icon: <Calendar className="h-4 w-4" />,
         required: true,
-        validate: (value, formData) => {
-          if (!value || !formData.startDate) return undefined;
-          if (new Date(value) <= new Date(formData.startDate)) {
-            return t('voucher.endDateAfterStart');
-          }
-          return undefined;
-        },
       },
       {
         name: 'description',
@@ -149,40 +113,43 @@ export const CreateVoucher: React.FC = () => {
         label: t('voucher.targetAudience'),
         type: 'custom',
         colSpan: 2,
-        render: (value, onChange, error) => (
+        render: (value: VoucherTargetValue | undefined, onChange) => (
           <VoucherTargetEditor
-            value={(value as VoucherTargetValue) || createDefaultVoucherTarget()}
+            value={value || createDefaultVoucherTarget()}
             onChange={onChange}
-            error={error}
+            error={serverErrors.voucherTarget}
           />
         ),
       },
     ],
-    [t, tourOptions],
+    [t, tourOptions, isAdmin, serverErrors.voucherTarget],
   );
 
   return (
-    <>
-      {serverErrors._form && (
-        <div className="mx-auto mb-4 max-w-4xl rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {serverErrors._form}
-        </div>
-      )}
-      <DynamicForm
-        title={t('voucher.createNewVoucher')}
-        description={t('voucher.createVoucherDesc')}
-        fields={voucherFields}
-        initialValues={{
-          discountType: 'Percent',
-          availableCount: 1,
-          voucherTarget: createDefaultVoucherTarget(),
-        }}
-        onSubmit={handleSubmit}
-        serverErrors={serverErrors}
-        onCancel={handleCancel}
-        submitText={t('voucher.createVoucher')}
-      />
-      <LoadingOverlay isOpen={isSubmitting} message={t('voucher.creatingVoucher')} />
-    </>
+    <div className="mx-auto max-w-4xl pb-10">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-navy">{t('voucher.createNewVoucher')}</h1>
+        <p className="mt-1 text-sm text-slate-500">{t('voucher.createVoucherDesc')}</p>
+      </div>
+
+      <div className="relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
+        <DynamicForm
+          fields={voucherFields}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          submitText={t('common.create')}
+          cancelText={t('common.cancel')}
+          isSubmitting={isSubmitting}
+          serverErrors={serverErrors}
+          gridCols={2}
+          defaultValues={{
+            discountType: 'Percent',
+            availableCount: 1,
+            voucherTarget: createDefaultVoucherTarget(),
+          }}
+        />
+        <LoadingOverlay isOpen={isSubmitting} message={t('common.saving')} />
+      </div>
+    </div>
   );
 };

@@ -193,7 +193,7 @@ export const MomentsFeed: React.FC = () => {
   return (
     <div className="w-full h-full flex flex-col bg-slate-50 overflow-hidden select-none relative">
       {/* Sleek Immersive Apple-style Floating Header Bar (Light Theme) */}
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white/80 border border-slate-200/60 backdrop-blur-xl px-3 py-1.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 w-auto max-w-[95%] sm:max-w-max h-12">
+      <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 flex flex-row items-center gap-1.5 sm:gap-3 bg-white/80 border border-slate-200/60 backdrop-blur-xl px-2 sm:px-3 py-1.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 w-max h-12">
         {/* Center Switcher Buttons (iOS 26 Liquid Glass Style) */}
         <div className="flex items-center bg-slate-200/60 backdrop-blur-md p-1 rounded-full border border-white/60 h-9.5 shadow-[inner_0_1px_2px_rgba(0,0,0,0.05)]">
           <button

@@ -671,6 +671,39 @@ export const GlobalChatPopover: React.FC = () => {
                 const rawAvatar = msg.senderAvatarUrl || msg.SenderAvatarUrl || msg.senderAvatar || msg.SenderAvatar || (msg as any).senderAvatarUrl || (msg as any).SenderAvatarUrl || (msg as any).senderAvatar || (msg as any).SenderAvatar;
                 const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? selectedRoom?.avatarUrl : null);
 
+                if (senderName === 'System') {
+                  try {
+                    if (msg.content.startsWith('{')) {
+                      const parsed = JSON.parse(msg.content);
+                      if (parsed.action === 'MEMBER_ADDED' && Array.isArray(parsed.users)) {
+                        return (
+                          <div key={msg.id || Math.random()} className="flex flex-col items-center justify-center w-full shrink-0 my-3 gap-1">
+                            <span className="text-[10px] font-semibold text-slate-500 tracking-wide">{t('social.memberAdded') || 'Members added to the group:'}</span>
+                            <div className="flex flex-wrap items-center justify-center gap-2 mt-0.5">
+                              {parsed.users.map((u: any) => (
+                                <a key={u.id} href={`/social/profile/${u.id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-white px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-all border border-slate-200 hover:border-brand/30 group cursor-pointer no-underline">
+                                  <div className="w-5 h-5 rounded-full overflow-hidden bg-brand shrink-0 flex items-center justify-center text-white text-[9px] font-bold">
+                                    {u.avatarUrl ? <img src={u.avatarUrl} alt={u.fullName} className="w-full h-full object-cover" /> : (u.fullName?.charAt(0)?.toUpperCase() || 'U')}
+                                  </div>
+                                  <span className="text-[10px] font-semibold text-slate-700 group-hover:text-brand">{u.fullName || 'User'}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    // ignore JSON parse error, fallback
+                  }
+                  
+                  return (
+                    <div key={msg.id || Math.random()} className="flex justify-center w-full shrink-0 my-1">
+                      <span className="bg-slate-100 text-[9px] font-bold text-slate-500 rounded-full px-3 py-1 shadow-inner border border-slate-200/60 uppercase tracking-wider">{msg.content}</span>
+                    </div>
+                  );
+                }
+
                 return (
                   <div key={msg.id || Math.random()} className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} shrink-0 ${isFirstInGroup ? 'mt-3.5' : 'mt-0.5'}`}>
                     <div className={`flex gap-2 max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto'} items-end`}>

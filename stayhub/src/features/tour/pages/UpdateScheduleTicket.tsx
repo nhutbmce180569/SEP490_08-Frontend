@@ -352,7 +352,7 @@ export const UpdateScheduleTicket: React.FC = () => {
                   })),
                 ]}
                 value={promotionId}
-                onChange={setPromotionId}
+                onChange={(val) => setPromotionId(String(val))}
                 disabled={isLoadingPromotions || isSubmitting}
                 placeholder="Select promotion"
                 direction="up"

@@ -62,7 +62,7 @@ export const ProfileLayout = () => {
           aria-label="Account menu"
         >
           {navItems.map((item) =>
-            item.openPlanner ? (
+            (item as any).openPlanner ? (
               <button
                 key={item.path}
                 type="button"
@@ -101,7 +101,7 @@ export const ProfileLayout = () => {
               </div>
               <nav className="flex flex-col gap-0.5">
                 {navItems.map((item) =>
-                  item.openPlanner ? (
+                  (item as any).openPlanner ? (
                     <button
                       key={item.path}
                       type="button"

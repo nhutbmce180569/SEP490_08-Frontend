@@ -33,14 +33,31 @@ interface AddMemberModalProps {
   onConfirm: (userIds: number[]) => void;
   isLoading?: boolean;
   isSingleSelect?: boolean;
+  roomId?: number | null;
 }
 
-const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onConfirm, isLoading = false, isSingleSelect = false }) => {
+const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onConfirm, isLoading = false, isSingleSelect = false, roomId = null }) => {
   const { t } = useTranslation();
   const [searchInput, setSearchInput] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<number[]>([]);
   const { data: searchResult, isLoading: isSearching } = useSearchUsers(debouncedQuery);
+
+  const { data: membersResponse } = useQuery({
+    queryKey: ['roomMembers', roomId],
+    queryFn: () => chatService.getRoomMembers(roomId!),
+    enabled: !!roomId && isOpen,
+  });
+
+  const existingMemberIds = useMemo(() => {
+    return membersResponse?.map((m: any) => m.id || m.userId) || [];
+  }, [membersResponse]);
+
+  const filteredUsers = useMemo(() => {
+    if (!searchResult || !Array.isArray(searchResult.data)) return [];
+    if (isSingleSelect || existingMemberIds.length === 0) return searchResult.data;
+    return searchResult.data.filter((u: any) => !existingMemberIds.includes(u.id));
+  }, [searchResult, isSingleSelect, existingMemberIds]);
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedQuery(searchInput.trim()); }, 500);
@@ -87,8 +104,8 @@ const AddMemberModal: React.FC<AddMemberModalProps> = ({ isOpen, onClose, onConf
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {isSearching ? (
             <div className="flex justify-center items-center py-8"><Loader2 className="w-5 h-5 text-brand animate-spin" /></div>
-          ) : searchResult && Array.isArray(searchResult.data) && searchResult.data.length > 0 ? (
-            searchResult.data.map((user: any) => (
+          ) : filteredUsers.length > 0 ? (
+            filteredUsers.map((user: any) => (
               <label key={user.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors border border-transparent">
                 <input type={isSingleSelect ? 'radio' : 'checkbox'} checked={selectedUserIds.includes(user.id)} onChange={() => handleToggleUser(user.id)} className="w-4 h-4 text-brand rounded cursor-pointer" />
                 <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm shadow-sm">
@@ -203,6 +220,8 @@ export const ChatPage: React.FC = () => {
 
   const { user } = useContext(AuthContext);
   const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
+  const userRoles = Array.isArray(user?.roles) ? user.roles : typeof user?.roles === "string" ? [user.roles] : [];
+  const isStaffOrAdmin = userRoles.some((r: string) => ["admin", "manager", "staff"].includes(r.toLowerCase()));
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -504,7 +523,9 @@ const { mutate: mutateMarkAsRead } = useMutation({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button onClick={() => setShowMembersModal(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><Users className="w-4.5 h-4.5" /></button>
-                    <button onClick={() => setShowAddMemberModal(true)} disabled={isAddingMembers} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><UserPlus className="w-4.5 h-4.5" /></button>
+                    {isStaffOrAdmin && (
+                      <button onClick={() => setShowAddMemberModal(true)} disabled={isAddingMembers} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><UserPlus className="w-4.5 h-4.5" /></button>
+                    )}
                     <button onClick={() => { if(selectedRoomId) mutatePin(selectedRoomId); }} disabled={isPinning} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isPinned ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}><Pin className="w-4.5 h-4.5" /></button>
                     <button onClick={() => { if(selectedRoomId) mutateMute(selectedRoomId); }} disabled={isMuting} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isMuted ? 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/30' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}><BellOff className="w-4.5 h-4.5" /></button>
                   </div>
@@ -523,6 +544,31 @@ const { mutate: mutateMarkAsRead } = useMutation({
                       const createdAt = msg.createdAt ?? msg.CreatedAt;
 
                       if (senderName === 'System') {
+                        try {
+                          if (content.startsWith('{')) {
+                            const parsed = JSON.parse(content);
+                            if (parsed.action === 'MEMBER_ADDED' && Array.isArray(parsed.users)) {
+                              return (
+                                <div key={`${msgId}-${idx}`} className="flex flex-col items-center justify-center w-full shrink-0 my-3 gap-1">
+                                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 tracking-wide">{t('social.memberAdded') || 'Members added to the group:'}</span>
+                                  <div className="flex flex-wrap items-center justify-center gap-2 mt-0.5">
+                                    {parsed.users.map((u: any) => (
+                                      <a key={u.id} href={`/social/profile/${u.id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-all border border-slate-200 dark:border-slate-700 hover:border-brand/30 group cursor-pointer no-underline">
+                                        <div className="w-5 h-5 rounded-full overflow-hidden bg-brand shrink-0 flex items-center justify-center text-white text-[9px] font-bold">
+                                          {u.avatarUrl ? <img src={u.avatarUrl} alt={u.fullName} className="w-full h-full object-cover" /> : (u.fullName?.charAt(0)?.toUpperCase() || 'U')}
+                                        </div>
+                                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-brand">{u.fullName || 'User'}</span>
+                                      </a>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          }
+                        } catch (e) {
+                          // ignore JSON parse error, fallback
+                        }
+                        
                         return (
                           <div key={`${msgId}-${idx}`} className="flex justify-center w-full shrink-0">
                             <span className="bg-slate-200/80 dark:bg-slate-800/80 backdrop-blur-sm text-[10px] font-black text-slate-500 dark:text-slate-400 rounded-full px-4 py-1 my-1 shadow-inner border border-white/20 dark:border-slate-700/30 uppercase tracking-wider">{content}</span>
@@ -700,8 +746,8 @@ const { mutate: mutateMarkAsRead } = useMutation({
         </div>
       </div>
 
-      <AddMemberModal isOpen={showAddMemberModal} onClose={() => setShowAddMemberModal(false)} onConfirm={handleAddMembers} isLoading={isAddingMembers} isSingleSelect={false} />
-      <AddMemberModal isOpen={showNewChatModal} onClose={() => setShowNewChatModal(false)} onConfirm={handleStartNewChat} isLoading={isCreatingNewChat} isSingleSelect={true} />
+      <AddMemberModal isOpen={showAddMemberModal} onClose={() => setShowAddMemberModal(false)} onConfirm={handleAddMembers} isLoading={isAddingMembers} isSingleSelect={false} roomId={selectedRoomId} />
+      <AddMemberModal isOpen={showNewChatModal} onClose={() => setShowNewChatModal(false)} onConfirm={handleStartNewChat} isLoading={isCreatingNewChat} isSingleSelect={true} roomId={null} />
       <RoomMembersModal isOpen={showMembersModal} onClose={() => setShowMembersModal(false)} roomId={selectedRoomId} />
     </>
   );

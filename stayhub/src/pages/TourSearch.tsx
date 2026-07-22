@@ -324,10 +324,6 @@ function Sidebar({
   onClear,
 }: any) {
   const { t } = useTranslation();
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
-  const searchLocationRef = useRef<HTMLDivElement>(null);
 
   const { provinces, isLoading: isProvincesLoading } = useProvinces();
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
@@ -335,9 +331,6 @@ function Sidebar({
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
-      if (searchLocationRef.current && !searchLocationRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
       if (cityInputRef.current && !cityInputRef.current.contains(e.target as Node)) {
         setShowCitySuggestions(false);
       }
@@ -345,42 +338,6 @@ function Sidebar({
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
-
-  useEffect(() => {
-    if (!localSearch.trim()) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = setTimeout(async () => {
-      try {
-        setIsSuggestionsLoading(true);
-        const results = await getSearchSuggestions(localSearch, controller.signal);
-        setSuggestions(results);
-        setShowSuggestions(true);
-      } catch (error: any) {
-        if (error.name !== 'CanceledError') {
-          console.error("Failed to fetch search suggestions:", error);
-          setSuggestions([]);
-        }
-      } finally {
-        setIsSuggestionsLoading(false);
-      }
-    }, 300);
-
-    return () => {
-      clearTimeout(timer);
-      controller.abort();
-    };
-  }, [localSearch]);
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setLocalSearch(suggestion);
-    setShowSuggestions(false);
-    upd({ searchTerm: suggestion, city: localCity });
-  };
 
   return (
     <aside
@@ -418,7 +375,7 @@ function Sidebar({
           {/* Keywords */}
           <FilterSection label={t("common.search")}>
             <div className="flex flex-col gap-2.5">
-              <div className="relative" ref={searchLocationRef}>
+              <div className="relative">
                 <label
                   className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all"
                   style={{
@@ -433,47 +390,10 @@ function Sidebar({
                     placeholder={t("tour.searchToursPlaceholder")}
                     onChange={(e) => setLocalSearch(e.target.value)}
                     onBlur={submitText}
-                    onFocus={() => localSearch.trim() && setShowSuggestions(true)}
                     onKeyDown={(e) => e.key === "Enter" && submitText()}
                     className="bg-transparent text-[13px] text-slate-700 placeholder:text-slate-400 outline-none w-full font-medium"
                   />
                 </label>
-                {showSuggestions && (
-                  <div className="absolute top-full left-0 right-0 mt-2 z-[100] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden text-slate-800">
-                    {isSuggestionsLoading ? (
-                      <div className="p-4 text-center text-sm text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
-                    ) : suggestions.length > 0 ? (
-                      <ul className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
-                        {suggestions.map((suggestion, index) => (
-                          <li key={index}>
-                            <button
-                              type="button"
-                              className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 outline-none text-left"
-                              onMouseDown={(e) => {
-                                // use onMouseDown instead of onClick to fire before onBlur of the input
-                                e.preventDefault();
-                                handleSuggestionClick(suggestion);
-                              }}
-                            >
-                              <Search className="h-4 w-4 text-slate-400 shrink-0" />
-                              <span
-                                className="truncate"
-                                dangerouslySetInnerHTML={{
-                                  __html: suggestion.replace(
-                                    new RegExp(`(${localSearch})`, 'gi'),
-                                    '<strong class="font-bold text-brand">$1</strong>'
-                                  ),
-                                }}
-                              />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="p-4 text-center text-sm text-slate-500">{t("tour.noToursFound", { defaultValue: "No matches found" })}</div>
-                    )}
-                  </div>
-                )}
               </div>
               
               <div className="relative" ref={cityInputRef}>

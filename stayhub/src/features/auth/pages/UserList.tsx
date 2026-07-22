@@ -196,23 +196,23 @@ export const UserList: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <div className="flex flex-col sm:flex-row flex-wrap flex-1 items-stretch sm:items-center gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
+            <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               type="text"
               placeholder={t("auth.searchByFullName")}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
           </div>
-          <div className="relative w-full sm:w-48 shrink-0">
-            <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
+            <Filter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <select
               value={roleInput}
               onChange={(e) => setRoleInput(e.target.value)}
-              className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+              className="bg-transparent text-sm text-slate-700 outline-none cursor-pointer"
             >
               <option value="">{t("auth.allRoles")}</option>
               <option value="Admin">{getRoleDisplay("Admin", t)}</option>
@@ -241,17 +241,25 @@ export const UserList: React.FC = () => {
           </div>
         </div>
 
-        <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm shadow-sm shrink-0">
-          <Plus className="h-4 w-4" /> {t("auth.addUser")}
-        </ActionButton>
+        <div className="flex items-center shrink-0">
+          <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm shadow-sm shrink-0">
+            <Plus className="h-4 w-4" /> {t("auth.addUser")}
+          </ActionButton>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">{t("auth.loadingUsers")}</div>
-      ) : error ? (
+      {error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
-        <Table data={users} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("errors.noUsersFound")} tableClassName="w-full min-w-[750px] border-collapse table-fixed" />
+        <Table
+          data={users}
+          columns={columns}
+          keyExtractor={(item) => item.id}
+          emptyMessage={t("errors.noUsersFound")}
+          tableClassName="w-full min-w-[750px] border-collapse table-fixed"
+          isLoading={isLoading}
+          skeletonRows={pageSize}
+        />
       )}
 
       <PaginationButton currentPage={currentPage} totalPages={totalPages} totalItems={totalItems} pageSize={pageSize} onPageChange={setPage} />

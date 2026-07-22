@@ -13,7 +13,7 @@ const CommentAvatar = ({ src, name }: { src?: string | null; name: string }) => 
   const [err, setErr] = useState(false);
   const showImg = src && !err;
   return (
-    <div className="h-7 w-7 shrink-0 !rounded-full overflow-hidden bg-slate-100 border border-slate-200 flex items-center justify-center">
+    <div className="h-7 w-7 shrink-0 !rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
       {showImg ? (
         <img
           src={src as string}
@@ -24,7 +24,7 @@ const CommentAvatar = ({ src, name }: { src?: string | null; name: string }) => 
           decoding="async"
         />
       ) : (
-        <span className="font-bold text-[11px] text-slate-500">
+        <span className="font-bold text-[11px] text-slate-500 dark:text-slate-300">
           {(name || 'A').charAt(0)}
         </span>
       )}
@@ -139,13 +139,13 @@ export const CommentSection = ({ momentId, comments }: any) => {
                   )}
                   <div className="leading-relaxed pr-6">
                     {commentUserId ? (
-                      <Link to={`/social/profile/${commentUserId}`} className="font-bold mr-2 hover:underline hover:text-brand transition-all">
+                      <Link to={`/social/profile/${commentUserId}`} className="font-bold mr-2 hover:underline hover:text-brand transition-all text-slate-900 dark:text-white">
                         {fullName}
                       </Link>
                     ) : (
-                      <span className="font-bold mr-2">{fullName}</span>
+                      <span className="font-bold mr-2 text-slate-900 dark:text-white">{fullName}</span>
                     )}
-                    <span className="text-slate-700">{c.text || c.comment}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{c.text || c.comment}</span>
                   </div>
                 </div>
                 
@@ -196,13 +196,13 @@ export const CommentSection = ({ momentId, comments }: any) => {
           })}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex items-center gap-3 py-2 border-t border-slate-100">
+      <form onSubmit={handleSubmit} className="flex items-center gap-3 py-2 border-t border-slate-100 dark:border-slate-800">
         <input
           type="text"
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder={t("social.momentWriteComment")}
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
+          className="flex-1 bg-transparent text-sm outline-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
         />
         <button 
           type="submit" 
@@ -222,33 +222,33 @@ export const CommentSection = ({ momentId, comments }: any) => {
 
       {reportingCommentId && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Report Comment</h3>
-            <p className="text-xs text-slate-500 mb-4">Select a reason for reporting this comment for community standards violations.</p>
+          <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Report Comment</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Select a reason for reporting this comment for community standards violations.</p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Reason</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Reason</label>
                 <select 
                   value={commentReason} 
                   onChange={(e) => setCommentReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 focus:outline-none focus:border-brand"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand"
                 >
-                  <option value="Spam">Spam (Garbage / Ads)</option>
-                  <option value="Hate Speech">Hate Speech</option>
-                  <option value="Harassment">Harassment / Threat</option>
-                  <option value="Violence">Violence / Gore</option>
-                  <option value="Other">Other Reason</option>
+                  <option value="Spam" className="dark:bg-slate-800">Spam (Garbage / Ads)</option>
+                  <option value="Hate Speech" className="dark:bg-slate-800">Hate Speech</option>
+                  <option value="Harassment" className="dark:bg-slate-800">Harassment / Threat</option>
+                  <option value="Violence" className="dark:bg-slate-800">Violence / Gore</option>
+                  <option value="Other" className="dark:bg-slate-800">Other Reason</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Details (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Details (Optional)</label>
                 <textarea
                   value={commentDetails}
                   onChange={(e) => setCommentDetails(e.target.value)}
                   placeholder="Enter more details about the violation..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 h-20 focus:outline-none focus:border-brand resize-none"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm text-slate-800 dark:text-slate-100 h-20 focus:outline-none focus:border-brand resize-none"
                 />
               </div>
             </div>
@@ -257,7 +257,7 @@ export const CommentSection = ({ momentId, comments }: any) => {
               <button
                 onClick={() => setReportingCommentId(null)}
                 disabled={isSubmittingCommentReport}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+                className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

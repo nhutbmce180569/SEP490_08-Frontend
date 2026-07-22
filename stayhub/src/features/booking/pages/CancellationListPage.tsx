@@ -237,14 +237,19 @@ export const CancellationListPage: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">{t("booking.loadingRequests")}</div>
-      ) : error ? (
+      {error ? (
         <div className="flex justify-center p-10 text-rose-500">
           {getErrorMessage(error, t("booking.failedLoadRequests"))}
         </div>
       ) : (
-        <Table data={requests} columns={columns} keyExtractor={(item) => item.id} emptyMessage={t("booking.noCancellationRequests")} />
+        <Table
+          data={requests}
+          columns={columns}
+          keyExtractor={(item) => item.id}
+          emptyMessage={t("booking.noCancellationRequests")}
+          isLoading={isLoading}
+          skeletonRows={pageSize}
+        />
       )}
 
       <PaginationButton

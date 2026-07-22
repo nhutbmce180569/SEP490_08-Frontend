@@ -91,13 +91,13 @@ function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between text-sm font-bold text-slate-700 outline-none cursor-pointer rounded-xl px-4 py-2.5 transition-all focus:border-brand focus:ring-2 focus:ring-brand/20 bg-slate-50 border border-slate-200 hover:border-slate-300"
+        className="w-full flex items-center justify-between text-sm font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer rounded-xl px-4 py-2.5 transition-all focus:border-brand focus:ring-2 focus:ring-brand/20 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
       >
         <span className="truncate pr-4">{selected ? selected.label : placeholder}</span>
-        <ChevronDown size={14} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+        <ChevronDown size={14} className={`text-slate-400 dark:text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden py-1">
+        <div className="absolute top-full left-0 right-0 mt-2 z-50 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden py-1">
           <ul className="max-h-60 overflow-y-auto custom-scrollbar">
             {options.map((opt) => (
               <li key={opt.value}>
@@ -105,8 +105,8 @@ function CustomSelect({
                   type="button"
                   className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
                     opt.value === value
-                      ? "bg-brand/5 text-brand font-bold"
-                      : "text-slate-700 hover:bg-slate-50 font-medium"
+                      ? "bg-brand/5 dark:bg-brand/15 text-brand font-bold"
+                      : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium"
                   }`}
                   onClick={() => {
                     onChange(opt.value);
@@ -128,10 +128,7 @@ function CustomSelect({
 
 function SliderTrack({ lo, hi }: { lo: number; hi: number }) {
   return (
-    <div
-      className="relative h-[3px] rounded-full mx-[9px] mb-1"
-      style={{ background: "rgba(5,7,60,0.08)" }}
-    >
+    <div className="relative h-[3px] rounded-full mx-[9px] mb-1 bg-slate-200 dark:bg-slate-700">
       <div
         className="absolute inset-y-0 rounded-full"
         style={{ left: `${lo}%`, right: `${100 - hi}%`, background: "var(--color-brand)" }}
@@ -208,13 +205,9 @@ function PriceSlider({
           onChange={(e) => onChangeMin(+e.target.value)}
           onBlur={onCommit}
           onKeyDown={(e) => e.key === "Enter" && onCommit()}
-          className="w-full text-xs text-slate-700 rounded-xl py-2 px-3 outline-none transition-colors"
-          style={{
-            background: "rgba(5,7,60,0.04)",
-            border: "1px solid rgba(5,7,60,0.1)",
-          }}
+          className="w-full text-xs text-slate-700 dark:text-slate-200 rounded-xl py-2 px-3 outline-none transition-colors bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700"
         />
-        <span className="text-slate-300 shrink-0 font-bold">—</span>
+        <span className="text-slate-300 dark:text-slate-600 shrink-0 font-bold">—</span>
         <input
           type="number"
           placeholder={t("common.max")}
@@ -222,11 +215,7 @@ function PriceSlider({
           onChange={(e) => onChangeMax(+e.target.value)}
           onBlur={onCommit}
           onKeyDown={(e) => e.key === "Enter" && onCommit()}
-          className="w-full text-xs text-slate-700 rounded-xl py-2 px-3 outline-none transition-colors"
-          style={{
-            background: "rgba(5,7,60,0.04)",
-            border: "1px solid rgba(5,7,60,0.1)",
-          }}
+          className="w-full text-xs text-slate-700 dark:text-slate-200 rounded-xl py-2 px-3 outline-none transition-colors bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700"
         />
       </div>
     </div>
@@ -266,7 +255,7 @@ function DurationSlider({
         >
           {value === 0 ? t("tour.anyDuration") : t("tour.upToDays", { count: value })}
         </span>
-        <span className="text-xs text-slate-400">{t("tour.maxDays", { count: MAX_DAYS })}</span>
+        <span className="text-xs text-slate-400 dark:text-slate-500">{t("tour.maxDays", { count: MAX_DAYS })}</span>
       </div>
     </div>
   );
@@ -282,10 +271,7 @@ function FilterSection({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className="py-6"
-      style={{ borderBottom: "1px solid rgba(5,7,60,0.07)" }}
-    >
+    <div className="py-6 border-b border-slate-100 dark:border-slate-800/80">
       <p
         className="text-[10px] font-black uppercase tracking-[0.18em] mb-3"
         style={{ color: "var(--color-brand)" }}
@@ -346,26 +332,16 @@ function Sidebar({
         fontFamily: "'Sora', 'Plus Jakarta Sans', system-ui, sans-serif",
       }}
     >
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{
-          background: "#fff",
-          border: "1px solid rgba(5,7,60,0.08)",
-          boxShadow: "0 4px 24px rgba(5,7,60,0.06)",
-        }}
-      >
+      <div className="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
         {/* Header */}
-        <div
-          className="flex items-center justify-between px-6 py-4"
-          style={{ borderBottom: "1px solid rgba(5,7,60,0.07)" }}
-        >
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center gap-2">
             <SlidersHorizontal size={16} style={{ color: "var(--color-brand)" }} />
-            <span className="text-sm font-black text-slate-800">{t("tour.filters")}</span>
+            <span className="text-sm font-black text-slate-800 dark:text-white">{t("tour.filters")}</span>
           </div>
           <button
             onClick={onClear}
-            className="text-[11px] font-bold text-slate-400 hover:text-brand transition-colors flex items-center gap-1"
+            className="text-[11px] font-bold text-slate-400 hover:text-brand dark:text-slate-500 dark:hover:text-brand transition-colors flex items-center gap-1"
           >
             <X size={12} /> {t("common.clearAll")}
           </button>
@@ -376,13 +352,7 @@ function Sidebar({
           <FilterSection label={t("common.search")}>
             <div className="flex flex-col gap-2.5">
               <div className="relative">
-                <label
-                  className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all"
-                  style={{
-                    background: "rgba(5,7,60,0.03)",
-                    border: "1px solid rgba(5,7,60,0.08)",
-                  }}
-                >
+                <label className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 focus-within:border-brand dark:focus-within:border-brand">
                   <Search size={14} className="text-slate-400 shrink-0" />
                   <input
                     type="text"
@@ -391,19 +361,13 @@ function Sidebar({
                     onChange={(e) => setLocalSearch(e.target.value)}
                     onBlur={submitText}
                     onKeyDown={(e) => e.key === "Enter" && submitText()}
-                    className="bg-transparent text-[13px] text-slate-700 placeholder:text-slate-400 outline-none w-full font-medium"
+                    className="bg-transparent text-[13px] text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none w-full font-medium"
                   />
                 </label>
               </div>
               
               <div className="relative" ref={cityInputRef}>
-                <label
-                  className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all"
-                  style={{
-                    background: "rgba(5,7,60,0.03)",
-                    border: "1px solid rgba(5,7,60,0.08)",
-                  }}
-                >
+                <label className="flex items-center gap-2.5 rounded-xl px-4 py-2.5 cursor-text transition-all bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 focus-within:border-brand dark:focus-within:border-brand">
                   <MapPin size={14} className="text-slate-400 shrink-0" />
                   <input
                     type="text"
@@ -416,13 +380,13 @@ function Sidebar({
                     onBlur={submitText}
                     onFocus={() => setShowCitySuggestions(true)}
                     onKeyDown={(e) => e.key === "Enter" && submitText()}
-                    className="bg-transparent text-[13px] text-slate-700 placeholder:text-slate-400 outline-none w-full font-medium"
+                    className="bg-transparent text-[13px] text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none w-full font-medium"
                   />
                 </label>
                 {showCitySuggestions && (
-                  <div className="absolute top-full left-0 right-0 mt-2 z-[100] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden text-slate-800">
+                  <div className="absolute top-full left-0 right-0 mt-2 z-[100] bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden text-slate-800 dark:text-slate-100">
                     {isProvincesLoading ? (
-                      <div className="p-4 text-center text-sm text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
+                      <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">{t("common.loading", { defaultValue: "Loading..." })}</div>
                     ) : (
                       <ul className="py-1 max-h-60 overflow-y-auto custom-scrollbar">
                         {(() => {
@@ -431,13 +395,13 @@ function Sidebar({
                             p.value.toLowerCase().includes(localCity.toLowerCase())
                           );
                           if (filtered.length === 0) {
-                            return <div className="p-4 text-center text-sm text-slate-500">{t("common.noData", { defaultValue: "No matches found" })}</div>;
+                            return <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">{t("common.noData", { defaultValue: "No matches found" })}</div>;
                           }
                           return filtered.map((p, index) => (
                             <li key={index}>
                               <button
                                 type="button"
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 outline-none text-left"
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-brand-light/50 dark:hover:bg-slate-800 outline-none text-left"
                                 onMouseDown={(e) => {
                                   e.preventDefault();
                                   setLocalCity(p.label);
@@ -445,7 +409,7 @@ function Sidebar({
                                   upd({ searchTerm: localSearch, city: p.value });
                                 }}
                               >
-                                <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+                                <MapPin className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
                                 <span className="truncate">{p.label}</span>
                               </button>
                             </li>
@@ -467,7 +431,7 @@ function Sidebar({
                 { lbl: t("common.to"), val: localEnd, set: setLocalEnd },
               ].map(({ lbl, val, set }) => (
                 <div key={lbl}>
-                  <p className="text-[10px] font-bold text-slate-400 mb-1.5 uppercase tracking-wider">
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">
                     {lbl}
                   </p>
                   <input
@@ -475,11 +439,7 @@ function Sidebar({
                     value={val}
                     onChange={(e) => set(e.target.value)}
                     onBlur={submitDates}
-                    className="w-full rounded-xl py-2.5 px-3 text-sm text-slate-700 outline-none transition-colors font-medium"
-                    style={{
-                      background: "rgba(5,7,60,0.03)",
-                      border: "1px solid rgba(5,7,60,0.08)",
-                    }}
+                    className="w-full rounded-xl py-2.5 px-3 text-sm text-slate-700 dark:text-slate-200 outline-none transition-colors font-medium bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80"
                   />
                 </div>
               ))}
@@ -542,22 +502,20 @@ function Pagination({
       <button
         onClick={() => onPage(page - 1)}
         disabled={page === 1}
-        className="w-10 h-10 flex items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        style={{ border: "1px solid rgba(5,7,60,0.1)", background: "#fff" }}
+        className="w-10 h-10 flex items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-brand"
       >
-        <ChevronLeft size={18} className="text-slate-600" />
+        <ChevronLeft size={18} className="text-slate-600 dark:text-slate-300" />
       </button>
 
       {visible[0] > 1 && (
         <>
           <button
             onClick={() => onPage(1)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 transition-all hover:text-brand"
-            style={{ border: "1px solid rgba(5,7,60,0.1)", background: "#fff" }}
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-all hover:text-brand bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800"
           >
             1
           </button>
-          {visible[0] > 2 && <span className="text-slate-300 px-1">…</span>}
+          {visible[0] > 2 && <span className="text-slate-300 dark:text-slate-600 px-1">…</span>}
         </>
       )}
 
@@ -565,15 +523,12 @@ function Pagination({
         <button
           key={p}
           onClick={() => onPage(p)}
-          className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all"
-          style={{
-            background: p === page ? "var(--color-brand)" : "#fff",
-            color: p === page ? "#fff" : "#475569",
-            border:
-              p === page ? "1px solid var(--color-brand)" : "1px solid rgba(5,7,60,0.1)",
-            boxShadow: p === page ? "0 4px 16px rgba(0,104,224,0.28)" : "none",
-            fontFamily: "'Sora', sans-serif",
-          }}
+          className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+            p === page
+              ? "bg-brand text-white border border-brand shadow-md shadow-brand/20"
+              : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-800 hover:text-brand"
+          }`}
+          style={{ fontFamily: "'Sora', sans-serif" }}
         >
           {p}
         </button>
@@ -582,12 +537,11 @@ function Pagination({
       {visible[visible.length - 1] < totalPages && (
         <>
           {visible[visible.length - 1] < totalPages - 1 && (
-            <span className="text-slate-300 px-1">…</span>
+            <span className="text-slate-300 dark:text-slate-600 px-1">…</span>
           )}
           <button
             onClick={() => onPage(totalPages)}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 transition-all hover:text-brand"
-            style={{ border: "1px solid rgba(5,7,60,0.1)", background: "#fff" }}
+            className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 transition-all hover:text-brand bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800"
           >
             {totalPages}
           </button>
@@ -597,10 +551,9 @@ function Pagination({
       <button
         onClick={() => onPage(page + 1)}
         disabled={page === totalPages}
-        className="w-10 h-10 flex items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-        style={{ border: "1px solid rgba(5,7,60,0.1)", background: "#fff" }}
+        className="w-10 h-10 flex items-center justify-center rounded-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-brand"
       >
-        <ChevronRight size={18} className="text-slate-600" />
+        <ChevronRight size={18} className="text-slate-600 dark:text-slate-300" />
       </button>
     </div>
   );
@@ -729,9 +682,8 @@ export default function TourSearch() {
 
   return (
     <div
-      className="min-h-screen pb-24"
+      className="min-h-screen pb-24 bg-[#F9F7F5] dark:bg-slate-950 transition-colors duration-300"
       style={{
-        background: "#F9F7F5",
         fontFamily: "'Sora', 'Plus Jakarta Sans', system-ui, sans-serif",
       }}
     >
@@ -774,18 +726,11 @@ export default function TourSearch() {
             </div>
 
             {/* Sort + filter bar */}
-            <div
-              className="flex items-center justify-between gap-4 mb-8 px-5 py-3.5 rounded-2xl"
-              style={{
-                background: "#fff",
-                border: "1px solid rgba(5,7,60,0.07)",
-                boxShadow: "0 2px 12px rgba(5,7,60,0.04)",
-              }}
-            >
+            <div className="flex items-center justify-between gap-4 mb-8 px-5 py-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
               {/* Mobile filter toggle */}
               <button
                 onClick={() => setMobileSidebarOpen(true)}
-                className="lg:hidden flex items-center gap-2 text-sm font-bold text-slate-700"
+                className="lg:hidden flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200"
               >
                 <Filter size={15} style={{ color: "var(--color-brand)" }} />
                 {t("tour.filters")}
@@ -799,8 +744,8 @@ export default function TourSearch() {
                 )}
               </button>
 
-              <div className="hidden lg:flex items-center gap-1 text-sm font-medium text-slate-400">
-                <span className="font-black text-slate-700 m-0">
+              <div className="hidden lg:flex items-center gap-1 text-sm font-medium text-slate-400 dark:text-slate-400">
+                <span className="font-black text-slate-700 dark:text-slate-200 m-0">
                   {tours.length}
                 </span>
                 {t("tour.results")}
@@ -809,7 +754,7 @@ export default function TourSearch() {
               {/* Sort & Page Size */}
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-slate-400 font-medium hidden sm:block">
+                  <span className="text-sm text-slate-400 dark:text-slate-400 font-medium hidden sm:block">
                     {t("common.show") || "Show"}
                   </span>
                   <CustomSelect
@@ -824,8 +769,8 @@ export default function TourSearch() {
                 </div>
 
                 <div className="flex items-center gap-2.5">
-                  <ArrowUpDown size={14} className="text-slate-400 shrink-0" />
-                  <span className="text-sm text-slate-400 font-medium hidden sm:block whitespace-nowrap">
+                  <ArrowUpDown size={14} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                  <span className="text-sm text-slate-400 dark:text-slate-400 font-medium hidden sm:block whitespace-nowrap">
                     {t("tour.sortBy")}
                   </span>
                   <CustomSelect
@@ -857,12 +802,7 @@ export default function TourSearch() {
                 )}
                 {city && (
                   <span
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-                    style={{
-                      background: "#EAF4FF",
-                      color: "var(--color-brand)",
-                      border: "1px solid rgba(0,104,224,0.2)",
-                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#EAF4FF] dark:bg-brand/15 text-brand border border-brand/20"
                   >
                     📍 {city}
                     <button onClick={() => upd({ city: null })}>
@@ -872,14 +812,9 @@ export default function TourSearch() {
                 )}
                 {categoryId && (
                   <span
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-                    style={{
-                      background: "#EAF4FF",
-                      color: "var(--color-brand)",
-                      border: "1px solid rgba(0,104,224,0.2)",
-                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#EAF4FF] dark:bg-brand/15 text-brand border border-brand/20"
                   >
-                {categoriesList.find((c) => c.value === categoryId)?.label || t("tour.category")}
+                    {categoriesList.find((c) => c.value === categoryId)?.label || t("tour.category")}
                     <button onClick={() => upd({ categoryId: null })}>
                       <X size={11} />
                     </button>
@@ -887,12 +822,7 @@ export default function TourSearch() {
                 )}
                 {(minPrice || maxPrice) && (
                   <span
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-                    style={{
-                      background: "#EAF4FF",
-                      color: "var(--color-brand)",
-                      border: "1px solid rgba(0,104,224,0.2)",
-                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#EAF4FF] dark:bg-brand/15 text-brand border border-brand/20"
                   >
                     💰 {t("tour.priceFilter")}
                     <button
@@ -904,12 +834,7 @@ export default function TourSearch() {
                 )}
                 {duration && (
                   <span
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold"
-                    style={{
-                      background: "#EAF4FF",
-                      color: "var(--color-brand)",
-                      border: "1px solid rgba(0,104,224,0.2)",
-                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-[#EAF4FF] dark:bg-brand/15 text-brand border border-brand/20"
                   >
                     ⏱ {t("tour.upToDuration", { count: duration })}
                     <button onClick={() => upd({ duration: null })}>
@@ -919,8 +844,7 @@ export default function TourSearch() {
                 )}
                 <button
                   onClick={handleClear}
-                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-brand transition-colors"
-                  style={{ border: "1px solid rgba(5,7,60,0.1)" }}
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 hover:text-brand dark:text-slate-400 dark:hover:text-brand transition-colors bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800"
                 >
                   {t("common.clearAll")}
                 </button>
@@ -937,44 +861,29 @@ export default function TourSearch() {
                     borderTopColor: "transparent",
                   }}
                 />
-                <p className="text-sm font-bold text-slate-400">
+                <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
                   {t("tour.findingAdventures")}
                 </p>
               </div>
             ) : error ? (
-              <div
-                className="py-20 text-center text-rose-500 rounded-2xl"
-                style={{
-                  background: "#FFF1F2",
-                  border: "1px solid rgba(244,63,94,0.15)",
-                }}
-              >
+              <div className="py-20 text-center text-rose-500 dark:text-rose-400 rounded-2xl bg-[#FFF1F2] dark:bg-rose-950/30 border border-rose-500/20">
                 <p className="text-lg font-bold mb-1">
                   {t("tour.somethingWentWrong")}
                 </p>
                 <p className="text-sm opacity-70">{error}</p>
               </div>
             ) : tours.length === 0 ? (
-              <div
-                className="py-28 flex flex-col items-center text-center rounded-3xl"
-                style={{
-                  background: "#fff",
-                  border: "1px dashed rgba(5,7,60,0.12)",
-                }}
-              >
-                <div
-                  className="w-20 h-20 flex items-center justify-center rounded-full mb-5 text-3xl"
-                  style={{ background: "#FFF8F5" }}
-                >
+              <div className="py-28 flex flex-col items-center text-center rounded-3xl bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800">
+                <div className="w-20 h-20 flex items-center justify-center rounded-full mb-5 text-3xl bg-[#FFF8F5] dark:bg-slate-800">
                   🗺️
                 </div>
                 <h3
-                  className="text-xl font-black text-slate-800 mb-2"
+                  className="text-xl font-black text-slate-800 dark:text-white mb-2"
                   style={{ fontFamily: "'Sora', sans-serif" }}
                 >
                   {t("tour.noToursFound")}
                 </h3>
-                <p className="text-slate-400 text-sm max-w-xs font-medium">
+                <p className="text-slate-400 dark:text-slate-500 text-sm max-w-xs font-medium">
                   {t("tour.broadenSearch")}
                 </p>
                 <ActionButton
@@ -1035,7 +944,7 @@ export default function TourSearch() {
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setMobileSidebarOpen(false)}
           />
-          <div className="absolute right-0 top-0 bottom-0 w-[92%] max-w-[380px] bg-white overflow-y-auto shadow-2xl">
+          <div className="absolute right-0 top-0 bottom-0 w-[92%] max-w-[380px] bg-white dark:bg-slate-900 overflow-y-auto shadow-2xl">
             <Sidebar
               localSearch={localSearch}
               setLocalSearch={setLocalSearch}

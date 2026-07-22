@@ -116,7 +116,7 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
                 </div>
               </td>
               <td className="px-5 py-4 font-black text-brand text-sm">
-                {formatCompactVnd(c.totalSpend)}
+                {formatCompactVnd(c.totalSpend, locale)}
               </td>
               <td className="px-5 py-4 text-sm font-bold text-slate-700">
                 {formatNumber(c.orderCount)}

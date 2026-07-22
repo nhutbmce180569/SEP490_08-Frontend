@@ -140,7 +140,7 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
       {
         header: t('analytics.customer.colSpend'),
         render: (c) => (
-          <span className="font-black text-brand text-sm">{formatCompactVnd(c.totalSpend)}</span>
+          <span className="font-black text-brand text-sm">{formatCompactVnd(c.totalSpend, locale)}</span>
         ),
       },
       {

@@ -20,7 +20,7 @@ import { StatCard } from '../components/StatCard';
 import { TrendLineChart } from '../components/TrendLineChart';
 import { TopCustomersTable } from '../components/TopCustomersTable';
 import { CustomerListPanel } from '../components/CustomerListPanel';
-import { CustomerDetailDrawer } from '../components/CustomerDetailDrawer';
+import { CustomerDetailModal } from '../components/CustomerDetailDrawer';
 import {
   useAnalyticsDemographics,
   useAnalyticsEngagement,
@@ -199,8 +199,8 @@ export const CustomerAnalyticsPage: React.FC = () => {
                 />
                 <StatCard
                   label={t('analytics.customer.revenue')}
-                  value={formatCompactVnd(overview.totalRevenue)}
-                  subLabel={t('analytics.customer.aovSub', { value: formatCompactVnd(overview.averageOrderValue) })}
+                  value={formatCompactVnd(overview.totalRevenue, locale)}
+                  subLabel={t('analytics.customer.aovSub', { value: formatCompactVnd(overview.averageOrderValue, locale) })}
                   icon={<DollarSign className="h-5 w-5 text-emerald-500" />}
                   iconBgClass="bg-emerald-50"
                 />
@@ -246,7 +246,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
                   label={t('analytics.customer.cancellationRate')}
                   value={formatPercent(overview.cancellationRate)}
                   subLabel={t('analytics.customer.refundsSub', {
-                    amount: formatCompactVnd(overview.totalRefundAmount),
+                    amount: formatCompactVnd(overview.totalRefundAmount, locale),
                   })}
                   icon={<UserX className="h-5 w-5 text-rose-500" />}
                   iconBgClass="bg-rose-50"
@@ -413,7 +413,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
         <CustomerListPanel dateParams={dateParams} onViewCustomer={setSelectedCustomerId} />
       )}
 
-      <CustomerDetailDrawer
+      <CustomerDetailModal
         customerId={selectedCustomerId}
         dateParams={dateParams}
         onClose={() => setSelectedCustomerId(null)}

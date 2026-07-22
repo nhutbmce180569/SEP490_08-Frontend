@@ -10,14 +10,20 @@ const usdFormatter = new Intl.NumberFormat('en-US', {
   maximumFractionDigits: 2,
 });
 
-export const formatVnd = (amount: number) =>
-  new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
+export const formatVnd = (amount: number, locale = 'vi') =>
+  new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US').format(amount) + (locale === 'vi' ? ' VNĐ' : ' VND');
 
-export const formatCompactVnd = (amount: number) => {
+export const formatCompactVnd = (amount: number, locale = 'vi') => {
+  if (locale === 'vi') {
+    if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)} Tỷ VNĐ`;
+    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} Tr VNĐ`;
+    if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)} N VNĐ`;
+    return formatVnd(amount, locale);
+  }
   if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)}B VND`;
   if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M VND`;
   if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K VND`;
-  return formatVnd(amount);
+  return formatVnd(amount, locale);
 };
 
 export const formatAnalyticsMoney = (

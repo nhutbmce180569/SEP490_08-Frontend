@@ -27,7 +27,7 @@ interface CustomerDetailDrawerProps {
   onClose: () => void;
 }
 
-export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
+export const CustomerDetailModal: React.FC<CustomerDetailDrawerProps> = ({
   customerId,
   dateParams,
   onClose,
@@ -71,15 +71,15 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
   if (customerId === null) return null;
 
   return (
-    <>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <button
         type="button"
         aria-label={t('common.close')}
-        className="fixed inset-0 z-40 bg-slate-900/30 backdrop-blur-xs transition-opacity"
+        className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      <aside className="fixed right-0 top-0 z-50 flex h-full w-full max-w-lg flex-col bg-white shadow-2xl border-l border-slate-100">
-        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+      <div className="relative z-10 flex w-full max-w-2xl max-h-[90vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-100">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-white sticky top-0 z-20">
           <h2 className="text-lg font-bold text-slate-900">{t('analytics.customer.customerDetails')}</h2>
           <button
             type="button"
@@ -90,7 +90,7 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -150,40 +150,42 @@ export const CustomerDetailDrawer: React.FC<CustomerDetailDrawerProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <MetricBox label={t('analytics.customer.totalSpend')} value={formatCompactVnd(data.totalSpend)} />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <MetricBox label={t('analytics.customer.totalSpend')} value={formatCompactVnd(data.totalSpend, locale)} />
                 <MetricBox label={t('analytics.customer.orders')} value={formatNumber(data.paidOrders)} sub={t('analytics.customer.ordersTotalSub', { total: data.totalOrders })} />
-                <MetricBox label={t('analytics.customer.avgOrderValue')} value={formatCompactVnd(data.averageOrderValue)} />
+                <MetricBox label={t('analytics.customer.avgOrderValue')} value={formatCompactVnd(data.averageOrderValue, locale)} />
                 <MetricBox label={t('analytics.customer.ticketsPurchased')} value={formatNumber(data.totalTickets)} />
                 <MetricBox label={t('analytics.customer.reviews')} value={formatNumber(data.reviewCount)} icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />} />
                 <MetricBox label={t('analytics.customer.wishlist')} value={formatNumber(data.wishlistCount)} />
               </div>
 
-              <InfoSection title={t('analytics.customer.personalInformation')}>
-                <InfoRow label={t('analytics.customer.gender')} value={getGenderLabelTranslated(data.gender)} />
-                <InfoRow label={t('analytics.customer.dateOfBirth')} value={formatDate(data.dateOfBirth, locale)} />
-                <InfoRow label={t('analytics.customer.signUpProvider')} value={getProviderLabelTranslated(data.provider)} />
-                <InfoRow label={t('analytics.customer.joined')} value={formatDateTime(data.createdAt, locale)} />
-                <InfoRow label={t('analytics.customer.lastActive')} value={formatDateTime(data.lastOnline, locale)} />
-              </InfoSection>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <InfoSection title={t('analytics.customer.personalInformation')}>
+                  <InfoRow label={t('analytics.customer.gender')} value={getGenderLabelTranslated(data.gender)} />
+                  <InfoRow label={t('analytics.customer.dateOfBirth')} value={formatDate(data.dateOfBirth, locale)} />
+                  <InfoRow label={t('analytics.customer.signUpProvider')} value={getProviderLabelTranslated(data.provider)} />
+                  <InfoRow label={t('analytics.customer.joined')} value={formatDateTime(data.createdAt, locale)} />
+                  <InfoRow label={t('analytics.customer.lastActive')} value={formatDateTime(data.lastOnline, locale)} />
+                </InfoSection>
 
-              <InfoSection title={t('analytics.customer.purchaseHistory')}>
-                <InfoRow label={t('analytics.customer.firstOrder')} value={formatDateTime(data.firstOrderAt, locale)} />
-                <InfoRow label={t('analytics.customer.lastOrder')} value={formatDateTime(data.lastOrderAt, locale)} />
-                <InfoRow label={t('analytics.customer.pendingOrders')} value={formatNumber(data.pendingOrders)} />
-                <InfoRow label={t('analytics.customer.cancelledOrders')} value={formatNumber(data.cancelledOrders)} />
-                {data.averageRatingGiven != null && (
-                  <InfoRow
-                    label={t('analytics.customer.averageRatingGiven')}
-                    value={`${data.averageRatingGiven.toFixed(1)} ★`}
-                  />
-                )}
-              </InfoSection>
+                <InfoSection title={t('analytics.customer.purchaseHistory')}>
+                  <InfoRow label={t('analytics.customer.firstOrder')} value={formatDateTime(data.firstOrderAt, locale)} />
+                  <InfoRow label={t('analytics.customer.lastOrder')} value={formatDateTime(data.lastOrderAt, locale)} />
+                  <InfoRow label={t('analytics.customer.pendingOrders')} value={formatNumber(data.pendingOrders)} />
+                  <InfoRow label={t('analytics.customer.cancelledOrders')} value={formatNumber(data.cancelledOrders)} />
+                  {data.averageRatingGiven != null && (
+                    <InfoRow
+                      label={t('analytics.customer.averageRatingGiven')}
+                      value={`${data.averageRatingGiven.toFixed(1)} ★`}
+                    />
+                  )}
+                </InfoSection>
+              </div>
             </div>
           ) : null}
         </div>
-      </aside>
-    </>
+      </div>
+    </div>
   );
 };
 

@@ -9,6 +9,7 @@ export interface BookingStatisticsRequest {
 export interface BookingStatisticsMetrics {
   totalRevenue: number;
   totalDiscount: number;
+  totalPromotionDiscount?: number;
   totalRefundAmount: number;
   totalOrders: number;
   totalTicketsSold: number;
@@ -22,6 +23,7 @@ export interface RevenueTrendPoint {
 
 export interface TicketTypeSales {
   ticketTypeId: number;
+  ticketTypeName?: string;
   quantitySold: number;
   revenue: number;
 }
@@ -42,6 +44,12 @@ export interface CancellationReasonStats {
   count: number;
 }
 
+export interface DiscountBreakdown {
+  type: string;
+  totalAmount: number;
+  orderCount: number;
+}
+
 export interface BookingStatisticsResponse {
   metrics: BookingStatisticsMetrics;
   revenueTrend: RevenueTrendPoint[];
@@ -49,4 +57,5 @@ export interface BookingStatisticsResponse {
   ordersByHour: OrdersByHour[];
   checkInRatio: CheckInStatusRatio[];
   topCancellationReasons: CancellationReasonStats[];
+  discountBreakdown?: DiscountBreakdown[];
 }

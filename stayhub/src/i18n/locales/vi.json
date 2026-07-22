@@ -18,7 +18,9 @@
     "theme": "Giao diện",
     "themeLight": "Sáng",
     "themeDark": "Tối",
-    "themeSystem": "Hệ thống"
+    "themeSystem": "Hệ thống",
+    "menu": "Danh mục",
+    "account": "Tài khoản"
   },
   "header": {
     "searchPlaceholder": "Tìm điểm đến, tour hoặc trải nghiệm...",
@@ -121,7 +123,7 @@
     "userManagement": "Quản lý người dùng",
     "loadingUser": "Đang tải thông tin người dùng...",
     "userNotFound": "Không tìm thấy người dùng.",
-    "backToUsers": "Quay lại danh sách người dùng",
+    "backToUsers": "Quay lại danh sách",
     "gender": "Giới tính",
     "dateOfBirth": "Ngày sinh",
     "createdAt": "Ngày tạo",
@@ -162,11 +164,9 @@
     "creatingUser": "Đang tạo người dùng...",
     "loadingFormDetails": "Đang tải biểu mẫu...",
     "loadingUserDetails": "Đang tải thông tin người dùng...",
-    "userNotFound": "Không tìm thấy người dùng.",
     "updateUser": "Cập nhật người dùng",
     "updateUserDesc": "Chỉnh sửa hồ sơ người dùng #{{id}}",
     "updatingUser": "Đang cập nhật người dùng...",
-    "avatar": "Ảnh đại diện",
     "minimumPassword": "Tối thiểu 6 ký tự",
     "blocked": "Đã khóa",
     "locationPrivacy": "Quyền riêng tư vị trí",
@@ -174,15 +174,12 @@
     "keepCurrent": "Giữ nguyên",
     "publicPrivacy": "Công khai",
     "privateFriendsOnly": "Riêng tư (chỉ bạn bè)",
-    "backToUsers": "Quay lại danh sách",
     "deleteUserConfirmation": "Xác nhận xóa người dùng",
     "deleteUserWarning": "Bạn có chắc muốn xóa người dùng này? Hành động này sẽ xóa vĩnh viễn dữ liệu và không thể hoàn tác.",
     "userDetailsToDelete": "Thông tin người dùng sẽ bị xóa:",
     "yesDeleteUser": "Có, xóa người dùng",
     "deletingUser": "Đang xóa người dùng...",
     "lastOnline": "Trực tuyến lần cuối",
-    "createdAt": "Ngày tạo",
-    "updatedAt": "Ngày cập nhật",
     "provider": "Nhà cung cấp",
     "rolesLabel": "Vai trò",
     "none": "Không có",
@@ -289,5 +286,8 @@
     "flexiblePayment": "Thanh toán linh hoạt",
     "support247": "Hỗ trợ 24/7",
     "hotSearchLabel": "HOT:"
+  },
+  "social": {
+    "memberAdded": "Thành viên mới được thêm vào nhóm:"
   }
 }

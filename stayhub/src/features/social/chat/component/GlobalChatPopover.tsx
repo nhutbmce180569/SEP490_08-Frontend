@@ -301,7 +301,7 @@ export const GlobalChatPopover: React.FC = () => {
     
     const container = chatContainerRef.current;
     const lastMsg = allMessages[allMessages.length - 1];
-    const lastMsgId = lastMsg?.id ?? lastMsg?.Id;
+    const lastMsgId = (lastMsg as any)?.id ?? (lastMsg as any)?.Id;
     
     // 1. Switched rooms -> scroll to bottom immediately
     if (activeRoomId !== lastRoomIdRef.current) {
@@ -313,7 +313,7 @@ export const GlobalChatPopover: React.FC = () => {
 
     // 2. New message arrived -> scroll to bottom ONLY if the user is already near bottom OR if they sent the message themselves
     if (lastMsgId !== lastMessageIdRef.current) {
-      const isMe = String(lastMsg?.senderId ?? lastMsg?.SenderId ?? '') === String(currentUserId);
+      const isMe = String((lastMsg as any)?.senderId ?? (lastMsg as any)?.SenderId ?? '') === String(currentUserId);
       const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 150;
       
       if (isMe || isNearBottom) {
@@ -654,22 +654,55 @@ export const GlobalChatPopover: React.FC = () => {
               </div>
             ) : (
               allMessages.map((msg: any, index) => {
-                const senderName = msg.senderName ?? msg.SenderName ?? '';
-                const senderId = msg.senderId ?? msg.SenderId;
+                const senderName = (msg as any).senderName ?? (msg as any).SenderName ?? '';
+                const senderId = (msg as any).senderId ?? (msg as any).SenderId;
                 const isMe = String(senderId ?? '') === String(currentUserId);
                 
                 const nextMsg = allMessages[index + 1];
                 const prevMsg = allMessages[index - 1];
-                const nextSenderId = nextMsg?.senderId ?? nextMsg?.SenderId;
-                const prevSenderId = prevMsg?.senderId ?? prevMsg?.SenderId;
-                const isNextSystem = nextMsg?.senderName === 'System' || nextMsg?.SenderName === 'System';
-                const isPrevSystem = prevMsg?.senderName === 'System' || prevMsg?.SenderName === 'System';
+                const nextSenderId = (nextMsg as any)?.senderId ?? (nextMsg as any)?.SenderId;
+                const prevSenderId = (prevMsg as any)?.senderId ?? (prevMsg as any)?.SenderId;
+                const isNextSystem = (nextMsg as any)?.senderName === 'System' || (nextMsg as any)?.SenderName === 'System';
+                const isPrevSystem = (prevMsg as any)?.senderName === 'System' || (prevMsg as any)?.SenderName === 'System';
 
                 const isLastInGroup = !nextMsg || isNextSystem || String(nextSenderId ?? '') !== String(senderId ?? '');
                 const isFirstInGroup = !prevMsg || isPrevSystem || String(prevSenderId ?? '') !== String(senderId ?? '');
 
                 const rawAvatar = msg.senderAvatarUrl || msg.SenderAvatarUrl || msg.senderAvatar || msg.SenderAvatar || (msg as any).senderAvatarUrl || (msg as any).SenderAvatarUrl || (msg as any).senderAvatar || (msg as any).SenderAvatar;
                 const avatarToUse = rawAvatar || (!selectedRoom?.isGroupChat ? selectedRoom?.avatarUrl : null);
+
+                if (senderName === 'System') {
+                  try {
+                    if (msg.content.startsWith('{')) {
+                      const parsed = JSON.parse(msg.content);
+                      if (parsed.action === 'MEMBER_ADDED' && Array.isArray(parsed.users)) {
+                        return (
+                          <div key={msg.id || Math.random()} className="flex flex-col items-center justify-center w-full shrink-0 my-3 gap-1">
+                            <span className="text-[10px] font-semibold text-slate-500 tracking-wide">{t('social.memberAdded') || 'Members added to the group:'}</span>
+                            <div className="flex flex-wrap items-center justify-center gap-2 mt-0.5">
+                              {parsed.users.map((u: any) => (
+                                <a key={u.id} href={`/social/profile/${u.id}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-white px-2 py-1 rounded-full shadow-sm hover:shadow-md transition-all border border-slate-200 hover:border-brand/30 group cursor-pointer no-underline">
+                                  <div className="w-5 h-5 rounded-full overflow-hidden bg-brand shrink-0 flex items-center justify-center text-white text-[9px] font-bold">
+                                    {u.avatarUrl ? <img src={u.avatarUrl} alt={u.fullName} className="w-full h-full object-cover" /> : (u.fullName?.charAt(0)?.toUpperCase() || 'U')}
+                                  </div>
+                                  <span className="text-[10px] font-semibold text-slate-700 group-hover:text-brand">{u.fullName || 'User'}</span>
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    // ignore JSON parse error, fallback
+                  }
+                  
+                  return (
+                    <div key={msg.id || Math.random()} className="flex justify-center w-full shrink-0 my-1">
+                      <span className="bg-slate-100 text-[9px] font-bold text-slate-500 rounded-full px-3 py-1 shadow-inner border border-slate-200/60 uppercase tracking-wider">{msg.content}</span>
+                    </div>
+                  );
+                }
 
                 return (
                   <div key={msg.id || Math.random()} className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} shrink-0 ${isFirstInGroup ? 'mt-3.5' : 'mt-0.5'}`}>

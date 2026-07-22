@@ -15,6 +15,7 @@ import { useTranslation } from "../../../../contexts/LocaleContext";
 import { getStoredLocale } from "../../../../i18n";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
+import { FogOfWarCanvas } from "./FogOfWarCanvas";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -119,11 +120,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const daySelectorButtonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
   const [daySelectorPillStyle, setDaySelectorPillStyle] = useState<React.CSSProperties>({ opacity: 0 });
 
-  // --- TIMELINE REPLAY STATES ---
+  // --- TIMELINE REPLAY STATES & CARD SWIPE GESTURES ---
   const [isReplayMode, setIsReplayMode] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
+
+  const [dragX, setDragX] = useState(0);
+  const [isDraggingCard, setIsDraggingCard] = useState(false);
+  const touchStartXRef = useRef<number>(0);
 
   useEffect(() => {
     if (footprints && Array.isArray(footprints)) {
@@ -451,55 +456,105 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   // --- TIMELINE REPLAY LOGIC ---
   const timelineEvents = useMemo(() => {
-    // Rule: Timeline Replay must NEVER combine events from unrelated tours.
-    if (!isSpecificTour) return [];
-    if (!moments) return [];
-
     const events: any[] = [];
     
-    const momentsArray = Array.isArray(moments) ? moments : ((moments as any).pages?.flat() || []);
+    // 1. Add moment posts as primary timeline events
+    const momentsArray = Array.isArray(moments) ? moments : ((moments as any)?.pages?.flat() || []);
     momentsArray.forEach((m: any) => {
       if (m.lat != null && m.lng != null && m.createdAt) {
+        const uName = m.user?.fullName || m.User?.FullName || m.fullName || 'Someone';
         events.push({
-          id: `moment-${m.id}`,
+          id: `moment-${m.id || m.Id}`,
           type: 'moment',
-          time: new Date(m.createdAt).getTime(),
-          lat: Number(m.lat),
-          lng: Number(m.lng),
+          momentId: m.id || m.Id,
+          time: new Date(m.createdAt || m.CreatedAt).getTime(),
+          lat: Number(m.lat || m.Lat),
+          lng: Number(m.lng || m.Lng),
           data: m,
-          title: `${m.user?.fullName || m.fullName || 'Someone'} shared a moment`,
-          desc: m.caption || 'A memorable moment was captured.',
+          title: m.caption ? `📸 ${m.caption}` : `Moment by ${uName}`,
+          desc: m.locationName || `Shared by ${uName}`,
           imageUrl: m.imageUrl || m.ImageUrl
         });
       }
     });
 
+    // 2. If viewing a specific tour and no moments exist for it, fallback to tour itinerary waypoints as timeline events
+    if (isSpecificTour && events.length === 0 && tourStops && tourStops.length > 0) {
+      const baseTime = Date.now() - 86400000;
+      tourStops.forEach((stop: any, idx: number) => {
+        events.push({
+          id: `stop-${stop.sequence || idx}`,
+          type: idx === 0 ? 'start' : idx === tourStops.length - 1 ? 'end' : 'stop',
+          momentId: null,
+          time: baseTime + idx * 3600000,
+          lat: Number(stop.lat),
+          lng: Number(stop.lng),
+          data: stop,
+          title: stop.name || `Waypoint ${stop.sequence || idx + 1}`,
+          desc: stop.description || `Tour Stop #${stop.sequence || idx + 1}`,
+          imageUrl: stop.imageUrl || null
+        });
+      });
+    }
+
     events.sort((a, b) => a.time - b.time);
-    
-    // Add Start and End storytelling events
-    if (events.length > 0 && tourStops.length > 0) {
-      const firstStop = tourStops[0];
-      events.unshift({
-         id: 'start-journey', type: 'start', time: events[0].time - 60000,
-         lat: firstStop.lat, lng: firstStop.lng, data: null,
-         title: 'The adventure begins', desc: `Departed from ${firstStop.name}`, imageUrl: null
-      });
-    }
-    if (events.length > 0 && tourStops.length > 1) {
-      const lastStop = tourStops[tourStops.length - 1];
-      events.push({
-         id: 'end-journey', type: 'end', time: events[events.length - 1].time + 60000,
-         lat: lastStop.lat, lng: lastStop.lng, data: null,
-         title: 'Reached Destination', desc: `Arrived at ${lastStop.name}`, imageUrl: null
-      });
-    }
     return events;
-  }, [moments, tourStops, isSpecificTour]);
+  }, [isSpecificTour, moments, tourStops]);
 
+  // --- CARD DECK SHUFFLE & SWIPE GESTURES ---
+  const [cardAnimDirection, setCardAnimDirection] = useState<'next' | 'prev'>('next');
+  const prevEventIndexRef = useRef<number>(0);
 
+  useEffect(() => {
+    if (currentEventIndex !== prevEventIndexRef.current) {
+      if (
+        currentEventIndex > prevEventIndexRef.current ||
+        (prevEventIndexRef.current === timelineEvents.length - 1 && currentEventIndex === 0)
+      ) {
+        setCardAnimDirection('next');
+      } else {
+        setCardAnimDirection('prev');
+      }
+      prevEventIndexRef.current = currentEventIndex;
+    }
+  }, [currentEventIndex, timelineEvents.length]);
+
+  const handleNextCard = useCallback(() => {
+    if (timelineEvents.length === 0) return;
+    setCardAnimDirection('next');
+    setCurrentEventIndex((prev) => (prev + 1) % timelineEvents.length);
+  }, [timelineEvents.length]);
+
+  const handlePrevCard = useCallback(() => {
+    if (timelineEvents.length === 0) return;
+    setCardAnimDirection('prev');
+    setCurrentEventIndex((prev) => (prev - 1 + timelineEvents.length) % timelineEvents.length);
+  }, [timelineEvents.length]);
+
+  const handleCardDragStart = (clientX: number) => {
+    setIsDraggingCard(true);
+    touchStartXRef.current = clientX;
+  };
+
+  const handleCardDragMove = (clientX: number) => {
+    if (!isDraggingCard) return;
+    const delta = clientX - touchStartXRef.current;
+    setDragX(delta);
+  };
+
+  const handleCardDragEnd = () => {
+    if (!isDraggingCard) return;
+    setIsDraggingCard(false);
+    if (dragX < -60) {
+      handleNextCard();
+    } else if (dragX > 60) {
+      handlePrevCard();
+    }
+    setDragX(0);
+  };
 
   // --- STATE TRANSITION LOGIC ---
-  const isReplayActive = isReplayMode && dockState === 'expanded' && isSpecificTour && (
+  const isReplayActive = isReplayMode && dockState === 'expanded' && (
     isPlaying || (currentEventIndex > 0 && currentEventIndex < timelineEvents.length - 1)
   );
 
@@ -626,28 +681,59 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     }
   }, [isPlaying, isRecording]);
 
-  // Recording helper functions
-  const startRecording = () => {
+  // Stream & Recording state refs
+  const displayStreamRef = useRef<MediaStream | null>(null);
+
+  // Recording helper functions (HD Screen & Live DOM Capture Engine)
+  const startRecording = async () => {
     if (timelineEvents.length === 0) return;
-    
+
     setCurrentEventIndex(0);
     recordedChunksRef.current = [];
-    
-    const canvas = document.querySelector('.mapboxgl-canvas') as HTMLCanvasElement;
-    if (!canvas) {
-      toastError("Mapbox canvas element not found");
-      return;
+
+    let stream: MediaStream | null = null;
+
+    // 1. Try Live Tab Screen Capture API (Captures 100% of DOM: Map + Floating Polaroid Deck Cards + Captions at 60FPS)
+    if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+      try {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            displaySurface: "browser",
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 60 }
+          },
+          audio: false
+        } as any);
+        displayStreamRef.current = stream;
+      } catch (err) {
+        console.warn("Screen capture prompt dismissed or unsupported, falling back to Map Canvas stream", err);
+      }
+    }
+
+    // 2. Fallback to Mapbox Canvas Stream with High Bitrate
+    if (!stream) {
+      const canvas = document.querySelector('.mapboxgl-canvas') as HTMLCanvasElement;
+      if (!canvas) {
+        toastError(locale === 'vi' ? 'Không tìm thấy Map Canvas' : 'Mapbox canvas element not found');
+        return;
+      }
+      stream = canvas.captureStream(60); // 60 FPS
     }
 
     try {
-      const stream = canvas.captureStream(30); // 30 FPS
-      let options = { mimeType: 'video/webm; codecs=vp9' };
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options = { mimeType: 'video/webm' };
+      // 8 Mbps High Bitrate for Crisp 1080p HD Quality!
+      let mimeType = 'video/webm; codecs=vp9';
+      if (!MediaRecorder.isTypeSupported(mimeType)) {
+        mimeType = 'video/webm';
       }
-      
+      const options: MediaRecorderOptions = { 
+        mimeType,
+        videoBitsPerSecond: 8000000 
+      };
+
       const recorder = new MediaRecorder(stream, options);
-      
+
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
           recordedChunksRef.current.push(e.data);
@@ -655,6 +741,11 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       };
 
       recorder.onstop = () => {
+        if (displayStreamRef.current) {
+          displayStreamRef.current.getTracks().forEach((track) => track.stop());
+          displayStreamRef.current = null;
+        }
+
         const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -664,20 +755,28 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-        success("Journey video downloaded successfully!");
+        success(locale === 'vi' ? 'Đã tải xuống Video Hành Trình HD chất lượng cao!' : 'High-Quality HD Journey Video downloaded successfully!');
       };
 
+      // Auto stop recording if user ends stream via browser bar
+      const videoTrack = stream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.onended = () => {
+          stopRecording();
+        };
+      }
+
       mediaRecorderRef.current = recorder;
-      recorder.start();
+      recorder.start(1000); // Collect 1s chunks
       setIsRecording(true);
       setIsPlaying(true);
       setIsReplayMode(true);
       setDockState('expanded');
-      
-      success("Ghi hình hành trình bắt đầu...");
+
+      success(locale === 'vi' ? 'Đang ghi hình video lộ trình HD...' : 'Recording HD Journey Video...');
     } catch (err) {
       console.error("Failed to start recording", err);
-      toastError("Ghi hình thất bại.");
+      toastError(locale === 'vi' ? 'Khởi tạo ghi hình thất bại.' : 'Failed to start video recording.');
     }
   };
 
@@ -685,122 +784,88 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
     }
+    if (displayStreamRef.current) {
+      displayStreamRef.current.getTracks().forEach((track) => track.stop());
+      displayStreamRef.current = null;
+    }
     setIsRecording(false);
     setIsPlaying(false);
   };
 
-  // Cinematic camera movement
+  // Cinematic camera movement (Smooth & Non-flickering)
+  const lastFlownIndexRef = useRef<number>(-1);
   useEffect(() => {
     if (isReplayMode && timelineEvents.length > 0 && mapRef.current) {
+      if (lastFlownIndexRef.current === currentEventIndex) return;
       const event = timelineEvents[currentEventIndex];
-      if (event) {
-        mapRef.current.flyTo({ center: [event.lng, event.lat], zoom: 16, duration: 1200 });
+      if (event && !isNaN(event.lng) && !isNaN(event.lat)) {
+        lastFlownIndexRef.current = currentEventIndex;
+        mapRef.current.flyTo({ 
+          center: [event.lng, event.lat], 
+          zoom: 15.5, 
+          duration: 1000, 
+          essential: true 
+        });
       }
     }
   }, [currentEventIndex, isReplayMode, timelineEvents]);
 
-  // --- BUMP-STYLE FOG OF WAR (Proper Tessellating Hex Grid) ---
-  // Dùng hệ tọa độ axial (q, r) của hexagon để đảm bảo tất cả các ô
-  // thuộc cùng 1 lưới cố định (tessellate hoàn hảo), giống hệt BUMP.
-  const bumpFogData = useMemo(() => {
-    const worldBox: [number, number][] = [
-      [-179.9, 85], [179.9, 85], [179.9, -85], [-179.9, -85], [-179.9, 85]
-    ];
-    const fogOverlay = {
-      type: "Feature" as const,
-      properties: {},
-      geometry: { type: "Polygon" as const, coordinates: [worldBox] },
-    };
-
-    const valid = (dynamicFootprints || []).filter(
-      (fp: any) => fp && fp.lat != null && fp.lng != null &&
-        !isNaN(Number(fp.lat)) && !isNaN(Number(fp.lng))
+  // --- FOG OF WAR FOOTPRINTS (Purple cloud canvas overlay) ---
+  const validFootprints = useMemo(() => {
+    const raw = (dynamicFootprints || []).filter(
+      (f: any) => typeof f.lat === "number" && typeof f.lng === "number"
     );
-
-    if (valid.length === 0) {
-      return { fogOverlay, hexTiles: { type: "FeatureCollection" as const, features: [] } };
-    }
-
-    const R_EARTH = 6378137;
-    const HEX_R = 220; // bán kính hex (mét, center → vertex) — giống BUMP scale
-    const sqrt3 = Math.sqrt(3);
-
-    // Điểm gốc tọa độ cục bộ (tránh sai số floating point ở tọa độ lớn)
-    const refLat = valid.reduce((s: number, fp: any) => s + Number(fp.lat), 0) / valid.length;
-    const refLng = valid.reduce((s: number, fp: any) => s + Number(fp.lng), 0) / valid.length;
-    const cosRef = Math.cos(refLat * Math.PI / 180);
-
-    // Chuyển lat/lng → tọa độ cục bộ (mét)
-    const toLocal = (lat: number, lng: number): [number, number] => [
-      (lng - refLng) * (Math.PI / 180) * R_EARTH * cosRef,
-      (lat - refLat) * (Math.PI / 180) * R_EARTH,
-    ];
-
-    // Chuyển tọa độ cục bộ → lat/lng [lng, lat] (GeoJSON format)
-    const toGeo = (x: number, y: number): [number, number] => [
-      refLng + (x / (R_EARTH * cosRef)) * (180 / Math.PI),
-      refLat + (y / R_EARTH) * (180 / Math.PI),
-    ];
-
-    // Flat-top hex: chuyển xy → tọa độ axial phân số
-    const xyToFracHex = (x: number, y: number): [number, number] => ([
-      (2 / 3 * x) / HEX_R,
-      (-1 / 3 * x + sqrt3 / 3 * y) / HEX_R,
-    ]);
-
-    // Làm tròn tọa độ axial phân số → ô hex nguyên (cube rounding)
-    const hexRound = (fq: number, fr: number): [number, number] => {
-      const fs = -fq - fr;
-      let rq = Math.round(fq), rr = Math.round(fr), rs = Math.round(fs);
-      const dq = Math.abs(rq - fq), dr = Math.abs(rr - fr), ds = Math.abs(rs - fs);
-      if (dq > dr && dq > ds) rq = -rr - rs;
-      else if (dr > ds) rr = -rq - rs;
-      return [rq, rr];
-    };
-
-    // Tọa độ axial → tâm ô hex (mét, flat-top)
-    const hexCenter = (q: number, r: number): [number, number] => ([
-      HEX_R * (3 / 2 * q),
-      HEX_R * (sqrt3 / 2 * q + sqrt3 * r),
-    ]);
-
-    // Xây dựng ring polygon cho 1 hex (flat-top, 6 đỉnh)
-    const buildRing = (cx: number, cy: number): [number, number][] => {
-      const ring: [number, number][] = [];
-      for (let i = 0; i < 6; i++) {
-        const a = (i * 60) * (Math.PI / 180); // flat-top: góc 0°,60°,120°...
-        ring.push(toGeo(cx + HEX_R * Math.cos(a), cy + HEX_R * Math.sin(a)));
-      }
-      ring.push(ring[0]); // khép kín
-      return ring;
-    };
-
-    // Tìm tất cả ô hex mà footprint đi qua (unique axial coords)
-    // Dùng plain object thay vì new Map() vì 'Map' bị shadow bởi import Map từ react-map-gl
-    const hexSet: Record<string, [number, number]> = {};
-    valid.forEach((fp: any) => {
-      const [x, y] = toLocal(Number(fp.lat), Number(fp.lng));
-      const [fq, fr] = xyToFracHex(x, y);
-      const [q, r] = hexRound(fq, fr);
-      const key = `${q},${r}`;
-      if (!hexSet[key]) hexSet[key] = [q, r];
-    });
-
-    const hexFeatures: any[] = [];
-    Object.values(hexSet).forEach(([q, r]) => {
-      const [cx, cy] = hexCenter(q, r);
-      hexFeatures.push({
-        type: "Feature" as const,
-        properties: {},
-        geometry: { type: "Polygon" as const, coordinates: [buildRing(cx, cy)] },
+    
+    // --- TẠO DỮ LIỆU DẤU CHÂN "THAM QUAN" THỰC TẾ ---
+    // Khắc phục tình trạng "chim bay thẳng", giả lập người dùng đi bộ khám phá
+    // xung quanh các điểm du lịch (random walk) và di chuyển dọc theo tuyến đường.
+    const mock: {lat: number, lng: number}[] = [];
+    if (routeCoordinates && routeCoordinates.length > 0 && tourStops && tourStops.length > 0) {
+      // 1. Đi dọc theo tuyến đường chính
+      routeCoordinates.forEach(coord => mock.push({ lat: coord[1], lng: coord[0] }));
+      
+      // 2. Giả lập đi bộ khám phá xung quanh mỗi điểm dừng (Random Walk)
+      tourStops.forEach((stop: any) => {
+        let cLat = stop.lat;
+        let cLng = stop.lng;
+        let cAngle = Math.random() * Math.PI * 2;
+        
+        // 40 bước chân khám phá ngõ hẻm quanh điểm đến
+        for (let i = 0; i < 40; i++) {
+          mock.push({ lat: cLat, lng: cLng });
+          
+          // Đổi hướng ngẫu nhiên (giống như quẹo các góc phố)
+          cAngle += (Math.random() - 0.5) * 1.5; 
+          
+          // Khoảng cách mỗi bước ~20m - 50m (tính theo độ)
+          const dist = 0.0002 + Math.random() * 0.0003; 
+          cLat += Math.sin(cAngle) * dist;
+          cLng += Math.cos(cAngle) * dist;
+          
+          // Vòng giới hạn: không đi lạc quá xa khỏi điểm tham quan (~500m)
+          const distSq = (cLat - stop.lat)**2 + (cLng - stop.lng)**2;
+          if (distSq > 0.00003) {
+            cAngle += Math.PI; // Quay đầu lại
+          }
+        }
       });
-    });
+    }
+    
+    return [...raw, ...mock];
+  }, [dynamicFootprints, routeCoordinates, tourStops]);
 
+  // GeoJSON for the small glowing visited-location pins (still rendered inside Map)
+  const footprintPointsGeoJSON = useMemo(() => {
+    if (validFootprints.length === 0) return { type: "FeatureCollection" as const, features: [] };
     return {
-      fogOverlay,
-      hexTiles: { type: "FeatureCollection" as const, features: hexFeatures },
+      type: "FeatureCollection" as const,
+      features: validFootprints.map((fp, idx) => ({
+        type: "Feature" as const,
+        properties: { id: idx },
+        geometry: { type: "Point" as const, coordinates: [fp.lng, fp.lat] },
+      })),
     };
-  }, [dynamicFootprints]);
+  }, [validFootprints]);
 
   // --- TOUR ROUTE LINESTRING ---
   const tourRouteGeoJSON = useMemo(() => {
@@ -824,11 +889,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         return {
           type: "Feature" as const,
           properties: {
-            cluster: false, momentId: m.id, userId: m.userId || userObj.id || 0,
+            cluster: false, 
+            momentId: m.id || m.Id, 
+            userId: m.userId || userObj.id || 0,
             avatarUrl: userObj.avatarUrl || m.avatarUrl || null,
-            userFullName: userObj.fullName || m.fullName || "?", rawMoment: m 
+            imageUrl: m.imageUrl || m.ImageUrl || null,
+            userFullName: userObj.fullName || m.fullName || "?", 
+            rawMoment: m 
           },
-          geometry: { type: "Point" as const, coordinates: [Number(m.lng), Number(m.lat)] },
+          geometry: { type: "Point" as const, coordinates: [Number(m.lng || m.Lng), Number(m.lat || m.Lat)] },
         };
       });
   }, [moments]);
@@ -909,21 +978,21 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   if (isMomentsLoading || isRouteLoading) {
     return (
-      <div className="w-full h-[80vh] flex items-center justify-center bg-slate-100 rounded-3xl">
+      <div className="w-full h-full flex items-center justify-center bg-slate-100">
         <div className="animate-spin w-10 h-10 border-4 border-brand border-t-transparent rounded-full"></div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-[80vh] overflow-hidden rounded-3xl shadow-xl border border-slate-200 bg-slate-100">
+    <div className="relative w-full h-full overflow-hidden bg-slate-100">
       <Map
         ref={mapRef}
         {...viewState}
         onMove={handleMapMove}
         onLoad={onMapLoad}
         mapboxAccessToken={apiKey}
-        mapStyle={isNightMode ? "mapbox://styles/mapbox/navigation-night-v1" : "mapbox://styles/mapbox/navigation-day-v1"}
+        mapStyle={isNightMode ? "mapbox://styles/mapbox/dark-v11" : "mapbox://styles/mapbox/streets-v12"}
         style={{ width: "100%", height: "100%" }}
         onClick={handleMapClick}
         attributionControl={false}
@@ -954,8 +1023,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         `}</style>
         {isMapReady && (
           <>
-            {/* Lớp Tuyến đường bộ (Tour Route) */}
-            {showTourRoute && routeCoordinates.length > 0 && (
+            {/* Lớp Tuyến đường bộ (Tour Route) - Rendered via Mapbox only when Fog is OFF */}
+            {showTourRoute && !showFootprints && routeCoordinates.length > 0 && (
               <Source id="tour-route-source" type="geojson" data={tourRouteGeoJSON}>
                 {/* Lớp viền phát sáng/độ bóng phía dưới */}
                 <Layer
@@ -1013,55 +1082,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               );
             })}
 
-            {/* ===== BUMP-STYLE FOG OF WAR ===== */}
-            {showFootprints && (
-              <>
-                {/* 1. Dark navy overlay — BUMP fog color: deep blue-black */}
-                <Source id="fog-overlay-source" type="geojson" data={bumpFogData.fogOverlay}>
-                  <Layer
-                    id="fog-overlay-layer"
-                    type="fill"
-                    paint={{
-                      // BUMP uses a deep navy-indigo fog, NOT pure black
-                      "fill-color": "#0d1b3e",
-                      "fill-opacity": 0.78,
-                    }}
-                  />
-                </Source>
-
-                {/* 2. Hexagon tiles — BUMP explored cell style */}
-                {bumpFogData.hexTiles.features.length > 0 && (
-                  <Source id="hex-tiles-source" type="geojson" data={bumpFogData.hexTiles}>
-                    {/* Inner fill: pale sky-blue so map shows through */}
-                    <Layer
-                      id="hex-tiles-fill"
-                      type="fill"
-                      paint={{
-                        // BUMP cells: translucent light-blue/white tint
-                        "fill-color": "#bae6ff", // sky-200
-                        "fill-opacity": 0.28,
-                      }}
-                    />
-                    {/* Border: BUMP uses a crisp light-blue/white border */}
-                    <Layer
-                      id="hex-tiles-border"
-                      type="line"
-                      paint={{
-                        "line-color": "#e0f2fe", // sky-100
-                        "line-width": ["interpolate", ["linear"], ["zoom"],
-                          10, 0.8,
-                          13, 1.4,
-                          15, 2,
-                          17, 2.8
-                        ],
-                        "line-opacity": 0.85,
-                      }}
-                      layout={{ "line-join": "round" }}
-                    />
-                  </Source>
-                )}
-              </>
-            )}
+            {/* FOG OF WAR pins removed – canvas overlay handles visuals */}
 
             {/* Lớp Heatmap (Social Energy) */}
             {showHeatmap && heatmapPoints && heatmapPoints.length > 0 && (
@@ -1092,7 +1113,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
               const [longitude, latitude] = cluster.geometry.coordinates;
               if (isNaN(latitude) || isNaN(longitude)) return null;
 
-              const { cluster: isCluster, point_count: pointCount, momentId, avatarUrl, userFullName } = cluster.properties;
+              const { cluster: isCluster, point_count: pointCount } = cluster.properties;
 
               if (isCluster) {
                 const leaves = supercluster ? supercluster.getLeaves(cluster.id as number, Infinity) : [];
@@ -1108,14 +1129,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 if (isSingleUserCluster) {
                   const firstLeaf = leaves[0];
                   const cAvatarUrl = firstLeaf?.properties.avatarUrl;
+                  const cImageUrl = firstLeaf?.properties.imageUrl || cAvatarUrl;
                   const cUserFullName = firstLeaf?.properties.userFullName;
                   const userInitial = cUserFullName ? cUserFullName.charAt(0).toUpperCase() : "?";
 
                   return (
                     <Marker key={`cluster-${cluster.id}`} longitude={longitude} latitude={latitude} anchor="bottom">
                       <div className="relative group cursor-pointer transform transition-all duration-400 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={handleClusterClick}>
-                        <div className="relative z-10 flex items-center justify-center w-14 h-14 rounded-full border-[3px] border-white bg-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden">
-                          <SafeImage src={cAvatarUrl} alt="Moment" className="w-full h-full object-cover" fallbackClassName="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400" fallbackText={userInitial} />
+                        <div className="relative z-10 flex items-center justify-center w-14 h-14 rounded-2xl border-[3px] border-white bg-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden">
+                          <SafeImage src={cImageUrl} alt="Moment" className="w-full h-full object-cover" fallbackClassName="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400" fallbackText={userInitial} />
                         </div>
                         <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
                         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[3px] border-b-[3px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
@@ -1135,13 +1157,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 }
               }
 
+              const { momentId, avatarUrl, imageUrl, userFullName } = cluster.properties;
+              const momentPhoto = imageUrl || avatarUrl;
               const userInitial = userFullName ? userFullName.charAt(0).toUpperCase() : "?";
 
               return (
                 <Marker key={`moment-${momentId}`} longitude={longitude} latitude={latitude} anchor="bottom">
                   <div className="relative group cursor-pointer transform transition-all duration-400 hover:scale-110 hover:-translate-y-2 origin-bottom" onClick={(e) => { e.stopPropagation(); onMarkerClick(momentId); }}>
                     <div className="relative z-10 flex items-center justify-center w-14 h-14 rounded-2xl border-[3px] border-white bg-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden transition-all duration-300 group-hover:rounded-xl group-hover:shadow-[0_12px_25px_rgba(0,0,0,0.2)]">
-                      <SafeImage src={avatarUrl} alt="Moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" fallbackClassName="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400" fallbackText={userInitial} />
+                      <SafeImage src={momentPhoto} alt="Moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" fallbackClassName="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400" fallbackText={userInitial} />
                     </div>
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[3px] border-b-[3px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
                     
@@ -1253,8 +1277,17 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         )}
       </Map>
 
+      {/* ===== FOG OF WAR – Canvas cloud overlay (sits on top of Map, below UI) ===== */}
+      <FogOfWarCanvas
+        mapRef={mapRef}
+        footprints={validFootprints}
+        visible={showFootprints}
+        routeCoordinates={routeCoordinates}
+        showTourRoute={showTourRoute}
+      />
+
       {/* Share Button */}
-      <div className="absolute top-20 md:top-4 left-4 z-20">
+      <div className="absolute top-[124px] md:top-4 left-4 z-20">
         <ShareLocationButton 
           onShareStart={() => {
             setIsSharingLocation(true);
@@ -1266,7 +1299,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       {uniqueDays.length > 0 && (
         <div 
           ref={daySelectorContainerRef}
-          className="absolute top-[140px] md:top-20 left-1/2 -translate-x-1/2 z-20 flex gap-2 glass-panel p-1.5 rounded-full shadow-lg animate-[fadeIn_0.5s_ease] max-w-[90vw] overflow-x-auto"
+          className="absolute top-[72px] sm:top-[88px] md:top-20 left-1/2 -translate-x-1/2 z-20 flex gap-2 glass-panel p-1.5 rounded-full shadow-lg animate-[fadeIn_0.5s_ease] max-w-[95vw] sm:max-w-[90vw] overflow-x-auto"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {/* Sliding indicator background pill */}
@@ -1281,7 +1314,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             style={{ transition: 'color 300ms ease, transform 300ms ease' }}
             className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${
               selectedDay === 'ALL'
-                ? 'text-white font-black scale-105'
+                ? 'text-white font-black scale-105 bg-gradient-to-r from-brand to-cyan-500 shadow-sm'
                 : 'text-slate-700 hover:text-brand hover:scale-102'
             }`}
           >
@@ -1305,21 +1338,26 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         </div>
       )}
 
-      {/* Top Right Controls (Layers & Replay) */}
-      <div className="absolute top-20 md:top-4 right-4 z-20 flex flex-row-reverse md:flex-col gap-3">
+      {/* Top Right Controls (Layers & Replay & Guide) */}
+      <div className="absolute top-[124px] md:top-4 right-4 z-20 flex flex-col gap-3">
         <div className="relative">
           <button
-            onClick={(e) => { e.stopPropagation(); setIsLayerMenuOpen(!isLayerMenuOpen); }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none"
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (!isLayerMenuOpen) setIsReplayMode(false);
+              setIsLayerMenuOpen(!isLayerMenuOpen); 
+            }}
+            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none shadow-md"
+            title={t("social.mapLayerMoments") || "Map Layers"}
           >
             <Layers className="h-6 w-6" />
           </button>
           
           {isLayerMenuOpen && (
-            <div className="absolute top-full right-0 mt-3 w-[calc(100vw-32px)] sm:w-72 max-w-[288px] origin-top-right rounded-[2rem] glass-panel p-3 shadow-2xl animate-fade-in-down z-50" onClick={(e) => e.stopPropagation()}>
+            <div className="absolute top-0 right-14 w-[calc(100vw-80px)] sm:w-72 max-w-[288px] origin-top-right rounded-[1.5rem] sm:rounded-[2rem] glass-panel p-2 sm:p-3 shadow-2xl animate-fade-in-down z-50" onClick={(e) => e.stopPropagation()}>
               <div className="flex flex-col gap-1">
                 {/* Lộ trình hành trình */}
-                <div onClick={() => setShowTourRoute(!showTourRoute)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                <div onClick={() => setShowTourRoute(!showTourRoute)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl transition-colors ${showTourRoute ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-500'}`}><Compass className="w-5 h-5" /></div>
                     <span className="text-sm font-bold text-slate-800">Tour Route</span>
@@ -1330,7 +1368,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Khoảnh khắc */}
-                <div onClick={() => setShowMoments(!showMoments)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                <div onClick={() => setShowMoments(!showMoments)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl transition-colors ${showMoments ? 'bg-pink-100 text-pink-600' : 'bg-slate-100 text-slate-500'}`}><Camera className="w-5 h-5" /></div>
                     <span className="text-sm font-bold text-slate-800">{t("social.mapLayerMoments")}</span>
@@ -1341,7 +1379,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Vị trí bạn bè */}
-                <div onClick={() => setShowLiveLocations(!showLiveLocations)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                <div onClick={() => setShowLiveLocations(!showLiveLocations)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl transition-colors ${showLiveLocations ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}><Users className="w-5 h-5" /></div>
                     <div className="flex flex-col">
@@ -1366,7 +1404,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                       console.warn("Failed to stop location sharing on backend:", err);
                     }
                   }
-                }} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                }} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl transition-colors ${isSharingLocation ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-500'}`}><MapPin className="w-5 h-5" /></div>
                     <span className="text-sm font-bold text-slate-800">Share My Location</span>
@@ -1377,7 +1415,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Dấu chân (Fog of War) */}
-                <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-xl transition-colors ${showFootprints ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}><Layers className="w-5 h-5" /></div>
                     <span className="text-sm font-bold text-slate-800">{t("social.mapLayerFootprints")}</span>
@@ -1389,7 +1427,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
                 {/* Heatmap (Social Energy) */}
                 <div>
-                  <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-4 py-3 rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                  <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3">
                       <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
                       <span className="text-sm font-bold text-slate-800">Social Energy</span>
@@ -1445,26 +1483,26 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         )}
 
         {/* Nút Timeline Replay */}
-        {(!isSpecificTour || timelineEvents.length > 0) && (
-          <button
-            onClick={(e) => { 
-              e.stopPropagation(); 
-              setIsReplayMode(!isReplayMode); 
-              if (isSpecificTour) setIsPlaying(!isReplayMode); 
-              setCurrentEventIndex(0); 
-              setDockState('expanded');
-            }}
-            className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
-            title="Timeline Replay"
-          >
-            <History className="h-6 w-6" />
-          </button>
-        )}
+        <button
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            setIsLayerMenuOpen(false);
+            setIsReplayMode(!isReplayMode); 
+            if (isSpecificTour) setIsPlaying(!isReplayMode); 
+            setCurrentEventIndex(0); 
+            setDockState('expanded');
+          }}
+          className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none shadow-md ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
+          title="Timeline Replay"
+        >
+          <History className="h-6 w-6" />
+        </button>
 
         {/* Nút Hướng dẫn */}
         <button
           onClick={(e) => {
             e.stopPropagation();
+            setIsLayerMenuOpen(false);
             setIsGuideOpen(true);
           }}
           className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none"
@@ -1474,13 +1512,31 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         </button>
       </div>
 
-      {/* Nút Điều hướng Nhanh (Góc dưới phải) */}
+      {/* Nút Điều hướng Nhanh & Ảnh mới nhất (Góc dưới trái) */}
+      <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-2.5">
+        {!isReplayMode && (
+          <button 
+            onClick={handleJumpToNewest} 
+            disabled={points.length === 0}
+            className={`glass-button flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all shadow-md ${
+              points.length === 0 
+                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70' 
+                : 'text-slate-800 hover:scale-105 active:scale-95 bg-white/95 backdrop-blur-md'
+            }`}
+          >
+            <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
+            {t("social.mapNewestPhoto")}
+          </button>
+        )}
+      </div>
+
+      {/* Floating Location Buttons (Lower Right) */}
       <div 
         className={`absolute ${
           isReplayMode 
-            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[320px]' : 'bottom-[100px]') 
-            : 'bottom-28'
-        } right-4 z-20 flex flex-col gap-3 transition-all duration-300`}
+            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[230px]' : 'bottom-[90px]') 
+            : 'bottom-6'
+        } right-4 z-20 flex flex-col gap-2.5 transition-all duration-300`}
       >
         {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
           <button
@@ -1501,10 +1557,10 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 );
               }
             }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-lg border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-md border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none backdrop-blur-md"
             title="Vị trí của bạn"
           >
-            <Navigation className={`h-5 w-5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
+            <Navigation className={`h-4.5 w-4.5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
           </button>
         )}
         {tourStops && tourStops.length > 0 && (
@@ -1520,221 +1576,244 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 ], { padding: 60, duration: 1000 });
               }
             }}
-            className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-105 hover:text-brand focus:outline-none"
+            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-md border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none backdrop-blur-md"
             title="Tiêu điểm Tour"
           >
-            <Compass className="h-5 w-5" />
+            <Compass className="h-4.5 w-4.5" />
           </button>
         )}
       </div>
 
-      {/* Nút quay về ảnh mới nhất */}
-      {!isReplayMode && (
-        <div className="absolute bottom-6 left-4 z-20">
-          <button 
-            onClick={handleJumpToNewest} 
-            disabled={points.length === 0}
-            className={`glass-button flex items-center gap-2.5 rounded-full px-5 py-3 text-sm font-bold transition-all ${
-              points.length === 0 
-                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70' 
-                : 'text-slate-800 hover:scale-105 active:scale-95'
-            }`}
-          >
-            <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
-            {t("social.mapNewestPhoto")}
-          </button>
-        </div>
-      )}
 
-      {/* Floating Central Actions (Playback Controls) */}
-      <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out flex flex-col items-center gap-2 ${isReplayActive ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
-         <div className="flex items-center justify-center gap-4 md:gap-8">
-           <button onClick={() => setPlaybackSpeed(prev => prev === 1 ? 2 : prev === 2 ? 5 : 1)} className="w-12 h-12 rounded-full bg-white/95 backdrop-blur-md shadow-[0_8px_20px_rgba(0,0,0,0.1)] border border-slate-200 text-sm font-bold text-slate-600 hover:bg-white hover:text-brand transition-colors flex items-center justify-center">
-              {playbackSpeed}x
-           </button>
-           <div className="flex items-center gap-4 bg-white/95 backdrop-blur-md px-6 py-2.5 rounded-full shadow-[0_12px_32px_rgba(0,0,0,0.15)] border border-slate-100">
-             <button onClick={() => setCurrentEventIndex(prev => Math.max(0, prev - 1))} className="p-2 text-slate-600 hover:text-brand transition-colors"><SkipBack className="w-6 h-6 fill-current" /></button>
-             <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-16 h-16 bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 ml-1 fill-current" />}
-             </button>
-             <button onClick={() => setCurrentEventIndex(prev => Math.min(timelineEvents.length - 1, prev + 1))} className="p-2 text-slate-600 hover:text-brand transition-colors"><SkipForward className="w-6 h-6 fill-current" /></button>
-           </div>
-           <div className="w-12 h-12"></div> {/* Spacer for balance */}
-         </div>
-         {/* Invisible label spacer to exactly match the vertical height of the Post Moment FAB layout */}
-         <span className="whitespace-nowrap text-[11px] font-bold text-transparent px-2.5 py-1 select-none pointer-events-none">
-           Spacer Label
-         </span>
-      </div>
 
-      {/* Immersive Floating Post Moment Button (Matching Screenshot) */}
+      {/* Immersive Floating Post Moment Button (Clean Icon Only) */}
       {onPostMomentClick && !isReplayMode && !isPostButtonHidden && (
         <div 
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onClick={(e) => { e.stopPropagation(); onPostMomentClick(); }}
-          className="group absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-300"
+          className="group absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center cursor-pointer select-none transition-all duration-300 hover:scale-105 active:scale-95 animate-in fade-in slide-in-from-bottom-5 duration-300"
+          title={t("social.postMoment") || "POST MOMENT"}
         >
-          {/* Circular Camera Button with White Ring */}
           <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-brand text-white border-4 border-white shadow-[0_8px_25px_rgba(0,104,224,0.35)] transition-all duration-300 group-hover:shadow-[0_12px_30px_rgba(0,104,224,0.5)] overflow-hidden">
             <Camera className="w-6.5 h-6.5 text-white" />
-            <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
-          </div>
-
-          {/* Label Pill Card */}
-          <div className="flex items-center gap-2 pl-3.5 pr-2 py-1 rounded-xl bg-white/95 border border-slate-200/90 shadow-[0_4px_16px_rgba(0,0,0,0.12)] backdrop-blur-md">
-            <span className="text-[10px] font-black tracking-wider uppercase text-slate-700 whitespace-nowrap">
-              {t("social.postMoment") || "POST MOMENT"}
-            </span>
-            
-            <div className="h-3.5 w-[1px] bg-slate-200"></div>
-
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsPostButtonHidden(true);
-                localStorage.setItem("post_button_hidden", "true");
-              }}
-              className="flex items-center justify-center w-5 h-5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all cursor-pointer"
-              title={t("social.hideButton") || (locale === 'vi' ? "Thu gọn" : "Collapse")}
-            >
-              <ChevronDown className="w-3.5 h-3.5" />
-            </button>
           </div>
         </div>
       )}
 
-      {/* Timeline Replay Dock */}
-      {isReplayMode && (!isSpecificTour || timelineEvents.length > 0) && (
-        <div className={`absolute bottom-0 left-0 right-0 z-30 transition-all duration-500 ease-in-out flex justify-center ${(!isSpecificTour || dockState === 'expanded') ? 'h-[300px]' : 'h-[80px]'}`}>
-          <div className="w-full max-w-4xl h-full glass-panel rounded-t-[2rem] border-b-0 flex flex-col relative overflow-hidden shadow-[0_-8px_30px_rgba(0,0,0,0.1)]">
+      {/* 📸 Floating Polaroid Photo Deck Stack (Cọc Ảnh Polaroid Chữ Viết Tay & Card Shuffling Swipe Gestures) */}
+      {isReplayMode && timelineEvents.length > 0 && (
+        <div className="absolute right-1/2 translate-x-1/2 md:translate-x-0 md:right-4 bottom-[8.5rem] md:bottom-auto md:top-16 z-30 w-[85vw] sm:w-80 pointer-events-auto transition-all duration-500 ease-out select-none">
+          <div className="relative group">
             
-            {/* Expand/Collapse Handle */}
-            {isSpecificTour && (
-              <div 
-                className="w-full h-6 flex items-center justify-center cursor-pointer hover:bg-black/5 transition-colors absolute top-0 left-0 right-0 z-10"
-                onClick={() => setDockState(prev => prev === 'expanded' ? 'collapsed' : 'expanded')}
-              >
-                <div className="w-12 h-1.5 bg-slate-300 rounded-full mt-2"></div>
+            {/* Background Card Layer 2 (Bottom photo peeking out of deck) */}
+            {timelineEvents[(currentEventIndex + 2) % timelineEvents.length] && (
+              <div className="absolute inset-0 bg-white/70 rounded-3xl p-3 shadow-md transform rotate-[-6deg] translate-y-3 translate-x-2 border border-slate-200/60 pointer-events-none transition-transform duration-500">
+                <div className="w-full h-36 rounded-2xl bg-slate-200 overflow-hidden opacity-50">
+                  <SafeImage src={timelineEvents[(currentEventIndex + 2) % timelineEvents.length].imageUrl} alt="Stacked" className="w-full h-full object-cover" fallbackClassName="w-full h-full bg-slate-300" fallbackText="" />
+                </div>
               </div>
             )}
 
-            <div className="flex-1 flex flex-col px-6 pb-6 pt-8">
-              {!isSpecificTour ? (
-                <div className="flex flex-col items-center justify-center h-full text-center animate-fade-in-up pb-20 relative">
-                  <button onClick={() => setIsReplayMode(false)} className="absolute -top-4 right-0 p-2 bg-slate-100 rounded-full text-slate-500 hover:text-slate-800 transition-colors">
-                     <X className="w-4 h-4" />
-                  </button>
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                    <History className="w-6 h-6 text-brand" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-800 mb-1">✨ Open a specific tour to relive your memories</h3>
-                  <p className="text-xs text-slate-500 max-w-sm mx-auto mb-4 leading-relaxed">
-                    Timeline Replay is designed to replay one journey at a time.
-                  </p>
-                  <button onClick={() => setIsReplayMode(false)} className="px-6 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-full shadow-md hover:scale-105 transition-all">
-                    Browse My Tours
-                  </button>
+            {/* Background Card Layer 1 (Middle photo peeking out of deck) */}
+            {timelineEvents[(currentEventIndex + 1) % timelineEvents.length] && (
+              <div className="absolute inset-0 bg-white/90 rounded-3xl p-3 shadow-lg transform rotate-[4deg] translate-y-1.5 translate-x-1 border border-slate-200/80 pointer-events-none transition-transform duration-500">
+                <div className="w-full h-36 rounded-2xl bg-slate-200 overflow-hidden opacity-70">
+                  <SafeImage src={timelineEvents[(currentEventIndex + 1) % timelineEvents.length].imageUrl} alt="Stacked" className="w-full h-full object-cover" fallbackClassName="w-full h-full bg-slate-300" fallbackText="" />
                 </div>
-              ) : dockState === 'expanded' ? (
-                <div className="flex flex-col h-full animate-fade-in-up">
-                  {/* Expanded Content */}
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                     <div className="flex items-center gap-4">
-                        <div className={`w-16 h-16 rounded-2xl overflow-hidden shadow-md border-2 border-white ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
-                          <SafeImage src={timelineEvents[currentEventIndex]?.imageUrl} alt="Event" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-cyan-400 text-white" fallbackText={<MapPin className="w-8 h-8" />} />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-black text-brand tracking-widest uppercase">
-                             {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
-                          </span>
-                          <span className="text-lg font-bold text-slate-800 line-clamp-1">
-                             {timelineEvents[currentEventIndex]?.title}
-                          </span>
-                          <span className="text-sm text-slate-500 line-clamp-1">
-                             {timelineEvents[currentEventIndex]?.desc}
-                          </span>
-                        </div>
-                     </div>
-                     <div className="flex items-center gap-3 self-end sm:self-auto">
-                       {!isReplayActive && (
-                         <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(true); }} className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shadow-md hover:bg-brand-hover hover:scale-105 transition-all">
-                            <Play className="w-4 h-4 ml-0.5 fill-current" />
-                         </button>
-                       )}
-                       {isRecording ? (
-                          <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
-                             <span className="w-3 h-3 bg-white rounded-sm"></span>
-                          </button>
-                        ) : (
-                          <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
-                             <Film className="w-4 h-4" />
-                          </button>
-                        )}
-                       <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-800 transition-colors">
-                          <X className="w-5 h-5" />
-                       </button>
-                     </div>
-                  </div>
+              </div>
+            )}
 
-                  {/* Slider */}
-                  <div className="w-full h-8 mb-4 group relative px-2">
-                     <div className="absolute top-1/2 -translate-y-1/2 left-2 right-2 h-2 bg-slate-200/80 rounded-full overflow-hidden">
-                        <div className="h-full bg-brand transition-all duration-300" style={{ width: `${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}%` }}></div>
-                     </div>
-                     <input 
-                       type="range" min="0" max={Math.max(0, timelineEvents.length - 1)} 
-                       value={currentEventIndex} 
-                       onChange={(e) => { setCurrentEventIndex(Number(e.target.value)); setIsPlaying(false); }}
-                       className="absolute top-1/2 -translate-y-1/2 w-full h-8 opacity-0 cursor-pointer z-10"
-                     />
-                     <div 
-                       className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-4 border-brand rounded-full shadow-md pointer-events-none transition-all duration-300" 
-                       style={{ left: `calc(${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}% - 10px)` }}
-                     ></div>
-                  </div>
-
-                  {/* Safe Area for Post Moment FAB / Central Actions */}
-                  <div className="h-[96px] w-full shrink-0 flex items-center justify-center">
-                     {!isReplayActive && currentEventIndex >= timelineEvents.length - 1 && (
-                       <span className="text-sm font-medium text-slate-500 animate-fade-in-up bg-slate-100/80 px-5 py-2.5 rounded-full border border-slate-200/60 shadow-sm backdrop-blur-sm">
-                         Ready to capture your next moment?
-                       </span>
-                     )}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between h-full animate-fade-in-up">
-                  {/* Collapsed Content */}
-                   <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand to-cyan-400 flex items-center justify-center text-white shadow-md">
-                        <History className="w-5 h-5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-800">Timeline Replay</span>
-                        <span className="text-xs text-slate-500 line-clamp-1">{new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})} • {timelineEvents[currentEventIndex]?.title}</span>
-                      </div>
-                   </div>
-                   <div className="flex items-center gap-3">
-                     {isRecording ? (
-                        <button onClick={stopRecording} title="Stop Recording" className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-md hover:bg-rose-700 animate-pulse transition-all">
-                           <span className="w-3 h-3 bg-white rounded-sm"></span>
-                        </button>
-                      ) : (
-                        <button onClick={startRecording} title="Export Journey Video" className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
-                           <Film className="w-4 h-4" />
-                        </button>
-                      )}
-                     <button onClick={() => { if (currentEventIndex >= timelineEvents.length - 1) { setCurrentEventIndex(0); } setIsPlaying(!isPlaying); }} className="w-10 h-10 bg-slate-900 text-white rounded-full shadow-md flex items-center justify-center hover:scale-105 active:scale-95 transition-all">
-                        {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 ml-0.5 fill-current" />}
-                     </button>
-                     <button onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} className="w-10 h-10 rounded-full bg-white shadow-sm border border-slate-100 text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition-colors flex items-center justify-center">
-                        <X className="w-4 h-4" />
-                     </button>
-                   </div>
+            {/* Front Active Polaroid Photo Card (Shuffles automatically on Play or drag left/right to swipe) */}
+            <div 
+              key={`deck-card-${currentEventIndex}`}
+              onMouseDown={(e) => handleCardDragStart(e.clientX)}
+              onMouseMove={(e) => handleCardDragMove(e.clientX)}
+              onMouseUp={handleCardDragEnd}
+              onMouseLeave={handleCardDragEnd}
+              onTouchStart={(e) => handleCardDragStart(e.touches[0].clientX)}
+              onTouchMove={(e) => handleCardDragMove(e.touches[0].clientX)}
+              onTouchEnd={handleCardDragEnd}
+              style={{
+                transform: `translateX(${dragX}px) rotate(${dragX * 0.08}deg)`,
+                transition: isDraggingCard ? 'none' : 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+              }}
+              className={`relative bg-white/95 backdrop-blur-xl rounded-3xl p-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white cursor-grab active:cursor-grabbing hover:shadow-[0_25px_70px_rgba(0,0,0,0.3)] ${
+                cardAnimDirection === 'next' ? 'animate-polaroid-shuffle-next' : 'animate-polaroid-shuffle-prev'
+              }`}
+            >
+              {/* Visual Swipe Indicator Hints */}
+              {dragX < -25 && (
+                <div className="absolute top-3 right-3 z-20 bg-brand text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md animate-fade-in">
+                  {locale === 'vi' ? 'Tiếp ➔' : 'Next ➔'}
                 </div>
               )}
+              {dragX > 25 && (
+                <div className="absolute top-3 left-3 z-20 bg-slate-800 text-white px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider shadow-md animate-fade-in">
+                  {locale === 'vi' ? '🕹️ Trước' : '🕹️ Prev'}
+                </div>
+              )}
+
+              {/* Author Header */}
+              <div className="flex items-center justify-between mb-2.5 px-1 pointer-events-none">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full overflow-hidden border border-slate-200 shadow-sm shrink-0">
+                    <SafeImage src={timelineEvents[currentEventIndex]?.data?.user?.avatarUrl || timelineEvents[currentEventIndex]?.data?.avatarUrl} alt="Avatar" className="w-full h-full object-cover" fallbackClassName="w-full h-full bg-brand text-white flex items-center justify-center font-bold text-xs" fallbackText={timelineEvents[currentEventIndex]?.title?.charAt(0) || "U"} />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-800 line-clamp-1 leading-tight">
+                      {timelineEvents[currentEventIndex]?.data?.user?.fullName || timelineEvents[currentEventIndex]?.data?.fullName || timelineEvents[currentEventIndex]?.title}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-medium leading-none mt-0.5">
+                      {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-black text-brand bg-brand/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  {currentEventIndex + 1}/{timelineEvents.length}
+                </span>
+              </div>
+
+              {/* Rounded Photo Frame */}
+              <div 
+                className="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden shadow-inner bg-slate-900 transition-transform duration-300 pointer-events-auto cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const currentEvt = timelineEvents[currentEventIndex];
+                  if (currentEvt?.momentId && onMarkerClick) {
+                    onMarkerClick(currentEvt.momentId);
+                  }
+                }}
+              >
+                <SafeImage 
+                  src={timelineEvents[currentEventIndex]?.imageUrl} 
+                  alt="Moment Photo" 
+                  className="w-full h-full object-cover" 
+                  fallbackClassName="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-white p-4 text-center" 
+                  fallbackText={<div className="flex flex-col items-center gap-1.5"><MapPin className="w-7 h-7 text-brand" /><span className="text-xs font-bold">{timelineEvents[currentEventIndex]?.title}</span></div>} 
+                />
+              </div>
+
+              {/* Handwritten Status / Caption Area */}
+              <div className="mt-3 px-1 min-h-[44px] pointer-events-none">
+                <p className="font-handwriting text-2xl text-slate-800 leading-snug line-clamp-2 selection:bg-brand/20">
+                  "{timelineEvents[currentEventIndex]?.desc || timelineEvents[currentEventIndex]?.title || (locale === 'vi' ? 'Khoảnh khắc đáng nhớ trong chuyến đi' : 'Memorable moment along the journey')}"
+                </p>
+              </div>
+
+              {/* Interactive Swipe Hint Footer */}
+              <div className="mt-1 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-medium px-1 pointer-events-none">
+                <span>{locale === 'vi' ? '‹ Vuốt phải (Trước)' : '‹ Swipe Right (Prev)'}</span>
+                <span className="text-brand font-bold">{locale === 'vi' ? '👈 Vuốt cọc ảnh 👉' : '👈 Swipe Photo Deck 👉'}</span>
+                <span>{locale === 'vi' ? 'Vuốt trái (Tiếp) ›' : 'Swipe Left (Next) ›'}</span>
+              </div>
             </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Timeline Replay Bar (iOS 26 Liquid Glass Bar - Spacious, Premium & Non-blocking) */}
+      {isReplayMode && (!isSpecificTour || timelineEvents.length > 0) && (
+        <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-30 w-full max-w-xl md:max-w-2xl lg:max-w-3xl px-2 sm:px-4 pointer-events-auto transition-all duration-300">
+          <div className="w-full bg-white/85 backdrop-blur-2xl border border-white/80 rounded-[1.25rem] sm:rounded-3xl p-2 sm:p-4 shadow-[0_16px_50px_rgba(0,0,0,0.18),inset_0_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col gap-2 sm:gap-2.5 relative">
+            
+            {/* Top Row: Event Info & All Controls in 1 Single Line */}
+            <div className="flex items-center justify-between gap-3.5 w-full">
+              {/* Left: Thumbnail & Info */}
+              <div 
+                className={`flex items-center gap-3 min-w-0 flex-1 ${timelineEvents[currentEventIndex]?.momentId ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                onClick={() => {
+                  const evt = timelineEvents[currentEventIndex];
+                  if (evt?.momentId && onMarkerClick) {
+                    onMarkerClick(evt.momentId);
+                  }
+                }}
+              >
+                <div className={`w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-white/90 shrink-0 ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
+                  <SafeImage src={timelineEvents[currentEventIndex]?.imageUrl} alt="Event" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-cyan-400 text-white" fallbackText={<MapPin className="w-4 h-4" />} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9.5px] font-black text-brand bg-brand/10 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                      {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
+                    </span>
+                    <span className="text-[10.5px] text-slate-400 font-bold shrink-0">
+                      {currentEventIndex + 1}/{timelineEvents.length}
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 truncate mt-0.5">
+                    {timelineEvents[currentEventIndex]?.title}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right: Liquid Glass Controls */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button 
+                  onClick={handlePrevCard} 
+                  title={locale === 'vi' ? 'Lùi bài' : 'Previous'} 
+                  className="w-8.5 h-8.5 rounded-full text-slate-700 bg-slate-100/80 hover:bg-brand/10 hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                >
+                  <SkipBack className="w-4 h-4" />
+                </button>
+
+                <button 
+                  onClick={() => { 
+                    if (currentEventIndex >= timelineEvents.length - 1) { 
+                      setCurrentEventIndex(0); 
+                    } 
+                    setIsPlaying(!isPlaying); 
+                  }} 
+                  title={isPlaying ? 'Pause' : 'Play'}
+                  className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shadow-[0_4px_16px_rgba(0,104,224,0.4)] hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
+                >
+                  {isPlaying ? <Pause className="w-4.5 h-4.5 fill-current" /> : <Play className="w-4.5 h-4.5 ml-0.5 fill-current" />}
+                </button>
+
+                <button 
+                  onClick={handleNextCard} 
+                  title={locale === 'vi' ? 'Tiếp theo' : 'Next'} 
+                  className="w-8.5 h-8.5 rounded-full text-slate-700 bg-slate-100/80 hover:bg-brand/10 hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                >
+                  <SkipForward className="w-4 h-4" />
+                </button>
+
+                <button 
+                  onClick={() => setPlaybackSpeed(prev => prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1)}
+                  title={locale === 'vi' ? 'Tốc độ phát' : 'Playback Speed'}
+                  className="px-2.5 py-1 text-xs font-black bg-slate-100/90 text-slate-800 rounded-full hover:bg-brand/10 hover:text-brand transition-colors shadow-sm ml-0.5"
+                >
+                  {playbackSpeed}x
+                </button>
+
+                <button 
+                  onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} 
+                  title={locale === 'vi' ? 'Đóng' : 'Close'}
+                  className="w-8.5 h-8.5 rounded-full bg-slate-100/80 text-slate-500 flex items-center justify-center hover:bg-slate-200 hover:text-slate-800 transition-colors ml-1"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Line: Scrubber Range */}
+            <div className="w-full h-2.5 group relative px-0.5 mt-0.5">
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-brand via-cyan-400 to-indigo-500 transition-all duration-300" style={{ width: `${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}%` }}></div>
+              </div>
+              <input 
+                type="range" min="0" max={Math.max(0, timelineEvents.length - 1)} 
+                value={currentEventIndex} 
+                onChange={(e) => { setCurrentEventIndex(Number(e.target.value)); setIsPlaying(false); }}
+                className="absolute top-1/2 -translate-y-1/2 w-full h-2.5 opacity-0 cursor-pointer z-10"
+              />
+              <div 
+                className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border-2 border-brand rounded-full shadow-md pointer-events-none transition-all duration-300" 
+                style={{ left: `calc(${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}% - 7px)` }}
+              ></div>
+            </div>
+
           </div>
         </div>
       )}

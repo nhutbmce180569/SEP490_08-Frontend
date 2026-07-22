@@ -8,6 +8,7 @@ import { useTranslation } from '../../../contexts/LocaleContext';
 import { usePromotions } from '../hooks/usePromotions';
 import type { Promotion } from '../types/promotion';
 import { promotionService } from '../services/promotion.service';
+import { MoneyDisplay } from '../../currency/MoneyDisplay';
 
 export const AdminPromotionList: React.FC = () => {
   const { t } = useTranslation();
@@ -84,7 +85,7 @@ export const AdminPromotionList: React.FC = () => {
             <div className="font-medium text-slate-800">
               {item.discountType?.toString().toUpperCase() === 'PERCENTAGE' 
                 ? `${item.discountValue}%` 
-                : `${item.discountValue.toLocaleString()} VND`}
+                : <MoneyDisplay amountVnd={item.discountValue} compact />}
             </div>
           </div>
         ),

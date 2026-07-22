@@ -17,7 +17,7 @@ export const useMyVouchers = () => {
     const now = Date.now();
     return rawList.filter((v) => {
       const isStatusAvailable = v.status === 'Available';
-      const isVoucherActive = v.isActive && v.voucherStatus === 'Active';
+      const isVoucherActive = v.isActive && (v.voucherStatus === 'Active' || v.voucherStatus === 'Scheduled');
       const hasQuantity = v.quantity > 0;
       const notExpired = new Date(v.endDate).getTime() >= now;
       return isStatusAvailable && isVoucherActive && hasQuantity && notExpired;

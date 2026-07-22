@@ -27,6 +27,7 @@ import {
   STATUS_STYLES,
 } from "../utils/voucherHelpers";
 import { VoucherDetailModal } from "../components/VoucherDetailModal";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 export const ManagerVoucherList: React.FC = () => {
   const { t } = useTranslation();
@@ -122,16 +123,16 @@ export const ManagerVoucherList: React.FC = () => {
         render: (voucher) => (
           <div className="text-sm">
             <div className="font-medium text-slate-800">
-              {formatDiscount(voucher.discountType, voucher.discountValue)}
+              {voucher.discountType.toLowerCase() === 'percent' ? `${voucher.discountValue}%` : <MoneyDisplay amountVnd={voucher.discountValue} compact />}
             </div>
             {voucher.discountType === "Percent" && voucher.maxDiscountAmount && (
-              <div className="text-xs text-slate-500">
-                {t("voucher.max")} {formatVnd(voucher.maxDiscountAmount)}
+              <div className="text-xs text-slate-500 flex items-center gap-1">
+                {t("voucher.max")} <MoneyDisplay amountVnd={voucher.maxDiscountAmount} compact />
               </div>
             )}
             {voucher.minOrderAmount && voucher.minOrderAmount > 0 ? (
-              <div className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 inline-block mt-0.5">
-                {t("voucher.minOrderHint", { amount: formatVnd(voucher.minOrderAmount) })}
+              <div className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 mt-0.5 flex items-center gap-1 w-fit">
+                {t("voucher.minOrderHint", { amount: "" }).replace(":", "").trim()} <MoneyDisplay amountVnd={voucher.minOrderAmount} compact />
               </div>
             ) : null}
           </div>

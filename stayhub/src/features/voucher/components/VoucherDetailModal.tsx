@@ -16,11 +16,10 @@ import { voucherService } from '../services/voucher.service';
 import type { ReadUserVoucherDTO } from '../types/voucher';
 import {
   formatDateTime,
-  formatDiscount,
-  formatVnd,
   getSafeUsage,
   STATUS_STYLES,
 } from '../utils/voucherHelpers';
+import { MoneyDisplay } from '../../currency/MoneyDisplay';
 
 interface VoucherDetailModalProps {
   id: number | string | null;
@@ -174,12 +173,10 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
               <DetailCard
                 icon={<Hash className="h-4 w-4" />}
                 label={t('voucher.discount')}
-                value={formatDiscount(voucher.discountType, voucher.discountValue)}
+                value={voucher.discountType.toLowerCase() === 'percent' ? `${voucher.discountValue}%` : <MoneyDisplay amountVnd={voucher.discountValue} compact />}
                 hint={
                   voucher.discountType === 'Percent' && voucher.maxDiscountAmount
-                    ? t('voucher.maxDiscountHint', {
-                        amount: formatVnd(voucher.maxDiscountAmount),
-                      })
+                    ? <span className="flex items-center gap-1">{t('voucher.maxDiscountHint', { amount: "" }).replace(":", "").trim()} <MoneyDisplay amountVnd={voucher.maxDiscountAmount} compact /></span>
                     : undefined
                 }
               />
@@ -217,7 +214,7 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
                 label={t('voucher.minOrderAmount')}
                 value={
                   voucher.minOrderAmount && voucher.minOrderAmount > 0
-                    ? formatVnd(voucher.minOrderAmount)
+                    ? <MoneyDisplay amountVnd={voucher.minOrderAmount} compact />
                     : t('voucher.noMinOrder')
                 }
               />

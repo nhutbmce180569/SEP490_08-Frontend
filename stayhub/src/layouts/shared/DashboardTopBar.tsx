@@ -149,8 +149,7 @@ export function DashboardTopBar({
           <span className="text-xs font-semibold">{t("dashboard.home")}</span>
         </ActionButton>
 
-        <LanguageCurrencySelector />
-        <ThemeToggle />
+        <LanguageCurrencySelector className="hidden md:block" />
 
         <div className="relative" ref={menuRef}>
           <button

@@ -191,17 +191,17 @@ export const MomentsFeed: React.FC = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-slate-50 overflow-hidden select-none relative">
-      {/* Sleek Immersive Apple-style Floating Header Bar (Light Theme) */}
-      <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 flex flex-row items-center gap-1.5 sm:gap-3 bg-white/80 border border-slate-200/60 backdrop-blur-xl px-2 sm:px-3 py-1.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-300 w-max h-12">
+    <div className="w-full h-full flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden select-none relative transition-colors duration-300">
+      {/* Sleek Immersive Apple-style Floating Header Bar (Light & Dark Theme) */}
+      <div className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 flex flex-row items-center gap-1.5 sm:gap-3 bg-white/80 dark:bg-slate-900/80 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-xl px-2 sm:px-3 py-1.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.06),0_1px_2px_rgba(0,0,0,0.02)] dark:shadow-slate-950/50 transition-all duration-300 w-max h-12">
         {/* Center Switcher Buttons (iOS 26 Liquid Glass Style) */}
-        <div className="flex items-center bg-slate-200/60 backdrop-blur-md p-1 rounded-full border border-white/60 h-9.5 shadow-[inner_0_1px_2px_rgba(0,0,0,0.05)]">
+        <div className="flex items-center bg-slate-200/60 dark:bg-slate-800/60 backdrop-blur-md p-1 rounded-full border border-white/60 dark:border-slate-700/60 h-9.5 shadow-[inner_0_1px_2px_rgba(0,0,0,0.05)]">
           <button
             onClick={() => setViewMode('feed')}
             className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${
               viewMode === 'feed'
                 ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-700/50'
             }`}
           >
             <LayoutList className="h-3 w-3" />
@@ -212,7 +212,7 @@ export const MomentsFeed: React.FC = () => {
             className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${
               viewMode === 'map'
                 ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-700/50'
             }`}
           >
             <Map className="h-3 w-3" />
@@ -223,18 +223,18 @@ export const MomentsFeed: React.FC = () => {
         {/* Right Selector Filter Dropdown (iOS 26 Liquid Glass) */}
         <div className="relative h-9 shrink-0 max-w-[95px] xs:max-w-[125px] sm:max-w-[180px] md:max-w-[260px]">
           <select
-            className="appearance-none bg-slate-100/80 hover:bg-white/90 border border-slate-200/80 text-slate-800 font-bold text-[11px] h-full pl-3.5 pr-8 rounded-full focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand cursor-pointer transition-all shadow-sm w-full truncate backdrop-blur-md"
+            className="appearance-none bg-slate-100/80 dark:bg-slate-800/80 hover:bg-white/90 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 font-bold text-[11px] h-full pl-3.5 pr-8 rounded-full focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand cursor-pointer transition-all shadow-sm w-full truncate backdrop-blur-md"
             onChange={(e) => setScheduleId(e.target.value ? Number(e.target.value) : null)}
             value={scheduleId || ""}
           >
-            <option value="">🌍 {t("app.allTripsGlobal") || "All trips (Global)"}</option>
+            <option value="" className="dark:bg-slate-800">🌍 {t("app.allTripsGlobal") || "All trips (Global)"}</option>
             {schedules?.map(s => (
-              <option key={s.scheduleId} value={s.scheduleId}>
+              <option key={s.scheduleId} value={s.scheduleId} className="dark:bg-slate-800">
                 📍 {s.tourName}
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500 dark:text-slate-400">
             <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
               <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
             </svg>
@@ -245,27 +245,27 @@ export const MomentsFeed: React.FC = () => {
       {/* Main Content Viewport */}
       <div className="relative flex-1 overflow-hidden w-full h-full">
         {isLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-brand"></div>
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 dark:border-slate-700 border-t-brand"></div>
           </div>
         )}
 
         {isError && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm p-4">
-            <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center text-sm font-medium text-rose-500 shadow-lg backdrop-blur-md">
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 dark:bg-slate-950/60 backdrop-blur-sm p-4">
+            <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-6 text-center text-sm font-medium text-rose-500 dark:text-rose-400 shadow-lg backdrop-blur-md">
               {t("social.momentsLoadFailed")}
             </div>
           </div>
         )}
 
         {viewMode === 'feed' ? (
-          <div className="h-full w-full overflow-y-auto pt-28 pb-32 px-6 md:px-8 custom-scrollbar bg-gradient-to-tr from-slate-100 via-slate-50 to-slate-100">
+          <div className="h-full w-full overflow-y-auto pt-28 pb-32 px-6 md:px-8 custom-scrollbar bg-gradient-to-tr from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
             {moments.length === 0 && !isLoading && !isError ? (
               <div className="flex h-full flex-col items-center justify-center pb-20 text-center animate-in fade-in duration-200">
-                <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 shadow-inner">
-                  <Camera className="h-10 w-10 text-slate-400" />
+                <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800/80 shadow-inner">
+                  <Camera className="h-10 w-10 text-slate-400 dark:text-slate-500" />
                 </div>
-                <p className="text-sm font-semibold text-slate-500">
+                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
                   {t("social.noMomentsShare")}
                 </p>
               </div>
@@ -278,7 +278,7 @@ export const MomentsFeed: React.FC = () => {
                       key={moment.id || moment.Id}
                       ref={isLast ? lastElementRef : undefined}
                       onClick={() => setSelectedMomentId(moment.id || moment.Id)}
-                      className="group relative overflow-hidden rounded-2xl cursor-pointer bg-white shadow-sm border border-slate-250/20 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md hover:border-brand/35"
+                      className="group relative overflow-hidden rounded-2xl cursor-pointer bg-white dark:bg-slate-900 shadow-sm border border-slate-250/20 dark:border-slate-800 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md hover:border-brand/35 dark:hover:border-brand/50"
                     >
                       <img
                         src={moment.imageUrl || moment.ImageUrl}
@@ -323,8 +323,8 @@ export const MomentsFeed: React.FC = () => {
                 {isFetchingNextPage && (
                   <>
                     {[...Array(5)].map((_, i) => (
-                      <div key={`feed-skeleton-${i}`} className="animate-pulse relative overflow-hidden rounded-2xl bg-slate-200 aspect-[4/5] border border-slate-250/10">
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-300 via-transparent to-transparent"></div>
+                      <div key={`feed-skeleton-${i}`} className="animate-pulse relative overflow-hidden rounded-2xl bg-slate-200 dark:bg-slate-800 aspect-[4/5] border border-slate-250/10 dark:border-slate-800/50">
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-300 dark:from-slate-700 via-transparent to-transparent"></div>
                       </div>
                     ))}
                   </>
@@ -352,8 +352,8 @@ export const MomentsFeed: React.FC = () => {
             className="group flex flex-col items-center gap-1.5 cursor-pointer select-none transition-transform duration-300 hover:scale-105 active:scale-95"
             title={t("social.postMoment") || "POST MOMENT"}
           >
-            {/* Circular Camera Button with White Ring */}
-            <div className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand text-white border-4 border-white shadow-[0_8px_25px_rgba(0,104,224,0.4)] transition-all duration-300 group-hover:shadow-[0_12px_32px_rgba(0,104,224,0.55)] overflow-hidden">
+            {/* Circular Camera Button with White/Dark Ring */}
+            <div className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-brand text-white border-4 border-white dark:border-slate-900 shadow-[0_8px_25px_rgba(0,104,224,0.4)] transition-all duration-300 group-hover:shadow-[0_12px_32px_rgba(0,104,224,0.55)] overflow-hidden">
               <Camera className="w-6 h-6 md:w-7 md:h-7 text-white" />
               <div className="absolute inset-0 rounded-full border-2 border-white/40 animate-ping opacity-45 group-hover:opacity-0 delay-75"></div>
             </div>

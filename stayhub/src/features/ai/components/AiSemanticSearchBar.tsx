@@ -41,12 +41,7 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
   return (
     <div className={`relative ${className}`}>
       <div
-        className="flex items-center gap-2 rounded-2xl px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-[var(--color-brand)]/30"
-        style={{
-          background: "#fff",
-          border: "1px solid rgba(5,7,60,0.1)",
-          boxShadow: "0 2px 12px rgba(5,7,60,0.04)",
-        }}
+        className="flex items-center gap-2 rounded-2xl px-4 py-2.5 transition-all focus-within:ring-2 focus-within:ring-[var(--color-brand)]/30 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm"
       >
         <Sparkles size={18} style={{ color: "var(--color-brand)" }} className="shrink-0" />
         <input
@@ -55,10 +50,10 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           placeholder={resolvedPlaceholder}
-          className="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none font-medium min-w-0"
+          className="flex-1 bg-transparent text-sm text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none font-medium min-w-0"
         />
         {query && (
-          <button type="button" onClick={handleClear} className="text-slate-400 hover:text-slate-600">
+          <button type="button" onClick={handleClear} className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300">
             <X size={16} />
           </button>
         )}
@@ -80,16 +75,11 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
 
       {showResults && (
         <div
-          className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden z-40 max-h-80 overflow-y-auto"
-          style={{
-            background: "#fff",
-            border: "1px solid rgba(5,7,60,0.1)",
-            boxShadow: "0 8px 32px rgba(5,7,60,0.12)",
-          }}
+          className="absolute top-full left-0 right-0 mt-2 rounded-2xl overflow-hidden z-40 max-h-80 overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xl"
         >
           {results.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-sm font-bold text-slate-600 mb-2">{t("ai.noMatchingToursShort")}</p>
+              <p className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-2">{t("ai.noMatchingToursShort")}</p>
               <button
                 type="button"
                 onClick={goToAiAssistant}
@@ -108,23 +98,23 @@ export const AiSemanticSearchBar: React.FC<Props> = ({
                     navigate(PATH.PUBLIC.TOUR_DETAIL(tour.tourId));
                     setShowResults(false);
                   }}
-                  className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                  className="w-full text-left px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0"
                 >
-                  <p className="text-sm font-black text-slate-800 line-clamp-1">{tour.name}</p>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  <p className="text-sm font-black text-slate-800 dark:text-slate-100 line-clamp-1">{tour.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
                     {[tour.city, tour.minPrice != null ? `${tour.minPrice.toLocaleString("vi-VN")} đ` : null]
                       .filter(Boolean)
                       .join(" · ")}
                   </p>
                   {tour.snippet && (
-                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-1">{tour.snippet}</p>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1 line-clamp-1">{tour.snippet}</p>
                   )}
                 </button>
               ))}
               <button
                 type="button"
                 onClick={goToAiAssistant}
-                className="w-full py-3 text-xs font-black text-brand hover:bg-brand-light transition-colors"
+                className="w-full py-3 text-xs font-black text-brand hover:bg-brand-light dark:hover:bg-brand-muted/40 transition-colors"
               >
                 {t("ai.getPersonalisedRecsLink")}
               </button>

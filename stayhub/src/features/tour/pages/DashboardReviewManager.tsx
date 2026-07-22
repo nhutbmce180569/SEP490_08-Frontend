@@ -11,7 +11,6 @@ import {
   MessageSquarePlus,
   Loader2,
   ChevronRight,
-  ChevronDown,
   Search,
   X,
   Wand2,
@@ -645,7 +644,7 @@ export const DashboardReviewManager: React.FC = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col md:flex-row gap-6 p-6">
+    <div className="h-[calc(100vh-100px)] flex flex-col md:flex-row gap-6">
       {/* CỘT TRÁI: DANH SÁCH TOUR */}
       <div className="w-full md:w-1/3 lg:w-1/4 flex flex-col bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-5 border-b border-slate-100 bg-slate-50/50">
@@ -753,7 +752,7 @@ export const DashboardReviewManager: React.FC = () => {
 
           {/* 💥 BỘ LỌC SAO VÀ NGÀY */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 transition-colors focus-within:border-slate-400 shrink-0">
               <select
                 value={ratingFilter === null ? "" : ratingFilter}
                 onChange={(e) => {
@@ -762,7 +761,7 @@ export const DashboardReviewManager: React.FC = () => {
                   setLocalReviews([]);
                   setRatingFilter(val === "" ? null : Number(val));
                 }}
-                className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 cursor-pointer"
+                className="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"
               >
                 <option value="">
                   {t("common.all")} {t("tour.rating")}
@@ -773,10 +772,9 @@ export const DashboardReviewManager: React.FC = () => {
                 <option value="2">2 {t("tour.stars") || "Stars"}</option>
                 <option value="1">1 {t("tour.star") || "Star"}</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
             </div>
 
-            <div className="relative">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 transition-colors focus-within:border-slate-400 shrink-0">
               <select
                 value={dateSortOrder}
                 onChange={(e) => {
@@ -784,7 +782,7 @@ export const DashboardReviewManager: React.FC = () => {
                   setLocalReviews([]);
                   setDateSortOrder(e.target.value as "newest" | "oldest");
                 }}
-                className="appearance-none rounded-xl border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs font-semibold text-slate-700 outline-none transition-colors hover:border-brand/50 cursor-pointer"
+                className="bg-transparent text-xs font-semibold text-slate-700 outline-none cursor-pointer"
               >
                 <option value="newest">
                   {t("tour.newestFirst") || "Newest"}
@@ -793,7 +791,6 @@ export const DashboardReviewManager: React.FC = () => {
                   {t("tour.oldestFirst") || "Oldest"}
                 </option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
             </div>
           </div>
         </div>

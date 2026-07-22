@@ -212,10 +212,11 @@ export const AdminTourList: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl">
+    <div className="space-y-4">
       {/* Card header */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row flex-wrap flex-1 items-stretch sm:items-center gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
@@ -227,7 +228,7 @@ export const AdminTourList: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
             <UserIcon className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <select
               className="w-full bg-transparent text-sm text-slate-700 outline-none"
@@ -246,7 +247,7 @@ export const AdminTourList: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
             <select
               className="bg-transparent text-sm text-slate-700 outline-none"
               value={pageSize}
@@ -267,7 +268,7 @@ export const AdminTourList: React.FC = () => {
             variant="secondary"
             onClick={clearFilters}
             disabled={!hasActiveFilters}
-            className="gap-2 px-4 py-2 text-sm"
+            className="gap-2 px-3 py-2 text-sm shrink-0"
           >
             <X className="h-4 w-4" />
             {t("tour.clear")}

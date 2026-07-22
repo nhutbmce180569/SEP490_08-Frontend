@@ -160,10 +160,10 @@ export const AdminPromotionList: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl">
-      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors sm:w-64">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row flex-wrap flex-1 items-stretch sm:items-center gap-3">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               type="text"
@@ -174,7 +174,7 @@ export const AdminPromotionList: React.FC = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
             <Filter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <select
               value={status}
@@ -190,7 +190,7 @@ export const AdminPromotionList: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
             <select
               className="bg-transparent text-sm text-slate-700 outline-none"
               value={pageSize}
@@ -208,16 +208,14 @@ export const AdminPromotionList: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center shrink-0 mt-3 sm:mt-0">
-          <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm whitespace-nowrap">
+        <div className="flex items-center shrink-0">
+          <ActionButton variant="primary" onClick={handleCreate} className="gap-2 px-4 py-2 text-sm whitespace-nowrap shrink-0">
             <Plus className="h-4 w-4" /> {t("admin.addPromotion")}
           </ActionButton>
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
-      ) : error ? (
+      {error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
         <Table
@@ -225,6 +223,8 @@ export const AdminPromotionList: React.FC = () => {
           columns={columns}
           keyExtractor={(item) => item.id}
           emptyMessage={t("admin.noPromotionsFound")}
+          isLoading={isLoading}
+          skeletonRows={pageSize}
         />
       )}
 

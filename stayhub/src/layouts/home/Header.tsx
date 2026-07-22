@@ -39,7 +39,7 @@ import { useTourAssistantChatState } from "../../contexts/TourAssistantChatConte
 import { useQuery } from "@tanstack/react-query";
 import { chatService } from "../../features/social/chat/services/chatService";
 import { useChatNotification } from "../../features/social/chat/component/ChatNotificationContext";
-
+import { getSearchSuggestions } from "../../hooks/useSearchTours";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -87,18 +87,56 @@ export default function Header() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [searchText, setSearchText] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSuggestionsLoading, setIsSuggestionsLoading] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
         setShowUserMenu(false);
       }
+      if (searchInputRef.current && !searchInputRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
     };
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
+
+  useEffect(() => {
+    if (!searchText.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setIsSuggestionsLoading(true);
+        const results = await getSearchSuggestions(searchText, controller.signal);
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch (error: any) {
+        if (error.name !== 'CanceledError') {
+          console.error("Failed to fetch search suggestions:", error);
+          setSuggestions([]);
+        }
+      } finally {
+        setIsSuggestionsLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchText]);
 
 
   const handleLogout = async () => {
@@ -140,20 +178,64 @@ export default function Header() {
 
 
           {/* Header Quick Search Input */}
-          <div className="relative hidden md:flex items-center ml-2">
-            <div className="relative flex items-center">
+          <div className="relative hidden md:flex items-center ml-2" ref={searchInputRef}>
+            <div className="relative flex items-center z-[110]">
               <Search size={15} className="absolute left-3 text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder={t("header.searchPlaceholder", { defaultValue: "Tìm điểm đến, tour..." })}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onFocus={() => searchText.trim() && setShowSuggestions(true)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                    setShowSuggestions(false);
                     navigate(`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(e.currentTarget.value.trim())}`);
                   }
                 }}
-                className="h-9 w-44 lg:w-56 pl-9 pr-3 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 outline-none focus:w-64 focus:ring-2 focus:ring-brand/30 focus:border-brand transition-all duration-300 placeholder:text-slate-400"
+                className={`h-9 w-44 lg:w-56 pl-9 pr-3 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 outline-none transition-all duration-300 placeholder:text-slate-400 ${
+                  showSuggestions && searchText.trim() ? "w-64 ring-2 ring-brand/30 border-brand" : "focus:w-64 focus:ring-2 focus:ring-brand/30 focus:border-brand"
+                }`}
               />
             </div>
+            
+            {showSuggestions && (
+              <div className="absolute top-[calc(100%+8px)] left-0 w-64 lg:w-[320px] z-[100] bg-white rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden text-slate-800">
+                {isSuggestionsLoading ? (
+                  <div className="p-4 text-center text-sm text-slate-500">{t("common.loading", { defaultValue: "Loading..." })}</div>
+                ) : suggestions.length > 0 ? (
+                  <ul className="py-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                    {suggestions.map((suggestion, index) => (
+                      <li key={index}>
+                        <button
+                          type="button"
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-brand-light/50 outline-none text-left transition-colors"
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            setSearchText(suggestion);
+                            setShowSuggestions(false);
+                            navigate(`${PATH.PUBLIC.TOUR_SEARCH}?searchTerm=${encodeURIComponent(suggestion)}`);
+                          }}
+                        >
+                          <Search className="h-4 w-4 text-slate-400 shrink-0" />
+                          <span
+                            className="truncate"
+                            dangerouslySetInnerHTML={{
+                              __html: suggestion.replace(
+                                new RegExp(`(${searchText})`, 'gi'),
+                                '<strong class="font-bold text-brand">$1</strong>'
+                              ),
+                            }}
+                          />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="p-4 text-center text-sm text-slate-500">{t("tour.noToursFound", { defaultValue: "No matches found" })}</div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Main Navigation Links */}

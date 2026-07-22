@@ -130,6 +130,8 @@ const enrichTicketWithTypeDetail = (
       name: ticketType.name,
       description: ticket.ticketType?.description ?? ticketType.description,
       isActive: ticket.ticketType?.isActive ?? ticketType.isActive,
+      minAge: ticketType.minAge,
+      maxAge: ticketType.maxAge,
     },
   };
 };
@@ -1338,8 +1340,15 @@ export default function PublicTourDetail() {
                                       {ticketPrice !== null ? (
                                         <>
                                           {getTicketEffectivePriceInfo(ticket).originalPrice !== null && (
-                                            <div className="text-[10px] font-medium text-slate-400 line-through mb-0.5">
-                                              <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).originalPrice!} compact />
+                                            <div className="flex items-center justify-end gap-1.5 mb-0.5">
+                                              <div className="text-[10px] font-medium text-slate-400 line-through">
+                                                <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).originalPrice!} compact />
+                                              </div>
+                                              {getTicketEffectivePriceInfo(ticket).discountType?.toLowerCase() === "percentage" && getTicketEffectivePriceInfo(ticket).discountValue && (
+                                                <span className="rounded bg-emerald-100 px-1 py-0.5 text-[10px] font-bold text-emerald-700">
+                                                  -{getTicketEffectivePriceInfo(ticket).discountValue}%
+                                                </span>
+                                              )}
                                             </div>
                                           )}
                                           <MoneyDisplay amountVnd={getTicketEffectivePriceInfo(ticket).price!} compact />

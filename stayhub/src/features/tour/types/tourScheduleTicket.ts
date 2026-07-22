@@ -4,6 +4,8 @@ export interface TourScheduleTicketType {
   id?: number;
   name?: string | null;
   description?: string | null;
+  minAge?: number | null;
+  maxAge?: number | null;
   isActive?: boolean | null;
 }
 

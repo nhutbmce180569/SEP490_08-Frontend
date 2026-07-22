@@ -233,6 +233,14 @@
     "promotionManagement": "Khuyến mãi",
     "voucherManagement": "Quản lý Voucher"
   },
+  "content": {
+    "ticketTypeName": "Tên loại vé",
+    "ageRange": "Độ tuổi",
+    "minAge": "Tuổi tối thiểu",
+    "maxAge": "Tuổi tối đa",
+    "ageNegativeError": "Tuổi không được là số âm",
+    "maxAgeError": "Tuổi tối đa phải lớn hơn tuổi tối thiểu"
+  },
   "contact": {
     "facebookTitle": "StayHub Official Fanpage",
     "facebookSubtitle": "Kết nối trực tiếp qua trang Facebook",

@@ -491,23 +491,23 @@ export const ProcessCancellationPage: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
                     <tr>
-                      <td className="px-3 py-2">&gt; 15 ngày</td>
-                      <td className="px-3 py-2 text-right text-emerald-600">0% (Hoàn 100%)</td>
+                      <td className="px-3 py-2">{t("booking.policyRefundMoreThan15") || "> 15 ngày"}</td>
+                      <td className="px-3 py-2 text-right text-emerald-600">{t("booking.policyRefund100") || "0% (Hoàn 100%)"}</td>
                     </tr>
                     <tr>
-                      <td className="px-3 py-2">11 - 15 ngày</td>
+                      <td className="px-3 py-2">{t("booking.policyRefund11to15") || "11 - 15 ngày"}</td>
                       <td className="px-3 py-2 text-right text-amber-600">5%</td>
                     </tr>
                     <tr>
-                      <td className="px-3 py-2">6 - 10 ngày</td>
+                      <td className="px-3 py-2">{t("booking.policyRefund6to10") || "6 - 10 ngày"}</td>
                       <td className="px-3 py-2 text-right text-amber-600">10%</td>
                     </tr>
                     <tr>
-                      <td className="px-3 py-2">3 - 5 ngày</td>
+                      <td className="px-3 py-2">{t("booking.policyRefund3to5") || "3 - 5 ngày"}</td>
                       <td className="px-3 py-2 text-right text-orange-600">15%</td>
                     </tr>
                     <tr>
-                      <td className="px-3 py-2">1 - 2 ngày</td>
+                      <td className="px-3 py-2">{t("booking.policyRefund1to2") || "1 - 2 ngày"}</td>
                       <td className="px-3 py-2 text-right text-rose-600">20%</td>
                     </tr>
                   </tbody>

@@ -17,6 +17,11 @@ export const LEGAL_NAV: LegalNavItem[] = [
     href: PATH.PUBLIC.PRIVACY,
     descriptionKey: "legal.privacyNavDesc",
   },
+  {
+    labelKey: "legal.bookingTermsNavLabel",
+    href: PATH.PUBLIC.BOOKING_TERMS,
+    descriptionKey: "legal.bookingTermsNavDesc",
+  },
 ];
 
 export const LEGAL_FROM_LABEL_KEYS: Record<string, string> = {

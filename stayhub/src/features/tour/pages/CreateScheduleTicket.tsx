@@ -48,7 +48,7 @@ export const CreateScheduleTicket: React.FC = () => {
     if (!Number.isFinite(p) || p <= 0) return 0;
     
     let amount = 0;
-    if (selectedPromotion.discountType === "PERCENTAGE") {
+    if (selectedPromotion.discountType?.toLowerCase() === "percentage") {
       amount = p * (selectedPromotion.discountValue / 100);
       if (selectedPromotion.maxDiscountAmount && amount > selectedPromotion.maxDiscountAmount) {
         amount = selectedPromotion.maxDiscountAmount;
@@ -324,7 +324,7 @@ export const CreateScheduleTicket: React.FC = () => {
                   })),
                 ]}
                 value={promotionId}
-                onChange={(val) => setPromotionId(String(val))}
+                onChange={(val) => setPromotionId(val.toString())}
                 disabled={isLoadingPromotions || isSubmitting}
                 placeholder="Select promotion"
                 direction="up"
@@ -337,7 +337,7 @@ export const CreateScheduleTicket: React.FC = () => {
                   <span>{formatTicketCurrency(Number(price))}</span>
                 </div>
                 <div className="flex justify-between items-center mb-1 text-emerald-600">
-                  <span className="font-medium">Discount ({selectedPromotion.discountType === "PERCENTAGE" ? `${selectedPromotion.discountValue}%` : 'Fixed'}):</span>
+                  <span className="font-medium">Discount ({selectedPromotion.discountType?.toLowerCase() === "percentage" ? `${selectedPromotion.discountValue}%` : 'Fixed'}):</span>
                   <span>- {formatTicketCurrency(discountAmount)}</span>
                 </div>
                 <div className="flex justify-between items-center mt-2 pt-2 border-t border-emerald-200/50 font-bold text-emerald-800">

@@ -17,7 +17,9 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "themeSystem": "System"
+    "themeSystem": "System",
+    "menu": "Menu",
+    "account": "Account"
   },
   "header": {
     "searchPlaceholder": "Search destinations, tours, or experiences...",

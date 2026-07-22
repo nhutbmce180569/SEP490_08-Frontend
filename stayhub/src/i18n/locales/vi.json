@@ -18,7 +18,9 @@
     "theme": "Giao diện",
     "themeLight": "Sáng",
     "themeDark": "Tối",
-    "themeSystem": "Hệ thống"
+    "themeSystem": "Hệ thống",
+    "menu": "Danh mục",
+    "account": "Tài khoản"
   },
   "header": {
     "searchPlaceholder": "Tìm điểm đến, tour hoặc trải nghiệm...",

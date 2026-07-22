@@ -96,8 +96,8 @@ export const ProfileLayout = () => {
           <aside className="hidden w-full shrink-0 lg:block lg:w-64">
             <div className="account-sidebar glass-panel sticky top-[88px] rounded-3xl p-3">
               <div className="mb-3 px-3 pt-2">
-                <p className="travel-eyebrow">Menu</p>
-                <h2 className="travel-heading mt-1 text-sm text-navy">Account</h2>
+                <p className="travel-eyebrow">{t('common.menu')}</p>
+                <h2 className="travel-heading mt-1 text-sm text-navy">{t('common.account')}</h2>
               </div>
               <nav className="flex flex-col gap-0.5">
                 {navItems.map((item) =>

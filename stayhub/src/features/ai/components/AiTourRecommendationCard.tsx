@@ -326,7 +326,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   }
 
   return (
-    <div className="glass-card flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+    <div className="glass-card h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
       <Link
         to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
         onClick={() => onTourClick?.(publicTourId)}

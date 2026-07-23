@@ -107,7 +107,7 @@ export const SimilarToursSection: React.FC<Props> = ({ tourId, top = 5 }) => {
           className="flex gap-6 overflow-x-auto thin-scrollbar pb-4 snap-x snap-mandatory"
         >
           {tours.map((tour) => (
-            <div key={tour.tourId} className="min-w-[260px] max-w-[260px] snap-start">
+            <div key={tour.tourId} className="min-w-[260px] max-w-[260px] snap-start self-stretch">
               <AiTourRecommendationCard
                 tour={tour}
                 showWhyFit={false}

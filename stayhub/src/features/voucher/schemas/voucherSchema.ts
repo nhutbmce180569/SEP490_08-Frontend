@@ -13,7 +13,7 @@ const TopCustomerAssignmentSchema = z.object({
   toDate: z.string().optional(),
 });
 
-export const baseVoucherSchema = z.object({
+const voucherShape = z.object({
   code: z.string().min(3, "codeMinLength").max(50, "codeMaxLength"),
   tourId: z.number().optional(),
   discountType: z.enum(["Percentage", "FixedAmount"]),
@@ -26,7 +26,9 @@ export const baseVoucherSchema = z.object({
   description: z.string().optional(),
   customerAssignments: z.array(UserVoucherAssignmentSchema).optional(),
   topCustomerAssignment: TopCustomerAssignmentSchema.optional(),
-}).refine((data) => {
+});
+
+export const baseVoucherSchema = voucherShape.refine((data) => {
   if (data.discountType === "Percentage") {
     return data.discountValue <= 100;
   }
@@ -49,4 +51,28 @@ export const baseVoucherSchema = z.object({
   path: ["endDate"],
 });
 
-export const updateVoucherSchema = baseVoucherSchema.partial().omit({ code: true });
+export const updateVoucherSchema = voucherShape.partial().omit({ code: true }).refine((data) => {
+  if (data.discountType === "Percentage" && data.discountValue !== undefined) {
+    return data.discountValue <= 100;
+  }
+  return true;
+}, {
+  message: "percentageMax",
+  path: ["discountValue"],
+}).refine((data) => {
+  if (data.minOrderAmount !== undefined && data.minOrderAmount !== null) {
+    return data.minOrderAmount >= 10000;
+  }
+  return true;
+}, {
+  message: "minOrderAmountMin",
+  path: ["minOrderAmount"],
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    return new Date(data.startDate) <= new Date(data.endDate);
+  }
+  return true;
+}, {
+  message: "endDateBeforeStartDate",
+  path: ["endDate"],
+});

@@ -396,7 +396,7 @@ export const CreateScheduleItinerary: React.FC = () => {
         <div className="flex items-start justify-between gap-4">
           <div className="w-6/12">
             <h1 className="text-2xl font-extrabold text-slate-900">
-              {t("tour.addScheduleItineraries")}
+              {t("tour.createScheduleItinerary")}
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
               {t("tour.createScheduleItineraryBatchDesc")} #{scheduleId}

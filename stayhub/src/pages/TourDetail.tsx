@@ -485,7 +485,7 @@ export default function PublicTourDetail() {
     );
   }
 
-  const tourItineraries = tour.tourItineraries || [];
+  const tourItineraries = tour?.tourItineraries || [];
   
   const allImages = Array.from(
     new Set((tour?.tourImages?.map((i) => i.imageUrl) || []).filter(Boolean))
@@ -521,24 +521,26 @@ export default function PublicTourDetail() {
         <div className="relative z-10 animate-in slide-in-from-bottom-10 fade-in duration-700 delay-300">
           <div className="max-w-7xl mx-auto px-4 md:px-8">
             {/* Tags */}
-            <div className="flex flex-wrap items-center gap-3 mb-5">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold tracking-wide uppercase">
-                <Tag size={11} />
-                {category?.name ? category.name : tour.categoryId ? `${t("tour.category")} ${tour.categoryId}` : t("tour.tour")}
-              </span>
-              {(tour.address || [tour.city, tour.country].filter(Boolean).join(", ")) && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
-                  <MapPin size={11} />
-                  {tour.address || [tour.city, tour.country].filter(Boolean).join(", ")}
+            {tour && (
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold tracking-wide uppercase">
+                  <Tag size={11} />
+                  {category?.name ? category.name : tour.categoryId ? `${t("tour.category")} ${tour.categoryId}` : t("tour.tour")}
                 </span>
-              )}
-              {tour.transportationType && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
-                  {tour.transportationType.toLowerCase() === 'flight' ? <Plane size={11} /> : <Bus size={11} />}
-                  {t(`tour.transportation_${tour.transportationType.toLowerCase()}`, { defaultValue: tour.transportationType })}
-                </span>
-              )}
-            </div>
+                {(tour.address || [tour.city, tour.country].filter(Boolean).join(", ")) && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
+                    <MapPin size={11} />
+                    {tour.address || [tour.city, tour.country].filter(Boolean).join(", ")}
+                  </span>
+                )}
+                {tour.transportationType && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
+                    {tour.transportationType.toLowerCase() === 'flight' ? <Plane size={11} /> : <Bus size={11} />}
+                    {t(`tour.transportation_${tour.transportationType.toLowerCase()}`, { defaultValue: tour.transportationType })}
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* Title */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6 max-w-4xl">
@@ -546,39 +548,41 @@ export default function PublicTourDetail() {
             </h1>
 
             {/* Stats pills */}
-            <div className="flex flex-wrap items-center gap-3">
-              {rating > 0 && (
-                <div className="flex items-center gap-2 bg-amber-400/20 backdrop-blur-md border border-amber-300/30 rounded-full px-4 py-2">
-                  <Star
-                    className="text-amber-300"
-                    fill="currentColor"
-                    size={15}
-                  />
-                  <span className="text-white font-bold text-sm">
-                    {rating.toFixed(1)}
-                  </span>
-                  <span className="text-white/70 text-xs">
-                    {t("tour.reviewsLabel", { count: reviewsCount })}
-                  </span>
-                </div>
-              )}
-              {days > 0 && (
-                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
-                  <Clock size={14} className="text-white/80" />
-                  <span className="text-white font-semibold text-sm">
-                    {days} {t("tour.daysStat")}
-                  </span>
-                </div>
-              )}
-          {sortedSchedules.length > 0 && (
-                <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
-                  <Users size={14} className="text-white/80" />
-                  <span className="text-white font-semibold text-sm">
-                {t("tour.schedulesLabel", { count: sortedSchedules.length })}
-                  </span>
-                </div>
-              )}
-            </div>
+            {tour && (
+              <div className="flex flex-wrap items-center gap-3">
+                {rating > 0 && (
+                  <div className="flex items-center gap-2 bg-amber-400/20 backdrop-blur-md border border-amber-300/30 rounded-full px-4 py-2">
+                    <Star
+                      className="text-amber-300"
+                      fill="currentColor"
+                      size={15}
+                    />
+                    <span className="text-white font-bold text-sm">
+                      {rating.toFixed(1)}
+                    </span>
+                    <span className="text-white/70 text-xs">
+                      {t("tour.reviewsLabel", { count: reviewsCount })}
+                    </span>
+                  </div>
+                )}
+                {days > 0 && (
+                  <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
+                    <Clock size={14} className="text-white/80" />
+                    <span className="text-white font-semibold text-sm">
+                      {days} {t("tour.daysStat")}
+                    </span>
+                  </div>
+                )}
+            {sortedSchedules.length > 0 && (
+                  <div className="flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/20 rounded-full px-4 py-2">
+                    <Users size={14} className="text-white/80" />
+                    <span className="text-white font-semibold text-sm">
+                  {t("tour.schedulesLabel", { count: sortedSchedules.length })}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -592,7 +596,8 @@ export default function PublicTourDetail() {
           </div>
         </div>
       )}
-      <div className={`max-w-7xl mx-auto px-4 md:px-8 py-12 ${isLoading ? 'hidden' : 'block'}`}>
+      {tour && (
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 xl:gap-14">
           {/* LEFT */}
           <div className="space-y-16 min-w-0">
@@ -1119,6 +1124,7 @@ export default function PublicTourDetail() {
           </div>
         </div>
       </div>
+      )}
 
       {/* SCHEDULE MODAL */}
       {isScheduleModalOpen &&

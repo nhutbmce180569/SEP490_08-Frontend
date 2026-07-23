@@ -35,17 +35,16 @@ export const UpdateUser: React.FC = () => {
       required: true,
     },
     {
-      name: "avatarFile",
-      label: t("auth.avatar"),
-      type: "file",
-      icon: <UserIcon className="h-4 w-4" />,
-      colSpan: 2,
-    },
-    {
       name: "phoneNumber",
       label: t("auth.phoneNumber"),
       type: "text",
       icon: <Phone className="h-4 w-4" />,
+    },
+    {
+      name: "dateOfBirth",
+      label: t("common.dateOfBirth"),
+      type: "date",
+      icon: <Calendar className="h-4 w-4" />,
     },
     {
       name: "gender",
@@ -59,50 +58,20 @@ export const UpdateUser: React.FC = () => {
       ],
     },
     {
-      name: "dateOfBirth",
-      label: t("common.dateOfBirth"),
-      type: "date",
-      icon: <Calendar className="h-4 w-4" />,
-    },
-    {
-      name: "status",
-      label: t("common.status"),
-      type: "select",
-      icon: <Tag className="h-4 w-4" />,
-      options: [
-        { label: t("common.active"), value: "Active" },
-        { label: t("auth.blocked"), value: "Blocked" },
-      ],
-    },
-    {
-      name: "locPrivacy",
-      label: t("auth.locationPrivacy"),
-      type: "select",
-      icon: <MapPin className="h-4 w-4" />,
-      options: [
-        { label: t("auth.keepCurrent"), value: "" },
-        { label: t("auth.publicPrivacy"), value: "false" },
-        { label: t("auth.privateFriendsOnly"), value: "true" },
-      ],
-    },
-    {
-      name: "momentPrivacy",
-      label: t("auth.momentPrivacy"),
-      type: "select",
-      icon: <ImageIcon className="h-4 w-4" />,
-      options: [
-        { label: t("auth.keepCurrent"), value: "" },
-        { label: t("auth.publicPrivacy"), value: "false" },
-        { label: t("auth.privateFriendsOnly"), value: "true" },
-      ],
-    },
-    {
       name: "roleIds",
       label: t("auth.rolesLabel"),
       type: "multiselect",
       icon: <Shield className="h-4 w-4" />,
       options: roleOptions,
       colSpan: 2,
+    },
+    {
+      name: "avatarFile",
+      label: t("auth.avatar"),
+      type: "file",
+      icon: <UserIcon className="h-4 w-4" />,
+      colSpan: 2,
+      crop: true,
     },
   ];
 
@@ -114,10 +83,7 @@ export const UpdateUser: React.FC = () => {
         fields={userFields} 
         initialValues={{ 
           ...user, 
-          status: user.status || "Active", 
           roleIds: currentRoleIds,
-          locPrivacy: (user as any).locPrivacy !== undefined ? String((user as any).locPrivacy) : "",
-          momentPrivacy: (user as any).momentPrivacy !== undefined ? String((user as any).momentPrivacy) : ""
         }} 
         onSubmit={handleSubmit} 
         serverErrors={serverErrors} 

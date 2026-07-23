@@ -96,7 +96,7 @@
   "promotionStartDate": "Start Date",
   "promotionEndDate": "End Date",
   "createPromotionTitle": "Create Promotion",
-  "createPromotionDesc": "Add a new promotional code to the system",
+  "createPromotionDesc": "Create a new promotional code to the system",
   "updatePromotionTitle": "Update Promotion",
   "updatePromotionDesc": "Edit promotional code details",
   "promotionCodePlaceholder": "e.g., SUMMER2024",

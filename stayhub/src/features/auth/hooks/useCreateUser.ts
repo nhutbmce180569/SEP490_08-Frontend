@@ -47,7 +47,6 @@ export const useCreateUser = () => {
 
     const dto: CreateUserDTO = {
       ...data,
-      status: data.status || "Active",
       roleIds: Array.isArray(data.roleIds) ? data.roleIds.map(Number) : (data.roleIds ? [Number(data.roleIds)] : undefined),
     } as CreateUserDTO;
     

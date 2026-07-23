@@ -315,7 +315,7 @@ export const CreateItinerary: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-4xl py-6">
+    <div className="mx-auto max-w-4xl space-y-6">
       {/* Header Info */}
       <div className="mb-6 space-y-4 border-b border-slate-200 pb-5">
         <div className="flex items-start justify-between gap-4">

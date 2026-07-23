@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import * as signalR from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
 import { SIGNALR_HUB_BASE } from "../../../config/api/api";
@@ -25,7 +25,7 @@ export const useNotificationHub = (
 
     const startConnection = async () => {
       connection = new signalR.HubConnectionBuilder()
-        .withUrl(`${SIGNALR_HUB_BASE}/global-chat`, {
+        .withUrl(`${SIGNALR_HUB_BASE}/notifications`, {
           accessTokenFactory: () =>
             localStorage.getItem("accessToken") ?? token,
         })

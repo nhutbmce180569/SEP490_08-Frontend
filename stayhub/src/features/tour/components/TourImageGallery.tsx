@@ -28,7 +28,7 @@ export function TourImageGallery({ images }: TourImageGalleryProps) {
       <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4 md:h-[400px] lg:h-[460px]">
         {/* Thumbnails - Vertical on desktop, horizontal on mobile */}
         {images.length > 1 && (
-          <div className="flex md:flex-col gap-2 md:gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-[100px] lg:w-[140px] shrink-0 snap-x md:snap-y hide-scrollbar scroll-smooth pb-2 md:pb-0 md:pr-2">
+          <div className="flex md:flex-col gap-2 md:gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-[100px] lg:w-[140px] shrink-0 snap-x md:snap-y hide-scrollbar scroll-smooth pb-2 md:pb-0 md:pr-2 p-1">
             {images.map((img, idx) => (
               <button
                 key={idx}

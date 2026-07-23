@@ -11,9 +11,18 @@ const OnboardingTour: React.FC = () => {
     const hasStarted = useRef(false);
 
     useEffect(() => {
-        if (!user || user.hasCompletedTour || hasStarted.current) return;
+        const roles = Array.isArray(user?.roles) ? user?.roles : (user?.roles ? [user.roles] : []);
+        const hasStaffRole = roles.some((r: string) => ['Admin', 'Manager', 'Staff'].includes(r));
+
+        if (!user || user.hasCompletedTour || hasStarted.current || hasStaffRole) return;
 
         hasStarted.current = true;
+
+        // Gọi API đánh dấu hoàn thành ngay khi tour xuất hiện
+        // Để dù người dùng bấm ra ngoài hay tắt ngang, lần sau cũng không bị hiện lại
+        axiosClient.put('/Auth/complete-tour').then(() => {
+            // Không update context ngay để tránh re-render đột ngột khi đang xem tour
+        }).catch(err => console.error('Failed to complete tour', err));
 
         const driverObj = driver({
             showProgress: true,
@@ -122,14 +131,9 @@ const OnboardingTour: React.FC = () => {
                     }
                 }
             ],
-            onDestroyed: async () => {
-                // Đã tắt hoặc hoàn thành tour
-                try {
-                    await axiosClient.put('/Auth/complete-tour');
-                    updateUser({ hasCompletedTour: true });
-                } catch (error) {
-                    console.error('Failed to complete tour', error);
-                }
+            onDestroyed: () => {
+                // Cập nhật state sau khi tour đã đóng hoàn toàn
+                updateUser({ hasCompletedTour: true });
             }
         });
 
@@ -138,7 +142,7 @@ const OnboardingTour: React.FC = () => {
             driverObj.drive();
         }, 1000);
 
-    }, [user, updateUser]);
+    }, [user, updateUser, t]);
 
     return null; // Component này chỉ chạy ngầm, không render UI
 };

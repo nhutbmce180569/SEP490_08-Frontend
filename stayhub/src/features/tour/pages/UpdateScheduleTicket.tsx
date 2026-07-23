@@ -195,40 +195,35 @@ export const UpdateScheduleTicket: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-3xl py-6">
-      <button
-        type="button"
-        onClick={handleCancel}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 transition-colors hover:text-slate-800"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t("tour.backToSchedule")}
-      </button>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div className="mb-6 flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900">{t("tour.editScheduleTicket")}</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            {t("tour.updateScheduleTicketDesc", {
+              ticketId,
+              scheduleId,
+              tourName: schedule?.tour?.name ? `(${schedule.tour.name})` : "",
+            })}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <ActionButton type="button" variant="secondary" onClick={handleCancel} className="gap-2 px-4 py-2 text-sm shadow-sm">
+            <X className="h-4 w-4" />
+            {t("common.cancel")}
+          </ActionButton>
+          <ActionButton type="submit" form="ticket-form" variant="primary" disabled={isSubmitting} className="gap-2 px-4 py-2 text-sm shadow-sm">
+            <Save className="h-4 w-4" />
+            {t("tour.updateTicket")}
+          </ActionButton>
+        </div>
+      </div>
 
       <form
+        id="ticket-form"
         onSubmit={handleSubmit}
         className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
       >
-        <div className="flex flex-col gap-3 border-b border-slate-100 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-900">{t("tour.editScheduleTicket")}</h1>
-            <p className="mt-1 text-sm text-slate-500">
-              Update ticket #{ticketId} for Schedule #{scheduleId}
-              {schedule?.tour?.name ? ` (${schedule.tour.name})` : ""}.
-            </p>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
-            <ActionButton type="button" variant="secondary" onClick={handleCancel} className="gap-2 px-4 py-2 text-sm">
-              <X className="h-4 w-4" />
-              {t("common.cancel")}
-            </ActionButton>
-            <ActionButton type="submit" variant="primary" disabled={isSubmitting} className="gap-2 px-4 py-2 text-sm">
-              <Save className="h-4 w-4" />
-              {t("tour.updateTicket")}
-            </ActionButton>
-          </div>
-        </div>
-
         <div className="space-y-6 p-6">
           {formError && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-600">
@@ -340,12 +335,12 @@ export const UpdateScheduleTicket: React.FC = () => {
 
           <div>
             <label className="mb-2 block text-sm font-semibold text-slate-700">
-              Promotion <span className="text-slate-400 font-normal">(Optional)</span>
+              {t("tour.promotion")} <span className="text-slate-400 font-normal">({t("common.optional")})</span>
             </label>
             <div className="relative">
               <SearchableSelect
                 options={[
-                  { label: isLoadingPromotions ? "Loading promotions..." : "No promotion", value: "" },
+                  { label: isLoadingPromotions ? t("tour.loadingPromotions") : t("tour.noPromotion"), value: "" },
                   ...activePromotions.map((promo) => ({
                     label: `${promo.code} - ${promo.name}`,
                     value: promo.id.toString(),
@@ -354,22 +349,22 @@ export const UpdateScheduleTicket: React.FC = () => {
                 value={promotionId}
                 onChange={(val) => setPromotionId(val.toString())}
                 disabled={isLoadingPromotions || isSubmitting}
-                placeholder="Select promotion"
+                placeholder={t("tour.selectPromotion")}
                 direction="up"
               />
             </div>
             {selectedPromotion && Number(price) > 0 && (
               <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium">Original Price:</span>
+                  <span className="font-medium">{t("tour.originalPrice")}:</span>
                   <span>{formatTicketCurrency(Number(price))}</span>
                 </div>
                 <div className="flex justify-between items-center mb-1 text-emerald-600">
-                  <span className="font-medium">Discount ({selectedPromotion.discountType?.toLowerCase() === "percentage" ? `${selectedPromotion.discountValue}%` : 'Fixed'}):</span>
+                  <span className="font-medium">{t("tour.discount")} ({selectedPromotion.discountType?.toLowerCase() === "percentage" ? `${selectedPromotion.discountValue}%` : t("tour.fixed")}):</span>
                   <span>- {formatTicketCurrency(discountAmount)}</span>
                 </div>
                 <div className="flex justify-between items-center mt-2 pt-2 border-t border-emerald-200/50 font-bold text-emerald-800">
-                  <span>Final Price:</span>
+                  <span>{t("tour.finalPrice")}:</span>
                   <span>{formatTicketCurrency(Math.max(0, Number(price) - discountAmount))}</span>
                 </div>
               </div>

@@ -89,7 +89,7 @@ export const FloatingContactWidget: React.FC = () => {
           {/* Tooltip */}
           <div className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 z-50">
             <div className="relative whitespace-nowrap rounded-xl bg-slate-900/90 px-3 py-1.5 text-xs font-bold text-white shadow-xl backdrop-blur-md border border-slate-700/50">
-              {t("contact.scrollToTop") === "contact.scrollToTop" ? "Lên đầu trang" : t("contact.scrollToTop")}
+              {t("contact.scrollToTop")}
               <div className="absolute -right-1 top-1/2 -translate-y-1/2 border-4 border-transparent border-l-slate-900/90" />
             </div>
           </div>
@@ -97,8 +97,9 @@ export const FloatingContactWidget: React.FC = () => {
           <button
             type="button"
             onClick={scrollToTop}
+            title={t("contact.scrollToTop")}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-xl shadow-brand/30 transition-all duration-300 hover:scale-110 hover:brightness-110 hover:shadow-2xl hover:shadow-brand/50 cursor-pointer"
-            aria-label="Scroll to top"
+            aria-label={t("contact.scrollToTop")}
           >
             <ArrowUp size={24} />
           </button>

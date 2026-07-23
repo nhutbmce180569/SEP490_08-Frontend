@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { getTrendPrediction } from "../services/trend.service";
-import { formatVnd } from "../utils/formatters";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { Calendar, TrendingUp, MapPin, Star, Cloud, Users, BarChart3, Percent, Heart, Banknote, Loader2, Sparkles, HelpCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const TrendPredictionPage: React.FC = () => {
@@ -318,7 +318,7 @@ export const TrendPredictionPage: React.FC = () => {
                         <span className="text-text-muted uppercase font-bold text-[10px]">Dự báo d.thu</span>
                         <div className="flex items-center gap-1.5 font-extrabold text-brand">
                           <Banknote className="h-3.5 w-3.5" />
-                          <span>{tour.projectedRevenue ? formatVnd(tour.projectedRevenue) : "N/A"}</span>
+                          <span>{tour.projectedRevenue != null ? <MoneyDisplay amountVnd={tour.projectedRevenue} compact /> : "N/A"}</span>
                         </div>
                       </div>
                     </div>

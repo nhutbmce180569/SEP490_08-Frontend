@@ -21,7 +21,7 @@ const usdFormatter = new Intl.NumberFormat("en-US", {
 const FALLBACK_USD_TO_VND_RATE = 26000;
 
 export const formatVndAmount = (amount: number) =>
-  `${vndFormatter.format(Math.round(Math.max(0, amount)))} VND`;
+  `${vndFormatter.format(Math.round(Math.max(0, amount)))} VNĐ`;
 
 export const MoneyDisplay: React.FC<MoneyDisplayProps> = ({
   amountVnd,

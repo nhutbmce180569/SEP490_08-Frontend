@@ -19,7 +19,7 @@ export const CurrencyToggle: React.FC<{ className?: string }> = ({ className = "
         }`}
         aria-pressed={mode === "VND"}
       >
-        VND
+        VNĐ
       </button>
       <button
         type="button"

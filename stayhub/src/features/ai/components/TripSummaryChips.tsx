@@ -1,7 +1,7 @@
 import React from "react";
 import { Calendar, MapPin, Pencil, Users, Wallet } from "lucide-react";
 import type { TourPreferenceQuestionnaire } from "../types/tourAssistant";
-import { formatVnd } from "../utils/formatters";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { localizeInterestKey } from "../utils/localizeAiContent";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
@@ -46,17 +46,17 @@ export const TripSummaryChips: React.FC<Props> = ({ profile, onEdit }) => {
       ? { icon: MapPin, label: profile.preferredCity }
       : null,
     profile.maxBudgetPerPerson != null
-      ? { icon: Wallet, label: formatVnd(profile.maxBudgetPerPerson, locale) }
+      ? { icon: Wallet, label: <MoneyDisplay amountVnd={profile.maxBudgetPerPerson} compact />, key: "budget" }
       : null,
-    interests ? { icon: null, label: `${interests}${moreInterests}` } : null,
-  ].filter(Boolean) as { icon: React.ElementType | null; label: string }[];
+    interests ? { icon: null, label: `${interests}${moreInterests}`, key: "interests" } : null,
+  ].filter(Boolean) as { icon: React.ElementType | null; label: React.ReactNode; key: string }[];
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex min-w-0 flex-1 flex-wrap gap-2">
-        {chips.map((chip) => (
+        {chips.map((chip, idx) => (
           <span
-            key={chip.label}
+            key={chip.key || idx}
             className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm"
           >
             {chip.icon && <chip.icon size={13} className="shrink-0 text-brand" />}

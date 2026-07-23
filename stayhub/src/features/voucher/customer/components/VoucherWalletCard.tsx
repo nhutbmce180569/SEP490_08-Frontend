@@ -54,7 +54,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
             {isPercent ? `${voucher.discountValue}%` : formatVnd(voucher.discountValue).replace(/\s?₫/, '')}
           </div>
           <div className="mt-1 text-[10px] font-bold uppercase tracking-wider opacity-90">
-            {isPercent ? t('voucher.walletOff') : 'VND'}
+            {isPercent ? t('voucher.walletOff') : 'VNĐ'}
           </div>
           {isPercent && voucher.maxDiscountAmount && (
             <div className="mt-2 text-[9px] font-medium leading-tight opacity-80">

@@ -558,6 +558,10 @@ const App: React.FC = () => {
                                 path={childPath(PATH.MANAGER.TREND_PREDICTION)}
                                 element={<TrendPredictionPage />}
                               />
+                              <Route
+                                path={childPath(PATH.MANAGER.CHAT)}
+                                element={<ChatPage isEmbedded />}
+                              />
                             </Route>
                           </Route>
 
@@ -585,7 +589,7 @@ const App: React.FC = () => {
                               {/* UC-53: Customers */}
                               <Route path={childPath(PATH.STAFF.CUSTOMERS)} element={<ScheduleCustomersPage />} />
                               <Route path={childPath(PATH.STAFF.SCHEDULE_CUSTOMERS())} element={<ScheduleCustomersPage />} />
-
+                              <Route path={childPath(PATH.STAFF.CHAT)} element={<ChatPage isEmbedded />} />
                             </Route>
                           </Route>
 

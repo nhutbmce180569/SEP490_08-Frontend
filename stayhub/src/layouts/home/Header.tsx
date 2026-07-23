@@ -241,6 +241,7 @@ export default function Header() {
           {/* Main Navigation Links */}
           <nav className="hidden xl:flex items-center gap-1 ml-4 shrink-0">
             <Link
+              id="tour-browse"
               to={PATH.PUBLIC.TOURS}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all !no-underline ${
                 pathname === PATH.PUBLIC.TOURS
@@ -253,6 +254,7 @@ export default function Header() {
             </Link>
             
             <button
+              id="tour-ai-guide"
               type="button"
               onClick={() => openAiPlanner(pathname)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold text-slate-600 hover:bg-brand-light/30 hover:text-brand dark:text-slate-300 dark:hover:bg-slate-800 transition-all"
@@ -264,6 +266,7 @@ export default function Header() {
             {user && (
               <>
                 <Link
+                  id="tour-moments"
                   to="/social/moments"
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all !no-underline ${
                     pathname === "/social/moments"
@@ -275,6 +278,7 @@ export default function Header() {
                   <span>{t("header.moments")}</span>
                 </Link>
                 <Link
+                  id="tour-friends"
                   to={PATH.CUSTOMER.SOCIAL_FRIENDS}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all !no-underline ${
                     pathname === PATH.CUSTOMER.SOCIAL_FRIENDS
@@ -349,6 +353,7 @@ export default function Header() {
 
               <div className="relative ml-0.5" ref={userMenuRef}>
                   <button
+                    id="tour-profile"
                     type="button"
                     onClick={() => setShowUserMenu((v) => !v)}
                     className={`flex items-center justify-center rounded-full p-0.5 transition-all hover:scale-105 ${

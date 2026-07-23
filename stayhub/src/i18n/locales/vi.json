@@ -337,5 +337,29 @@
     "messageEmpty": "Tin nhắn không được để trống.",
     "messageFailed": "Không thể gửi tin nhắn.",
     "recommendFailed": "Không thể lấy gợi ý tour."
+  },
+  "onboarding": {
+    "step1Title": "Chào mừng bạn đến với StayHub!",
+    "step1Desc": "Cùng khám phá một vài tính năng chính để bạn có trải nghiệm tốt nhất nhé.",
+    "step2Title": "Tìm kiếm & Đặt tour",
+    "step2Desc": "Bạn có thể tìm kiếm theo điểm đến, ngày đi hoặc lọc các tour đang khuyến mãi và sắp khởi hành tại đây.",
+    "step3Title": "Trợ lý AI thông minh",
+    "step3Desc": "Chưa biết đi đâu? Hãy để AI của chúng tôi phân tích sở thích và lên lịch trình lý tưởng cho bạn!",
+    "stepMomentsTitle": "Mạng xã hội & Khoảnh khắc",
+    "stepMomentsDesc": "Chia sẻ những bức ảnh đẹp và trải nghiệm du lịch tuyệt vời của bạn với cộng đồng StayHub.",
+    "stepFriendsTitle": "Kết nối bạn bè",
+    "stepFriendsDesc": "Tìm kiếm, kết bạn và nhắn tin cùng những người có chung đam mê xê dịch.",
+    "stepNotificationsTitle": "Thông báo hệ thống",
+    "stepNotificationsDesc": "Cập nhật nhanh chóng trạng thái đơn hàng, tương tác và các lời mời kết bạn mới nhất.",
+    "stepWishlistTitle": "Tour yêu thích",
+    "stepWishlistDesc": "Lưu lại những chuyến đi bạn ấn tượng để dễ dàng xem lại và đặt chỗ sau.",
+    "stepLangCurrTitle": "Ngôn ngữ & Tiền tệ",
+    "stepLangCurrDesc": "Tuỳ chỉnh hiển thị ngôn ngữ và loại tiền tệ phù hợp với quốc gia của bạn.",
+    "step4Title": "Tin nhắn trực tiếp",
+    "step4Desc": "Trò chuyện nhanh với các thành viên khác hoặc nhân viên hỗ trợ thông qua kênh nhắn tin của StayHub.",
+    "step5Title": "Hỗ trợ khách hàng 24/7",
+    "step5Desc": "Nhấn vào đây nếu bạn cần gọi hotline hoặc liên hệ qua Zalo, Facebook.",
+    "step6Title": "Hồ sơ cá nhân",
+    "step6Desc": "Quản lý thông tin tài khoản, mật khẩu, và xem lại lịch sử các tour bạn đã đặt ở mục này."
   }
 }

@@ -159,7 +159,7 @@ export const HomeHero: React.FC = () => {
         </div>
 
         {/* Search Card */}
-        <div className="hero-search">
+        <div id="tour-search-box" className="hero-search">
           {/* Tabs */}
           <div className="hero-tabs">
             {serviceTabs.map((tab) => {

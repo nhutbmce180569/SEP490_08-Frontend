@@ -11,6 +11,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import ScrollToTop from "./components/ScrollToTop";
+import OnboardingTour from "./components/OnboardingTour";
 import { CustomBrandCursor } from "./components/ui/CustomBrandCursor";
 import { PATH } from "./config/routes/route";
 import { AuthProvider, AuthContext } from "./contexts/AuthContext";
@@ -279,6 +280,7 @@ const App: React.FC = () => {
                       {/* <CustomBrandCursor /> */}
                       <AiPlannerModal />
                       <ScrollToTop />
+                      <OnboardingTour />
                       <PasswordChangeEnforcer>
                         <Routes>
                           <Route element={<GuestRoute />}>

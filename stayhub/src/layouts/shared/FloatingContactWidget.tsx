@@ -116,6 +116,7 @@ export const FloatingContactWidget: React.FC = () => {
             </div>
 
             <button
+              id="tour-chat"
               type="button"
               onClick={() => setIsPopoverOpen(!isPopoverOpen)}
               className={`relative flex h-14 w-14 items-center justify-center rounded-full text-white shadow-xl transition-all duration-300 hover:scale-110 cursor-pointer ${
@@ -151,6 +152,7 @@ export const FloatingContactWidget: React.FC = () => {
             </div>
 
             <button
+              id="tour-support"
               type="button"
               onClick={() => setIsExpanded(true)}
               className="relative flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-500/40 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-emerald-500/60 cursor-pointer"

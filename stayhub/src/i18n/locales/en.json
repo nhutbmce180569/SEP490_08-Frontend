@@ -336,5 +336,29 @@
     "messageEmpty": "Message cannot be empty.",
     "messageFailed": "Unable to send message.",
     "recommendFailed": "Unable to get tour recommendations."
+  },
+  "onboarding": {
+    "step1Title": "Welcome to StayHub!",
+    "step1Desc": "Let's explore some key features to give you the best experience.",
+    "step2Title": "Search & Book Tours",
+    "step2Desc": "You can search by destination, departure date, or filter promotional and upcoming tours here.",
+    "step3Title": "Smart AI Assistant",
+    "step3Desc": "Don't know where to go? Let our AI analyze your preferences and plan the perfect itinerary for you!",
+    "stepMomentsTitle": "Social & Moments",
+    "stepMomentsDesc": "Share your beautiful photos and amazing travel experiences with the StayHub community.",
+    "stepFriendsTitle": "Connect with Friends",
+    "stepFriendsDesc": "Search, make friends, and chat with people who share your passion for travel.",
+    "stepNotificationsTitle": "System Notifications",
+    "stepNotificationsDesc": "Get quick updates on order status, interactions, and the latest friend requests.",
+    "stepWishlistTitle": "My Wishlist",
+    "stepWishlistDesc": "Save your favorite tours to easily review and book them later.",
+    "stepLangCurrTitle": "Language & Currency",
+    "stepLangCurrDesc": "Customize the display language and currency to match your preferences.",
+    "step4Title": "Direct Messaging",
+    "step4Desc": "Chat instantly with other members or support staff through StayHub's messaging channel.",
+    "step5Title": "24/7 Customer Support",
+    "step5Desc": "Click here if you need to call our hotline or contact us via Zalo, Facebook.",
+    "step6Title": "Personal Profile",
+    "step6Desc": "Manage your account info, password, and review your booking history in this section."
   }
 }

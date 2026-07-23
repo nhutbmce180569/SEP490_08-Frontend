@@ -74,7 +74,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   if (friendly) {
     return (
       <article className="glass-card flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+        <div className="relative aspect-video overflow-hidden bg-slate-100">
           <Link
             to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
             onClick={() => onTourClick?.(publicTourId)}

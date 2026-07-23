@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Star,
   MapPin,
@@ -182,6 +182,9 @@ export default function PublicTourDetail() {
   const { t, locale } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialImageUrl = location.state?.initialImageUrl;
+  const initialTitle = location.state?.initialTitle;
   const { tour, isLoading, error } = usePublicTour(id ? Number(id) : undefined);
   const { error: showError, success: showSuccess } = useToast();
 
@@ -366,8 +369,8 @@ export default function PublicTourDetail() {
         }
       : null;
   
-  const displayImageUrl = tour?.imageUrl || "";
-  const displayName = tour?.name || t("tour.loadingTourDetails");
+  const displayImageUrl = tour?.imageUrl || initialImageUrl || "";
+  const displayName = tour?.name || initialTitle || t("tour.loadingTourDetails");
   const availablePrices = availableSchedules
     .map(getScheduleLowestPrice)
     .filter((price): price is number => price !== null);
@@ -432,7 +435,7 @@ export default function PublicTourDetail() {
   const days = tour?.tourItineraries?.length || 0;
 
   /* Loading */
-  if (isLoading) {
+  if (isLoading && !initialImageUrl) {
     return (
       <div className="min-h-screen -mt-[88px] flex items-center justify-center bg-white">
         <div className="flex flex-col items-center gap-4 text-slate-500">
@@ -444,7 +447,7 @@ export default function PublicTourDetail() {
   }
 
   /* Error */
-  if (error || !tour) {
+  if (error || (!isLoading && !tour)) {
     const errorMessage = error || t("tour.tourNotFound");
     const isLongError = errorMessage.length > 100;
     const displayedError =
@@ -497,6 +500,7 @@ export default function PublicTourDetail() {
             src={displayImageUrl}
             alt={displayName}
             className="absolute inset-0 h-full w-full object-cover scale-105 transition-transform duration-[8s] hover:scale-100"
+            style={{ viewTransitionName: `tour-image-${id}` }}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -580,7 +584,15 @@ export default function PublicTourDetail() {
       </div>
 
       {/* BODY */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+      {isLoading && initialImageUrl && (
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 flex items-center justify-center min-h-[50vh]">
+          <div className="flex flex-col items-center gap-4 text-slate-500">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-brand" />
+            {t("tour.loadingTourDetails")}
+          </div>
+        </div>
+      )}
+      <div className={`max-w-7xl mx-auto px-4 md:px-8 py-12 ${isLoading ? 'hidden' : 'block'}`}>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 xl:gap-14">
           {/* LEFT */}
           <div className="space-y-16 min-w-0">

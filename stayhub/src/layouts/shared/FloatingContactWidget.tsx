@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
-import { MessageCircle, Phone, X, ExternalLink, Headphones, Clock, MessageSquare, ShieldCheck } from "lucide-react";
+import { MessageCircle, Phone, X, ExternalLink, Headphones, Clock, MessageSquare, ShieldCheck, ArrowUp } from "lucide-react";
 import { useTranslation } from "../../contexts/LocaleContext";
 import { useChatNotification } from "../../features/social/chat/component/ChatNotificationContext";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +42,27 @@ export const FloatingContactWidget: React.FC = () => {
   const [isFacebookModalOpen, setIsFacebookModalOpen] = useState(false);
   const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
   const [isZaloModalOpen, setIsZaloModalOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  React.useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.scrollY > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
 
   const { data: chatRooms = [] } = useQuery({
     queryKey: ["chatRooms"],
@@ -59,6 +80,30 @@ export const FloatingContactWidget: React.FC = () => {
     <>
       {/* Floating Widget Stack (Fixed Bottom Right) */}
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-3">
+        {/* NÚT SCROLL TO TOP */}
+        <div
+          className={`group relative flex items-center justify-center transition-all duration-500 ease-in-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+          }`}
+        >
+          {/* Tooltip */}
+          <div className="pointer-events-none absolute right-16 top-1/2 -translate-y-1/2 scale-95 opacity-0 transition-all duration-200 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 z-50">
+            <div className="relative whitespace-nowrap rounded-xl bg-slate-900/90 px-3 py-1.5 text-xs font-bold text-white shadow-xl backdrop-blur-md border border-slate-700/50">
+              {t("contact.scrollToTop") === "contact.scrollToTop" ? "Lên đầu trang" : t("contact.scrollToTop")}
+              <div className="absolute -right-1 top-1/2 -translate-y-1/2 border-4 border-transparent border-l-slate-900/90" />
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-brand text-white shadow-xl shadow-brand/30 transition-all duration-300 hover:scale-110 hover:brightness-110 hover:shadow-2xl hover:shadow-brand/50 cursor-pointer"
+            aria-label="Scroll to top"
+          >
+            <ArrowUp size={24} />
+          </button>
+        </div>
+
         {/* 1. CHAT NỔI ĐỘC LẬP (Nằm phía trên, chỉ hiển thị khi đã đăng nhập) */}
         {user && (
           <div className="group relative flex items-center justify-center">

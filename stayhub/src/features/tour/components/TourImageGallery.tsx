@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Maximize2, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { createPortal } from "react-dom";
 
@@ -10,44 +10,58 @@ export function TourImageGallery({ images }: TourImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Auto-play effect
+  useEffect(() => {
+    if (!images || images.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % images.length);
+    }, 4000); // Tự động chuyển ảnh mỗi 4 giây
+
+    return () => clearInterval(interval);
+  }, [images]);
+
   if (!images || images.length === 0) return null;
 
   return (
     <div className="bg-white rounded-2xl">
-      {/* Main Image */}
-      <div className="relative aspect-[16/9] md:aspect-[2/1] w-full rounded-xl overflow-hidden bg-slate-100 group shadow-sm border border-slate-100">
-        <img 
-          src={images[activeIndex]} 
-          alt="Tour preview" 
-          className="w-full h-full object-cover transition-all duration-500 ease-out"
-        />
-        {/* Fullscreen button */}
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-700 p-2.5 rounded-xl shadow-md backdrop-blur-md transition-all hover:scale-105 z-10"
-        >
-          <Maximize2 size={18} />
-        </button>
-      </div>
+      <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4 md:h-[400px] lg:h-[460px]">
+        {/* Thumbnails - Vertical on desktop, horizontal on mobile */}
+        {images.length > 1 && (
+          <div className="flex md:flex-col gap-2 md:gap-3 overflow-x-auto md:overflow-y-auto w-full md:w-[100px] lg:w-[140px] shrink-0 snap-x md:snap-y hide-scrollbar scroll-smooth pb-2 md:pb-0 md:pr-2">
+            {images.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setActiveIndex(idx)}
+                className={`relative flex-shrink-0 w-[80px] h-[80px] md:w-full md:h-[80px] lg:h-[105px] rounded-xl overflow-hidden snap-center transition-all duration-300 ${
+                  activeIndex === idx 
+                    ? "ring-2 ring-brand ring-offset-1 scale-[1.02] shadow-sm" 
+                    : "opacity-60 hover:opacity-100 hover:scale-[1.02]"
+                }`}
+              >
+                <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
 
-      {/* Thumbnails */}
-      {images.length > 1 && (
-        <div className="flex gap-2.5 justify-center overflow-x-auto mt-2 py-2 snap-x hide-scrollbar">
-          {images.map((img, idx) => (
-            <button
-              key={idx}
-              onClick={() => setActiveIndex(idx)}
-              className={`relative flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-md overflow-hidden snap-center transition-all duration-300 ${
-                activeIndex === idx 
-                  ? "ring-2 ring-brand ring-offset-2 scale-105" 
-                  : "opacity-60 hover:opacity-100 hover:scale-105"
-              }`}
-            >
-              <img src={img} alt={`Thumbnail ${idx}`} className="w-full h-full object-cover" />
-            </button>
-          ))}
+        {/* Main Image */}
+        <div className="relative w-full aspect-[16/9] md:aspect-auto md:h-full rounded-2xl overflow-hidden bg-slate-100 group shadow-sm border border-slate-100 flex-1">
+          <img 
+            key={activeIndex}
+            src={images[activeIndex]} 
+            alt="Tour preview" 
+            className="w-full h-full object-cover animate-in fade-in duration-500"
+          />
+          {/* Fullscreen button */}
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="absolute bottom-4 right-4 bg-white/90 hover:bg-white text-slate-700 p-2.5 rounded-xl shadow-md backdrop-blur-md transition-all hover:scale-105 z-10"
+          >
+            <Maximize2 size={18} />
+          </button>
         </div>
-      )}
+      </div>
 
       {/* Modal Fullscreen */}
       {isModalOpen && createPortal(

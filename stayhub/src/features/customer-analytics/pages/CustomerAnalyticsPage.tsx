@@ -32,14 +32,17 @@ import {
 import type { AnalyticsTab, Granularity } from '../types/customerAnalytics.types';
 import {
   formatCompactVnd,
+  formatCompactAnalyticsMoney,
   formatDate,
   formatNumber,
   formatPercent,
 } from '../utils/analyticsHelpers';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { useCurrency } from '../../currency/CurrencyContext';
 
 export const CustomerAnalyticsPage: React.FC = () => {
   const { t, locale } = useTranslation();
+  const { mode, usdToVndRate } = useCurrency();
   const { preset, setPreset, from, setFrom, to, setTo, dateParams } = useDateRangeState();
 
   const TABS = useMemo<{ id: AnalyticsTab; label: string; icon: React.ReactNode }[]>(
@@ -199,8 +202,8 @@ export const CustomerAnalyticsPage: React.FC = () => {
                 />
                 <StatCard
                   label={t('analytics.customer.revenue')}
-                  value={formatCompactVnd(overview.totalRevenue, locale)}
-                  subLabel={t('analytics.customer.aovSub', { value: formatCompactVnd(overview.averageOrderValue, locale) })}
+                  value={formatCompactAnalyticsMoney(overview.totalRevenue, mode, usdToVndRate)}
+                  subLabel={t('analytics.customer.aovSub', { value: formatCompactAnalyticsMoney(overview.averageOrderValue, mode, usdToVndRate) })}
                   icon={<DollarSign className="h-5 w-5 text-emerald-500" />}
                   iconBgClass="bg-emerald-50"
                 />
@@ -246,7 +249,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
                   label={t('analytics.customer.cancellationRate')}
                   value={formatPercent(overview.cancellationRate)}
                   subLabel={t('analytics.customer.refundsSub', {
-                    amount: formatCompactVnd(overview.totalRefundAmount, locale),
+                    amount: formatCompactAnalyticsMoney(overview.totalRefundAmount, mode, usdToVndRate),
                   })}
                   icon={<UserX className="h-5 w-5 text-rose-500" />}
                   iconBgClass="bg-rose-50"

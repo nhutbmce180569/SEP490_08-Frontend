@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../../contexts/LocaleContext";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { getApiErrorMessage } from '../../../content/utils/apiError';
 import { useToast } from '../../../../contexts/ToastContext';
@@ -9,6 +10,7 @@ import { WISHLIST_QUERY_KEY } from './useMyWishlist';
 export const useRemoveFromWishlist = (options?: { onRemoved?: () => void }) => {
   const queryClient = useQueryClient();
   const { success, error: showError } = useToast();
+  const { t } = useTranslation();
 
   const mutation = useMutation({
     mutationFn: (tourId: number) => customerWishlistService.removeFromWishlist(tourId),
@@ -22,7 +24,7 @@ export const useRemoveFromWishlist = (options?: { onRemoved?: () => void }) => {
       return { previous };
     },
     onSuccess: () => {
-      success('Removed from your wishlist.');
+      success(t('wishlist.removeSuccess', { defaultValue: 'Removed from your wishlist.' }));
       queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
       options?.onRemoved?.();
     },
@@ -30,14 +32,14 @@ export const useRemoveFromWishlist = (options?: { onRemoved?: () => void }) => {
       if (context?.previous) {
         queryClient.setQueryData(WISHLIST_QUERY_KEY, context.previous);
       }
-      showError(getApiErrorMessage(err, 'Failed to remove tour from wishlist.'));
+      showError(getApiErrorMessage(err, t('wishlist.removeFailed', { defaultValue: 'Failed to remove tour from wishlist.' })));
     },
   });
 
   const handleRemove = (tourId: number) => {
     const validationError = validateTourId(tourId);
     if (validationError) {
-      showError(validationError);
+      showError(t(`wishlist.${validationError}`, { defaultValue: validationError }));
       return;
     }
     mutation.mutate(tourId);

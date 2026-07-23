@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCallback, useState } from "react";
 import { useToast } from "../../../contexts/ToastContext";
 import { getApiErrorMessage } from "../../content/utils/apiError";
@@ -24,6 +25,7 @@ export interface IntelligentChatMessageListItem {
 
 export const useIntelligentChat = () => {
   const { error: showError } = useToast();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<IntelligentChatMessageListItem[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [sessionId] = useState(() => getOrCreateAiSessionId());
@@ -32,11 +34,11 @@ export const useIntelligentChat = () => {
     async (messageText: string) => {
       const trimmed = messageText.trim();
       if (trimmed.length < 1) {
-        showError("Message cannot be empty.");
+        showError(t('ai.messageEmpty', { defaultValue: "Message cannot be empty." }));
         return null;
       }
       if (trimmed.length > 2000) {
-        showError("Message must be 2000 characters or fewer.");
+        showError(t('ai.messageTooLong', { defaultValue: "Message must be 2000 characters or fewer." }));
         return null;
       }
 
@@ -50,13 +52,15 @@ export const useIntelligentChat = () => {
       setIsSending(true);
 
       // Build history payload for backend (Gemini format)
-      // We only take the last 15 messages to prevent payload bloat
-      const historyPayload: IntelligentChatMessage[] = messages
-        .slice(-15)
-        .map((msg) => ({
-          role: msg.role === "assistant" ? "model" : "user",
-          content: msg.text,
-        }));
+      // We only take the last 15 messages to prevent payload bloat, ensuring it starts with a user message.
+      const recentMessages = messages.slice(-15);
+      const firstUserIndex = recentMessages.findIndex((msg) => msg.role === "user");
+      const validHistory = firstUserIndex !== -1 ? recentMessages.slice(firstUserIndex) : recentMessages;
+
+      const historyPayload: IntelligentChatMessage[] = validHistory.map((msg) => ({
+        role: msg.role === "assistant" ? "model" : "user",
+        content: msg.text,
+      }));
 
       try {
         const response = await postIntelligentChat({
@@ -80,13 +84,13 @@ export const useIntelligentChat = () => {
         setMessages((prev) => [...prev, assistantMsg]);
         return response;
       } catch (err: unknown) {
-        showError(getApiErrorMessage(err, "Unable to send message."));
+        showError(getApiErrorMessage(err, t('ai.messageFailed', { defaultValue: "Unable to send message." })));
         return null;
       } finally {
         setIsSending(false);
       }
     },
-    [messages, sessionId, showError],
+    [messages, sessionId, showError, t],
   );
 
   return {

@@ -234,7 +234,7 @@ export const AiRecommendationsPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 {displayedTours.map((tour) => (
                   <AiTourRecommendationCard
                     key={`${tourFilter}-${tour.tourId}`}

@@ -1,5 +1,7 @@
+import React from 'react';
 import type { AnalyticsLabelCount } from '../../customer-analytics/types/customerAnalytics.types';
 import type { HealthStatus, OverallHealthStatus } from '../types/platformAnalytics.types';
+import { MoneyDisplay } from '../../currency/MoneyDisplay';
 
 export const OVERALL_STATUS_LABELS: Record<OverallHealthStatus, string> = {
   Healthy: 'Healthy',
@@ -29,8 +31,11 @@ export const INDICATOR_STATUS_BADGE: Record<HealthStatus, string> = {
   Critical: 'bg-rose-50 text-rose-700',
 };
 
-export const formatIndicatorValue = (value: number, unit: string) =>
-  unit === '%' ? `${value.toFixed(1)}%` : value.toLocaleString('vi-VN');
+export const formatIndicatorValue = (value: number, unit: string): React.ReactNode => {
+  if (unit === '%') return `${value.toFixed(1)}%`;
+  if (unit === 'VND') return React.createElement(MoneyDisplay, { amountVnd: value, compact: true });
+  return value.toLocaleString('vi-VN');
+};
 
 export const ROLE_LABELS: Record<string, string> = {
   Customer: 'Customer',

@@ -1,7 +1,10 @@
-export const formatVnd = (amount: number) =>
-  new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
+import React from 'react';
+import { MoneyDisplay } from '../../currency/MoneyDisplay';
 
-export const formatDiscount = (discountType: string, discountValue: number) => {
+export const formatVnd = (amount: number): React.ReactNode =>
+  React.createElement(MoneyDisplay, { amountVnd: amount, compact: true });
+
+export const formatDiscount = (discountType: string, discountValue: number): React.ReactNode => {
   if (discountType.toLowerCase() === 'percent') {
     return `${discountValue}%`;
   }

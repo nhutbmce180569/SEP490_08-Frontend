@@ -11,10 +11,8 @@ import {
   getApiValidationErrors,
   normalizeServerErrors,
 } from "../utils/apiError";
-import {
-  mapTourismFormToPayload,
-  validateTourismInformationForm,
-} from "../utils/tourismInformationValidation";
+import { mapTourismFormToPayload } from "../utils/tourismInformationValidation";
+import { tourismInfoSchema } from "../schemas/tourismInfoSchema";
 
 export const useUpdateTourismInformation = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,45 +37,39 @@ export const useUpdateTourismInformation = () => {
       tourismInformationService.update(id!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tourism-information"] });
-      success(t("content.updatingTourismInfo") || "Tourism information updated successfully.");
+      success(t("content.updatingTourismInfo", { defaultValue: "Tourism information updated successfully." }));
       navigate(PATH.ADMIN.TOURISM_INFORMATION_MANAGEMENT);
     },
     onError: (err: unknown) => {
       const validationErrors = getApiValidationErrors(err);
       if (validationErrors) {
         setServerErrors(normalizeServerErrors(validationErrors) as Record<string, string>);
+      } else {
+        const errMsg = getApiErrorMessage(err, t('content.updateFailed', { defaultValue: "Failed to update tourism information." }));
+        setServerErrors({ _form: errMsg });
+        showError(errMsg);
       }
-      showError(getApiErrorMessage(err, "Failed to update tourism information."));
     },
   });
 
   const handleSubmit = async (data: Record<string, unknown>) => {
-    const clientErrors = validateTourismInformationForm(data, t, { requireImage: false });
-    if (Object.keys(clientErrors).length > 0) {
-      setServerErrors(clientErrors);
-      return;
-    }
-    try {
-      const isDuplicate = await tourismInformationService.checkDuplicate(
-        String(data.name || ""),
-        String(data.address || ""),
-        id
-      );
-      if (isDuplicate) {
-        const duplicateErrorMsg = t("content.duplicateTourismInfo");
-        setServerErrors({
-          name: duplicateErrorMsg,
-          address: duplicateErrorMsg,
-        });
-        showError(duplicateErrorMsg);
-        return;
-      }
-    } catch (err) {
-      // ignore
-    }
-
     setServerErrors({});
     const payload = mapTourismFormToPayload(data);
+
+    const validationResult = tourismInfoSchema.safeParse(payload);
+    const localErrors: Record<string, string> = {};
+
+    if (!validationResult.success) {
+      validationResult.error.errors.forEach(err => {
+        const path = err.path.join('.');
+        localErrors[path] = t(`content.${err.message}`, { defaultValue: err.message });
+      });
+    }
+
+    if (Object.keys(localErrors).length > 0) {
+      setServerErrors(localErrors);
+      return;
+    }
 
     mutation.mutate({
       ...payload,
@@ -92,7 +84,7 @@ export const useUpdateTourismInformation = () => {
     id,
     tourismInfo,
     isFetching,
-    fetchError: error ? "Failed to fetch tourism information." : null,
+    fetchError: error ? t("content.fetchError", { defaultValue: "Failed to fetch tourism information." }) : null,
     isSubmitting: mutation.isPending,
     serverErrors,
     handleSubmit,

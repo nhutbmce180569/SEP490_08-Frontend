@@ -335,29 +335,29 @@ export const StaffTicketListPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 transition-colors focus-within:border-[#0068E0] focus-within:bg-white sm:w-56">
-                <Search className="h-4 w-4 shrink-0 text-slate-400" />
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 justify-end">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-56">
+                <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("booking.searchAttendeePlaceholder")}
-                  className="w-full bg-transparent text-sm font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                  className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
                 />
               </div>
 
-              <div className="relative">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
                 <select
                   value={checkInStatus}
                   onChange={(e) => setCheckInStatus(e.target.value)}
-                  className="h-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-10 text-sm font-bold text-slate-700 outline-none cursor-pointer hover:border-slate-300 hover:bg-white transition-colors"
+                  className="appearance-none bg-transparent text-sm font-semibold text-slate-700 outline-none pr-4 cursor-pointer w-full"
                 >
                   <option value="all">{t("common.allStatus") || "All Status"}</option>
                   <option value="CheckedIn">Checked In</option>
                   <option value="Pending">Pending</option>
                   <option value="Cancelled">Cancelled</option>
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />
               </div>
             </div>
           </div>

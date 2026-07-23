@@ -230,7 +230,10 @@
   },
   "admin": {
     "promotionManagement": "Promotions",
-    "voucherManagement": "Vouchers"
+    "voucherManagement": "Vouchers",
+    "failedLoadBirthdayPreview": "Failed to load birthday preview.",
+    "distributeSuccess": "Vouchers distributed successfully.",
+    "distributeFailed": "Failed to distribute vouchers."
   },
   "content": {
     "ticketTypeName": "Ticket Type Name",
@@ -238,7 +241,19 @@
     "minAge": "Min Age",
     "maxAge": "Max Age",
     "ageNegativeError": "Age cannot be negative",
-    "maxAgeError": "Max age must be greater than min age"
+    "maxAgeError": "Max age must be greater than min age",
+    "createFailed": "Failed to create tourism information.",
+    "updateFailed": "Failed to update tourism information.",
+    "fetchFailed": "Failed to fetch tourism information.",
+    "fetchError": "Failed to fetch tourism information.",
+    "placeNameRequired": "Place name is required.",
+    "locationRequired": "Location is required.",
+    "cityRequired": "City is required.",
+    "countryRequired": "Country is required.",
+    "latitudeInvalid": "Latitude must be between -90 and 90.",
+    "longitudeInvalid": "Longitude must be between -180 and 180.",
+    "sourceUrlInvalid": "Source URL is invalid.",
+    "locationPickRequired": "Please pick a valid location."
   },
   "contact": {
     "facebookTitle": "StayHub Official Fanpage",
@@ -262,7 +277,8 @@
     "zaloTitle": "StayHub Official Zalo",
     "zaloSubtitle": "Direct support via Zalo Official Account",
     "visitZalo": "Chat on Zalo",
-    "zaloDesc": "24/7 online assistance for tour booking and support via Zalo."
+    "zaloDesc": "24/7 online assistance for tour booking and support via Zalo.",
+    "scrollToTop": "Scroll to top"
   },
   "hero": {
     "titlePrefix": "Explore Extraordinary Journeys",
@@ -288,5 +304,62 @@
   },
   "social": {
     "memberAdded": "New member joined the group:"
+  },
+  "voucher": {
+    "saveSuccess": "Voucher {{code}} saved to your wallet.",
+    "saveFailed": "Failed to save voucher.",
+    "enterVoucherCode": "Please enter a voucher code.",
+    "billAmountInvalid": "Bill amount must be greater than 0 to apply a voucher.",
+    "applySuccess": "Voucher {{code}} applied successfully.",
+    "applyFailed": "Failed to apply voucher."
+  },
+  "wishlist": {
+    "savedTour": "Saved tour",
+    "addSuccess": "\"{{name}}\" added to your wishlist.",
+    "addFailed": "Failed to add tour to wishlist.",
+    "removeSuccess": "Removed from your wishlist.",
+    "removeFailed": "Failed to remove tour from wishlist.",
+    "loginRequired": "Please log in to save tours to your wishlist.",
+    "onlyActiveTours": "Only active tours can be added to your wishlist.",
+    "alreadyInWishlist": "This tour is already in your wishlist.",
+    "loadError": "Failed to load your wishlist."
+  },
+  "tour": {
+    "statusActive": "Active",
+    "statusInactive": "Inactive",
+    "statusPending": "Pending",
+    "statusRejected": "Rejected",
+    "unknownStatus": "Unknown"
+  },
+  "ai": {
+    "messageTooShort": "Message must be at least 2 characters.",
+    "messageTooLong": "Message must be 2000 characters or fewer.",
+    "messageEmpty": "Message cannot be empty.",
+    "messageFailed": "Unable to send message.",
+    "recommendFailed": "Unable to get tour recommendations."
+  },
+  "onboarding": {
+    "step1Title": "Welcome to StayHub!",
+    "step1Desc": "Let's explore some key features to give you the best experience.",
+    "step2Title": "Search & Book Tours",
+    "step2Desc": "You can search by destination, departure date, or filter promotional and upcoming tours here.",
+    "step3Title": "Smart AI Assistant",
+    "step3Desc": "Don't know where to go? Let our AI analyze your preferences and plan the perfect itinerary for you!",
+    "stepMomentsTitle": "Social & Moments",
+    "stepMomentsDesc": "Share your beautiful photos and amazing travel experiences with the StayHub community.",
+    "stepFriendsTitle": "Connect with Friends",
+    "stepFriendsDesc": "Search, make friends, and chat with people who share your passion for travel.",
+    "stepNotificationsTitle": "System Notifications",
+    "stepNotificationsDesc": "Get quick updates on order status, interactions, and the latest friend requests.",
+    "stepWishlistTitle": "My Wishlist",
+    "stepWishlistDesc": "Save your favorite tours to easily review and book them later.",
+    "stepLangCurrTitle": "Language & Currency",
+    "stepLangCurrDesc": "Customize the display language and currency to match your preferences.",
+    "step4Title": "Direct Messaging",
+    "step4Desc": "Chat instantly with other members or support staff through StayHub's messaging channel.",
+    "step5Title": "24/7 Customer Support",
+    "step5Desc": "Click here if you need to call our hotline or contact us via Zalo, Facebook.",
+    "step6Title": "Personal Profile",
+    "step6Desc": "Manage your account info, password, and review your booking history in this section."
   }
 }

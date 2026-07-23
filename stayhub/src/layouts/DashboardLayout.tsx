@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   MapPin,
   PieChart,
+  MessageCircle,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -110,6 +111,16 @@ export const DashboardLayout = () => {
             headerTitle: t("manager.trendPredictionManagement"),
             to: PATH.MANAGER.TREND_PREDICTION,
             icon: <LayoutDashboard className={iconClass} />,
+          },
+        ],
+      },
+      {
+        title: t("social.chat") || "Chat",
+        items: [
+          {
+            label: t("social.chat") || "Chat",
+            to: PATH.MANAGER.CHAT,
+            icon: <MessageCircle className={iconClass} />,
           },
         ],
       },

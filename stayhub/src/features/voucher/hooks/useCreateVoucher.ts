@@ -4,20 +4,13 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
 import type { VoucherTargetValue } from '../components/VoucherTargetEditor';
-import type { CreateVoucherDTO } from '../types/voucher';
+import { baseVoucherSchema } from '../schemas/voucherSchema';
 import { getAssignedQuantity } from '../utils/voucherTargetHelpers';
 import {
   getApiErrorMessage,
   getApiValidationErrors,
 } from '../../content/utils/apiError';
-import {
-  toIsoDateTime,
-  validateDateRange,
-  validateDiscountValue,
-  validateMaxDiscountAmount,
-  validateVoucherCode,
-} from '../utils/voucherHelpers';
-
+import { toIsoDateTime } from '../utils/voucherHelpers';
 import { useToast } from '../../../contexts/ToastContext';
 import { useTranslation } from '../../../contexts/LocaleContext';
 
@@ -31,7 +24,7 @@ export const useCreateVoucher = () => {
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
   const mutation = useMutation({
-    mutationFn: (data: CreateVoucherDTO) => voucherService.create(data),
+    mutationFn: (data: any) => voucherService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vouchers'] });
       toast.success(t('voucher.createSuccess'));
@@ -43,7 +36,7 @@ export const useCreateVoucher = () => {
         setServerErrors(validationErrors as Record<string, string>);
         return;
       }
-      setServerErrors({ _form: getApiErrorMessage(error, 'Failed to create voucher.') });
+      setServerErrors({ _form: getApiErrorMessage(error, t('voucher.createFailed', { defaultValue: 'Failed to create voucher.' })) });
     },
   });
 
@@ -53,53 +46,19 @@ export const useCreateVoucher = () => {
     const discountType = data.discountType as string;
     const discountValue = Number(data.discountValue);
     const maxDiscountAmount = data.maxDiscountAmount ? Number(data.maxDiscountAmount) : undefined;
-    const startDate = toIsoDateTime(data.startDate as string);
-    const endDate = toIsoDateTime(data.endDate as string);
+    const minOrderAmount = data.minOrderAmount ? Number(data.minOrderAmount) : undefined;
+    const availableCount = data.availableCount ? Number(data.availableCount) : 0;
+    const startDate = data.startDate ? toIsoDateTime(data.startDate as string) : '';
+    const endDate = data.endDate ? toIsoDateTime(data.endDate as string) : '';
     const voucherTarget = (data.voucherTarget || { type: 'public', customerAssignments: [], topCustomerAssignment: { top: 10, revenuePeriod: 'Month', quantity: 1 } }) as VoucherTargetValue;
 
-    const localErrors: Record<string, string> = {};
-    const codeError = validateVoucherCode(String(data.code || ''));
-    const discountError = validateDiscountValue(discountType, discountValue);
-    const maxDiscountError = validateMaxDiscountAmount(discountType, maxDiscountAmount);
-    const dateError = validateDateRange(startDate, endDate);
-
-    if (codeError) localErrors.code = codeError;
-    if (discountError) localErrors.discountValue = discountError;
-    if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
-    if (dateError) localErrors.endDate = dateError;
-
-    if (voucherTarget.type === 'specific') {
-      const hasInvalidCustomer = voucherTarget.customerAssignments.some(
-        (item) => !item.userId || item.userId <= 0,
-      );
-      if (hasInvalidCustomer) {
-        localErrors.voucherTarget = 'Please select customers by ID before creating the voucher.';
-      }
-    }
-
-    if (voucherTarget.type === 'topRevenue') {
-      if (!voucherTarget.topCustomerAssignment.top || voucherTarget.topCustomerAssignment.top <= 0) {
-        localErrors.voucherTarget = 'Top customer count must be at least 1.';
-      }
-    }
-
-    const totalAssigned = getAssignedQuantity(voucherTarget);
-    const availableCount = Number(data.availableCount);
-    if (totalAssigned > availableCount) {
-      localErrors.voucherTarget = 'Total assigned quantity cannot exceed available count.';
-    }
-
-    if (Object.keys(localErrors).length > 0) {
-      setServerErrors(localErrors);
-      return;
-    }
-
-    mutation.mutate({
-      code: String(data.code).trim().toUpperCase(),
+    const parsedData = {
+      code: String(data.code || '').trim().toUpperCase(),
       tourId: data.tourId ? Number(data.tourId) : undefined,
       discountType,
       discountValue,
-      maxDiscountAmount: discountType === 'Percent' ? maxDiscountAmount : undefined,
+      maxDiscountAmount,
+      minOrderAmount,
       availableCount,
       startDate,
       endDate,
@@ -110,7 +69,44 @@ export const useCreateVoucher = () => {
           : undefined,
       topCustomerAssignment:
         voucherTarget.type === 'topRevenue' ? voucherTarget.topCustomerAssignment : undefined,
-    });
+    };
+
+    const validationResult = baseVoucherSchema.safeParse(parsedData);
+    const localErrors: Record<string, string> = {};
+
+    if (!validationResult.success) {
+      validationResult.error.errors.forEach(err => {
+        const path = err.path.join('.');
+        localErrors[path] = t(`voucher.${err.message}`, { defaultValue: err.message });
+      });
+    }
+
+    if (voucherTarget.type === 'specific') {
+      const hasInvalidCustomer = voucherTarget.customerAssignments.some(
+        (item) => !item.userId || item.userId <= 0,
+      );
+      if (hasInvalidCustomer) {
+        localErrors.voucherTarget = t('voucher.invalidCustomerSelection', { defaultValue: 'Please select customers by ID before creating the voucher.' });
+      }
+    }
+
+    if (voucherTarget.type === 'topRevenue') {
+      if (!voucherTarget.topCustomerAssignment.top || voucherTarget.topCustomerAssignment.top <= 0) {
+        localErrors.voucherTarget = t('voucher.invalidTopCustomer', { defaultValue: 'Top customer count must be at least 1.' });
+      }
+    }
+
+    const totalAssigned = getAssignedQuantity(voucherTarget);
+    if (totalAssigned > availableCount) {
+      localErrors.voucherTarget = t('voucher.targetExceedsAvailable', { defaultValue: 'Total assigned quantity cannot exceed available count.' });
+    }
+
+    if (Object.keys(localErrors).length > 0) {
+      setServerErrors(localErrors);
+      return;
+    }
+
+    mutation.mutate(parsedData);
   };
 
   const handleCancel = () => navigate(isAdminRoute ? PATH.ADMIN.SYSTEM_VOUCHERS : PATH.MANAGER.VOUCHERS);

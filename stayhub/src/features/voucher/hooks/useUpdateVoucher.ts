@@ -5,18 +5,13 @@ import { PATH } from '../../../config/routes/route';
 import { voucherService } from '../services/voucher.service';
 import type { VoucherTargetValue } from '../components/VoucherTargetEditor';
 import type { UpdateVoucherDTO } from '../types/voucher';
+import { updateVoucherSchema } from '../schemas/voucherSchema';
 import { getAssignedQuantity } from '../utils/voucherTargetHelpers';
 import {
   getApiErrorMessage,
   getApiValidationErrors,
 } from '../../content/utils/apiError';
-import {
-  toIsoDateTime,
-  validateDateRange,
-  validateDiscountValue,
-  validateMaxDiscountAmount,
-} from '../utils/voucherHelpers';
-
+import { toIsoDateTime } from '../utils/voucherHelpers';
 import { useToast } from '../../../contexts/ToastContext';
 import { useTranslation } from '../../../contexts/LocaleContext';
 
@@ -50,7 +45,7 @@ export const useUpdateVoucher = () => {
         setServerErrors(validationErrors as Record<string, string>);
         return;
       }
-      setServerErrors({ _form: getApiErrorMessage(err, 'Failed to update voucher.') });
+      setServerErrors({ _form: getApiErrorMessage(err, t('voucher.updateFailed', { defaultValue: 'Failed to update voucher.' })) });
     },
   });
 
@@ -66,37 +61,61 @@ export const useUpdateVoucher = () => {
     const maxDiscountAmount = data.maxDiscountAmount !== undefined && data.maxDiscountAmount !== ''
       ? Number(data.maxDiscountAmount)
       : undefined;
+    const minOrderAmount = data.minOrderAmount !== undefined && data.minOrderAmount !== ''
+      ? Number(data.minOrderAmount)
+      : undefined;
     const startDate = data.startDate ? toIsoDateTime(data.startDate as string) : voucher.startDate;
     const endDate = data.endDate ? toIsoDateTime(data.endDate as string) : voucher.endDate;
+    const availableCount = data.availableCount !== undefined && data.availableCount !== ''
+      ? Number(data.availableCount)
+      : voucher.availableCount;
     const voucherTarget = (data.voucherTarget || { type: 'public', customerAssignments: [], topCustomerAssignment: { top: 10, revenuePeriod: 'Month', quantity: 1 } }) as VoucherTargetValue;
 
+    const parsedData = {
+      tourId: data.tourId ? Number(data.tourId) : undefined,
+      discountType,
+      discountValue,
+      maxDiscountAmount,
+      minOrderAmount,
+      availableCount,
+      startDate,
+      endDate,
+      description: data.description !== undefined ? String(data.description).trim() : undefined,
+      customerAssignments:
+        voucherTarget.type === 'specific' && voucherTarget.customerAssignments.length > 0
+          ? voucherTarget.customerAssignments.map(({ userId, quantity }) => ({ userId, quantity }))
+          : undefined,
+      topCustomerAssignment:
+        voucherTarget.type === 'topRevenue' ? voucherTarget.topCustomerAssignment : undefined,
+    };
+
+    const validationResult = updateVoucherSchema.safeParse(parsedData);
     const localErrors: Record<string, string> = {};
-    if (!isUsed) {
-      const discountError = validateDiscountValue(discountType, discountValue);
-      const maxDiscountError = validateMaxDiscountAmount(discountType, maxDiscountAmount);
-      if (discountError) localErrors.discountValue = discountError;
-      if (maxDiscountError) localErrors.maxDiscountAmount = maxDiscountError;
+
+    if (!validationResult.success) {
+      // If the voucher is used, we only care about errors on fields that are actually allowed to be updated.
+      validationResult.error.errors.forEach(err => {
+        const path = err.path.join('.');
+        if (isUsed && ['tourId', 'discountType', 'discountValue', 'maxDiscountAmount'].includes(path)) {
+          return;
+        }
+        localErrors[path] = t(`voucher.${err.message}`, { defaultValue: err.message });
+      });
     }
-    const dateError = validateDateRange(startDate, endDate);
-    if (dateError) localErrors.endDate = dateError;
 
     if (voucherTarget.type === 'specific') {
       const hasInvalidCustomer = voucherTarget.customerAssignments.some(
         (item) => !item.userId || item.userId <= 0,
       );
       if (hasInvalidCustomer) {
-        localErrors.voucherTarget = 'Please select customers by ID before updating the voucher.';
+        localErrors.voucherTarget = t('voucher.invalidCustomerSelection', { defaultValue: 'Please select customers by ID before updating the voucher.' });
       }
     }
 
     const existingAssigned = voucher.assignedCustomers.reduce((sum, item) => sum + item.quantity, 0);
     const newAssigned = getAssignedQuantity(voucherTarget);
-    const availableCount = data.availableCount !== undefined && data.availableCount !== ''
-      ? Number(data.availableCount)
-      : voucher.availableCount;
-
     if (existingAssigned + newAssigned > availableCount) {
-      localErrors.voucherTarget = 'Total assigned quantity cannot exceed available count.';
+      localErrors.voucherTarget = t('voucher.targetExceedsAvailable', { defaultValue: 'Total assigned quantity cannot exceed available count.' });
     }
 
     if (Object.keys(localErrors).length > 0) {
@@ -105,28 +124,17 @@ export const useUpdateVoucher = () => {
     }
 
     mutation.mutate({
-      tourId: isUsed ? undefined : (data.tourId ? Number(data.tourId) : undefined),
-      discountType: isUsed ? undefined : (data.discountType ? String(data.discountType) : undefined),
-      discountValue: isUsed
-        ? undefined
-        : (data.discountValue !== undefined && data.discountValue !== ''
-            ? Number(data.discountValue)
-            : undefined),
-      maxDiscountAmount: isUsed
-        ? undefined
-        : (discountType === 'Percent' ? maxDiscountAmount : undefined),
-      availableCount: data.availableCount !== undefined && data.availableCount !== ''
-        ? Number(data.availableCount)
-        : undefined,
+      tourId: isUsed ? undefined : parsedData.tourId,
+      discountType: isUsed ? undefined : parsedData.discountType,
+      discountValue: isUsed ? undefined : parsedData.discountValue,
+      maxDiscountAmount: isUsed ? undefined : parsedData.maxDiscountAmount,
+      minOrderAmount: isUsed ? undefined : parsedData.minOrderAmount,
+      availableCount: parsedData.availableCount,
       startDate: data.startDate ? startDate : undefined,
       endDate: data.endDate ? endDate : undefined,
-      description: data.description !== undefined ? String(data.description).trim() : undefined,
-      customerAssignments:
-        voucherTarget.type === 'specific' && voucherTarget.customerAssignments.length > 0
-          ? voucherTarget.customerAssignments.map(({ userId, quantity }) => ({ userId, quantity }))
-          : undefined,
-      topCustomerAssignment:
-        voucherTarget.type === 'topRevenue' ? voucherTarget.topCustomerAssignment : undefined,
+      description: parsedData.description,
+      customerAssignments: parsedData.customerAssignments,
+      topCustomerAssignment: parsedData.topCustomerAssignment,
     });
   };
 
@@ -136,7 +144,7 @@ export const useUpdateVoucher = () => {
     id,
     voucher,
     isFetching,
-    fetchError: error ? 'Failed to fetch voucher details.' : null,
+    fetchError: error ? t('voucher.fetchError', { defaultValue: 'Failed to fetch voucher details.' }) : null,
     isSubmitting: mutation.isPending,
     serverErrors,
     handleSubmit,

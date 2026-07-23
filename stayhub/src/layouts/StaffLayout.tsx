@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Calendar, LayoutDashboard, MapPin, QrCode, Ticket, Users } from "lucide-react";
+import { Calendar, LayoutDashboard, MapPin, QrCode, Ticket, Users, MessageCircle } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
 import { useTranslation } from "../contexts/LocaleContext";
@@ -46,6 +46,16 @@ export const StaffLayout = () => {
             label: t("staff.tourCustomer"),
             to: PATH.STAFF.CUSTOMERS,
             icon: <Users className={iconClass} />,
+          },
+        ],
+      },
+      {
+        title: t("social.chat") || "Chat",
+        items: [
+          {
+            label: t("social.chat") || "Chat",
+            to: PATH.STAFF.CHAT,
+            icon: <MessageCircle className={iconClass} />,
           },
         ],
       },

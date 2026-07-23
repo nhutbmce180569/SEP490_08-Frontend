@@ -203,7 +203,11 @@ const getRoomDisplayName = (room: any) => {
 };
 
 // ============ MAIN COMPONENT: ChatPage ============
-export const ChatPage: React.FC = () => {
+export interface ChatPageProps {
+  isEmbedded?: boolean;
+}
+
+export const ChatPage: React.FC<ChatPageProps> = ({ isEmbedded = false }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { success, error, warning } = useToast();
@@ -419,8 +423,16 @@ const { mutate: mutateMarkAsRead } = useMutation({
 
   return (
     <>
-      <div className="page-container py-4 md:py-6 animate-fade-in text-slate-800 dark:text-slate-100">
-        <div className="flex h-[86vh] min-h-[600px] w-full overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl">
+      <div className={
+        isEmbedded 
+          ? "animate-fade-in text-slate-800 dark:text-slate-100 h-[calc(100vh-120px)] w-full"
+          : "page-container py-4 md:py-6 animate-fade-in text-slate-800 dark:text-slate-100"
+      }>
+        <div className={`flex w-full overflow-hidden bg-white dark:bg-slate-900 ${
+          isEmbedded 
+            ? "h-full rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md"
+            : "h-[86vh] min-h-[600px] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl"
+        }`}>
           
           {/* LEFT COLUMN: CONVERSATION LIST */}
           <div className="w-1/3 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900 shrink-0">

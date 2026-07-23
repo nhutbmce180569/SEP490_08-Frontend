@@ -115,6 +115,7 @@ export default function NotificationBell() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        id="tour-notifications"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all border-0 shadow-none ${

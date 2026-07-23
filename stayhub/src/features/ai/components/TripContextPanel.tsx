@@ -1,7 +1,7 @@
 import React from "react";
 import { Calendar, MapPin, Users, Wallet, Heart } from "lucide-react";
 import type { TourPreferenceQuestionnaire } from "../types/tourAssistant";
-import { formatVnd } from "../utils/formatters";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { localizeInterestKey } from "../utils/localizeAiContent";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
 
@@ -39,7 +39,7 @@ export const TripContextPanel: React.FC<Props> = ({ profile, compact }) => {
           value={profile.preferredCity || "Bất kỳ đâu (Surprise me!)"} 
         />
         {profile.maxBudgetPerPerson != null && (
-          <InfoRow label={t("ai.budgetPerPerson")} value={formatVnd(profile.maxBudgetPerPerson, locale)} />
+          <InfoRow label={t("ai.budgetPerPerson")} value={profile.maxBudgetPerPerson != null ? <MoneyDisplay amountVnd={profile.maxBudgetPerPerson} compact /> : t("ai.contactUs")} />
         )}
         {interests && <InfoRow label={t("ai.yourInterests")} value={interests} />}
       </div>
@@ -71,7 +71,7 @@ export const TripContextPanel: React.FC<Props> = ({ profile, compact }) => {
           <InfoItem
             icon={Wallet}
             label={t("ai.budgetPerPerson")}
-            value={formatVnd(profile.maxBudgetPerPerson, locale)}
+            value={profile.maxBudgetPerPerson != null ? <MoneyDisplay amountVnd={profile.maxBudgetPerPerson} compact /> : t("ai.contactUs")}
           />
         )}
       </div>

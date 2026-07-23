@@ -14,4 +14,5 @@ export const STAFF_ROUTES = {
   TRACK_SCHEDULE_LOCATIONS: (scheduleId: string | number = ':scheduleId') => `/staff/locations/${scheduleId}`,
   CUSTOMERS: '/staff/customers',
   SCHEDULE_CUSTOMERS: (scheduleId: string | number = ':scheduleId') => `/staff/customers/${scheduleId}`,
+  CHAT: '/staff/chat',
 } as const;

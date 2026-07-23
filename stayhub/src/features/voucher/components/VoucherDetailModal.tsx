@@ -92,7 +92,7 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
               STATUS_STYLES[item.status] || 'bg-slate-100 text-slate-600 border border-slate-200'
             }`}
           >
-            {item.status}
+            {t(`common.${item.status?.toLowerCase()}`, { defaultValue: item.status })}
           </span>
         ),
       },
@@ -127,7 +127,7 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
                   STATUS_STYLES[voucher.status] || 'bg-slate-100 text-slate-600 border border-slate-200'
                 }`}
               >
-                {voucher.status}
+                {t(`common.${voucher.status?.toLowerCase()}`, { defaultValue: voucher.status })}
               </span>
             )}
           </div>
@@ -272,7 +272,7 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
                           disabled={currentPage === 1}
                           className="rounded-md border border-slate-200 px-2.5 py-1 font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          &larr; Prev
+                          &larr; {t('common.previous')}
                         </button>
                         <span className="px-2 font-medium text-slate-700">
                           {currentPage} / {totalAssignedPages}
@@ -283,7 +283,7 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
                           disabled={currentPage === totalAssignedPages}
                           className="rounded-md border border-slate-200 px-2.5 py-1 font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          Next &rarr;
+                          {t('common.next')} &rarr;
                         </button>
                       </div>
                     )}

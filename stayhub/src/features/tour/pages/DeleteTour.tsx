@@ -105,7 +105,7 @@ export const DeleteTourConfirm: React.FC = () => {
           </ActionButton>
           <ActionButton variant="warning" onClick={handleConfirmDelete} className="gap-2 px-5 py-2.5 text-sm !bg-rose-600 !text-white !border-rose-600 hover:!bg-rose-700 hover:!border-rose-700">
             <Trash2 className="h-4 w-4" />
-            {t("tour.yesDeleteTour")}
+            {t("common.confirm")}
           </ActionButton>
         </div>
       </div>

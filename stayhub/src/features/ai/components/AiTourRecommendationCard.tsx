@@ -8,7 +8,7 @@ import {
   ChevronUp,
   Sparkles,
   ArrowRight,
-  CalendarDays,
+  CalendarDays, CloudRain, SunMedium,
 } from "lucide-react";
 import { PATH } from "../../../config/routes/route";
 import { getImg } from "../../../config/api/api";
@@ -74,7 +74,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   if (friendly) {
     return (
       <article className="glass-card flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
-        <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
+        <div className="relative aspect-video overflow-hidden bg-slate-100">
           <Link
             to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
             onClick={() => onTourClick?.(publicTourId)}
@@ -277,9 +277,12 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               )}
               {tour.destinationWeather && (
                 <div className="mt-1 flex gap-1 items-center font-semibold text-sky-600">
-                  <span className="text-[10px]">⛅ {tour.destinationWeather.avgMaxTempC?.toFixed(0)}°C</span>
+                  <span className="text-[10px] flex items-center gap-0.5">
+                    <SunMedium size={12} className="text-amber-500" />
+                    {tour.destinationWeather.avgMaxTempC?.toFixed(0)}°C
+                  </span>
                   {tour.destinationWeather.totalRainMm != null && tour.destinationWeather.totalRainMm > 20 && (
-                     <span className="text-[10px]">☔</span>
+                     <CloudRain size={12} className="text-blue-500" />
                   )}
                 </div>
               )}
@@ -323,7 +326,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
   }
 
   return (
-    <div className="glass-card flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+    <div className="glass-card h-full flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
       <Link
         to={PATH.PUBLIC.TOUR_DETAIL(publicTourId)}
         onClick={() => onTourClick?.(publicTourId)}

@@ -76,7 +76,7 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
       const data = await voucherService.getBirthdayVoucherPreview(month, currentYear);
       setPreviewData(data);
     } catch (err: any) {
-      showError(err?.response?.data?.message || err.message || 'Failed to load birthday preview.');
+      showError(err?.response?.data?.message || err.message || t('admin.failedLoadBirthdayPreview', { defaultValue: 'Failed to load birthday preview.' }));
       setPreviewData(null);
     } finally {
       setIsLoadingPreview(false);
@@ -101,9 +101,9 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
         totalEligibleCustomers: response.totalEligibleCustomers,
         emailsSent: response.emailsSent,
       });
-      success(response.message || 'Vouchers distributed successfully.');
+      success(response.message || t('admin.distributeSuccess', { defaultValue: 'Vouchers distributed successfully.' }));
     } catch (error: any) {
-      showError(error?.response?.data?.message || error.message || 'Failed to distribute vouchers');
+      showError(error?.response?.data?.message || error.message || t('admin.distributeFailed', { defaultValue: 'Failed to distribute vouchers' }));
     } finally {
       setIsDistributing(false);
     }

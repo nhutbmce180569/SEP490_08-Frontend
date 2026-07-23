@@ -147,8 +147,8 @@ const WalletPickerItem: React.FC<{
         {formatDiscount(voucher.discountType, voucher.discountValue)}
         {voucher.tourName ? ` · ${voucher.tourName}` : ` · ${t('voucher.allTours')}`}
         {voucher.minOrderAmount && voucher.minOrderAmount > 0 ? (
-          <span className="text-[10px] text-amber-700 font-medium ml-1">
-            · {t('voucher.minOrderHint', { amount: formatVnd(voucher.minOrderAmount) })}
+          <span className="text-[10px] text-amber-700 font-medium ml-1 flex items-center gap-1">
+            · {t('voucher.minOrderHint', { amount: "" }).replace(":", "").trim()} <MoneyDisplay amountVnd={voucher.minOrderAmount} compact />
           </span>
         ) : null}
       </div>

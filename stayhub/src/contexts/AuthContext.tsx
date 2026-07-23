@@ -9,6 +9,7 @@ export interface User {
     roles?: string | string[];
     avatarUrl?: string;
     requirePasswordChange?: boolean;
+    hasCompletedTour?: boolean;
     [key: string]: any;
 }
 
@@ -19,6 +20,7 @@ export interface AuthContextType {
     login: (newToken: string, newRefreshToken: string, userData: User) => void; // CẬP NHẬT
     logout: () => void;
     updateTokens: (newToken: string, newRefreshToken: string) => void; // BỔ SUNG: Dành cho Axios Interceptor gọi khi refresh thành công
+    updateUser: (userData: Partial<User>) => void;
     loading: boolean;
 }
 
@@ -61,6 +63,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         window.location.href = '/login'; // Reset lại toàn bộ app
+    };
+
+    const updateUser = (userData: Partial<User>) => {
+        if (user) {
+            const updatedUser = { ...user, ...userData };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
     };
 
     const clearAuthStorage = () => {
@@ -110,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, token, refreshToken, login, logout, updateTokens, loading }}>
+        <AuthContext.Provider value={{ user, token, refreshToken, login, logout, updateTokens, updateUser, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

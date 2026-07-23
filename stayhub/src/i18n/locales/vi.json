@@ -231,7 +231,10 @@
   },
   "admin": {
     "promotionManagement": "Khuyến mãi",
-    "voucherManagement": "Quản lý Voucher"
+    "voucherManagement": "Quản lý Voucher",
+    "failedLoadBirthdayPreview": "Không thể tải trước danh sách sinh nhật.",
+    "distributeSuccess": "Đã phát voucher thành công.",
+    "distributeFailed": "Phát voucher thất bại."
   },
   "content": {
     "ticketTypeName": "Tên loại vé",
@@ -239,7 +242,19 @@
     "minAge": "Tuổi tối thiểu",
     "maxAge": "Tuổi tối đa",
     "ageNegativeError": "Tuổi không được là số âm",
-    "maxAgeError": "Tuổi tối đa phải lớn hơn tuổi tối thiểu"
+    "maxAgeError": "Tuổi tối đa phải lớn hơn tuổi tối thiểu",
+    "createFailed": "Tạo thông tin du lịch thất bại.",
+    "updateFailed": "Cập nhật thông tin du lịch thất bại.",
+    "fetchFailed": "Tải thông tin du lịch thất bại.",
+    "fetchError": "Tải thông tin du lịch thất bại.",
+    "placeNameRequired": "Tên địa điểm là bắt buộc.",
+    "locationRequired": "Vị trí là bắt buộc.",
+    "cityRequired": "Thành phố là bắt buộc.",
+    "countryRequired": "Quốc gia là bắt buộc.",
+    "latitudeInvalid": "Vĩ độ phải từ -90 đến 90.",
+    "longitudeInvalid": "Kinh độ phải từ -180 đến 180.",
+    "sourceUrlInvalid": "URL nguồn không hợp lệ.",
+    "locationPickRequired": "Vui lòng chọn một vị trí hợp lệ."
   },
   "contact": {
     "facebookTitle": "StayHub Official Fanpage",
@@ -263,7 +278,8 @@
     "zaloTitle": "StayHub Official Zalo",
     "zaloSubtitle": "Tư vấn & Hỗ trợ trực tiếp qua Zalo Official Account",
     "visitZalo": "Nhắn tin qua Zalo",
-    "zaloDesc": "Tư vấn tour, đặt phòng và giải đáp thắc mắc trực tuyến 24/7 qua ứng dụng Zalo."
+    "zaloDesc": "Hỗ trợ và tư vấn đặt tour trực tuyến 24/7 thông qua Zalo.",
+    "scrollToTop": "Lên đầu trang"
   },
   "hero": {
     "titlePrefix": "Trải nghiệm du lịch đỉnh cao",
@@ -289,5 +305,62 @@
   },
   "social": {
     "memberAdded": "Thành viên mới được thêm vào nhóm:"
+  },
+  "voucher": {
+    "saveSuccess": "Voucher {{code}} đã được lưu vào ví.",
+    "saveFailed": "Lưu voucher thất bại.",
+    "enterVoucherCode": "Vui lòng nhập mã voucher.",
+    "billAmountInvalid": "Tổng tiền phải lớn hơn 0 để áp dụng voucher.",
+    "applySuccess": "Áp dụng voucher {{code}} thành công.",
+    "applyFailed": "Áp dụng voucher thất bại."
+  },
+  "wishlist": {
+    "savedTour": "Tour đã lưu",
+    "addSuccess": "Đã thêm \"{{name}}\" vào danh sách yêu thích.",
+    "addFailed": "Thêm vào danh sách yêu thích thất bại.",
+    "removeSuccess": "Đã xóa khỏi danh sách yêu thích.",
+    "removeFailed": "Xóa khỏi danh sách yêu thích thất bại.",
+    "loginRequired": "Vui lòng đăng nhập để lưu tour.",
+    "onlyActiveTours": "Chỉ có thể lưu tour đang hoạt động.",
+    "alreadyInWishlist": "Tour này đã có trong danh sách yêu thích.",
+    "loadError": "Tải danh sách yêu thích thất bại."
+  },
+  "tour": {
+    "statusActive": "Đang hoạt động",
+    "statusInactive": "Ngưng hoạt động",
+    "statusPending": "Chờ duyệt",
+    "statusRejected": "Bị từ chối",
+    "unknownStatus": "Không xác định"
+  },
+  "ai": {
+    "messageTooShort": "Tin nhắn phải có ít nhất 2 ký tự.",
+    "messageTooLong": "Tin nhắn không được quá 2000 ký tự.",
+    "messageEmpty": "Tin nhắn không được để trống.",
+    "messageFailed": "Không thể gửi tin nhắn.",
+    "recommendFailed": "Không thể lấy gợi ý tour."
+  },
+  "onboarding": {
+    "step1Title": "Chào mừng bạn đến với StayHub!",
+    "step1Desc": "Cùng khám phá một vài tính năng chính để bạn có trải nghiệm tốt nhất nhé.",
+    "step2Title": "Tìm kiếm & Đặt tour",
+    "step2Desc": "Bạn có thể tìm kiếm theo điểm đến, ngày đi hoặc lọc các tour đang khuyến mãi và sắp khởi hành tại đây.",
+    "step3Title": "Trợ lý AI thông minh",
+    "step3Desc": "Chưa biết đi đâu? Hãy để AI của chúng tôi phân tích sở thích và lên lịch trình lý tưởng cho bạn!",
+    "stepMomentsTitle": "Mạng xã hội & Khoảnh khắc",
+    "stepMomentsDesc": "Chia sẻ những bức ảnh đẹp và trải nghiệm du lịch tuyệt vời của bạn với cộng đồng StayHub.",
+    "stepFriendsTitle": "Kết nối bạn bè",
+    "stepFriendsDesc": "Tìm kiếm, kết bạn và nhắn tin cùng những người có chung đam mê xê dịch.",
+    "stepNotificationsTitle": "Thông báo hệ thống",
+    "stepNotificationsDesc": "Cập nhật nhanh chóng trạng thái đơn hàng, tương tác và các lời mời kết bạn mới nhất.",
+    "stepWishlistTitle": "Tour yêu thích",
+    "stepWishlistDesc": "Lưu lại những chuyến đi bạn ấn tượng để dễ dàng xem lại và đặt chỗ sau.",
+    "stepLangCurrTitle": "Ngôn ngữ & Tiền tệ",
+    "stepLangCurrDesc": "Tuỳ chỉnh hiển thị ngôn ngữ và loại tiền tệ phù hợp với quốc gia của bạn.",
+    "step4Title": "Tin nhắn trực tiếp",
+    "step4Desc": "Trò chuyện nhanh với các thành viên khác hoặc nhân viên hỗ trợ thông qua kênh nhắn tin của StayHub.",
+    "step5Title": "Hỗ trợ khách hàng 24/7",
+    "step5Desc": "Nhấn vào đây nếu bạn cần gọi hotline hoặc liên hệ qua Zalo, Facebook.",
+    "step6Title": "Hồ sơ cá nhân",
+    "step6Desc": "Quản lý thông tin tài khoản, mật khẩu, và xem lại lịch sử các tour bạn đã đặt ở mục này."
   }
 }

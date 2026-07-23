@@ -46,6 +46,12 @@
   "rejected": "Từ chối",
   "refunded": "Đã hoàn tiền",
   "cancelled": "Đã hủy",
+  "expired": "Hết hạn",
+  "available": "Khả dụng",
+  "used": "Đã dùng",
+  "redeemed": "Đã đổi",
+  "scheduled": "Đã lên lịch",
+  "depleted": "Hết lượt",
   "completed": "Hoàn thành",
   "draft": "Bản nháp",
   "paid": "Đã thanh toán",
@@ -180,6 +186,7 @@
     "cskhHotline": "Tổng đài CSKH (Miễn phí)",
     "quickBookingHotline": "Hotline Đặt Tour Nhanh",
     "callNow": "Gọi Ngay",
-    "workingHours": "Giờ làm việc: 08:00 - 22:00 (Tất cả các ngày trong tuần)"
+    "workingHours": "Giờ làm việc: 08:00 - 22:00 (Tất cả các ngày trong tuần)",
+    "scrollToTop": "Lên đầu trang"
   }
 }

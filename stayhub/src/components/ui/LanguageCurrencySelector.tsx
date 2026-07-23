@@ -38,6 +38,7 @@ export const LanguageCurrencySelector: React.FC<LanguageCurrencySelectorProps> =
     <div className={`relative ${className}`} ref={containerRef}>
       {/* Header Trigger Button */}
       <button
+        id="tour-language-currency"
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs sm:text-sm font-bold transition-all select-none border-0 shadow-none ${

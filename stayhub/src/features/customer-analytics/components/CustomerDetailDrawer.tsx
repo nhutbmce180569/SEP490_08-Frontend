@@ -11,7 +11,7 @@ import { getImg } from '../../../config/api/api';
 import { useCustomerDetail } from '../hooks/useCustomerAnalytics';
 import type { DateRangeParams } from '../types/customerAnalytics.types';
 import {
-  formatCompactVnd,
+  formatCompactAnalyticsMoney,
   formatDate,
   formatDateTime,
   formatNumber,
@@ -20,6 +20,7 @@ import {
   STATUS_STYLES,
 } from '../utils/analyticsHelpers';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { useCurrency } from '../../currency/CurrencyContext';
 
 interface CustomerDetailDrawerProps {
   customerId: number | null;
@@ -33,6 +34,7 @@ export const CustomerDetailModal: React.FC<CustomerDetailDrawerProps> = ({
   onClose,
 }) => {
   const { t, locale } = useTranslation();
+  const { mode, usdToVndRate } = useCurrency();
   const { data, isLoading, error } = useCustomerDetail(customerId, dateParams);
 
   const getSegmentLabelTranslated = (segment: string) => {
@@ -151,9 +153,9 @@ export const CustomerDetailModal: React.FC<CustomerDetailDrawerProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                <MetricBox label={t('analytics.customer.totalSpend')} value={formatCompactVnd(data.totalSpend, locale)} />
+                <MetricBox label={t('analytics.customer.totalSpend')} value={formatCompactAnalyticsMoney(data.totalSpend, mode, usdToVndRate)} />
                 <MetricBox label={t('analytics.customer.orders')} value={formatNumber(data.paidOrders)} sub={t('analytics.customer.ordersTotalSub', { total: data.totalOrders })} />
-                <MetricBox label={t('analytics.customer.avgOrderValue')} value={formatCompactVnd(data.averageOrderValue, locale)} />
+                <MetricBox label={t('analytics.customer.avgOrderValue')} value={formatCompactAnalyticsMoney(data.averageOrderValue, mode, usdToVndRate)} />
                 <MetricBox label={t('analytics.customer.ticketsPurchased')} value={formatNumber(data.totalTickets)} />
                 <MetricBox label={t('analytics.customer.reviews')} value={formatNumber(data.reviewCount)} icon={<Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />} />
                 <MetricBox label={t('analytics.customer.wishlist')} value={formatNumber(data.wishlistCount)} />

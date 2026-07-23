@@ -50,19 +50,18 @@ export const UpdateItinerary: React.FC = () => {
   const itineraryFields: FormField[] = useMemo(
     () => [
       {
-        name: "dayNumber",
-        label: t("tour.dayNumber"),
-        type: "number",
-        required: true,
-      },
-      {
         name: "title",
         label: t("tour.title"),
         type: "text",
         maxLength: 100,
         placeholder: t("tour.itineraryTitlePlaceholderTour"),
         icon: <Type className="h-4 w-4" />,
-        colSpan: 2,
+      },
+      {
+        name: "dayNumber",
+        label: t("tour.dayNumber"),
+        type: "number",
+        required: true,
       },
       {
         name: "description",

@@ -307,8 +307,8 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
 const DetailCard: React.FC<{
   icon: React.ReactNode;
   label: string;
-  value: string;
-  hint?: string;
+  value: React.ReactNode;
+  hint?: React.ReactNode;
 }> = ({ icon, label, value, hint }) => (
   <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4">
     <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">

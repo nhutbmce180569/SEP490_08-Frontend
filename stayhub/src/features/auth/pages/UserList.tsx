@@ -63,6 +63,7 @@ export const UserList: React.FC = () => {
 
   const { executeStatusChange, updatingId } = useChangeUserStatus(refetch);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [isStatusChanging, setIsStatusChanging] = useState(false);
   const [selectedUserForStatus, setSelectedUserForStatus] = useState<ReadUserDTO | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedUserForView, setSelectedUserForView] = useState<ReadUserDTO | null>(null);
@@ -84,9 +85,14 @@ export const UserList: React.FC = () => {
 
   const handleConfirmStatusChange = async () => {
     if (selectedUserForStatus) {
-      await executeStatusChange(selectedUserForStatus.id, selectedUserForStatus.status || "Active");
-      setStatusDialogOpen(false);
-      setSelectedUserForStatus(null);
+      setIsStatusChanging(true);
+      try {
+        await executeStatusChange(selectedUserForStatus.id, selectedUserForStatus.status || "Active");
+        setStatusDialogOpen(false);
+        setSelectedUserForStatus(null);
+      } finally {
+        setIsStatusChanging(false);
+      }
     }
   };
 
@@ -277,6 +283,7 @@ export const UserList: React.FC = () => {
             confirmText={t("common.confirm")}
             cancelText={t("common.cancel")}
             variant={selectedUserForStatus?.status === "Active" ? "warning" : "primary"}
+            isLoading={isStatusChanging}
           />
 
           {viewDialogOpen && selectedUserForView && (

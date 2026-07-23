@@ -8,7 +8,7 @@ import { TourCard, type TourCardProps } from "../TourCard";
 import { getTourPriceInfo } from "../../../features/tour/utils/tourPrice";
 import { getTourDurationDays } from "../../../features/tour/utils/tourDuration";
 import { useRegionTours } from "../../../hooks/useRegionTours";
-import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, ArrowRight } from "lucide-react";
 import type { Tour } from "../../../features/tour/types/tour";
 
 type Region = "north" | "central" | "south";
@@ -90,15 +90,9 @@ export const HomeRegions = () => {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center justify-between">
-        <button
-          onClick={() => navigate(`${PATH.PUBLIC.REGION_TOURS}?region=${activeRegion}`)}
-          className="text-brand font-bold hover:underline text-sm ml-auto mr-4"
-        >
-          {t("common.seeAll")}
-        </button>
+      <div className="mb-4 flex items-center justify-end gap-4 shrink-0 mt-4 md:mt-0">
         {!isLoading && !error && tours.length > 4 && (
-          <div className="hidden lg:flex items-center gap-2 shrink-0">
+          <div className="hidden lg:flex items-center gap-2 shrink-0 mr-2">
             <button
               onClick={() => scroll("left")}
               className="h-9 w-9 flex items-center justify-center rounded-full border-2 border-slate-200 bg-white text-slate-600 hover:border-brand hover:bg-brand-light/50 hover:text-brand transition-all"
@@ -113,6 +107,15 @@ export const HomeRegions = () => {
             </button>
           </div>
         )}
+        <button
+          onClick={() => navigate(`${PATH.PUBLIC.REGION_TOURS}?region=${activeRegion}`)}
+          className="group inline-flex shrink-0 items-center gap-2.5 text-xs font-bold uppercase tracking-widest text-brand transition-colors hover:text-brand-hover"
+        >
+          {t("common.viewAll")}
+          <span className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-brand/30 bg-brand-light/50 text-brand transition-all group-hover:border-brand group-hover:bg-brand group-hover:text-white">
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </button>
       </div>
 
       {isLoading ? (

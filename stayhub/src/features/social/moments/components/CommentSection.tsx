@@ -286,8 +286,8 @@ export const CommentSection = ({ momentId, comments }: any) => {
           setCommentIdToDelete(null);
         }}
         onConfirm={executeDeleteComment}
-        title="Xóa bình luận"
-        message="Bạn có chắc chắn muốn xóa bình luận này không? Thao tác này không thể hoàn tác."
+        title={t("social.momentDeleteCommentTitle")}
+        message={t("social.momentConfirmDeleteComment")}
         variant="warning"
       />
     </div>

@@ -349,8 +349,8 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         onConfirm={executeDeleteMoment}
-        title="Xóa khoảnh khắc"
-        message="Bạn có chắc chắn muốn xóa khoảnh khắc này không? Thao tác này không thể hoàn tác."
+        title={t("social.momentDeleteTitle")}
+        message={t("social.momentConfirmDelete")}
         variant="warning"
       />
     </>

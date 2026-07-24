@@ -10,6 +10,16 @@ import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { DynamicText } from "../../../../components/DynamicText";
+import { useDynamicTranslation } from "../../../../hooks/useDynamicTranslation";
+
+const TranslatedOption: React.FC<{ schedule: any }> = ({ schedule }) => {
+  const { translatedText, isLoading } = useDynamicTranslation(schedule.tourName);
+  return (
+    <option value={schedule.scheduleId} className="dark:bg-slate-800">
+      📍 {isLoading ? "..." : translatedText || schedule.tourName}
+    </option>
+  );
+};
 
 export const MomentsFeed: React.FC = () => {
   const { t } = useTranslation();
@@ -229,10 +239,8 @@ export const MomentsFeed: React.FC = () => {
             value={scheduleId || ""}
           >
             <option value="" className="dark:bg-slate-800">🌍 {t("app.allTripsGlobal") || "All trips (Global)"}</option>
-            {schedules?.map(s => (
-              <option key={s.scheduleId} value={s.scheduleId} className="dark:bg-slate-800">
-                📍 {s.tourName}
-              </option>
+            {schedules?.map((s) => (
+              <TranslatedOption key={s.scheduleId} schedule={s} />
             ))}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500 dark:text-slate-400">

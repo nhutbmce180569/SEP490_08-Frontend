@@ -18,6 +18,7 @@ import { UserAvatar } from "../../components/ui/UserAvatar";
 import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
 import { useTranslation } from "../../contexts/LocaleContext";
+import NotificationBell from "../../features/system/components/NotificationBell";
 
 export type DashboardRole = "partner" | "admin" | "staff";
 
@@ -150,6 +151,7 @@ export function DashboardTopBar({
         </ActionButton>
 
         <LanguageCurrencySelector className="hidden md:block" />
+        <NotificationBell />
 
         <div className="relative" ref={menuRef}>
           <button

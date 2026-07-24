@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import logoIcon from "../../assets/stayhub_icon_transparent.png";
 import { PATH } from "../../config/routes/route";
+import { useSystemSettings } from "../../features/system/hooks/useSystemSettings";
+import { getImg } from "../../config/api/api";
 
 type StayHubLogoProps = {
   /** compact: chỉ icon (sidebar thu gọn) */
@@ -18,6 +20,10 @@ export function StayHubLogo({
   className = "",
   linkTo = PATH.PUBLIC.HOME,
 }: StayHubLogoProps) {
+  const { getSetting } = useSystemSettings();
+  const webLogoUrl = getSetting("WebLogo");
+  const actualLogoSrc = webLogoUrl ? getImg(webLogoUrl) : logoIcon;
+
   const wordmarkClass =
     theme === "light"
       ? "font-display text-xl font-extrabold tracking-tight text-white md:text-[1.35rem]"
@@ -28,7 +34,7 @@ export function StayHubLogo({
   const content =
     variant === "compact" ? (
       <img
-        src={logoIcon}
+        src={actualLogoSrc}
         alt="StayHub"
         className="h-9 w-9 object-contain drop-shadow-sm"
         draggable={false}
@@ -36,7 +42,7 @@ export function StayHubLogo({
     ) : (
       <span className="flex items-center gap-2.5">
         <img
-          src={logoIcon}
+          src={actualLogoSrc}
           alt=""
           aria-hidden
           className={`h-10 w-10 shrink-0 object-contain md:h-11 md:w-11 ${
@@ -44,9 +50,11 @@ export function StayHubLogo({
           }`}
           draggable={false}
         />
-        <span className={wordmarkClass}>
-          Stay<span className={hubClass}>Hub</span>
-        </span>
+        {!webLogoUrl && (
+          <span className={wordmarkClass}>
+            Stay<span className={hubClass}>Hub</span>
+          </span>
+        )}
       </span>
     );
 

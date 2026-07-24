@@ -155,10 +155,15 @@ export const CategoryList: React.FC = () => {
             </ActionButton>
             <ActionButton 
               variant="secondary" 
-              onClick={() => handleEdit(cat.id)} 
+              onClick={() => {
+                if (cat.isActive) {
+                  showError(t("content.cannotEditActive", "Category must be inactive to update."));
+                } else {
+                  handleEdit(cat.id);
+                }
+              }} 
               className={`h-8 w-8 ${cat.isActive ? "opacity-50 cursor-not-allowed" : ""}`}
-              disabled={cat.isActive}
-              title={cat.isActive ? t("content.cannotEditActive") : t("common.edit")}
+              title={cat.isActive ? t("content.cannotEditActive", "Cannot edit active category") : t("common.edit")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </ActionButton>

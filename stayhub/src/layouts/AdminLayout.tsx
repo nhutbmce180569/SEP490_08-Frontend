@@ -12,6 +12,7 @@ import {
   Ticket,
   Users,
   BadgePercent,
+  Settings,
 } from "lucide-react";
 
 import { PATH } from "../config/routes/route";
@@ -116,6 +117,17 @@ export const AdminLayout = () => {
             headerTitle: t("admin.promotionManagement"),
             to: PATH.ADMIN.SYSTEM_PROMOTIONS,
             icon: <BadgePercent className={iconClass} />,
+          },
+        ],
+      },
+      {
+        title: t("admin.systemConfig", "System Configuration"),
+        items: [
+          {
+            label: t("admin.systemSettings", "System Settings"),
+            headerTitle: t("admin.systemSettings", "System Settings"),
+            to: PATH.ADMIN.SYSTEM_SETTINGS,
+            icon: <Settings className={iconClass} />,
           },
         ],
       },

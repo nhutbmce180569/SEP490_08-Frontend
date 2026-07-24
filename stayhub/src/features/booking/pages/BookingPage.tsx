@@ -38,6 +38,7 @@ import {
 } from "../../tour/utils/tourScheduleTicket";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { getTicketEffectivePriceInfo } from "../../tour/utils/tourPrice";
+import { useSystemSettings } from "../../system/hooks/useSystemSettings";
 import {
   downloadBookingPassengerExcel,
   parseBookingPassengerExcel,
@@ -227,6 +228,8 @@ export const BookingPage: React.FC = () => {
   const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
+  const { getLocalizedSetting } = useSystemSettings();
+  const refundRegulationsHtml = getLocalizedSetting("RefundRegulations");
   const { tour, schedule } = (location.state || {}) as BookingLocationState;
 
   const {
@@ -1700,24 +1703,30 @@ export const BookingPage: React.FC = () => {
                 </button>
               </div>
               <div className="p-6 space-y-4 text-sm text-slate-600 leading-relaxed">
-                <p className="font-semibold text-slate-800">
-                  {t("booking.refundPolicyTitle")}
-                </p>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>
-                    {t("booking.refund7Days")}
-                  </li>
-                  <li>
-                    {t("booking.refund3To7Days")}
-                  </li>
-                  <li>
-                    {t("booking.refundUnder3Days")}
-                  </li>
-                </ul>
-                <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 text-xs text-amber-800">
-                  <span className="font-bold block mb-1">{t("booking.voucherWarningTitle")}</span>
-                  {t("booking.voucherWarningDetail")}
-                </div>
+                {refundRegulationsHtml ? (
+                  <div dangerouslySetInnerHTML={{ __html: refundRegulationsHtml }} className="prose prose-sm max-w-none text-slate-600 quill-content" />
+                ) : (
+                  <>
+                    <p className="font-semibold text-slate-800">
+                      {t("booking.refundPolicyTitle")}
+                    </p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>
+                        {t("booking.refund7Days")}
+                      </li>
+                      <li>
+                        {t("booking.refund3To7Days")}
+                      </li>
+                      <li>
+                        {t("booking.refundUnder3Days")}
+                      </li>
+                    </ul>
+                    <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-3.5 text-xs text-amber-800">
+                      <span className="font-bold block mb-1">{t("booking.voucherWarningTitle")}</span>
+                      {t("booking.voucherWarningDetail")}
+                    </div>
+                  </>
+                )}
               </div>
               <div className="border-t border-slate-100 bg-slate-50 px-6 py-4 flex justify-end">
                 <button

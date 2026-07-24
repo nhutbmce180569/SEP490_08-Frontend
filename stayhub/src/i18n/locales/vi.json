@@ -254,7 +254,8 @@
     "latitudeInvalid": "Vĩ độ phải từ -90 đến 90.",
     "longitudeInvalid": "Kinh độ phải từ -180 đến 180.",
     "sourceUrlInvalid": "URL nguồn không hợp lệ.",
-    "locationPickRequired": "Vui lòng chọn một vị trí hợp lệ."
+    "locationPickRequired": "Vui lòng chọn một vị trí hợp lệ.",
+    "cannotEditActive": "Danh mục phải ở trạng thái không hoạt động mới có thể cập nhật."
   },
   "contact": {
     "facebookTitle": "StayHub Official Fanpage",

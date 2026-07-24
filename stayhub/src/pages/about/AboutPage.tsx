@@ -14,6 +14,7 @@ import { useTranslation } from "../../contexts/LocaleContext";
 import { useAiPlanner } from "../../contexts/AiPlannerContext";
 import { getAboutContent } from "./getAboutContent";
 import { TeamMemberCard } from "./components/TeamMemberCard";
+import { useSystemSettings } from "../../features/system/hooks/useSystemSettings";
 
 const FEATURE_ICONS = [Map, Sparkles, Users, Layers, Cpu, Globe] as const;
 
@@ -21,6 +22,7 @@ export default function AboutPage() {
   const { locale } = useTranslation();
   const { pathname } = useLocation();
   const { open: openAiPlanner } = useAiPlanner();
+  const { getLocalizedSetting } = useSystemSettings();
   const content = getAboutContent(locale);
 
   return (
@@ -69,7 +71,10 @@ export default function AboutPage() {
       <div className="page-container -mt-6 space-y-8 pt-2 md:space-y-10">
         <section className="glass-card overflow-hidden">
           <div className="border-b border-slate-100 p-5 md:p-6">
-            <p className="text-sm leading-relaxed text-slate-600">{content.system.summary}</p>
+            <div 
+              className="prose prose-sm max-w-none prose-slate"
+              dangerouslySetInnerHTML={{ __html: getLocalizedSetting("AboutUs") || content.system.summary }}
+            />
           </div>
 
           <div className="p-5 md:p-6">

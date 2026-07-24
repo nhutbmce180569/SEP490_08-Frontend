@@ -4,14 +4,31 @@ import { ExternalLink, Mail, MapPin } from "lucide-react";
 import { PATH } from "../../config/routes/route";
 import { useTranslation } from "../../contexts/LocaleContext";
 import { StayHubLogo } from "../../components/brand/StayHubLogo";
+import { useSystemSettings } from "../../features/system/hooks/useSystemSettings";
 
-const FPT_CAN_THO_MAP_LINK =
+const FALLBACK_MAP_LINK =
   "https://www.google.com/maps/search/?api=1&query=Tr%C6%B0%E1%BB%9Dng%20%C4%90%E1%BA%A1i%20h%E1%BB%8Dc%20FPT%20C%E1%BA%A7n%20Th%C6%A1%20600%20Nguy%E1%BB%85n%20V%C4%83n%20C%E1%BB%AB%20n%E1%BB%91i%20d%C3%A0i";
 
 export default function Footer() {
   const { t } = useTranslation();
   const location = useLocation();
   const legalLinkState = { from: location.pathname };
+  const { getSetting, getLocalizedSetting } = useSystemSettings();
+
+  const companyEmail = getSetting("CompanyEmail") || t("footer.email");
+  const companyAddress = getSetting("CompanyAddress") || t("footer.address");
+  const companyDescription = getLocalizedSetting("CompanyDescription") || t("footer.brandDesc");
+  const mapIframeStr = getSetting("MapIframeUrl");
+  let mapLink = FALLBACK_MAP_LINK;
+  
+  if (mapIframeStr) {
+    if (mapIframeStr.startsWith("http")) {
+        mapLink = mapIframeStr;
+    } else {
+        const srcMatch = mapIframeStr.match(/src="([^"]+)"/);
+        if (srcMatch) mapLink = srcMatch[1];
+    }
+  }
 
   const groups = useMemo(
     () => [
@@ -52,24 +69,24 @@ export default function Footer() {
         <div className="grid gap-8 border-b border-slate-200 pb-8 dark:border-slate-800 lg:grid-cols-[minmax(260px,0.95fr)_minmax(0,1.05fr)]">
           <div className="min-w-0">
             <StayHubLogo className="mb-3" />
-            <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
-              {t("footer.brandDesc")}
+            <p className="max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400 whitespace-pre-line">
+              {companyDescription}
             </p>
 
             <div className="mt-5 space-y-2.5">
               <a
-                href={`mailto:${t("footer.email")}`}
+                href={`mailto:${companyEmail}`}
                 className="inline-flex items-center gap-2 text-sm font-bold text-brand transition-colors hover:text-brand-hover dark:text-sky-300 dark:hover:text-sky-200 !no-underline"
               >
                 <Mail className="h-4 w-4" aria-hidden />
-                <span className="break-all">{t("footer.email")}</span>
+                <span className="break-all">{companyEmail}</span>
               </a>
               <p className="flex max-w-xl items-start gap-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand dark:text-sky-300" aria-hidden />
-                <span>{t("footer.address")}</span>
+                <span>{companyAddress}</span>
               </p>
               <a
-                href={FPT_CAN_THO_MAP_LINK}
+                href={mapLink}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-brand transition-colors hover:text-brand-hover dark:text-sky-300 dark:hover:text-sky-200 !no-underline"

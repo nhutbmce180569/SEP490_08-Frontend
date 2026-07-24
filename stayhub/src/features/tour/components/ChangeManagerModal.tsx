@@ -7,6 +7,7 @@ import { PaginationButton } from "../../../components/dashboard/PaginationButton
 import { useToast } from "../../../contexts/ToastContext";
 import { changeTourManager } from "../services/tour.service";
 import type { Tour } from "../types/tour";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface ChangeManagerModalProps {
   isOpen: boolean;
@@ -104,11 +105,11 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <div>
             <h2 className="text-lg font-semibold text-slate-800">
-              Select New Manager
+              {t("tour.selectNewManager") || "Select New Manager"}
             </h2>
             {tour && (
               <p className="text-sm text-slate-500 mt-1">
-                For tour: <span className="font-medium text-slate-700">{tour.name}</span>
+                {t("tour.forTour") || "For tour:"} <span className="font-medium text-slate-700"><DynamicText text={tour.name} /></span>
               </p>
             )}
           </div>
@@ -127,7 +128,7 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
               <Search className="h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by name..."
+                placeholder={t("common.searchByName") || "Search by name..."}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
                 value={searchName}
                 onChange={(e) => {
@@ -147,10 +148,10 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
                   setPage(1);
                 }}
               >
-                <option value="">All Roles</option>
-                <option value="Manager">Manager</option>
-                <option value="Admin">Admin</option>
-                <option value="Staff">Staff</option>
+                <option value="">{t("common.allRoles") || "All Roles"}</option>
+                <option value="Manager">{t("common.manager") || "Manager"}</option>
+                <option value="Admin">{t("common.admin") || "Admin"}</option>
+                <option value="Staff">{t("common.staff") || "Staff"}</option>
               </select>
             </div>
           </div>
@@ -158,17 +159,17 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
           {/* User List */}
           <div className="border rounded-xl border-slate-100 overflow-hidden">
             {isLoading ? (
-              <div className="flex justify-center p-8 text-brand">Loading...</div>
+              <div className="flex justify-center p-8 text-brand">{t("common.loading") || "Loading..."}</div>
             ) : users.length === 0 ? (
-              <div className="flex justify-center p-8 text-slate-500">No users found</div>
+              <div className="flex justify-center p-8 text-slate-500">{t("common.noUsersFound") || "No users found"}</div>
             ) : (
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-slate-500 border-b border-slate-100">
                   <tr>
-                    <th className="px-4 py-3 font-medium">User</th>
-                    <th className="px-4 py-3 font-medium">Phone</th>
-                    <th className="px-4 py-3 font-medium">Roles</th>
-                    <th className="px-4 py-3 font-medium text-right">Action</th>
+                    <th className="px-4 py-3 font-medium">{t("common.user") || "User"}</th>
+                    <th className="px-4 py-3 font-medium">{t("common.phone") || "Phone"}</th>
+                    <th className="px-4 py-3 font-medium">{t("common.roles") || "Roles"}</th>
+                    <th className="px-4 py-3 font-medium text-right">{t("common.action") || "Action"}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -196,7 +197,7 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
                         <div className="flex gap-1 flex-wrap">
                           {user.roles?.map(r => (
                             <span key={r} className="inline-block rounded bg-brand/10 px-2 py-0.5 text-[11px] font-medium text-brand">
-                              {r}
+                              {t(`common.${r.toLowerCase()}`) || r}
                             </span>
                           ))}
                         </div>
@@ -204,7 +205,7 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
                       <td className="px-4 py-3 border-b border-slate-100 text-right">
                         {user.id === tour?.createdBy ? (
                           <span className="inline-block rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-600 border border-emerald-200">
-                            Current Manager
+                            {t("tour.currentManager") || "Current Manager"}
                           </span>
                         ) : (
                           <button
@@ -214,7 +215,7 @@ export const ChangeManagerModal: React.FC<ChangeManagerModalProps> = ({
                               isUpdating || !user.roles?.includes("Manager") ? "opacity-50 cursor-not-allowed" : "hover:bg-brand-hover"
                             }`}
                           >
-                            Select
+                            {t("common.select") || "Select"}
                           </button>
                         )}
                       </td>

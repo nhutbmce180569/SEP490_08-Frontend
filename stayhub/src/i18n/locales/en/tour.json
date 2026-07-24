@@ -1,5 +1,8 @@
 {
   "allManagers": "All Managers",
+  "selectNewManager": "Select New Manager",
+  "forTour": "For tour:",
+  "currentManager": "Current Manager",
   "tourImages": "Gallery",
   "selectTransportation": "Select transportation",
   "transportationType": "Transportation Type",

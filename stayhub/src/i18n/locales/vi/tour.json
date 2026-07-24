@@ -1,5 +1,8 @@
 {
   "allManagers": "Tất cả Quản lý",
+  "selectNewManager": "Chọn Người Quản Lý Mới",
+  "forTour": "Cho tour:",
+  "currentManager": "Quản lý hiện tại",
   "tourImages": "Thư viện ảnh",
   "selectTransportation": "Chọn phương tiện",
   "transportationType": "Loại phương tiện",

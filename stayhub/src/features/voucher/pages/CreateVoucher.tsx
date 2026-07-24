@@ -126,30 +126,24 @@ export const CreateVoucher: React.FC = () => {
   );
 
   return (
-    <div className="mx-auto max-w-4xl pb-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-navy">{t('voucher.createNewVoucher')}</h1>
-        <p className="mt-1 text-sm text-slate-500">{t('voucher.createVoucherDesc')}</p>
-      </div>
-
-      <div className="relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
-        <DynamicForm
-          fields={voucherFields}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          submitText={t('common.create')}
-          cancelText={t('common.cancel')}
-          isSubmitting={isSubmitting}
-          serverErrors={serverErrors}
-          gridCols={2}
-          defaultValues={{
-            discountType: 'Percent',
-            availableCount: 1,
-            voucherTarget: createDefaultVoucherTarget(),
-          }}
-        />
-        <LoadingOverlay isOpen={isSubmitting} message={t('common.saving')} />
-      </div>
-    </div>
+    <>
+      <DynamicForm
+        title={t('voucher.createNewVoucher')}
+        description={t('voucher.createVoucherDesc')}
+        fields={voucherFields}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        submitText={t('common.create')}
+        cancelText={t('common.cancel')}
+        isSubmitting={isSubmitting}
+        serverErrors={serverErrors}
+        initialValues={{
+          discountType: 'Percent',
+          availableCount: 1,
+          voucherTarget: createDefaultVoucherTarget(),
+        }}
+      />
+      <LoadingOverlay isOpen={isSubmitting} message={t('common.saving')} />
+    </>
   );
 };

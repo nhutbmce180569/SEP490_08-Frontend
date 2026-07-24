@@ -16,7 +16,7 @@ const TopCustomerAssignmentSchema = z.object({
 const voucherShape = z.object({
   code: z.string().min(3, "codeMinLength").max(50, "codeMaxLength"),
   tourId: z.number().optional(),
-  discountType: z.enum(["Percentage", "FixedAmount"]),
+  discountType: z.enum(["Percent", "Amount"]),
   discountValue: z.number().min(1, "discountMin"),
   maxDiscountAmount: z.number().optional(),
   minOrderAmount: z.number().optional(),
@@ -29,7 +29,7 @@ const voucherShape = z.object({
 });
 
 export const baseVoucherSchema = voucherShape.refine((data) => {
-  if (data.discountType === "Percentage") {
+  if (data.discountType === "Percent") {
     return data.discountValue <= 100;
   }
   return true;
@@ -52,7 +52,7 @@ export const baseVoucherSchema = voucherShape.refine((data) => {
 });
 
 export const updateVoucherSchema = voucherShape.partial().omit({ code: true }).refine((data) => {
-  if (data.discountType === "Percentage" && data.discountValue !== undefined) {
+  if (data.discountType === "Percent" && data.discountValue !== undefined) {
     return data.discountValue <= 100;
   }
   return true;

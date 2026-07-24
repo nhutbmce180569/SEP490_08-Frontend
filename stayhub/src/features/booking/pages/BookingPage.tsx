@@ -1142,13 +1142,13 @@ export const BookingPage: React.FC = () => {
                   <div className="mb-5">
                     <VoucherCheckoutPanel
                       tourId={tour.id}
-                      billAmount={totalPrice}
+                      billAmount={effectiveTotalPrice}
                       voucherCode={voucherCode}
                       isApplying={isApplyingVoucher}
                       appliedVoucher={appliedVoucher}
                       onCodeChange={setVoucherCode}
-                      onApply={() => handleApplyVoucher(tour.id, totalPrice)}
-                      onApplySaved={(code) => handleApplySavedVoucher(code, tour.id, totalPrice)}
+                      onApply={() => handleApplyVoucher(tour.id, effectiveTotalPrice)}
+                      onApplySaved={(code) => handleApplySavedVoucher(code, tour.id, effectiveTotalPrice)}
                       onClear={clearAppliedVoucher}
                     />
                   </div>

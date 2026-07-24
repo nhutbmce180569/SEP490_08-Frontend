@@ -74,6 +74,16 @@
     "msgApproveSuccess": "Nội dung đã được duyệt sạch và giữ lại.",
     "msgRejectSuccess": "Nội dung vi phạm đã bị ẩn khỏi hệ thống.",
     "msgDismissSuccess": "Đã bỏ qua báo cáo vi phạm này.",
-    "msgActionFail": "Thao tác thất bại. Vui lòng thử lại."
+    "msgActionFail": "Thao tác thất bại. Vui lòng thử lại.",
+    "categoryFilter": "Phân loại:",
+    "allCategories": "Tất cả phân loại",
+    "sortFilter": "Sắp xếp:",
+    "sortNewest": "Mới nhất",
+    "sortOldest": "Cũ nhất",
+    "confirmKeepTitle": "Xác nhận Nội Dung Sạch",
+    "confirmKeepMsg": "Bạn có chắc chắn nội dung này an toàn và cần giữ lại?",
+    "confirmHideTitle": "Xác nhận Ẩn Nội Dung",
+    "confirmHideMsg": "Bạn có chắc chắn nội dung này vi phạm và cần bị ẩn?",
+    "confirmBtn": "Xác nhận"
   }
 }

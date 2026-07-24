@@ -26,6 +26,7 @@ import { useTranslation } from "../contexts/LocaleContext";
 import { getImg } from "../config/api/api";
 import { ActionButton } from "../components/dashboard/ActionButton";
 import { PaginationButton } from "../components/dashboard/PaginationButton";
+import { ConfirmDialog } from "../components/dashboard/ConfirmDialog";
 
 /* ── Reason color map ── */
 const REASON_COLOR: Record<string, string> = {
@@ -60,9 +61,16 @@ const ModerationDashboard: React.FC = () => {
   const [reports, setReports] = useState<ContentReport[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [filterType, setFilterType] = useState<string>("All");
+  const [reasonFilter, setReasonFilter] = useState<string>("All");
+  const [sortOrder, setSortOrder] = useState<"Newest" | "Oldest">("Newest");
   const [selectedReport, setSelectedReport] = useState<ContentReport | null>(null);
   const [blurImage, setBlurImage] = useState<boolean>(true);
   const [resolvingId, setResolvingId] = useState<number | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    action: "Approve" | "Reject" | null;
+    reportId: number | null;
+  }>({ open: false, action: null, reportId: null });
 
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -113,36 +121,20 @@ const ModerationDashboard: React.FC = () => {
   const commentCount = reports.filter(r => r.contentType === "Comment").length;
 
   const filteredReports = reports.filter((r) => {
-    if (filterType === "All") return true;
-    return r.contentType.toLowerCase() === filterType.toLowerCase();
+    const typeMatch = filterType === "All" || r.contentType.toLowerCase() === filterType.toLowerCase();
+    const reasonMatch = reasonFilter === "All" || r.reason === reasonFilter;
+    return typeMatch && reasonMatch;
+  }).sort((a, b) => {
+    const timeA = new Date(a.createdAt).getTime();
+    const timeB = new Date(b.createdAt).getTime();
+    return sortOrder === "Newest" ? timeB - timeA : timeA - timeB;
   });
 
   const totalPages = Math.ceil(filteredReports.length / pageSize);
   const paginatedReports = filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 dark:bg-slate-900/50">
-
-      {/* ── Header ── */}
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="flex items-center gap-2.5 text-2xl font-bold text-slate-800 dark:text-white">
-            <ShieldAlert className="h-7 w-7 text-brand" />
-            {t("manager.moderationDashboard.title")}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {t("manager.moderationDashboard.subtitle")}
-          </p>
-        </div>
-        <button
-          onClick={fetchReports}
-          disabled={loading}
-          className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          {t("manager.moderationDashboard.refresh")}
-        </button>
-      </div>
+    <div className="space-y-6">
 
       {/* ── Stats ── */}
       <div className="mb-6 grid grid-cols-3 gap-4">
@@ -159,12 +151,13 @@ const ModerationDashboard: React.FC = () => {
       </div>
 
       {/* ── Filters ── */}
-      <div className="mb-4 flex items-center gap-2">
-        {[
-          { key: "All",     label: t("manager.moderationDashboard.all"),      count: reports.length },
-          { key: "Moment",  label: t("manager.moderationDashboard.moments"), count: momentCount    },
-          { key: "Comment", label: t("manager.moderationDashboard.comments"),   count: commentCount   },
-        ].map(({ key, label, count }) => (
+      <div className="mb-4 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          {[
+            { key: "All",     label: t("manager.moderationDashboard.all"),      count: reports.length },
+            { key: "Moment",  label: t("manager.moderationDashboard.moments"), count: momentCount    },
+            { key: "Comment", label: t("manager.moderationDashboard.comments"),   count: commentCount   },
+          ].map(({ key, label, count }) => (
           <button
             key={key}
             onClick={() => handleFilterChange(key)}
@@ -184,6 +177,50 @@ const ModerationDashboard: React.FC = () => {
             </span>
           </button>
         ))}
+        </div>
+
+        {/* Reason Filter */}
+        <div className="flex items-center gap-2 sm:ml-4">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t("manager.moderationDashboard.categoryFilter")}</span>
+          <select
+            value={reasonFilter}
+            onChange={(e) => {
+              setReasonFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          >
+            <option value="All">{t("manager.moderationDashboard.allCategories")}</option>
+            {Array.from(new Set(reports.map(r => r.reason))).filter(Boolean).map(reason => (
+              <option key={reason} value={reason}>{reason}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Sort Filter */}
+        <div className="flex items-center gap-2 sm:ml-2">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{t("manager.moderationDashboard.sortFilter")}</span>
+          <select
+            value={sortOrder}
+            onChange={(e) => {
+              setSortOrder(e.target.value as "Newest" | "Oldest");
+              setCurrentPage(1);
+            }}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-sm focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+          >
+            <option value="Newest">{t("manager.moderationDashboard.sortNewest")}</option>
+            <option value="Oldest">{t("manager.moderationDashboard.sortOldest")}</option>
+          </select>
+        </div>
+
+        <button
+          onClick={fetchReports}
+          disabled={loading}
+          className="ml-auto flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          {t("manager.moderationDashboard.refresh")}
+        </button>
       </div>
 
       {/* ── Main Grid ── */}
@@ -281,36 +318,7 @@ const ModerationDashboard: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Quick-action buttons (visible on hover) */}
-                      <div
-                        className="flex shrink-0 flex-col gap-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          onClick={() => handleResolve(report.id, "Approve")}
-                          disabled={isResolving}
-                          title={t("manager.moderationDashboard.approve")}
-                          className="rounded-md p-1.5 text-emerald-600 hover:bg-emerald-50 disabled:opacity-40 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleResolve(report.id, "Reject")}
-                          disabled={isResolving}
-                          title={t("manager.moderationDashboard.reject")}
-                          className="rounded-md p-1.5 text-rose-600 hover:bg-rose-50 disabled:opacity-40 dark:text-rose-400 dark:hover:bg-rose-500/10"
-                        >
-                          <Ban className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleResolve(report.id, "Dismiss")}
-                          disabled={isResolving}
-                          title={t("manager.moderationDashboard.dismiss")}
-                          className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-500 dark:hover:bg-slate-700"
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </button>
-                      </div>
+
                     </div>
                   );
                 })}
@@ -448,30 +456,22 @@ const ModerationDashboard: React.FC = () => {
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex flex-col gap-2.5 pt-1">
+                <div className="flex gap-3 pt-1">
                   <ActionButton
-                    onClick={() => handleResolve(selectedReport.id, "Approve")}
+                    onClick={() => setConfirmDialog({ open: true, action: "Approve", reportId: selectedReport.id })}
                     variant="primary"
-                    className="w-full gap-2 py-2.5"
+                    className="flex-1 gap-2 py-2.5 !bg-emerald-600 !border-emerald-600 hover:!bg-emerald-700 shadow-md shadow-emerald-500/20 !text-white"
                   >
                     <CheckCircle className="h-4 w-4" />
                     {t("manager.moderationDashboard.actionApprove")}
                   </ActionButton>
                   <ActionButton
-                    onClick={() => handleResolve(selectedReport.id, "Reject")}
+                    onClick={() => setConfirmDialog({ open: true, action: "Reject", reportId: selectedReport.id })}
                     variant="warning"
-                    className="w-full gap-2 py-2.5"
+                    className="flex-1 gap-2 py-2.5 !bg-rose-600 !border-rose-600 hover:!bg-rose-700 shadow-md shadow-rose-500/20 !text-white"
                   >
                     <Ban className="h-4 w-4" />
                     {t("manager.moderationDashboard.actionReject")}
-                  </ActionButton>
-                  <ActionButton
-                    onClick={() => handleResolve(selectedReport.id, "Dismiss")}
-                    variant="secondary"
-                    className="w-full gap-2 py-2.5"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {t("manager.moderationDashboard.actionDismiss")}
                   </ActionButton>
                 </div>
               </div>
@@ -487,6 +487,26 @@ const ModerationDashboard: React.FC = () => {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, action: null, reportId: null })}
+        onConfirm={() => {
+          if (confirmDialog.reportId && confirmDialog.action) {
+            handleResolve(confirmDialog.reportId, confirmDialog.action);
+            setConfirmDialog({ open: false, action: null, reportId: null });
+          }
+        }}
+        title={confirmDialog.action === "Approve" ? t("manager.moderationDashboard.confirmKeepTitle") : t("manager.moderationDashboard.confirmHideTitle")}
+        message={
+          confirmDialog.action === "Approve"
+            ? t("manager.moderationDashboard.confirmKeepMsg")
+            : t("manager.moderationDashboard.confirmHideMsg")
+        }
+        confirmText={t("manager.moderationDashboard.confirmBtn")}
+        variant={confirmDialog.action === "Approve" ? "primary" : "warning"}
+        icon={confirmDialog.action === "Approve" ? <CheckCircle className="h-6 w-6 text-emerald-500" /> : <Ban className="h-6 w-6 text-rose-500" />}
+      />
     </div>
   );
 };

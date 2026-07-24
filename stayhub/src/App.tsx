@@ -48,6 +48,7 @@ import CreateUser from "./features/auth/pages/CreateUser";
 import UpdateUser from "./features/auth/pages/UpdateUser";
 import DeleteUserConfirm from "./features/auth/pages/DeleteUser";
 import { TourList } from "./features/tour/pages/TourList";
+import { SystemSettings } from "./features/system/pages/SystemSettings";
 import { CreateTour } from "./features/tour/pages/CreateTour";
 import { TourDetail } from "./features/tour/pages/TourDetail";
 import { UpdateTour } from "./features/tour/pages/UpdateTour";
@@ -331,8 +332,8 @@ const App: React.FC = () => {
                               element={<AiRecommendationsPage />}
                             />
                             <Route path={PATH.PUBLIC.TERMS} element={<TermsOfServicePage />} />
-                            <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
-                            <Route path={PATH.PUBLIC.BOOKING_TERMS} element={<BookingTermsPage />} />
+                              <Route path={PATH.PUBLIC.PRIVACY} element={<PrivacyPolicyPage />} />
+                              <Route path={PATH.PUBLIC.BOOKING_TERMS} element={<BookingTermsPage />} />
                             <Route path={PATH.PUBLIC.ABOUT} element={<AboutPage />} />
                             <Route
                               path={PATH.PUBLIC.NHUT_PORTFOLIO}
@@ -666,7 +667,7 @@ const App: React.FC = () => {
                               </Route>
                               <Route
                                 path={childPath(PATH.ADMIN.SYSTEM_SETTINGS)}
-                                element={mock("app.titles.systemSettings", "app.mockSystemSettings", "app.sectionAdmin")}
+                                element={<SystemSettings />}
                               />
                               <Route
                                 path={childPath(PATH.ADMIN.AI_CONSOLE)}

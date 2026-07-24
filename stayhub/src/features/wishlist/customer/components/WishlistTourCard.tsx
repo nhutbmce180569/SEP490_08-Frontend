@@ -6,6 +6,7 @@ import { getImg } from '../../../../config/api/api';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import type { ReadWishlistItemDTO } from '../types/customerWishlist';
 import { isTourActive } from '../utils/wishlistHelpers';
+import { DynamicText } from '../../../../components/DynamicText';
 
 const STATUS_STYLES: Record<string, string> = {
   Active: 'bg-emerald-100 text-emerald-700',
@@ -84,10 +85,10 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
       </div>
 
       <div className="flex flex-1 flex-col p-4">
-        <h3 className="mb-2 line-clamp-2 text-base font-black text-slate-900">{item.tourName}</h3>
+        <h3 className="mb-2 line-clamp-2 text-base font-black text-slate-900"><DynamicText text={item.tourName} /></h3>
 
         {item.tourDescription && (
-          <p className="mb-3 line-clamp-2 text-xs text-slate-500">{item.tourDescription}</p>
+          <p className="mb-3 line-clamp-2 text-xs text-slate-500"><DynamicText text={item.tourDescription} /></p>
         )}
 
         <div className="mb-4 flex items-center gap-1.5 text-xs text-slate-500">

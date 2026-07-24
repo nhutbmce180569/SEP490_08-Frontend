@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { getTrendPrediction } from "../services/trend.service";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { DynamicText } from "../../../components/DynamicText";
 import { Calendar, TrendingUp, MapPin, Star, Cloud, Users, BarChart3, Percent, Heart, Banknote, Loader2, Sparkles, HelpCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export const TrendPredictionPage: React.FC = () => {
@@ -21,7 +22,7 @@ export const TrendPredictionPage: React.FC = () => {
   };
 
   return (
-    <div className="page-container py-8 space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* 1. HERO HEADER BANNER (Harmonized Executive Navy & Brand Blue Corporate Gradient) */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-navy via-blue-900 to-indigo-950 dark:from-blue-950 dark:via-indigo-950 dark:to-slate-900 p-6 sm:p-10 shadow-2xl border border-slate-700/60">
         <div className="pointer-events-none absolute -right-16 -top-16 h-80 w-80 rounded-full bg-blue-500/15 blur-3xl" />
@@ -126,11 +127,13 @@ export const TrendPredictionPage: React.FC = () => {
                          evidence.type === 'interaction' ? <Users className="h-5 w-5" /> :
                          <TrendingUp className="h-5 w-5" />}
                       </div>
-                      <h3 className="font-bold text-navy dark:text-white leading-snug line-clamp-2">{evidence.title}</h3>
+                      <h3 className="font-bold text-navy dark:text-white leading-snug line-clamp-2">
+                        <DynamicText text={evidence.title} />
+                      </h3>
                     </div>
-                    <p className="text-xs text-text-muted leading-relaxed">
-                      {evidence.description}
-                    </p>
+                    <div className="text-xs text-text-muted leading-relaxed">
+                      <DynamicText text={evidence.description} isHtml={false} />
+                    </div>
                   </div>
                   <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between text-[11px] font-bold text-brand">
                     <span>{t("manager.trendPredictionPage.verifiedByAI")}</span>
@@ -149,9 +152,9 @@ export const TrendPredictionPage: React.FC = () => {
                 <span className="inline-block rounded-md bg-brand px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
                   {t("manager.trendPredictionPage.aiConclusionLabel")}
                 </span>
-                <p className="text-sm font-bold text-navy dark:text-white leading-relaxed">
-                  {data.reason}
-                </p>
+                <div className="text-sm font-bold text-navy dark:text-white leading-relaxed">
+                  <DynamicText text={data.reason} isHtml={false} />
+                </div>
               </div>
             </div>
 
@@ -217,13 +220,17 @@ export const TrendPredictionPage: React.FC = () => {
                           : 'bg-surface-page border-border-subtle'
                     }`}
                   >
-                    <span className="text-xs font-bold text-navy dark:text-white mb-1 truncate w-full">{prov.province}</span>
+                    <span className="text-xs font-bold text-navy dark:text-white mb-1 truncate w-full">
+                      <DynamicText text={prov.province} />
+                    </span>
                     <span className={`text-xl font-black ${
                       isHot ? 'text-rose-600 dark:text-rose-400' : isWarm ? 'text-amber-600 dark:text-amber-400' : 'text-navy dark:text-slate-300'
                     }`}>
                       {prov.hotnessScore}%
                     </span>
-                    <span className="text-[9px] uppercase font-extrabold tracking-wider text-text-muted mt-1">{prov.status}</span>
+                    <span className="text-[9px] uppercase font-extrabold tracking-wider text-text-muted mt-1">
+                      <DynamicText text={prov.status} />
+                    </span>
                   </div>
                 );
               })}
@@ -279,7 +286,7 @@ export const TrendPredictionPage: React.FC = () => {
                     <div className="absolute bottom-4 left-4 right-4 text-white">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-white/90">
                         <MapPin className="h-3.5 w-3.5 text-brand-light" />
-                        <span>{tour.city || t("manager.trendPredictionPage.vietnam")}</span>
+                        <span>{tour.city ? <DynamicText text={tour.city} /> : t("manager.trendPredictionPage.vietnam")}</span>
                       </div>
                     </div>
                   </div>
@@ -288,7 +295,7 @@ export const TrendPredictionPage: React.FC = () => {
                   <div className="flex flex-1 flex-col p-5 space-y-4 justify-between">
                     <div>
                       <h4 className="line-clamp-2 text-base font-bold text-navy dark:text-white group-hover:text-brand transition-colors">
-                        {tour.name}
+                        <DynamicText text={tour.name} />
                       </h4>
                     </div>
 

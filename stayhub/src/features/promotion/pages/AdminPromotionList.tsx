@@ -9,6 +9,7 @@ import { usePromotions } from '../hooks/usePromotions';
 import type { Promotion } from '../types/promotion';
 import { promotionService } from '../services/promotion.service';
 import { MoneyDisplay } from '../../currency/MoneyDisplay';
+import { DynamicText } from '../../../components/DynamicText';
 
 export const AdminPromotionList: React.FC = () => {
   const { t } = useTranslation();
@@ -75,7 +76,7 @@ export const AdminPromotionList: React.FC = () => {
       {
         header: t('admin.promotionName'),
         className: 'w-1/4 min-w-[200px]',
-        render: (item) => <span className="text-sm text-slate-600">{item.name}</span>,
+        render: (item) => <span className="text-sm text-slate-600"><DynamicText text={item.name} /></span>,
       },
       {
         header: t('admin.promotionDiscount'),

@@ -150,6 +150,8 @@ export function DashboardTopBar({
           <span className="text-xs font-semibold">{t("dashboard.home")}</span>
         </ActionButton>
 
+        <ThemeToggle className="hidden sm:flex h-9 w-9 border border-slate-200/50 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 rounded-full" />
+
         <LanguageCurrencySelector className="hidden md:block" />
         <NotificationBell />
 
@@ -198,6 +200,11 @@ export function DashboardTopBar({
                 <KeyRound className="h-4 w-4" />
                 {t("header.changePassword")}
               </button>
+              
+              <div className="px-3 py-2 border-t border-slate-100/80 mt-1">
+                <ThemeToggle variant="menu" className="w-full" />
+              </div>
+
               <button
                 type="button"
                 className="menu-item menu-item-danger mt-1"

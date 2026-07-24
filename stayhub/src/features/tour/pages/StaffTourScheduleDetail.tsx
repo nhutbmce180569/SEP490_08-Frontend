@@ -38,6 +38,7 @@ import {
   getScheduleTicketTypeId,
 } from "../utils/tourScheduleTicket";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const StaffTourScheduleDetail: React.FC = () => {
   const { t } = useTranslation();
@@ -207,65 +208,50 @@ export const StaffTourScheduleDetail: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40">
-          <Calendar className="h-16 w-16 text-white opacity-20" />
-          
-          <div className="absolute left-4 top-4">
-            <button
-              onClick={() => navigate(PATH.STAFF.SCHEDULES)}
-              className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md transition-colors hover:bg-white/30 z-10"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              {t("tour.backToSchedules")}
-            </button>
-          </div>
-
-          <div className="absolute right-4 top-4">
-            <span className="inline-block rounded-full bg-white/20 px-4 py-1.5 text-xs font-bold text-white shadow-sm backdrop-blur-md">
-              {t("tour.scheduleDetail")}
-            </span>
-          </div>
-        </div>
-
-        <div className="p-6 sm:p-10">
-          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div className="space-y-4">
+      {/* Info card */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="p-5 sm:p-6">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
-                Schedule {schedule.id}
+              <button
+                onClick={() => navigate(PATH.STAFF.SCHEDULES)}
+                className="mb-3 flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-brand transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                {t("tour.backToSchedules")}
+              </button>
+              <h1 className="text-xl font-extrabold text-slate-900">
+                {t("tour.scheduleDetail")} #{schedule.id}
               </h1>
-              <div className="mt-3 flex items-start sm:items-center gap-2 text-sm font-medium text-slate-600">
-                <Hash className="h-4 w-4 shrink-0 text-slate-400 mt-0.5 sm:mt-0" />
-                <span className="shrink-0 font-semibold text-slate-700">
-                  {t("tour.tourNameLabel")}
-                </span>
+              <div className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-600">
+                <Hash className="h-4 w-4 shrink-0 text-slate-400" />
+                <span className="shrink-0 font-semibold text-slate-700">{t("tour.tourNameLabel")}</span>
                 <span className="font-bold text-brand">
-                  {schedule.tour?.name || `ID: ${schedule.tourId}`}
+                  {schedule.tour?.name ? <DynamicText text={schedule.tour.name} /> : `ID: ${schedule.tourId}`}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-5">
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <Calendar className="h-4 w-4 text-emerald-500" />
                 {t("tour.departureDate")}
               </div>
-              <div className="text-base font-bold text-slate-900">
+              <div className="text-sm font-bold text-slate-900">
                 {schedule.departureDate
                   ? new Date(schedule.departureDate).toLocaleDateString("vi-VN")
                   : t("common.na")}
               </div>
             </div>
-
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
-              <div className="mb-1 flex items-center gap-2 text-sm font-semibold text-slate-500">
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <div className="mb-1 flex items-center gap-2 text-xs font-semibold text-slate-500">
                 <Clock className="h-4 w-4 text-rose-500" />
                 {t("tour.returnDate")}
               </div>
-              <div className="text-base font-bold text-slate-900">
+              <div className="text-sm font-bold text-slate-900">
                 {schedule.returnDate
                   ? new Date(schedule.returnDate).toLocaleDateString("vi-VN")
                   : t("common.na")}
@@ -273,22 +259,20 @@ export const StaffTourScheduleDetail: React.FC = () => {
             </div>
           </div>
 
-          <div className="mb-8">
-            <h2 className="mb-3 text-base font-bold text-slate-900">{t("tour.scheduleNote")}</h2>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 leading-relaxed text-slate-700">
+          <div>
+            <h2 className="mb-2 text-sm font-bold text-slate-900">{t("tour.scheduleNote")}</h2>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 leading-relaxed text-slate-700">
               {schedule.note ? (
-                <p className="whitespace-pre-wrap text-sm text-slate-600">{schedule.note}</p>
+                <div className="whitespace-pre-wrap text-sm text-slate-600"><DynamicText text={schedule.note} isHtml={false} /></div>
               ) : (
-                <p className="text-sm italic text-slate-400">
-                  {t("tour.noScheduleNotes")}
-                </p>
+                <p className="text-sm italic text-slate-400">{t("tour.noScheduleNotes")}</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex border-b border-slate-200 bg-slate-50">
           {([
             { key: "itinerary" as const, label: t("tour.scheduleItinerarySection"), icon: <Route className="h-4 w-4" /> },
@@ -411,7 +395,9 @@ export const StaffTourScheduleDetail: React.FC = () => {
                                         {idx + 1}
                                       </span>
                                       <div className="flex flex-col min-w-0">
-                                        <h4 className="truncate font-bold text-slate-800">{iti.title || t("tour.untitledItinerary")}</h4>
+                                      <h4 className="truncate font-bold text-slate-800">
+                                        {iti.title ? <DynamicText text={iti.title} /> : t("tour.untitledItinerary")}
+                                      </h4>
                                         <div className="flex items-center gap-2 text-[11px] text-slate-500">
                                           <span className="flex items-center gap-0.5">
                                             <Clock className="h-3 w-3" />
@@ -419,9 +405,9 @@ export const StaffTourScheduleDetail: React.FC = () => {
                                           </span>
                                           <span className="text-slate-300">•</span>
                                           <span className="flex items-center gap-0.5">
-                                            <MapPin className="h-3 w-3 text-emerald-500" />
-                                            {iti.locationName || t("tour.noLocationSpec")}
-                                          </span>
+                                              <MapPin className="h-3 w-3 text-emerald-500" />
+                                              {iti.locationName ? <DynamicText text={iti.locationName} /> : t("tour.noLocationSpec")}
+                                            </span>
                                         </div>
                                       </div>
                                     </div>
@@ -456,11 +442,17 @@ export const StaffTourScheduleDetail: React.FC = () => {
                                               </div>
                                               <div className="space-y-1.5 p-3">
                                                 <div className="flex flex-wrap items-center gap-1.5">
-                                                  <h5 className="font-bold text-slate-800">{tourismInfo.name}</h5>
-                                                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">{tourismInfo.type}</span>
+                                                  <h5 className="font-bold text-slate-800">
+                                                    <DynamicText text={tourismInfo.name} />
+                                                  </h5>
+                                                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">
+                                                    <DynamicText text={tourismInfo.type} />
+                                                  </span>
                                                 </div>
                                                 {tourismInfo.description && (
-                                                  <p className="text-xs leading-relaxed text-slate-500">{tourismInfo.description}</p>
+                                                  <div className="text-xs leading-relaxed text-slate-500">
+                                                    <DynamicText text={tourismInfo.description} isHtml={false} />
+                                                  </div>
                                                 )}
                                                 <div className="flex items-start gap-1.5 text-xs text-slate-500">
                                                   <Globe className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
@@ -592,12 +584,15 @@ export const StaffTourScheduleDetail: React.FC = () => {
                                 </div>
                                 <div className="min-w-0">
                                   <span className="font-semibold text-slate-800">
-                                    {getScheduleTicketName(ticket, ticketType)}
+                                    {getScheduleTicketName(ticket, ticketType) ? 
+                                      <DynamicText text={getScheduleTicketName(ticket, ticketType)!} /> 
+                                      : null
+                                    }
                                   </span>
                                   {ticket.note && (
-                                    <p className="mt-0.5 max-w-xs truncate text-xs font-medium text-slate-400">
-                                      {ticket.note}
-                                    </p>
+                                    <div className="mt-0.5 max-w-xs truncate text-xs font-medium text-slate-400">
+                                      <DynamicText text={ticket.note} isHtml={false} />
+                                    </div>
                                   )}
                                 </div>
                               </div>

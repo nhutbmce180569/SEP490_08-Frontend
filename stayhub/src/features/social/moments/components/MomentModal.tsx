@@ -9,6 +9,7 @@ import { useTranslation } from '../../../../contexts/LocaleContext';
 import { reportContent } from '../services/momentService';
 import { ShareTargetModal } from '../../chat/component/ShareTargetModal';
 import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
+import { DynamicText } from "../../../../components/DynamicText";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -368,7 +369,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                    ) : (
                      <span className="font-bold mr-2 text-slate-900 dark:text-white">{userFullName}</span>
                    )}
-                   <span className="text-slate-800 dark:text-slate-200">{moment.caption}</span>
+                   <span className="text-slate-800 dark:text-slate-200"><DynamicText text={moment.caption} /></span>
                  </div>
                </div>
             )}
@@ -414,7 +415,7 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                           </div>
                         </div>
                       ) : (
-                        <span className="text-slate-700 dark:text-slate-300 block">{c.text || c.comment}</span>
+                        <span className="text-slate-700 dark:text-slate-300 block"><DynamicText text={c.text || c.comment} /></span>
                       )}
                     </div>
                     

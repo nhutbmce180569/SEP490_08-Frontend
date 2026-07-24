@@ -4,6 +4,7 @@ import { X, Ticket } from 'lucide-react';
 import { useTranslation } from '../../../contexts/LocaleContext';
 import type { ReadTicketTypeDTO } from '../types/ticketType';
 import { ActionButton } from '../../../components/dashboard/ActionButton';
+import { DynamicText } from '../../../components/DynamicText';
 
 interface TicketTypeDetailModalProps {
   open: boolean;
@@ -63,13 +64,13 @@ export const TicketTypeDetailModal: React.FC<TicketTypeDetailModalProps> = ({
         <div className="space-y-4">
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("content.ticketTypeName")}</label>
-            <p className="text-base font-medium text-slate-800 mt-1">{ticketType.name}</p>
+            <p className="text-base font-medium text-slate-800 mt-1"><DynamicText text={ticketType.name} /></p>
           </div>
           
           <div>
             <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">{t("common.description")}</label>
             <div className="mt-1 max-h-40 overflow-y-auto rounded-lg bg-slate-50 p-3 text-sm text-slate-600 border border-slate-100">
-              {ticketType.description || t("common.na")}
+              {ticketType.description ? <DynamicText text={ticketType.description} /> : t("common.na")}
             </div>
           </div>
 

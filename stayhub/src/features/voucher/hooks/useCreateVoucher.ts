@@ -75,7 +75,8 @@ export const useCreateVoucher = () => {
     const localErrors: Record<string, string> = {};
 
     if (!validationResult.success) {
-      validationResult.error.errors.forEach(err => {
+      const issues = validationResult.error?.errors || (validationResult.error as any)?.issues || [];
+      issues.forEach((err: any) => {
         const path = err.path.join('.');
         localErrors[path] = t(`voucher.${err.message}`, { defaultValue: err.message });
       });

@@ -17,6 +17,7 @@ import { ActionButton } from "../../../../components/dashboard/ActionButton";
 import { Table, type Column } from "../../../../components/dashboard/Table";
 import { PaginationButton } from "../../../../components/dashboard/PaginationButton";
 import type { AssignedTourSchedule } from "../../../tour/types/tourScheduleStaff";
+import { DynamicText } from "../../../../components/DynamicText";
 
 export const LocationTrackingPage: React.FC = () => {
   const { t } = useTranslation();
@@ -97,7 +98,7 @@ export const LocationTrackingPage: React.FC = () => {
         render: (item) => (
           <div>
             <div className="font-semibold text-slate-900">
-              {item.tourName || t("social.trackingUntitledTour")}
+              {item.tourName ? <DynamicText text={item.tourName} /> : t("social.trackingUntitledTour")}
             </div>
             <div className="text-sm text-slate-500">
               ID: {item.scheduleId}

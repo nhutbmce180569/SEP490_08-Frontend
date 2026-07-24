@@ -9,6 +9,7 @@ import { useBanners } from "../hooks/useBanners";
 import { type ReadBannerDTO } from "../types/banner";
 import { getImg } from "../../../config/api/api";
 import { useChangeBannerStatus } from "../hooks/useChangeBannerStatus";
+import { DynamicText } from "../../../components/DynamicText";
 
 import { bannerService } from "../services/banner.service";
 import { useToast } from "../../../contexts/ToastContext";
@@ -92,7 +93,7 @@ export const BannerList: React.FC = () => {
       },
       {
         header: t("content.bannerTitle"),
-        render: (banner) => <span className="font-semibold text-slate-800">{banner.title}</span>,
+        render: (banner) => <span className="font-semibold text-slate-800"><DynamicText text={banner.title} /></span>,
       },
       {
         header: t("content.targetUrl"),
@@ -213,7 +214,7 @@ export const BannerList: React.FC = () => {
               : t("content.activateBannerConfirm")}
             {statusTarget && (
               <span className="mt-2 block font-semibold text-slate-700">
-                {statusTarget.title}
+                <DynamicText text={statusTarget.title} />
               </span>
             )}
           </span>
@@ -240,7 +241,7 @@ export const BannerList: React.FC = () => {
             <p className="mb-2">{t("content.deleteBannerWarning") || "Are you sure you want to delete this banner?"}</p>
             {deleteTarget && (
               <div className="rounded-lg bg-slate-50 p-3 text-left font-semibold text-slate-700">
-                {deleteTarget.title}
+                <DynamicText text={deleteTarget.title} />
               </div>
             )}
           </div>

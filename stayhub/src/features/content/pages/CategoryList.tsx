@@ -11,6 +11,7 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { deleteCategory } from "../services/category.service";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
+import { DynamicText } from "../../../components/DynamicText";
 
 import { useCategorySignalR } from "../hooks/useCategorySignalR";
 
@@ -114,7 +115,7 @@ export const CategoryList: React.FC = () => {
       {
         header: t("content.name"),
         className: "w-[22%] sm:w-[24%]",
-        render: (cat) => <span className="font-semibold text-slate-800 block truncate" title={cat.name}>{cat.name}</span>,
+        render: (cat) => <span className="font-semibold text-slate-800 block truncate" title={cat.name}><DynamicText text={cat.name} /></span>,
       },
       {
         header: t("content.slug"),
@@ -126,7 +127,7 @@ export const CategoryList: React.FC = () => {
         className: "w-[28%] sm:w-[30%]",
         render: (cat) => (
           <span className="text-sm text-slate-500 block w-full truncate" title={cat.description || undefined}>
-            {cat.description || t("common.na")}
+            {cat.description ? <DynamicText text={cat.description} /> : t("common.na")}
           </span>
         ),
       },
@@ -246,7 +247,7 @@ export const CategoryList: React.FC = () => {
             <p className="mb-2">{t("content.deleteCategoryWarning")}</p>
             {selectedCategory && (
               <div className="rounded-lg bg-slate-50 p-3 text-left">
-                <p><strong>{t("content.name")}:</strong> {selectedCategory.name}</p>
+                <p><strong>{t("content.name")}:</strong> <DynamicText text={selectedCategory.name} /></p>
                 <p><strong>{t("content.slug")}:</strong> {selectedCategory.slug}</p>
               </div>
             )}
@@ -272,7 +273,7 @@ export const CategoryList: React.FC = () => {
             </p>
             {selectedCategoryForStatus && (
               <div className="rounded-lg bg-slate-50 p-3 text-left">
-                <p><strong>{t("content.name")}:</strong> {selectedCategoryForStatus.name}</p>
+                <p><strong>{t("content.name")}:</strong> <DynamicText text={selectedCategoryForStatus.name} /></p>
                 <p><strong>{t("content.slug")}:</strong> {selectedCategoryForStatus.slug}</p>
               </div>
             )}
@@ -303,7 +304,7 @@ export const CategoryList: React.FC = () => {
                   )}
                 </div>
                 <div>
-                  <h4 className="text-xl font-bold text-slate-900">{selectedCategoryForView.name}</h4>
+                  <h4 className="text-xl font-bold text-slate-900"><DynamicText text={selectedCategoryForView.name} /></h4>
                   <p className="text-sm text-slate-500">{selectedCategoryForView.slug}</p>
                 </div>
               </div>
@@ -311,7 +312,7 @@ export const CategoryList: React.FC = () => {
                 <div className="flex flex-col gap-2">
                   <span className="font-semibold text-slate-500">{t("common.description")}:</span>
                   <div className="font-medium whitespace-pre-wrap break-words leading-relaxed text-slate-800">
-                    {selectedCategoryForView.description || t("common.na")}
+                    {selectedCategoryForView.description ? <DynamicText text={selectedCategoryForView.description} isHtml={true} /> : t("common.na")}
                   </div>
                 </div>
                 <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">

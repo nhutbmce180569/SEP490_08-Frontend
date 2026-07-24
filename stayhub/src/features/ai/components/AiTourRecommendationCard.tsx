@@ -26,6 +26,7 @@ import {
   getDisplayMatchTags,
 } from "../utils/customerMatchReasons";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   tour: TourRecommendationItem;
@@ -124,7 +125,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
         <div className="flex flex-1 flex-col p-3.5">
           <p className="mb-1 flex items-center gap-1 text-[11px] font-semibold text-slate-500">
             <MapPin size={12} className="text-brand" />
-            <span className="truncate">{location}</span>
+            <span className="truncate"><DynamicText text={location} /></span>
           </p>
 
           <Link
@@ -133,7 +134,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             className="!no-underline"
           >
             <h3 className="line-clamp-2 text-sm font-black leading-snug text-slate-900 hover:text-brand">
-              {tour.name}
+              <DynamicText text={tour.name} />
             </h3>
           </Link>
 
@@ -230,7 +231,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
         <div className="flex min-w-0 flex-1 flex-col p-3">
           <div className="mb-0.5 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-slate-400">
             <MapPin size={10} className="text-brand" />
-            <span className="truncate">{location}</span>
+            <span className="truncate"><DynamicText text={location} /></span>
             {variant === "nearby" && (
               <span className="rounded bg-amber-100 px-1 py-0.5 text-[8px] text-amber-800">
                 {t("ai.nearbyDateBadge")}
@@ -244,7 +245,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             className="!no-underline"
           >
             <h3 className="line-clamp-2 text-sm font-black leading-snug text-slate-900 hover:text-brand">
-              {tour.name}
+              <DynamicText text={tour.name} />
             </h3>
           </Link>
 
@@ -380,7 +381,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
         <div className="mb-2 flex items-center gap-1.5">
           <MapPin size={13} style={{ color: "var(--color-brand)" }} />
           <span className="truncate text-[11px] font-black uppercase tracking-[0.15em] text-slate-400">
-            {location}
+            <DynamicText text={location} />
           </span>
         </div>
 
@@ -390,7 +391,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
           className="!no-underline"
         >
           <h3 className="mb-2 line-clamp-2 text-base font-black text-slate-900 hover:text-brand transition-colors">
-            {tour.name}
+            <DynamicText text={tour.name} />
           </h3>
         </Link>
 

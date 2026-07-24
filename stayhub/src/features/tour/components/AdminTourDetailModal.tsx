@@ -3,6 +3,7 @@ import { X, MapPin, Navigation, Star } from "lucide-react";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { type Tour } from "../types/tour";
 import { ManagerCell } from "./ManagerCell";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface AdminTourDetailModalProps {
   tour: Tour | null;
@@ -17,6 +18,16 @@ export const AdminTourDetailModal: React.FC<AdminTourDetailModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const [showFullDesc, setShowFullDesc] = useState(false);
+
+  const getStatusLabel = (status?: string | null) => {
+    const map: Record<string, string> = {
+      Active: t("common.active"),
+      Draft: t("tour.draft"),
+      Full: t("tour.full"),
+      Banned: t("tour.banned"),
+    };
+    return map[status || "Draft"] ?? status ?? t("tour.draft");
+  };
 
   if (!tour) return null;
 
@@ -60,7 +71,7 @@ export const AdminTourDetailModal: React.FC<AdminTourDetailModalProps> = ({
             <div className="flex flex-col flex-1">
               <div className="flex items-start justify-between gap-4">
                 <h3 className="text-lg font-bold text-slate-900 leading-tight">
-                  {tour.name}
+                  <DynamicText text={tour.name} />
                 </h3>
                 <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shrink-0">
                   ID: {tour.id}
@@ -71,14 +82,14 @@ export const AdminTourDetailModal: React.FC<AdminTourDetailModalProps> = ({
                 {categoryName && (
                   <div className="flex items-center gap-1.5 text-sm text-slate-600">
                     <Navigation className="h-4 w-4 text-brand" />
-                    <span className="font-medium">{categoryName}</span>
+                    <span className="font-medium"><DynamicText text={categoryName} /></span>
                   </div>
                 )}
                 
                 {(tour.city || tour.country) && (
                   <div className="flex items-center gap-1.5 text-sm text-slate-600">
                     <MapPin className="h-4 w-4 text-brand" />
-                    <span>{[tour.city, tour.country].filter(Boolean).join(", ")}</span>
+                    <span><DynamicText text={[tour.city, tour.country].filter(Boolean).join(", ")} /></span>
                   </div>
                 )}
               </div>
@@ -113,8 +124,9 @@ export const AdminTourDetailModal: React.FC<AdminTourDetailModalProps> = ({
               <div className="flex flex-col items-start">
                 <div 
                   className={`text-sm text-slate-600 whitespace-pre-wrap leading-relaxed prose prose-sm max-w-none ${!showFullDesc ? "line-clamp-4 overflow-hidden" : ""}`}
-                  dangerouslySetInnerHTML={{ __html: tour.description.replace(/&nbsp;/g, ' ') }} 
-                />
+                >
+                  <DynamicText text={tour.description.replace(/&nbsp;/g, ' ')} isHtml={true} />
+                </div>
                 {tour.description.replace(/<[^>]+>/g, '').length > 200 && (
                   <button 
                     onClick={() => setShowFullDesc(!showFullDesc)} 
@@ -131,8 +143,8 @@ export const AdminTourDetailModal: React.FC<AdminTourDetailModalProps> = ({
           
           <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-5">
             <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
-               <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Status</h5>
-               <p className="text-sm font-semibold text-slate-800">{tour.status || t("tour.draft")}</p>
+               <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t("common.status")}</h5>
+               <p className="text-sm font-semibold text-slate-800">{getStatusLabel(tour.status)}</p>
             </div>
              <div className="rounded-xl bg-slate-50 p-4 border border-slate-100">
                <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t("tour.createdBy")}</h5>

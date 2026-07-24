@@ -11,6 +11,7 @@ import { AdminTourDetailModal } from "../components/AdminTourDetailModal";
 import { ManagerCell } from "../components/ManagerCell";
 import { userService } from "../../auth/services/user.service";
 import type { ReadUserDTO } from "../../auth/types/user";
+import { DynamicText } from "../../../components/DynamicText";
 
 const STATUS_STYLES: Record<string, string> = {
   Active: "bg-emerald-50 text-emerald-600",
@@ -109,7 +110,7 @@ export const AdminTourList: React.FC = () => {
         header: t("tour.tourNameCol"),
         render: (tour) => (
           <span className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
-            {tour.name}
+            <DynamicText text={tour.name} />
           </span>
         ),
       },
@@ -117,7 +118,7 @@ export const AdminTourList: React.FC = () => {
         header: t("tour.category"),
         render: (tour) => (
           <span className="text-sm text-slate-600">
-            {categoryNameById.get(tour.categoryId) ?? `ID ${tour.categoryId}`}
+            {categoryNameById.get(tour.categoryId) ? <DynamicText text={categoryNameById.get(tour.categoryId)!} /> : `ID ${tour.categoryId}`}
           </span>
         ),
       },
@@ -238,7 +239,7 @@ export const AdminTourList: React.FC = () => {
                 setManagerIdFilter(val ? Number(val) : undefined);
               }}
             >
-              <option value="">All Managers</option>
+              <option value="">{t("tour.allManagers")}</option>
               {managers.map(manager => (
                 <option key={manager.id} value={manager.id}>
                   {manager.fullName}

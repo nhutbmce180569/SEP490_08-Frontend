@@ -35,6 +35,7 @@ import { tourismInformationService } from "../../content/services/tourismInforma
 import type { TourScheduleItinerary } from "../../tour/types/tourScheduleItinerary";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { useToast } from "../../../contexts/ToastContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 const formatDate = (date: Date, locale: string) => new Intl.DateTimeFormat(locale, {
   weekday: "short",
@@ -389,14 +390,14 @@ export const OrderDetailPage: React.FC = () => {
                   </p>
                 )}
                 <h1 className="text-xl font-bold leading-tight text-slate-950 sm:text-2xl">
-                  {order.tour?.name || t("booking.tourBooking")}
+                  {order.tour?.name ? <DynamicText text={order.tour.name} /> : t("booking.tourBooking")}
                 </h1>
                 <p className="flex items-center gap-2 text-sm font-medium text-slate-600">
                   <MapPin className="h-4 w-4 shrink-0 text-brand" />
                   <span className="truncate">
-                    {[order.tour?.city, order.tour?.country]
-                      .filter(Boolean)
-                      .join(", ") || t("booking.variousLocations")}
+                    {[order.tour?.city, order.tour?.country].filter(Boolean).length > 0 
+                      ? <DynamicText text={[order.tour?.city, order.tour?.country].filter(Boolean).join(", ")} /> 
+                      : t("booking.variousLocations")}
                   </span>
                 </p>
               </div>
@@ -985,7 +986,7 @@ export const OrderDetailPage: React.FC = () => {
                                         {timeStr}
                                       </div>
                                       <h4 className="font-semibold text-slate-800 text-sm sm:text-base">
-                                        {iti.title}
+                                        <DynamicText text={iti.title} />
                                       </h4>
                                     </div>
                                     <div className="text-slate-400 shrink-0 ml-4">
@@ -1001,7 +1002,7 @@ export const OrderDetailPage: React.FC = () => {
                                     <div className="bg-slate-50/50 px-5 pb-5 pt-2 sm:pl-[130px]">
                                       {iti.description && (
                                         <p className="mb-4 text-sm leading-relaxed text-slate-600">
-                                          {iti.description}
+                                          <DynamicText text={iti.description} />
                                         </p>
                                       )}
 
@@ -1013,7 +1014,7 @@ export const OrderDetailPage: React.FC = () => {
                                             <div className="flex items-center gap-2">
                                               <MapPin className="h-4 w-4 text-emerald-500 shrink-0" />
                                               <span className="font-medium text-slate-700">
-                                                {iti.locationName}
+                                                <DynamicText text={iti.locationName} />
                                               </span>
                                             </div>
                                           )}
@@ -1024,7 +1025,7 @@ export const OrderDetailPage: React.FC = () => {
                                                 <span className="font-semibold text-slate-700">
                                                   {t("booking.startLocation")}
                                                 </span>{" "}
-                                                {iti.startLocationName}
+                                                <DynamicText text={iti.startLocationName} />
                                               </div>
                                             </div>
                                           )}
@@ -1035,7 +1036,7 @@ export const OrderDetailPage: React.FC = () => {
                                                 <span className="font-semibold text-slate-700">
                                                   {t("booking.endLocation")}
                                                 </span>{" "}
-                                                {iti.endLocationName}
+                                                <DynamicText text={iti.endLocationName} />
                                               </div>
                                             </div>
                                           )}
@@ -1064,15 +1065,15 @@ export const OrderDetailPage: React.FC = () => {
                                               <div className="space-y-2 p-4">
                                                 <div className="flex flex-wrap items-center gap-2">
                                                   <span className="font-bold text-slate-800">
-                                                    {tourismInfo.name}
+                                                    <DynamicText text={tourismInfo.name} />
                                                   </span>
                                                   <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-600">
-                                                    {tourismInfo.type}
+                                                    <DynamicText text={tourismInfo.type} />
                                                   </span>
                                                 </div>
                                                 {tourismInfo.description && (
                                                   <p className="text-xs leading-relaxed text-slate-500">
-                                                    {tourismInfo.description}
+                                                    <DynamicText text={tourismInfo.description} />
                                                   </p>
                                                 )}
                                                 <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
@@ -1195,7 +1196,7 @@ export const OrderDetailPage: React.FC = () => {
                                 {t("booking.passenger", { count: idx + 1 })}
                               </span>
                               <span className="mt-0.5 block truncate text-xs font-medium text-brand">
-                                {ticketTypeName}
+                                <DynamicText text={ticketTypeName} />
                               </span>
                             </div>
                             <span
@@ -1230,7 +1231,7 @@ export const OrderDetailPage: React.FC = () => {
                                 {t("booking.ticketType")}
                               </p>
                               <p className="font-medium text-slate-900">
-                                {ticketTypeName}
+                                <DynamicText text={ticketTypeName} />
                               </p>
                             </div>
                             <div>

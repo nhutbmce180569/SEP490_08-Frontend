@@ -14,6 +14,7 @@ import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { tourScheduleStaffService } from "../services/tourScheduleStaffService.service";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import type { AssignedTourSchedule } from "../types/tourScheduleStaff";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const AssignedSchedulesPage: React.FC = () => {
   const { t } = useTranslation();
@@ -95,8 +96,8 @@ export const AssignedSchedulesPage: React.FC = () => {
         className: "min-w-[280px]",
         render: (item) => (
           <div>
-            <div className="font-semibold text-slate-900">
-              {item.tourName || t("tour.unnamedTour")}
+          <div className="font-semibold text-slate-900">
+              {item.tourName ? <DynamicText text={item.tourName} /> : t("tour.unnamedTour")}
             </div>
             <div className="text-sm text-slate-500">
               ID: {item.scheduleId}
@@ -149,10 +150,8 @@ export const AssignedSchedulesPage: React.FC = () => {
                                 : "bg-slate-100 text-slate-600"; // default
 
           return (
-            <span
-              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${colorClass}`}
-            >
-              {role || t("tour.staff")}
+            <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${colorClass}`}>
+              {role ? <DynamicText text={role} /> : t("tour.staff")}
             </span>
           );
         },

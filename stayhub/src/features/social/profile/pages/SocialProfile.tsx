@@ -2,8 +2,8 @@ import React, { useContext, useState, useMemo, useEffect, useCallback, useRef } 
 import { useParams, useNavigate } from 'react-router-dom';
 import { Search, Loader2, Calendar, User, Globe, Users, Lock, ImageOff, UserCheck, UserX, Clock, MessageCircle, UserPlus, Settings } from 'lucide-react';
 import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
-import { getImg } from '../../../../config/api/api';
-import { useTranslation } from '../../../../contexts/LocaleContext';
+import { useTranslation } from "../../../../contexts/LocaleContext";
+import { DynamicText } from "../../../../components/DynamicText";
 import { AuthContext } from '../../../../contexts/AuthContext';
 import { useGetFriendshipStatus, useSendFriendRequest, useRespondToRequest, useDeleteFriendship, useGetFriendships, useGetPendingRequests, useGetSentRequests } from '../../friends/hooks/useFriends';
 import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { MomentModal } from '../../moments/components/MomentModal';
 import { useToggleReaction, useGetMomentById } from '../../moments/hooks/useMoments';
 import { useQueryClient } from '@tanstack/react-query';
+import { getImg } from '../../../../config/api/api';
 
 export const SocialProfile: React.FC = () => {
   const { t, locale } = useTranslation();
@@ -254,14 +255,6 @@ export const SocialProfile: React.FC = () => {
     
     // Safely check if outgoing by ensuring both IDs are defined
     const isOutgoing = !!requesterId && !!currentUserId && String(requesterId) === String(currentUserId);
-
-    console.log("[SocialProfile] Friendship status check:", {
-      status,
-      requesterId,
-      currentUserId,
-      isOutgoing,
-      friendshipStatus
-    });
 
     const handleChatClick = () => {
       createChat(Number(id), {
@@ -565,8 +558,8 @@ export const SocialProfile: React.FC = () => {
                     </div>
                     
                     {moment.caption && (
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 pt-12 transition-opacity">
-                        <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm">{moment.caption}</p>
+                      <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                        <p className="line-clamp-2 text-sm font-medium leading-relaxed text-white drop-shadow-sm"><DynamicText text={moment.caption} /></p>
                         {moment.createdAt && (
                           <p className="mt-1.5 text-[11px] font-bold text-white/60">
                             {new Date(moment.createdAt).toLocaleDateString(dateLocale)}

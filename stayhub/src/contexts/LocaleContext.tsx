@@ -37,6 +37,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     setLocaleState(next);
     persistLocale(next);
     window.dispatchEvent(new CustomEvent("localeChanged", { detail: next }));
+    window.location.reload();
   }, []);
 
   const toggleLocale = useCallback(() => {

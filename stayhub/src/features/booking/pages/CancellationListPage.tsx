@@ -11,6 +11,7 @@ import type { CancellationRequestListDTO } from "../types/cancellation";
 import { MANAGER_ROUTES } from "../../../config/routes/manager.routes";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { tourService } from "../../tour/services/tour.service";
+import { DynamicText } from "../../../components/DynamicText";
 
 const formatDate = (date?: string) => {
   if (!date) return "";
@@ -86,7 +87,7 @@ export const CancellationListPage: React.FC = () => {
         render: (item) => (
           <div className="flex flex-col max-w-[220px]">
             <span className="font-medium text-slate-800 text-sm truncate" title={item.tourName || ""}>
-              {item.tourName || t("common.na")}
+              {item.tourName ? <DynamicText text={item.tourName} /> : t("common.na")}
             </span>
             {item.tourId && <span className="text-[11px] text-slate-400">ID: #{item.tourId}</span>}
           </div>
@@ -187,7 +188,7 @@ export const CancellationListPage: React.FC = () => {
               <option value="">{t("booking.allTours") || "Tất cả các tour"}</option>
               {myTours.map((tour) => (
                 <option key={tour.id} value={tour.id}>
-                  #{tour.id} - {tour.name}
+                  #{tour.id} - <DynamicText text={tour.name} />
                 </option>
               ))}
             </select>

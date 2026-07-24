@@ -28,6 +28,7 @@ import { AuthContext } from '../../../../contexts/AuthContext';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { useShareLocation } from '../../tracking/hooks/useLocationTracking';
+import { DynamicText } from '../../../../components/DynamicText';
 import { useChatNotification } from './ChatNotificationContext';
 import { useTourAssistantChat } from '../../../ai/hooks/useTourAssistantChat';
 import { SystemFaqBrowser } from '../../../ai/components/SystemFaqBrowser';
@@ -492,7 +493,7 @@ export const GlobalChatPopover: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1.5">
                         <span className={`text-xs truncate ${hasUnread ? 'font-black text-slate-900' : 'font-semibold text-slate-700'}`}>
-                          {getRoomDisplayName(room)}
+                          {room.scheduleId != null ? <DynamicText text={getRoomDisplayName(room)} /> : getRoomDisplayName(room)}
                         </span>
                         {room.lastMessageCreatedAt && (
                           <span className="text-[10px] text-slate-400 flex-none font-medium">
@@ -620,7 +621,7 @@ export const GlobalChatPopover: React.FC = () => {
                   {selectedRoom?.avatarUrl ? <img src={selectedRoom.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span>{getInitials(getRoomDisplayName(selectedRoom))}</span>}
                 </div>
                 <span className="text-xs font-extrabold text-slate-800 truncate group-hover:text-brand transition-colors">
-                  {getRoomDisplayName(selectedRoom)}
+                  {selectedRoom?.scheduleId != null ? <DynamicText text={getRoomDisplayName(selectedRoom)} /> : getRoomDisplayName(selectedRoom)}
                 </span>
               </div>
             </div>

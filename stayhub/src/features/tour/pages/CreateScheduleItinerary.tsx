@@ -33,6 +33,7 @@ import { TourismInformationSelector } from "../../content/components/TourismInfo
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 import {
   downloadScheduleItineraryExcelTemplate,
   parseScheduleItineraryExcel,
@@ -400,9 +401,17 @@ export const CreateScheduleItinerary: React.FC = () => {
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
               {t("tour.createScheduleItineraryBatchDesc")} #{scheduleId}
-              {schedule
-                ? ` (${t("tour.tour")}: ${schedule.tour?.name || `ID ${schedule.tourId}`})`
-                : ""}
+              {schedule && (
+                <>
+                  {" "}
+                  ({t("tour.tour")}:{" "}
+                  {schedule.tour?.name ? (
+                    <DynamicText text={schedule.tour.name} />
+                  ) : (
+                    `ID ${schedule.tourId}`
+                  )})
+                </>
+              )}
             </p>
           </div>{" "}
           <div className="flex w-full sm:w-auto shrink-0 justify-end gap-3">
@@ -593,7 +602,7 @@ export const CreateScheduleItinerary: React.FC = () => {
                                         {timeStr}
                                       </div>
                                       <p className="text-sm font-semibold text-slate-700">
-                                        {iti.title}
+                                        {iti.title ? <DynamicText text={iti.title} /> : ""}
                                       </p>
                                     </div>
                                     {isExpanded ? (
@@ -605,26 +614,20 @@ export const CreateScheduleItinerary: React.FC = () => {
                                   {isExpanded && (
                                     <div className="border-t border-slate-100 bg-slate-50/30 px-4 pb-4 pt-3 sm:pl-10">
                                       {iti.description && (
-                                        <div
-                                          className="prose prose-sm max-w-none mb-3 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
-                                          dangerouslySetInnerHTML={{
-                                            __html: iti.description.replace(
-                                              /&nbsp;/g,
-                                              " ",
-                                            ),
-                                          }}
-                                        />
+                                        <div className="prose prose-sm max-w-none mb-3 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5">
+                                          <DynamicText text={iti.description.replace(/&nbsp;/g, " ")} isHtml />
+                                        </div>
                                       )}
                                       <div className="flex items-center gap-1.5 text-xs text-slate-500">
                                         <MapPin className="h-3.5 w-3.5 text-emerald-500" />
                                         <span className="font-medium">
-                                          {iti.locationName || t("common.na")}
+                                          {iti.locationName ? <DynamicText text={iti.locationName} /> : t("common.na")}
                                         </span>
                                       </div>
                                       {tourismInfo && (
                                         <div className="mt-2 text-xs text-slate-500 flex items-center gap-1.5">
                                            <Info className="h-3.5 w-3.5 text-blue-500" />
-                                           <span className="font-medium">{tourismInfo.name} ({tourismInfo.type})</span>
+                                           <span className="font-medium"><DynamicText text={tourismInfo.name} /> ({t(`content.tourismType${tourismInfo.type}`, { defaultValue: tourismInfo.type })})</span>
                                            {tourismInfo.sourceUrl && <a href={tourismInfo.sourceUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline"><ExternalLink size={12} /></a>}
                                         </div>
                                       )}

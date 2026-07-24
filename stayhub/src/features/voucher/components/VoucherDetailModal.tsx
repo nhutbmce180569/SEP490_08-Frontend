@@ -20,6 +20,7 @@ import {
   STATUS_STYLES,
 } from '../utils/voucherHelpers';
 import { MoneyDisplay } from '../../currency/MoneyDisplay';
+import { DynamicText } from '../../../components/DynamicText';
 
 interface VoucherDetailModalProps {
   id: number | string | null;
@@ -183,7 +184,7 @@ export const VoucherDetailModal: React.FC<VoucherDetailModalProps> = ({ id, onCl
               <DetailCard
                 icon={<Ticket className="h-4 w-4" />}
                 label={t('voucher.tour')}
-                value={voucher.tourName || t('voucher.allTours')}
+                value={voucher.tourName ? <DynamicText text={voucher.tourName} /> : t('voucher.allTours')}
               />
               <DetailCard
                 icon={<Tag className="h-4 w-4" />}

@@ -10,6 +10,7 @@ import { getFreeApiImage, HOME_GLASS, HOME_GLASS_MEDIA } from "./shared";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { MoneyDisplay } from "../../../features/currency/MoneyDisplay";
 import { getTourDurationDays } from "../../../features/tour/utils/tourDuration";
+import { DynamicText } from "../../DynamicText";
 
 const getTourLowestTicketPrice = (tour: Tour) => {
   const prices =
@@ -113,15 +114,15 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
               <div className="mb-4 flex flex-wrap gap-2">
                 <span className="home-glass-chip flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white">
                   <MapPin size={14} />
-                  {featuredMeta.location}
+                  <DynamicText text={featuredMeta.location} />
                 </span>
                 <span className="home-glass-chip flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white">
                   <Clock size={14} />
                   {featuredMeta.duration}
                 </span>
               </div>
-              <h3 className="travel-heading max-w-2xl text-2xl text-white sm:text-4xl">
-                {featured.name}
+              <h3 className="travel-heading max-w-2xl text-2xl text-white sm:text-4xl" title={featured.name}>
+                <DynamicText text={featured.name} />
               </h3>
               <div className="mt-6 flex items-end justify-between gap-4">
                 <div>
@@ -171,10 +172,12 @@ export const HomeFeaturedTours: React.FC<HomeFeaturedToursProps> = ({
                   <div>
                     <p className="mb-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-brand">
                       <MapPin size={11} />
-                      <span className="truncate">{meta.location}</span>
+                      <span className="truncate">
+                        <DynamicText text={meta.location} />
+                      </span>
                     </p>
-                    <h4 className="line-clamp-2 text-sm font-bold leading-snug text-navy group-hover:text-brand">
-                      {tour.name}
+                    <h4 className="line-clamp-2 text-sm font-bold leading-snug text-navy group-hover:text-brand" title={tour.name}>
+                      <DynamicText text={tour.name} />
                     </h4>
                   </div>
                   <div className="mt-2 flex items-center justify-between text-xs font-semibold">

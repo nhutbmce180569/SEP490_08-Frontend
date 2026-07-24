@@ -9,6 +9,7 @@ import { MomentModal } from "./MomentModal";
 import type { Moment } from "../types/moment.type";
 import { reportContent } from "../services/momentService";
 import { ConfirmDialog } from "../../../../components/dashboard/ConfirmDialog";
+import { DynamicText } from "../../../../components/DynamicText";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -251,7 +252,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
               ) : (
                 <span className="font-bold mr-2">{userFullName}</span>
               )}
-              {moment.caption}
+              <DynamicText text={moment.caption} />
             </div>
           )}
           

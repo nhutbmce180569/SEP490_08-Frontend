@@ -14,6 +14,7 @@ import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { getGenderDisplay } from "../../auth/pages/UserList";
 import { categoryService } from "../../content/services/category.service";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { DynamicText } from "../../../components/DynamicText";
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -175,11 +176,18 @@ export const ProcessCancellationPage: React.FC = () => {
               <h2 className="text-xl font-bold text-slate-900 break-words">
                 {t("booking.requestDetails", { id: detail.id })}
               </h2>
-              <p className="mt-1 text-sm text-slate-500 break-words">
+              <p className="mt-1 text-sm text-slate-500 break-words flex flex-wrap items-center">
                 {t("booking.tourCustomer", {
-                  tour: detail.tour?.name || t("booking.tourNa"),
+                  tour: "___TOUR___",
                   id: detail.customer?.id ?? t("common.na"),
-                })}
+                }).split("___TOUR___").map((part, index, array) => (
+                  <React.Fragment key={index}>
+                    {part}
+                    {index < array.length - 1 && (
+                      detail.tour?.name ? <DynamicText text={detail.tour.name} /> : t("booking.tourNa")
+                    )}
+                  </React.Fragment>
+                ))}
               </p>
             </div>
           </div>
@@ -391,30 +399,35 @@ export const ProcessCancellationPage: React.FC = () => {
                 <DetailRow
                   label={t("booking.categoryName") || "Tên danh mục"}
                   value={
-                    categoryData?.name ||
-                    (detail.tour?.categoryId ? `#${detail.tour.categoryId}` : t("common.na"))
+                    categoryData?.name ? (
+                      <DynamicText text={categoryData.name} />
+                    ) : detail.tour?.categoryId ? (
+                      `#${detail.tour.categoryId}`
+                    ) : (
+                      t("common.na")
+                    )
                   }
                 />
-                <DetailRow label={t("common.name")} value={formatValue(detail.tour?.name)} />
+                <DetailRow label={t("common.name")} value={detail.tour?.name ? <DynamicText text={detail.tour.name} /> : t("common.na")} />
                 <DetailRow label={t("common.status")} value={formatValue(detail.tour?.status)} />
                 <DetailRow label={t("booking.averageStar")} value={formatValue(detail.tour?.averageStar)} />
-                <DetailRow label={t("booking.country")} value={formatValue(detail.tour?.country)} />
-                <DetailRow label={t("booking.city")} value={formatValue(detail.tour?.city)} />
-                <DetailRow label={t("content.address")} value={formatValue(detail.tour?.address)} />
+                <DetailRow label={t("booking.country")} value={detail.tour?.country ? <DynamicText text={detail.tour.country} /> : t("common.na")} />
+                <DetailRow label={t("booking.city")} value={detail.tour?.city ? <DynamicText text={detail.tour.city} /> : t("common.na")} />
+                <DetailRow label={t("content.address")} value={detail.tour?.address ? <DynamicText text={detail.tour.address} /> : t("common.na")} />
               </div>
             </div>
             {detail.tour?.description && (
-              <p className="whitespace-pre-wrap break-words rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-                {detail.tour.description}
-              </p>
+              <div className="whitespace-pre-wrap break-words rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
+                <DynamicText text={detail.tour.description} />
+              </div>
             )}
           </section>
 
           <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">
             <h3 className="font-semibold text-slate-800">{t("booking.customerReason")}</h3>
-            <p className="whitespace-pre-wrap break-words rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
-              {detail.reason || t("common.na")}
-            </p>
+            <div className="whitespace-pre-wrap break-words rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">
+              {detail.reason ? <DynamicText text={detail.reason} /> : t("common.na")}
+            </div>
           </section>
 
           {additionalDetails.length > 0 && (

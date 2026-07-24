@@ -23,6 +23,7 @@ import { PATH } from "../../../config/routes/route";
 import { getImg } from "../../../config/api/api";
 import { TourismInformationDetailModal } from "../components/TourismInformationDetailModal";
 import { useChangeTourismInformationStatus } from "../hooks/useChangeTourismInformationStatus";
+import { DynamicText } from "../../../components/DynamicText";
 import { useTourismInformation } from "../hooks/useTourismInformation";
 import { useTourismInformationCities } from "../hooks/useTourismInformationCities";
 import type { TourismInformation } from "../types/tourismInformation";
@@ -32,8 +33,11 @@ import {
   TOURISM_TYPE_LABELS,
 } from "../types/tourismInformation";
 
-const getTypeLabel = (type: string) =>
-  TOURISM_TYPE_LABELS[type as keyof typeof TOURISM_TYPE_LABELS] ?? type;
+const getTypeLabel = (type: string, t: any) => {
+  return t(`content.tourismType${type}`, {
+    defaultValue: TOURISM_TYPE_LABELS[type as keyof typeof TOURISM_TYPE_LABELS] ?? type
+  });
+};
 
 export const TourismInformationList: React.FC = () => {
   const navigate = useNavigate();
@@ -56,7 +60,7 @@ export const TourismInformationList: React.FC = () => {
     if (!date) return t("common.na");
     const parsed = new Date(date);
     if (Number.isNaN(parsed.getTime())) return t("common.na");
-    return parsed.toLocaleString();
+    return parsed.toLocaleString().replace(',', '');
   };
 
   const { data, isLoading, error, pageSize, setPage, setPageSize, handleCreate, handleEdit } =
@@ -113,9 +117,9 @@ export const TourismInformationList: React.FC = () => {
         header: t("content.name"),
         render: (item) => (
           <div className="min-w-[180px]">
-            <div className="font-semibold text-slate-800">{item.name}</div>
+            <div className="font-semibold text-slate-800"><DynamicText text={item.name} /></div>
             <div className="mt-0.5 line-clamp-2 text-xs text-slate-500">
-              {item.description || t("content.noDescription")}
+              {item.description ? <DynamicText text={item.description} /> : t("content.noDescription")}
             </div>
           </div>
         ),
@@ -125,7 +129,7 @@ export const TourismInformationList: React.FC = () => {
         render: (item) => (
           <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-600">
             <Tag className="h-3 w-3" />
-            {getTypeLabel(item.type)}
+            {getTypeLabel(item.type, t)}
           </span>
         ),
       },
@@ -136,7 +140,7 @@ export const TourismInformationList: React.FC = () => {
             <div className="flex items-start gap-1.5">
               <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
               <span className="line-clamp-2">
-                {[item.address, item.city, item.country].filter(Boolean).join(", ") || t("common.na")}
+                {[item.address, item.city, item.country].filter(Boolean).length > 0 ? <DynamicText text={[item.address, item.city, item.country].filter(Boolean).join(", ")} /> : t("common.na")}
               </span>
             </div>
           </div>
@@ -159,8 +163,11 @@ export const TourismInformationList: React.FC = () => {
       },
       {
         header: t("content.updated"),
+        className: "text-right",
         render: (item) => (
-          <span className="text-sm text-slate-500">{formatDate(item.updatedAt)}</span>
+          <div className="flex justify-end w-full">
+            <span className="text-sm text-slate-500 text-right">{formatDate(item.updatedAt)}</span>
+          </div>
         ),
       },
       {
@@ -257,7 +264,7 @@ export const TourismInformationList: React.FC = () => {
                       <option value="">{t("content.allTypes")}</option>
                       {TOURISM_INFORMATION_TYPES.map((type) => (
                         <option key={type} value={type}>
-                          {getTypeLabel(type)}
+                          {getTypeLabel(type, t)}
                         </option>
                       ))}
                     </select>

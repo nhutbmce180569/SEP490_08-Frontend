@@ -609,7 +609,7 @@ const { mutate: mutateMarkAsRead } = useMutation({
                           onMouseLeave={() => setHoveredMessageId(null)}
                           className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} group shrink-0 ${isFirstInGroup ? 'mt-3' : 'mt-1'}`}
                         >
-                          <div className={`flex gap-3 items-end max-w-[70%] ${isMe ? 'flex-row-reverse' : ''}`}>
+                          <div className={`flex gap-3 items-end max-w-[70%] min-w-0 ${isMe ? 'flex-row-reverse' : ''}`}>
                             {!isMe && (
                               isLastInGroup ? (
                                 <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center shrink-0 text-[10px] font-black text-slate-650 dark:text-slate-200 mb-0.5 overflow-hidden border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
@@ -636,7 +636,7 @@ const { mutate: mutateMarkAsRead } = useMutation({
                                 <div className="w-8 h-8 shrink-0" />
                               )
                             )}
-                            <div className="relative flex flex-col">
+                            <div className="relative flex flex-col min-w-0">
                               {!isMe && isFirstInGroup && selectedRoom?.isGroupChat && (
                                 <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 mb-1 px-1 tracking-wide uppercase">
                                   {senderName}
@@ -672,7 +672,7 @@ const { mutate: mutateMarkAsRead } = useMutation({
                                       </div>
                                     );
                                   } catch (e) {
-                                    return <p className="break-words font-medium whitespace-pre-wrap">{content}</p>;
+                                    return <p className="break-all font-medium whitespace-pre-wrap">{content}</p>;
                                   }
                                 })() : content.includes('[LocationShare:') ? (() => {
                                   try {
@@ -699,11 +699,11 @@ const { mutate: mutateMarkAsRead } = useMutation({
                                       );
                                     }
                                   } catch (e) {
-                                    return <p className="break-words font-medium whitespace-pre-wrap">{content}</p>;
+                                    return <p className="break-all font-medium whitespace-pre-wrap">{content}</p>;
                                   }
-                                  return <p className="break-words font-medium whitespace-pre-wrap">{content}</p>;
+                                  return <p className="break-all font-medium whitespace-pre-wrap">{content}</p>;
                                 })() : (
-                                  <p className="break-words font-medium whitespace-pre-wrap">{content}</p>
+                                  <p className="break-all font-medium whitespace-pre-wrap">{content}</p>
                                 )}
                                 {hoveredMessageId === msgId && (
                                   <div className="absolute -bottom-8 right-0 flex gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1 shadow-md z-30">

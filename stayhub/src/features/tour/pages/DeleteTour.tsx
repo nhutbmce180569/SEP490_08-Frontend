@@ -4,6 +4,7 @@ import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { useDeleteTour } from "../hooks/useDeleteTour";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const DeleteTourConfirm: React.FC = () => {
   const { t } = useTranslation();
@@ -60,12 +61,12 @@ export const DeleteTourConfirm: React.FC = () => {
 
             {/* Info */}
             <div className="flex-1 space-y-4 min-w-0">
-              <h3 className="text-2xl font-bold text-slate-900 leading-snug">{tour.name}</h3>
+              <h3 className="text-2xl font-bold text-slate-900 leading-snug"><DynamicText text={tour.name} /></h3>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm text-slate-600">
                 <div className="flex items-center gap-2">
                   <Hash className="h-4 w-4 text-slate-400 shrink-0" />
-                  <span className="truncate">{t("tour.category")}: <span className="font-semibold text-slate-700">{categoryName || tour.categoryId}</span></span>
+                  <span className="truncate">{t("tour.category")}: <span className="font-semibold text-slate-700">{categoryName ? <DynamicText text={categoryName} /> : tour.categoryId}</span></span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Tag className="h-4 w-4 text-slate-400 shrink-0" />
@@ -79,7 +80,7 @@ export const DeleteTourConfirm: React.FC = () => {
                 <div className="flex items-start gap-2 sm:col-span-2">
                   <MapPin className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
                   <span>
-                    {[tour.address, tour.city, tour.country].filter(Boolean).join(", ") || t("common.na")}
+                    {[tour.address, tour.city, tour.country].some(Boolean) ? <DynamicText text={[tour.address, tour.city, tour.country].filter(Boolean).join(", ")} /> : t("common.na")}
                   </span>
                 </div>
               </div>
@@ -88,10 +89,9 @@ export const DeleteTourConfirm: React.FC = () => {
                 <div className="pt-4 border-t border-slate-200/60">
                   <div className="flex items-start gap-2">
                     <FileText className="mt-1 h-4 w-4 shrink-0 text-slate-400" />
-                    <div 
-                      className="prose prose-sm max-w-none text-slate-600 leading-relaxed [&_ol]:pl-5 [&_ul]:pl-5"
-                      dangerouslySetInnerHTML={{ __html: tour.description.replace(/&nbsp;/g, " ") }}
-                    />
+                    <div className="prose prose-sm max-w-none text-slate-600 leading-relaxed [&_ol]:pl-5 [&_ul]:pl-5">
+                      <DynamicText text={tour.description.replace(/&nbsp;/g, " ")} isHtml />
+                    </div>
                   </div>
                 </div>
               )}

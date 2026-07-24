@@ -39,6 +39,8 @@ import { useToast } from "../../../contexts/ToastContext";
 import { tourismInformationService } from "../../content/services/tourismInformation.service";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
+import { useDynamicTranslation } from "../../../hooks/useDynamicTranslation";
 
 type TabKey = "itinerary" | "reviews";
 
@@ -56,12 +58,22 @@ const ExpandableText = ({
   className?: string;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const needsExpand = text.length > maxLength;
-  const displayText = !needsExpand || isExpanded ? text : `${text.substring(0, maxLength)}...`;
+  const { translatedText, isLoading } = useDynamicTranslation(text, false);
+  const contentToDisplay = translatedText || text;
+  const needsExpand = contentToDisplay.length > maxLength;
+  const displayText = !needsExpand || isExpanded ? contentToDisplay : `${contentToDisplay.substring(0, maxLength)}...`;
 
   return (
     <div>
-      <p className={className}>{displayText}</p>
+      <p className={className}>
+        {isLoading ? (
+          <span className="animate-pulse bg-slate-200/50 text-transparent rounded inline-block w-3/4">
+            Loading...
+          </span>
+        ) : (
+          displayText
+        )}
+      </p>
       {needsExpand && (
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -286,11 +298,11 @@ export const TourDetail: React.FC = () => {
 
           {/* Tour name & location overlaid on image bottom */}
           <div className="absolute bottom-0 left-0 right-0 px-6 pb-5 text-white">
-            <h1 className="text-2xl font-extrabold leading-tight drop-shadow sm:text-3xl">{tour.name}</h1>
+            <h1 className="text-2xl font-extrabold leading-tight drop-shadow sm:text-3xl"><DynamicText text={tour.name} /></h1>
             {(tour.city || tour.country) && (
               <div className="mt-1.5 flex items-center gap-1.5 text-sm font-medium text-white/80">
                 <MapPin className="h-3.5 w-3.5" />
-                <span>{[tour.city, tour.country].filter(Boolean).join(", ")}</span>
+                <span><DynamicText text={[tour.city, tour.country].filter(Boolean).join(", ")} /></span>
               </div>
             )}
           </div>
@@ -304,7 +316,7 @@ export const TourDetail: React.FC = () => {
           </div>
           <div className="flex items-center gap-1.5">
             <Tag className="h-4 w-4 text-slate-400" />
-            <span>{categoryName || `ID ${tour.categoryId}`}</span>
+            <span>{categoryName ? <DynamicText text={categoryName} /> : `ID ${tour.categoryId}`}</span>
           </div>
           {tour.transportationType && (
             <div className="flex items-center gap-1.5">
@@ -329,7 +341,7 @@ export const TourDetail: React.FC = () => {
           {tour.address && (
             <div className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-emerald-500" />
-              <span>{tour.address}</span>
+              <span><DynamicText text={tour.address} /></span>
             </div>
           )}
           {(tour.createdByName || tour.createdAt) && (
@@ -358,10 +370,9 @@ export const TourDetail: React.FC = () => {
         <div className="px-6 py-5">
           <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-slate-400">{t("common.description")}</h2>
           {tour.description ? (
-            <div
-              className="prose prose-sm max-w-none leading-relaxed text-slate-700 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
-              dangerouslySetInnerHTML={{ __html: tour.description.replace(/&nbsp;/g, " ") }}
-            />
+            <div className="prose prose-sm max-w-none leading-relaxed text-slate-700 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+              <DynamicText text={tour.description.replace(/&nbsp;/g, " ")} isHtml />
+            </div>
           ) : (
             <p className="text-sm italic text-slate-400">{t("tour.noDescriptionProvided")}</p>
           )}
@@ -502,7 +513,7 @@ export const TourDetail: React.FC = () => {
                                   {idx + 1}
                                 </span>
                                 <div className="flex flex-col min-w-0">
-                                  <h4 className="truncate font-bold text-slate-800">{iti.title}</h4>
+                                  <h4 className="truncate font-bold text-slate-800"><DynamicText text={iti.title} /></h4>
                                   <div className="flex items-center gap-2 text-[11px] text-slate-500">
                                     <span className="flex items-center gap-0.5">
                                       <Clock className="h-3 w-3" />
@@ -511,7 +522,7 @@ export const TourDetail: React.FC = () => {
                                     <span className="text-slate-300">•</span>
                                     <span className="flex items-center gap-0.5">
                                       <MapPin className="h-3 w-3 text-emerald-500" />
-                                      {iti.locationName || t("common.na")}
+                                      {iti.locationName ? <DynamicText text={iti.locationName} /> : t("common.na")}
                                     </span>
                                   </div>
                                 </div>
@@ -544,10 +555,9 @@ export const TourDetail: React.FC = () => {
                             {isExpanded && (
                               <div className="border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 space-y-4">
                                 {iti.description && (
-                                  <div
-                                    className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
-                                    dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, " ") }}
-                                  />
+                                  <div className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+                                    <DynamicText text={iti.description.replace(/&nbsp;/g, " ")} isHtml />
+                                  </div>
                                 )}
                                 {iti.tourismInfoId && (
                                   <div className="overflow-hidden rounded-xl border border-slate-200 bg-white text-sm">
@@ -565,11 +575,13 @@ export const TourDetail: React.FC = () => {
                                         </div>
                                         <div className="space-y-1.5 p-3">
                                           <div className="flex flex-wrap items-center gap-1.5">
-                                            <h5 className="font-bold text-slate-800">{tourismInfo.name}</h5>
-                                            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">{tourismInfo.type}</span>
+                                            <h5 className="font-bold text-slate-800"><DynamicText text={tourismInfo.name} /></h5>
+                                            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">
+                                              {t(`content.tourismType${tourismInfo.type}`, { defaultValue: tourismInfo.type })}
+                                            </span>
                                           </div>
                                           {tourismInfo.description && (
-                                            <p className="text-xs leading-relaxed text-slate-500">{tourismInfo.description}</p>
+                                            <p className="text-xs leading-relaxed text-slate-500"><DynamicText text={tourismInfo.description} /></p>
                                           )}
                                           <div className="flex items-start gap-1.5 text-xs text-slate-500">
                                             <Globe className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />

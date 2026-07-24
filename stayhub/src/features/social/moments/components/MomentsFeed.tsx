@@ -9,6 +9,7 @@ import { MomentModal } from "./MomentModal";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useTranslation } from "../../../../contexts/LocaleContext";
+import { DynamicText } from "../../../../components/DynamicText";
 
 export const MomentsFeed: React.FC = () => {
   const { t } = useTranslation();
@@ -310,7 +311,7 @@ export const MomentsFeed: React.FC = () => {
                                 </span>
                               </div>
                               <p className="line-clamp-2 text-xs leading-relaxed text-slate-200 drop-shadow-sm group-hover:text-white">
-                                {moment.caption || moment.Caption || ""}
+                                <DynamicText text={moment.caption || moment.Caption || ""} />
                               </p>
                             </>
                           );

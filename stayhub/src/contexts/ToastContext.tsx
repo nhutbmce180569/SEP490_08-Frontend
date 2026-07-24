@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react";
 import { CheckCircle, AlertTriangle, XCircle, Info, X } from "lucide-react";
+import { DynamicText } from "../components/DynamicText";
 
 export type ToastType = "success" | "warning" | "error" | "info";
 
@@ -85,7 +86,7 @@ const ToastItem: React.FC<{ toast: ToastMessage; onClose: () => void }> = ({ toa
       className={`relative flex w-full min-w-[300px] max-w-sm items-center gap-3 overflow-hidden rounded-xl px-4 py-3 transition-all duration-300 ${className}`}
     >
       <Icon className={`h-5 w-5 shrink-0 ${iconColor}`} />
-      <p className="m-0 flex-1 text-sm font-medium">{toast.message}</p>
+      <p className="m-0 flex-1 text-sm font-medium"><DynamicText text={toast.message} isHtml={false} /></p>
       <button
         onClick={onClose}
         className="shrink-0 p-1 opacity-70 transition-opacity hover:opacity-100 focus:outline-none"

@@ -24,6 +24,7 @@ import { AuthContext } from "../../../contexts/AuthContext";
 import type { Review } from "../types/review";
 import { getToursByManager } from "../services/tour.service";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 const formatReviewDate = (date?: string | null) =>
   date
@@ -195,9 +196,9 @@ const AdminReviewCard: React.FC<{
           </div>
         </div>
 
-        <p className="text-sm leading-relaxed text-slate-700 pl-[56px]">
-          {review.comment}
-        </p>
+        <div className="text-sm leading-relaxed text-slate-700 pl-[56px]">
+          <DynamicText text={review.comment} isHtml={false} />
+        </div>
 
         <div className="mt-4 border-t border-slate-100 pt-4 pl-[56px]">
           {existingReply && !isEditing ? (
@@ -259,9 +260,9 @@ const AdminReviewCard: React.FC<{
                   </button>
                 </div>
               </div>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                {existingReply.content}
-              </p>
+              <div className="text-sm text-slate-600 leading-relaxed">
+                <DynamicText text={existingReply.content} isHtml={false} />
+              </div>
             </div>
           ) : isReplying || isEditing ? (
             <div className="relative animate-in fade-in zoom-in-95 duration-200">
@@ -707,7 +708,7 @@ export const DashboardReviewManager: React.FC = () => {
                       <h4
                         className={`truncate text-sm font-bold ${selectedTourId === tour.id ? "text-indigo-900" : "text-slate-700"}`}
                       >
-                        {tour.name}
+                        <DynamicText text={tour.name} />
                       </h4>
                       <p className="text-xs text-slate-500">ID: #{tour.id}</p>
                     </div>

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { DynamicText } from "../../../components/DynamicText";
 
 const STATUS_STYLES: Record<string, string> = {
   Completed: "bg-emerald-100 text-emerald-700",
@@ -182,7 +183,7 @@ export const MyBookingsPage: React.FC = () => {
                   <div className="min-w-0 flex flex-col justify-center py-0.5">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <span className="truncate text-base font-bold text-slate-900">
-                        {order.tour?.name || t("booking.tourBooking")}
+                        {order.tour?.name ? <DynamicText text={order.tour.name} /> : t("booking.tourBooking")}
                       </span>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getStatusStyle(order.status)}`}

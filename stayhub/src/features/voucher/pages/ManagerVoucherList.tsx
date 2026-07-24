@@ -28,6 +28,7 @@ import {
 } from "../utils/voucherHelpers";
 import { VoucherDetailModal } from "../components/VoucherDetailModal";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const ManagerVoucherList: React.FC = () => {
   const { t } = useTranslation();
@@ -143,7 +144,7 @@ export const ManagerVoucherList: React.FC = () => {
         className: "text-left w-[130px]",
         render: (voucher) => (
           <span className="text-sm text-slate-600">
-            {voucher.tourName || t("voucher.allTours")}
+            {voucher.tourName ? <DynamicText text={voucher.tourName} /> : t("voucher.allTours")}
           </span>
         ),
       },
@@ -166,16 +167,16 @@ export const ManagerVoucherList: React.FC = () => {
       },
       {
         header: t("voucher.validPeriod"),
-        className: "text-left w-[170px]",
+        className: "text-right w-[170px]",
         render: (voucher) => (
-          <div className="flex flex-col text-sm text-slate-700">
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 text-xs w-7 shrink-0">{t("common.from", { defaultValue: "From" })}:</span>
-              <span className="font-semibold text-slate-800">{formatDateOnly(voucher.startDate)}</span>
+          <div className="flex flex-col text-sm text-slate-700 items-end w-full">
+            <div className="flex items-center justify-between gap-1.5 w-full">
+              <span className="text-slate-400 text-xs shrink-0">{t("common.from", { defaultValue: "From" })}:</span>
+              <span className="font-semibold text-slate-800 text-right">{formatDateOnly(voucher.startDate)}</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 text-xs w-7 shrink-0">{t("common.to", { defaultValue: "To" })}:</span>
-              <span className="font-semibold text-slate-800">{formatDateOnly(voucher.endDate)}</span>
+            <div className="flex items-center justify-between gap-1.5 w-full mt-0.5">
+              <span className="text-slate-400 text-xs shrink-0">{t("common.to", { defaultValue: "To" })}:</span>
+              <span className="font-semibold text-slate-800 text-right">{formatDateOnly(voucher.endDate)}</span>
             </div>
           </div>
         ),
@@ -183,17 +184,24 @@ export const ManagerVoucherList: React.FC = () => {
       {
         header: t("common.status"),
         className: "text-center w-[110px]",
-        render: (voucher) => (
-          <div className="text-center">
-            <span
-              className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                STATUS_STYLES[voucher.status] || "bg-slate-100 text-slate-600"
-              }`}
-            >
-              {voucher.status}
-            </span>
-          </div>
-        ),
+        render: (voucher) => {
+          let statusText = voucher.status;
+          if (voucher.status === "Active") statusText = t("common.active");
+          if (voucher.status === "Inactive") statusText = t("common.inactive");
+          if (voucher.status === "Expired") statusText = t("tour.expired");
+
+          return (
+            <div className="text-center">
+              <span
+                className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  STATUS_STYLES[voucher.status] || "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {statusText}
+              </span>
+            </div>
+          );
+        },
       },
       {
         header: t("common.actions"),

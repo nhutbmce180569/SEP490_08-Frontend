@@ -25,6 +25,7 @@ import { useTranslation } from '../../../../contexts/LocaleContext';
 import { useToast } from '../../../../contexts/ToastContext';
 import { createPortal } from 'react-dom';
 import { useShareLocation } from '../../tracking/hooks/useLocationTracking';
+import { DynamicText } from '../../../../components/DynamicText';
 
 // ============ COMPONENT: Add Member Modal ============
 interface AddMemberModalProps {
@@ -490,7 +491,7 @@ const { mutate: mutateMarkAsRead } = useMutation({
  
                       <div className="flex-1 text-left overflow-hidden">
                         <div className={`truncate text-sm tracking-tight transition-colors ${hasUnread ? 'font-black text-slate-950 dark:text-white' : 'font-bold text-slate-800 dark:text-slate-200'}`}>
-                          {getRoomDisplayName(room)}
+                          {room.scheduleId != null ? <DynamicText text={getRoomDisplayName(room)} /> : getRoomDisplayName(room)}
                         </div>
                         <div className={`truncate text-xs mt-0.5 transition-colors ${hasUnread ? 'font-black text-brand' : 'font-medium text-slate-400 dark:text-slate-500'}`}>
                           {room.lastMessage || t('social.startConversation') || 'Say hi!'}
@@ -530,7 +531,9 @@ const { mutate: mutateMarkAsRead } = useMutation({
                       {selectedRoom?.avatarUrl ? <img src={selectedRoom.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-brand-light to-brand text-white font-bold"><span>{getInitials(getRoomDisplayName(selectedRoom))}</span></div>}
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-wide">{getRoomDisplayName(selectedRoom)}</h3>
+                      <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 tracking-wide">
+                        {selectedRoom?.scheduleId != null ? <DynamicText text={getRoomDisplayName(selectedRoom)} /> : getRoomDisplayName(selectedRoom)}
+                      </h3>
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5">

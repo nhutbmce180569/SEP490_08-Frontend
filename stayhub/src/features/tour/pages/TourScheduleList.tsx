@@ -9,6 +9,7 @@ import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useTourSchedule } from "../hooks/useTourSchedule";
 import { type TourSchedule } from "../types/tourSchedule";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 const PAGE_SIZE = 10;
 
@@ -140,7 +141,7 @@ export const TourScheduleList: React.FC = () => {
         className: "w-1/3 min-w-[250px]",
         render: (item) => (
           <div className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
-            {item.tour?.name ?? "-"}
+            {item.tour?.name ? <DynamicText text={item.tour.name} /> : "-"}
           </div>
         ),
       },
@@ -253,7 +254,7 @@ export const TourScheduleList: React.FC = () => {
                         <option value="">{t("tour.allTours") || "All Tours"}</option>
                         {availableTours.map((tour) => (
                           <option key={tour.id} value={tour.id} className="truncate">
-                            {tour.name}
+                            <DynamicText text={tour.name} />
                           </option>
                         ))}
                       </select>

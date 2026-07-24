@@ -52,6 +52,8 @@ import { SimilarToursSection } from "../features/ai/components/SimilarToursSecti
 import { getTicketEffectivePriceInfo } from "../features/tour/utils/tourPrice";
 import { apiClient } from "../utils/axiosClient";
 import { TourImageGallery } from "../features/tour/components/TourImageGallery";
+import { DynamicText } from "../components/DynamicText";
+import { useDynamicTranslation } from "../hooks/useDynamicTranslation";
 
 type PublicTourItinerary = TourItinerary & {
   startLocationName?: string | null;
@@ -176,6 +178,12 @@ const ExpandableText = ({
       )}
     </div>
   );
+};
+
+const TranslatedExpandableText = ({ text, isHtml = false, ...props }: any) => {
+  const { translatedText, isLoading } = useDynamicTranslation(text, isHtml);
+  if (isLoading) return <span className="animate-pulse bg-slate-200/50 text-transparent rounded w-1/2 h-4 inline-block">Loading...</span>;
+  return <ExpandableText text={translatedText} {...props} />;
 };
 
 export default function PublicTourDetail() {
@@ -309,18 +317,22 @@ export default function PublicTourDetail() {
 
   const groupedSchedules = useMemo(() => {
     return sortedSchedules.reduce((acc, schedule) => {
-      const monthYear = new Date(schedule.departureDate).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+      const date = new Date(schedule.departureDate);
+      const m = date.getMonth();
+      const y = date.getFullYear();
+      const monthYear = `${t(`tour.month_${m + 1}`)} ${y}`;
       if (!acc[monthYear]) acc[monthYear] = [];
       acc[monthYear].push(schedule);
       return acc;
     }, {} as Record<string, typeof sortedSchedules>);
-  }, [sortedSchedules]);
+  }, [sortedSchedules, t]);
 
   const availableMonths = Object.keys(groupedSchedules);
   
   let defaultMonth = availableMonths[0];
   if (availableMonths.length > 0) {
-    const currentMonthYear = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    const now = new Date();
+    const currentMonthYear = `${t(`tour.month_${now.getMonth() + 1}`)} ${now.getFullYear()}`;
     if (availableMonths.includes(currentMonthYear)) {
       defaultMonth = currentMonthYear;
     } else {
@@ -523,20 +535,20 @@ export default function PublicTourDetail() {
             {/* Tags */}
             {tour && (
               <div className="flex flex-wrap items-center gap-3 mb-5">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold tracking-wide uppercase">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold tracking-wide">
                   <Tag size={11} />
-                  {category?.name ? category.name : tour.categoryId ? `${t("tour.category")} ${tour.categoryId}` : t("tour.tour")}
+                  {category?.name ? <DynamicText text={category.name} /> : tour.categoryId ? `${t("tour.category")} ${tour.categoryId}` : t("tour.tour")}
                 </span>
                 {(tour.address || [tour.city, tour.country].filter(Boolean).join(", ")) && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
                     <MapPin size={11} />
-                    {tour.address || [tour.city, tour.country].filter(Boolean).join(", ")}
+                    <DynamicText text={tour.address || [tour.city, tour.country].filter(Boolean).join(", ")} />
                   </span>
                 )}
                 {tour.transportationType && (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 text-white/90 text-xs font-semibold">
                     {tour.transportationType.toLowerCase() === 'flight' ? <Plane size={11} /> : <Bus size={11} />}
-                    {t(`tour.transportation_${tour.transportationType.toLowerCase()}`, { defaultValue: tour.transportationType })}
+                    {tour.transportationType.toLowerCase() === 'coach' ? (locale === 'vi' ? 'Xe khách' : tour.transportationType) : <DynamicText text={tour.transportationType} />}
                   </span>
                 )}
               </div>
@@ -544,7 +556,7 @@ export default function PublicTourDetail() {
 
             {/* Title */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white leading-[1.1] tracking-tight mb-6 max-w-4xl">
-              {displayName}
+              <DynamicText text={displayName} />
             </h1>
 
             {/* Stats pills */}
@@ -613,8 +625,9 @@ export default function PublicTourDetail() {
                 {tour.description ? (
                   <div
                     className="[&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
-                    dangerouslySetInnerHTML={{ __html: tour.description.replace(/&nbsp;/g, ' ') }}
-                  />
+                  >
+                    <DynamicText text={tour.description.replace(/&nbsp;/g, ' ')} isHtml={true} />
+                  </div>
                 ) : (
                   <p className="italic text-slate-400">{t("tour.noDescription")}</p>
                 )}
@@ -685,7 +698,7 @@ export default function PublicTourDetail() {
                                   {dayItineraries.map((iti) => (
                                     <div key={iti.id} className="flex items-start gap-2 text-sm font-medium text-slate-600">
                                       <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand/60" />
-                                      <span className="line-clamp-2 leading-relaxed">{iti.title}</span>
+                                      <span className="line-clamp-2 leading-relaxed"><DynamicText text={iti.title} /></span>
                                     </div>
                                   ))}
                                 </div>
@@ -833,7 +846,7 @@ export default function PublicTourDetail() {
                             ))}
                           </div>
                         </div>
-                        <ExpandableText
+                        <TranslatedExpandableText
                           text={review.comment || t("tour.noComment")}
                           showMoreLabel={t("tour.showMore", "Xem thêm")}
                           showLessLabel={t("tour.showLess", "Thu gọn")}
@@ -863,7 +876,7 @@ export default function PublicTourDetail() {
                                       <div className="text-xs text-slate-500">{t("tour.replyToReview")}</div>
                                     </div>
                                   </div>
-                                  <ExpandableText
+                                  <TranslatedExpandableText
                                     text={reply.content}
                                     showMoreLabel={t("tour.showMore", "Xem thêm")}
                                     showLessLabel={t("tour.showLess", "Thu gọn")}
@@ -1021,7 +1034,7 @@ export default function PublicTourDetail() {
                                 >
                                   <div className="min-w-0">
                                     <div className="truncate font-semibold text-slate-800">
-                                      {getTicketDisplayName(ticket, ticketTypeDetails)}
+                                      <DynamicText text={getTicketDisplayName(ticket, ticketTypeDetails)} />
                                     </div>
                                     <div className="text-xs font-medium text-slate-400">
                                       {t("tour.left", { count: ticketAvailable })}
@@ -1352,7 +1365,7 @@ export default function PublicTourDetail() {
                                 >
                                   <div className="flex items-center justify-between gap-3 text-sm">
                                     <span className="min-w-0 truncate font-semibold text-slate-800">
-                                      {getTicketDisplayName(ticket, ticketTypeDetails)}
+                                      <DynamicText text={getTicketDisplayName(ticket, ticketTypeDetails)} />
                                     </span>
                                     <span className="shrink-0 font-bold text-slate-900 text-right">
                                       {ticketPrice !== null ? (
@@ -1437,13 +1450,14 @@ export default function PublicTourDetail() {
                         </div>
                         
                         <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm hover:border-brand/20 transition-colors">
-                          <h4 className="text-lg font-bold text-slate-800 mb-3">{iti.title}</h4>
+                          <h4 className="text-lg font-bold text-slate-800 mb-3"><DynamicText text={iti.title} /></h4>
                           
                           {iti.description && (
                             <div
                               className="prose prose-sm mb-4 text-slate-600 leading-relaxed [&_ol]:list-decimal [&_ul]:list-disc [&_ol]:pl-5 [&_ul]:pl-5"
-                              dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, ' ') }}
-                            />
+                            >
+                              <DynamicText text={iti.description.replace(/&nbsp;/g, ' ')} isHtml={true} />
+                            </div>
                           )}
                           
                           {(iti.locationName || iti.startLocationName || iti.endLocationName || iti.tourismInfoId) && (
@@ -1451,19 +1465,19 @@ export default function PublicTourDetail() {
                               {iti.locationName && (
                                 <div className="flex items-center gap-2">
                                   <MapPin className="h-4 w-4 text-emerald-500 shrink-0" />
-                                  <span className="font-medium text-slate-700">{iti.locationName}</span>
+                                  <span className="font-medium text-slate-700"><DynamicText text={iti.locationName} /></span>
                                 </div>
                               )}
                               {iti.startLocationName && (
                                 <div className="flex items-start gap-2">
                                   <MapPin className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-                                  <div><span className="font-semibold text-slate-700">{t("tour.start")}:</span> {iti.startLocationName}</div>
+                                  <div><span className="font-semibold text-slate-700">{t("tour.start")}:</span> <DynamicText text={iti.startLocationName} /></div>
                                 </div>
                               )}
                               {iti.endLocationName && (
                                 <div className="flex items-start gap-2">
                                   <MapPin className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
-                                  <div><span className="font-semibold text-slate-700">{t("tour.end")}:</span> {iti.endLocationName}</div>
+                                  <div><span className="font-semibold text-slate-700">{t("tour.end")}:</span> <DynamicText text={iti.endLocationName} /></div>
                                 </div>
                               )}
                               
@@ -1487,14 +1501,14 @@ export default function PublicTourDetail() {
                                       </div>
                                       <div className="p-4 space-y-1.5">
                                         <div className="flex flex-wrap items-center gap-2">
-                                          <span className="font-bold text-slate-800 text-sm">{tourismInfo.name}</span>
+                                          <span className="font-bold text-slate-800 text-sm"><DynamicText text={tourismInfo.name} /></span>
                                           <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand">
-                                            {tourismInfo.type}
+                                            <DynamicText text={tourismInfo.type} />
                                           </span>
                                         </div>
                                         {tourismInfo.description && (
                                           <p className="text-xs leading-relaxed text-slate-500 line-clamp-2">
-                                            {tourismInfo.description}
+                                            <DynamicText text={tourismInfo.description} />
                                           </p>
                                         )}
                                         {tourismInfo.sourceUrl && (

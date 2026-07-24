@@ -6,6 +6,7 @@ import { useNotificationHub } from "../hooks/useNotificationHub";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { useGetPendingRequests, useRespondToRequest } from "../../../features/social/friends/hooks/useFriends";
 import { getImg } from "../../../config/api/api";
+import { DynamicText } from "../../../components/DynamicText";
 
 type NotificationWithMeta = {
   id: number;
@@ -182,11 +183,11 @@ export default function NotificationBell() {
                       <div className="min-w-0 flex-1 pr-6">
                         <div className="mb-1 flex items-start justify-between gap-2">
                           <h4 className={`text-sm leading-snug ${!noti.isRead ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}>
-                            {noti.title}
+                            <DynamicText text={noti.title} />
                           </h4>
                         </div>
                         <p className={`line-clamp-2 text-[13px] leading-relaxed ${!noti.isRead ? "font-medium text-slate-700" : "text-slate-500"}`}>
-                          {noti.content}
+                          <DynamicText text={noti.content} />
                         </p>
                         <span className="mt-1.5 block text-[11px] font-medium text-slate-400">
                           {new Date(noti.createdAt).toLocaleString(undefined, { 

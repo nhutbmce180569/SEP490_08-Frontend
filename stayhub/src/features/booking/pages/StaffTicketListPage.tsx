@@ -17,6 +17,7 @@ import type { ReadTicketDTO } from "../types/ticket";
 import { useToast } from "../../../contexts/ToastContext";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { tourScheduleStaffService } from "../../tour/services/tourScheduleStaffService.service";
+import { DynamicText } from "../../../components/DynamicText";
 
 const STATUS_STYLES: Record<string, string> = {
   CheckedIn: "bg-emerald-100 text-emerald-700",
@@ -182,7 +183,7 @@ export const StaffTicketListPage: React.FC = () => {
         className: "text-sm whitespace-nowrap max-w-[150px] truncate",
         render: (ticket) => (
           <span className="font-medium text-slate-700 truncate" title={ticket.ticketTypeName || `Type #${ticket.ticketTypeId}`}>
-            {ticket.ticketTypeName || `Type #${ticket.ticketTypeId}`}
+            {ticket.ticketTypeName ? <DynamicText text={ticket.ticketTypeName} /> : `Type #${ticket.ticketTypeId}`}
           </span>
         ),
       },
@@ -276,7 +277,7 @@ export const StaffTicketListPage: React.FC = () => {
                   }`}
                 >
                   <div className={`text-sm font-bold truncate ${selectedScheduleId === schedule.scheduleId ? "text-[#0068E0]" : "text-slate-700"}`}>
-                    {schedule.tourName || `Schedule #${schedule.scheduleId}`}
+                    {schedule.tourName ? <DynamicText text={schedule.tourName} /> : `Schedule #${schedule.scheduleId}`}
                   </div>
                   <p className={`text-xs mt-1.5 ${selectedScheduleId === schedule.scheduleId ? "text-blue-600/80" : "text-slate-500"}`}>
                     {new Date(schedule.departureDate).toLocaleDateString("vi-VN")} - {new Date(schedule.returnDate).toLocaleDateString("vi-VN")}
@@ -314,7 +315,11 @@ export const StaffTicketListPage: React.FC = () => {
           <div className="flex flex-col gap-4 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-1">
               <h2 className="text-[15px] font-bold text-slate-900" title={selectedSchedule?.tourName || undefined}>
-                {selectedSchedule ? (selectedSchedule.tourName || `Schedule #${selectedSchedule.scheduleId}`) : t("booking.ticketListTitle")}
+                {selectedSchedule
+                  ? selectedSchedule.tourName
+                    ? <DynamicText text={selectedSchedule.tourName} />
+                    : `Schedule #${selectedSchedule.scheduleId}`
+                  : t("booking.ticketListTitle")}
               </h2>
               {selectedSchedule && (
                 <div className="flex items-center gap-2">

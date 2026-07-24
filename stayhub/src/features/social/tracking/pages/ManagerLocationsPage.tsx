@@ -15,6 +15,7 @@ import { ActionButton } from "../../../../components/dashboard/ActionButton";
 import { Table, type Column } from "../../../../components/dashboard/Table";
 import { PaginationButton } from "../../../../components/dashboard/PaginationButton";
 import type { TourSchedule } from "../../../tour/types/tourSchedule";
+import { DynamicText } from "../../../../components/DynamicText";
 
 export const ManagerLocationsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -115,7 +116,7 @@ export const ManagerLocationsPage: React.FC = () => {
         render: (item) => (
           <div>
             <div className="font-semibold text-slate-900">
-              {item.tour?.name || t("social.trackingUntitledTour") || "Tour chưa đặt tên"}
+              {item.tour?.name ? <DynamicText text={item.tour.name} /> : t("social.trackingUntitledTour")}
             </div>
             <div className="text-sm text-slate-500">
               ID: {item.id}

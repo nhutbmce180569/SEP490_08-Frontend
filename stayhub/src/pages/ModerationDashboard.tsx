@@ -26,6 +26,7 @@ import { useTranslation } from "../contexts/LocaleContext";
 import { getImg } from "../config/api/api";
 import { ActionButton } from "../components/dashboard/ActionButton";
 import { PaginationButton } from "../components/dashboard/PaginationButton";
+import { DynamicText } from "../components/DynamicText";
 
 /* ── Reason color map ── */
 const REASON_COLOR: Record<string, string> = {
@@ -121,23 +122,40 @@ const ModerationDashboard: React.FC = () => {
   const paginatedReports = filteredReports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 sm:p-6 dark:bg-slate-900/50">
-
-      {/* ── Header ── */}
-      <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="flex items-center gap-2.5 text-2xl font-bold text-slate-800 dark:text-white">
-            <ShieldAlert className="h-7 w-7 text-brand" />
-            {t("manager.moderationDashboard.title")}
-          </h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {t("manager.moderationDashboard.subtitle")}
-          </p>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* ── Filters ── */}
+        <div className="flex flex-wrap items-center gap-2 flex-1">
+          {[
+            { key: "All",     label: t("manager.moderationDashboard.all"),      count: reports.length },
+            { key: "Moment",  label: t("manager.moderationDashboard.moments"), count: momentCount    },
+            { key: "Comment", label: t("manager.moderationDashboard.comments"),   count: commentCount   },
+          ].map(({ key, label, count }) => (
+            <button
+              key={key}
+              onClick={() => handleFilterChange(key)}
+              className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-150 ${
+                filterType === key
+                  ? "bg-brand text-white shadow-sm"
+                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {label}
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+                filterType === key
+                  ? "bg-white/20 text-white"
+                  : "bg-slate-100 text-slate-600"
+              }`}>
+                {count}
+              </span>
+            </button>
+          ))}
         </div>
+
         <button
           onClick={fetchReports}
           disabled={loading}
-          className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+          className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none disabled:opacity-60 shrink-0"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           {t("manager.moderationDashboard.refresh")}
@@ -145,46 +163,21 @@ const ModerationDashboard: React.FC = () => {
       </div>
 
       {/* ── Stats ── */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      {/* ── Stats ── */}
+      <div className="grid grid-cols-3 gap-4">
         {[
-          { label: t("manager.moderationDashboard.totalReports"), value: reports.length,  color: "text-brand",                                          bg: "bg-brand/5 dark:bg-brand/10"             },
-          { label: t("manager.moderationDashboard.moments"), value: momentCount,      color: "text-indigo-600 dark:text-indigo-400",                bg: "bg-indigo-50 dark:bg-indigo-500/10"      },
-          { label: t("manager.moderationDashboard.comments"),   value: commentCount,     color: "text-teal-600 dark:text-teal-400",                   bg: "bg-teal-50 dark:bg-teal-500/10"          },
+          { label: t("manager.moderationDashboard.totalReports"), value: reports.length,  color: "text-brand", bg: "bg-brand/5" },
+          { label: t("manager.moderationDashboard.moments"), value: momentCount, color: "text-indigo-600", bg: "bg-indigo-50" },
+          { label: t("manager.moderationDashboard.comments"), value: commentCount, color: "text-teal-600", bg: "bg-teal-50" },
         ].map(({ label, value, color, bg }) => (
-          <div key={label} className={`rounded-xl border border-slate-200/70 ${bg} p-4 dark:border-slate-800`}>
+          <div key={label} className={`rounded-xl border border-slate-200/70 ${bg} p-4`}>
             <div className={`text-2xl font-bold ${color}`}>{value}</div>
-            <div className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">{label}</div>
+            <div className="mt-0.5 text-xs font-medium text-slate-500">{label}</div>
           </div>
         ))}
       </div>
 
-      {/* ── Filters ── */}
-      <div className="mb-4 flex items-center gap-2">
-        {[
-          { key: "All",     label: t("manager.moderationDashboard.all"),      count: reports.length },
-          { key: "Moment",  label: t("manager.moderationDashboard.moments"), count: momentCount    },
-          { key: "Comment", label: t("manager.moderationDashboard.comments"),   count: commentCount   },
-        ].map(({ key, label, count }) => (
-          <button
-            key={key}
-            onClick={() => handleFilterChange(key)}
-            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
-              filterType === key
-                ? "bg-brand text-white shadow-sm"
-                : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-            }`}
-          >
-            {label}
-            <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
-              filterType === key
-                ? "bg-white/20 text-white"
-                : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
-            }`}>
-              {count}
-            </span>
-          </button>
-        ))}
-      </div>
+
 
       {/* ── Main Grid ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
@@ -254,7 +247,7 @@ const ModerationDashboard: React.FC = () => {
                         <div className="flex items-center justify-between gap-2">
                           <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
                             {report.contentText
-                              ? `"${report.contentText}"`
+                              ? <span>&quot;<DynamicText text={report.contentText} isHtml={false} />&quot;</span>
                               : (isMoment ? `${t("manager.moderationDashboard.moments")} #${report.targetId}` : `${t("manager.moderationDashboard.comments")} #${report.targetId}`)
                             }
                           </p>
@@ -386,7 +379,7 @@ const ModerationDashboard: React.FC = () => {
                     )}
                     {selectedReport.contentText && (
                       <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm italic text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-                        &ldquo;{selectedReport.contentText}&rdquo;
+                        &ldquo;<DynamicText text={selectedReport.contentText} isHtml={false} />&rdquo;
                       </div>
                     )}
                   </div>
@@ -398,7 +391,11 @@ const ModerationDashboard: React.FC = () => {
                     <div className="rounded-lg border border-slate-100 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
                       <MessageSquare className="mb-2 h-4 w-4 text-teal-400" />
                       <p className="text-sm font-medium italic text-slate-800 dark:text-slate-200">
-                        &ldquo;{selectedReport.contentText || t("manager.moderationDashboard.cantLoadComment")}&rdquo;
+                        {selectedReport.contentText ? (
+                          <span>&ldquo;<DynamicText text={selectedReport.contentText} isHtml={false} />&rdquo;</span>
+                        ) : (
+                          <span>&ldquo;{t("manager.moderationDashboard.cantLoadComment")}&rdquo;</span>
+                        )}
                       </p>
                     </div>
                   </div>
@@ -415,7 +412,7 @@ const ModerationDashboard: React.FC = () => {
                       {selectedReport.reason}
                     </span>
                     {selectedReport.details ? (
-                      <span className="text-sm text-slate-600 dark:text-slate-300">{selectedReport.details}</span>
+                      <span className="text-sm text-slate-600 dark:text-slate-300"><DynamicText text={selectedReport.details} isHtml={false} /></span>
                     ) : (
                       <span className="text-xs italic text-slate-400 dark:text-slate-500">{t("manager.moderationDashboard.noDetail")}</span>
                     )}

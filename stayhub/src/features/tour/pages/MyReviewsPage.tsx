@@ -12,6 +12,7 @@ import {
 import { useReview } from "../hooks/useReview";
 import { PATH } from "../../../config/routes/route";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const MyReviewsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -62,7 +63,7 @@ export const MyReviewsPage: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900">
-                      {review.tourName || `Tour #${review.tourId}`}
+                      {review.tourName ? <DynamicText text={review.tourName} /> : `Tour #${review.tourId}`}
                     </h3>
                     {review.createdAt && (
                       <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
@@ -106,7 +107,7 @@ export const MyReviewsPage: React.FC = () => {
                 </div>
 
                 <p className="text-sm leading-relaxed text-slate-700 whitespace-pre-wrap">
-                  {review.comment || (
+                  {review.comment ? <DynamicText text={review.comment} /> : (
                     <span className="italic text-slate-400">
                       {t("tour.noWrittenComment")}
                     </span>
@@ -138,7 +139,7 @@ export const MyReviewsPage: React.FC = () => {
                           )}
                         </div>
                         <p className="text-sm leading-relaxed text-slate-600">
-                          {reply.content}
+                          <DynamicText text={reply.content} />
                         </p>
                       </div>
                     ))}

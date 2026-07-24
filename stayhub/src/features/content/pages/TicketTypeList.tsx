@@ -8,6 +8,7 @@ import { TicketTypeDetailModal } from "../components/TicketTypeDetailModal";
 import { useChangeTicketTypeStatus } from "../hooks/useChangeTicketTypeStatus";
 import { useTicketTypes } from "../hooks/useTicketTypes";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 import type { ReadTicketTypeDTO } from "../types/ticketType";
 
 export const TicketTypeList: React.FC = () => {
@@ -61,7 +62,7 @@ export const TicketTypeList: React.FC = () => {
               <Ticket className="h-5 w-5" />
             </div>
             <span className="font-semibold text-slate-800 truncate" title={ticketType.name}>
-              {ticketType.name.length > 25 ? `${ticketType.name.substring(0, 25)}...` : ticketType.name}
+              <DynamicText text={ticketType.name.length > 25 ? `${ticketType.name.substring(0, 25)}...` : ticketType.name} />
             </span>
           </div>
         ),
@@ -74,7 +75,7 @@ export const TicketTypeList: React.FC = () => {
             className="block w-full truncate text-sm text-slate-500"
             title={ticketType.description || undefined}
           >
-            {ticketType.description || t("common.na")}
+            {ticketType.description ? <DynamicText text={ticketType.description} /> : t("common.na")}
           </span>
         ),
       },
@@ -229,7 +230,7 @@ export const TicketTypeList: React.FC = () => {
               : t("content.activateTicketTypeConfirm")}
             {statusTarget && (
               <span className="mt-2 block font-semibold text-slate-700">
-                {statusTarget.name}
+                <DynamicText text={statusTarget.name} />
               </span>
             )}
           </span>

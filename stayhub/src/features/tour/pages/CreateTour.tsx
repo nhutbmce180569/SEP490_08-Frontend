@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Tag, MapPin, Layers, Trash2 } from "lucide-react";
+import { Tag, MapPin, Layers, Trash2, ChevronDown } from "lucide-react";
 import {
   DynamicForm,
   type FormField,
@@ -15,6 +15,7 @@ import { SearchableSelect } from "../../../components/dashboard/SearchableSelect
 import { TransportationSelect } from "../components/TransportationSelect";
 import { MapPickerModal } from "../components/MapPickerModal";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const CreateTour: React.FC = () => {
   const { t } = useTranslation();
@@ -86,12 +87,29 @@ export const CreateTour: React.FC = () => {
     {
       name: "categoryId",
       label: t("tour.category"),
-      type: "select",
-      icon: <Layers className="h-4 w-4" />,
+      type: "custom",
       colSpan: 1,
-      options: categoryOptions,
-      placeholder: t("tour.selectCategory"),
       required: true,
+      render: (value, onChange, error) => (
+        <div className="flex flex-col gap-1.5">
+          <div className="relative">
+            <Layers className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <select
+              value={value || ""}
+              onChange={(e) => onChange(e.target.value)}
+              className={`w-full appearance-none rounded-xl border bg-white py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:ring-2 focus:ring-brand/10 ${error ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+            >
+              <option value="">{t("tour.selectCategory")}</option>
+              {categoryOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  <DynamicText text={opt.label} />
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          </div>
+        </div>
+      ),
     },
     {
       name: "transportationType",

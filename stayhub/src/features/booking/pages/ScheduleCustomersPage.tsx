@@ -19,6 +19,7 @@ import { getScheduleCustomersByScheduleId } from "../services/booking.service";
 import type { ReadScheduleCustomerDTO } from "../types/booking";
 import { PATH } from "../../../config/routes/route";
 import { tourScheduleStaffService } from "../../tour/services/tourScheduleStaffService.service";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const ScheduleCustomersPage: React.FC = () => {
   const { t } = useTranslation();
@@ -210,7 +211,7 @@ export const ScheduleCustomersPage: React.FC = () => {
                   }`}
                 >
                   <div className={`text-sm font-bold truncate ${selectedScheduleId === schedule.scheduleId ? "text-[#0068E0]" : "text-slate-700"}`}>
-                    {schedule.tourName || `Schedule #${schedule.scheduleId}`}
+                    {schedule.tourName ? <DynamicText text={schedule.tourName} /> : `Schedule #${schedule.scheduleId}`}
                   </div>
                   <p className={`text-xs mt-1.5 ${selectedScheduleId === schedule.scheduleId ? "text-blue-600/80" : "text-slate-500"}`}>
                     {new Date(schedule.departureDate).toLocaleDateString("vi-VN")} - {new Date(schedule.returnDate).toLocaleDateString("vi-VN")}
@@ -248,7 +249,11 @@ export const ScheduleCustomersPage: React.FC = () => {
           <div className="flex flex-col gap-4 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex flex-col gap-1">
               <h2 className="text-[15px] font-bold text-slate-900" title={selectedSchedule?.tourName || undefined}>
-                {selectedSchedule ? (selectedSchedule.tourName || `Schedule #${selectedSchedule.scheduleId}`) : t("booking.tourCustomers")}
+                {selectedSchedule
+                  ? selectedSchedule.tourName
+                    ? <DynamicText text={selectedSchedule.tourName} />
+                    : `Schedule #${selectedSchedule.scheduleId}`
+                  : t("booking.tourCustomers")}
               </h2>
               {selectedSchedule && (
                 <div className="flex items-center gap-2">

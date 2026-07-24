@@ -8,6 +8,7 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { useTours } from "../hooks/useTours";
 import { type Tour } from "../types/tour";
+import { DynamicText } from "../../../components/DynamicText";
 
 const STATUS_STYLES: Record<string, string> = {
   Active: "bg-emerald-50 text-emerald-600",
@@ -126,7 +127,7 @@ export const TourList: React.FC = () => {
         className: "w-1/3 min-w-[250px]",
         render: (tour) => (
           <span className="line-clamp-2 max-w-[200px] text-sm font-semibold text-slate-800">
-            {tour.name}
+            <DynamicText text={tour.name} />
           </span>
         ),
       },
@@ -135,7 +136,7 @@ export const TourList: React.FC = () => {
         className: "w-40",
         render: (tour) => (
           <span className="text-sm text-slate-600">
-            {categoryNameById.get(tour.categoryId) ?? `ID ${tour.categoryId}`}
+            {categoryNameById.get(tour.categoryId) ? <DynamicText text={categoryNameById.get(tour.categoryId)!} /> : `ID ${tour.categoryId}`}
           </span>
         ),
       },
@@ -305,7 +306,7 @@ export const TourList: React.FC = () => {
                         </option>
                         {categories.map((category) => (
                           <option key={category.id} value={category.id}>
-                            {category.name}
+                            <DynamicText text={category.name} />
                           </option>
                         ))}
                       </select>
@@ -399,9 +400,16 @@ export const TourList: React.FC = () => {
             : t("tour.deactivateTour")
         }
         message={
-          shouldActivateSelectedTour
-            ? t("tour.activateTourConfirm", { name: tourStatusAction?.name ?? "" })
-            : t("tour.deactivateTourConfirm", { name: tourStatusAction?.name ?? "" })
+          <span>
+            {shouldActivateSelectedTour
+              ? t("tour.activateTourConfirm")
+              : t("tour.deactivateTourConfirm")}
+            {tourStatusAction && (
+              <span className="mt-2 block font-semibold text-slate-700">
+                <DynamicText text={tourStatusAction.name} />
+              </span>
+            )}
+          </span>
         }
         confirmText="Confirm"
         cancelText="Cancel"

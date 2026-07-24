@@ -17,6 +17,7 @@ import { useToast } from "../../../contexts/ToastContext";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { useTicketCheckin } from "../hooks/useTicketCheckin";
+import { DynamicText } from "../../../components/DynamicText";
 
 import { Scanner } from "@yudiel/react-qr-scanner";
 
@@ -51,8 +52,7 @@ export const QRCheckinPage: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 min-h-[calc(100vh-140px)] flex flex-col items-center justify-center">
-      <div className="w-full grid gap-8 lg:grid-cols-2 items-stretch max-w-6xl">
+    <div className="w-full grid gap-6 lg:grid-cols-2 items-stretch">
         {/* ==============================================================
             CỘT TRÁI: KHU VỰC QUÉT MÃ (Chiếm 1 phần)
         ============================================================== */}
@@ -106,7 +106,7 @@ export const QRCheckinPage: React.FC = () => {
                   <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md flex flex-col items-center justify-center z-10">
                     <Loader2 className="h-10 w-10 text-[#0068E0] animate-spin mb-3" />
                     <p className="text-white text-sm font-bold tracking-wide animate-pulse">
-                      Đang xử lý...
+                      {t("booking.processing") || "Processing..."}
                     </p>
                   </div>
                 )}
@@ -153,7 +153,7 @@ export const QRCheckinPage: React.FC = () => {
                   className="w-full rounded-2xl py-3 text-sm font-bold shadow-md shadow-blue-500/25 transition-transform active:scale-[0.98]"
                 >
                   {isProcessing ? (
-                    <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Vui lòng chờ...</span>
+                    <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> {t("booking.pleaseWait") || "Please wait..."}</span>
                   ) : (
                     t("booking.processCheckIn")
                   )}
@@ -188,7 +188,7 @@ export const QRCheckinPage: React.FC = () => {
                     {t("booking.waitingForScan")}
                   </p>
                   <p className="text-xs mt-1 max-w-[200px] leading-relaxed">
-                    Đưa mã QR vào khung ngắm camera để bắt đầu check-in
+                    {t("booking.aimQrAtCamera") || "Point the QR code at the camera to start check-in"}
                   </p>
                 </div>
               ) :
@@ -203,7 +203,7 @@ export const QRCheckinPage: React.FC = () => {
                       {t("booking.checkInValid")}
                     </h4>
                     <p className="text-xs font-bold text-emerald-600 mb-5">
-                      {lastResult.message}
+                      <DynamicText text={lastResult.message} isHtml={false} />
                     </p>
 
                     {/* THIẾT KẾ DẠNG VÉ (TICKET STYLE) */}
@@ -215,10 +215,10 @@ export const QRCheckinPage: React.FC = () => {
                           </div>
                           <div className="min-w-0">
                             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-0.5">
-                              Hành khách / Passenger
+                              {t("booking.passengerLabel") || "Passenger"}
                             </p>
                             <p className="truncate font-black text-slate-800 text-base">
-                              {lastResult.ticketData?.attendeeName || t("booking.anonymous")}
+                              {lastResult.ticketData?.attendeeName ? <DynamicText text={lastResult.ticketData.attendeeName} /> : t("booking.anonymous")}
                             </p>
                           </div>
                         </div>
@@ -241,15 +241,15 @@ export const QRCheckinPage: React.FC = () => {
                       <div className="px-4 py-3 grid grid-cols-2 gap-3">
                         <div>
                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1 mb-0.5">
-                            <Tag className="h-2.5 w-2.5" /> Loại Vé
+                            <Tag className="h-2.5 w-2.5" /> {t("booking.ticketType") || "Ticket Type"}
                           </p>
                           <p className="truncate font-bold text-slate-700 text-sm">
-                            {lastResult.ticketData?.ticketTypeName || "N/A"}
+                            {lastResult.ticketData?.ticketTypeName ? <DynamicText text={lastResult.ticketData.ticketTypeName} /> : "N/A"}
                           </p>
                         </div>
                         <div>
                           <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1 mb-0.5">
-                            <Hash className="h-2.5 w-2.5" /> ID Vé
+                            <Hash className="h-2.5 w-2.5" /> {t("booking.ticketId") || "Ticket ID"}
                           </p>
                           <p className="truncate font-bold text-slate-700 text-sm">
                             #{lastResult.ticketData?.ticketId || t("common.na")}
@@ -271,7 +271,7 @@ export const QRCheckinPage: React.FC = () => {
                       </h4>
                       <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 shadow-sm">
                         <p className="text-sm font-bold text-rose-600 leading-relaxed">
-                          {lastResult.message}
+                          <DynamicText text={lastResult.message} isHtml={false} />
                         </p>
                       </div>
                     </div>
@@ -279,7 +279,6 @@ export const QRCheckinPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };

@@ -6,6 +6,9 @@ import { useTranslation } from "../../contexts/LocaleContext";
 import { MoneyDisplay } from "../../features/currency/MoneyDisplay";
 import { WishlistToggleButton } from "../../features/wishlist/customer/components/WishlistToggleButton";
 
+import { useDynamicTranslation } from "../../hooks/useDynamicTranslation";
+import { DynamicText } from "../DynamicText";
+
 export interface TourCardProps {
   id: string | number;
   title: string;
@@ -22,6 +25,8 @@ export interface TourCardProps {
 
 export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
   const { t } = useTranslation();
+  const { translatedText: translatedTitle, isLoading: isTitleLoading } = useDynamicTranslation(tour.title);
+  
   return (
     <Link
       to={PATH.PUBLIC.TOUR_DETAIL(tour.id)}
@@ -70,11 +75,13 @@ export const TourCard: React.FC<{ tour: TourCardProps }> = ({ tour }) => {
         <div className="flex flex-1 flex-col p-5">
           <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400">
             <MapPin size={13} className="shrink-0 text-brand" />
-            <span className="truncate">{tour.location || t("home.vietnam")}</span>
+            <span className="truncate">
+              {tour.location ? <DynamicText text={tour.location} /> : t("home.vietnam")}
+            </span>
           </div>
 
-          <h3 className="travel-heading mb-3 line-clamp-2 text-base leading-snug text-navy transition-colors group-hover:text-brand md:text-lg dark:text-white">
-            {tour.title}
+          <h3 className="travel-heading mb-3 line-clamp-2 text-base leading-snug text-navy transition-colors group-hover:text-brand md:text-lg dark:text-white" title={tour.title}>
+            {isTitleLoading ? <span className="animate-pulse bg-slate-200 dark:bg-slate-700 text-transparent rounded">Loading title...</span> : translatedTitle}
           </h3>
 
           <div className="mt-auto flex items-end justify-between gap-2 border-t border-slate-100/80 pt-4 dark:border-slate-800/80">

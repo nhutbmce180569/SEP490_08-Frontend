@@ -11,6 +11,7 @@ import { tourismInformationService } from "../../content/services/tourismInforma
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const UpdateItinerary: React.FC = () => {
   const { t } = useTranslation();
@@ -216,7 +217,12 @@ export const UpdateItinerary: React.FC = () => {
     <>
       <DynamicForm
         title={t("tour.editItineraryDay", { day: itinerary.dayNumber })}
-        description={t("tour.updateItineraryFor", { name: tour?.name || `Tour #${tourId}` })}
+        description={
+          <span className="flex items-center gap-1">
+            {t("tour.updateItineraryFor", { name: "" }).replace(".", "").trim()}
+            {tour?.name ? <DynamicText text={tour.name} /> : `Tour #${tourId}`}
+          </span>
+        }
         fields={itineraryFields}
         initialData={itinerary}
         onSubmit={handleSubmit}

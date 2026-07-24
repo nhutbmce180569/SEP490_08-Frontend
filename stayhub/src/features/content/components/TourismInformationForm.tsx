@@ -16,6 +16,7 @@ import {
   type TourismInformationType,
 } from "../types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 const TOURISM_TYPE_I18N: Record<TourismInformationType, string> = {
   Destination: "content.tourismTypeDestination",
@@ -136,12 +137,12 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
                   <LocationSummaryItem
                     icon={<MapPin className="h-3.5 w-3.5 shrink-0" />}
                     label={t("tour.city")}
-                    value={city || "—"}
+                    value={city ? <DynamicText text={city} /> : "—"}
                   />
                   <LocationSummaryItem
                     icon={<Globe className="h-3.5 w-3.5 shrink-0" />}
                     label={t("tour.country")}
-                    value={country || "—"}
+                    value={country ? <DynamicText text={country} /> : "—"}
                   />
                   <LocationSummaryItem
                     icon={<Navigation className="h-3.5 w-3.5 shrink-0" />}
@@ -230,7 +231,7 @@ export const TourismInformationForm: React.FC<TourismInformationFormProps> = ({
 const LocationSummaryItem: React.FC<{
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: React.ReactNode;
   mono?: boolean;
 }> = ({ icon, label, value, mono = false }) => (
   <div className="min-w-0">

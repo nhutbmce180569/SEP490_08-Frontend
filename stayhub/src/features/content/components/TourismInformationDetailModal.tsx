@@ -14,10 +14,14 @@ import { useTranslation } from "../../../contexts/LocaleContext";
 import { getImg } from "../../../config/api/api";
 import { TOURISM_TYPE_LABELS } from "../types/tourismInformation";
 import { useQuery } from "@tanstack/react-query";
+import { DynamicText } from "../../../components/DynamicText";
 import { tourismInformationService } from "../services/tourismInformation.service";
 
-const getTypeLabel = (type: string) =>
-  TOURISM_TYPE_LABELS[type as keyof typeof TOURISM_TYPE_LABELS] ?? type;
+const getTypeLabel = (type: string, t: any) => {
+  return t(`content.tourismType${type}`, {
+    defaultValue: TOURISM_TYPE_LABELS[type as keyof typeof TOURISM_TYPE_LABELS] ?? type
+  });
+};
 
 interface TourismInformationDetailModalProps {
   id: string | null;
@@ -150,9 +154,9 @@ export const TourismInformationDetailModal: React.FC<TourismInformationDetailMod
                       {active ? t("common.active") : t("common.inactive")}
                     </span>
                   </div>
-                  <h2 className="mb-2 text-xl font-bold text-slate-900">{tourismInfo.name}</h2>
+                  <h2 className="mb-2 text-xl font-bold text-slate-900"><DynamicText text={tourismInfo.name} /></h2>
                   <p className="text-sm text-slate-500">
-                    {tourismInfo.description || <span className="italic">{t("content.noDescriptionProvided")}</span>}
+                    {tourismInfo.description ? <DynamicText text={tourismInfo.description} isHtml={true} /> : <span className="italic">{t("content.noDescriptionProvided")}</span>}
                   </p>
                 </div>
               </div>
@@ -164,19 +168,19 @@ export const TourismInformationDetailModal: React.FC<TourismInformationDetailMod
                 label={t("content.type")}
                 value={
                   <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-700">
-                    {getTypeLabel(tourismInfo.type)}
+                    {getTypeLabel(tourismInfo.type, t)}
                   </span>
                 }
               />
               <DetailCard
                 icon={<Globe className="h-4 w-4" />}
                 label={t("content.cityCountry")}
-                value={[tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ") || t("common.na")}
+                value={[tourismInfo.city, tourismInfo.country].filter(Boolean).length > 0 ? <DynamicText text={[tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ")} /> : t("common.na")}
               />
               <DetailCard
                 icon={<MapPin className="h-4 w-4" />}
                 label={t("content.address")}
-                value={tourismInfo.address || t("common.na")}
+                value={tourismInfo.address ? <DynamicText text={tourismInfo.address} /> : t("common.na")}
                 className="sm:col-span-2"
               />
               <DetailCard

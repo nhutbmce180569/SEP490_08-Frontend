@@ -46,6 +46,7 @@ import {
   getScheduleTicketTypeId,
 } from "../utils/tourScheduleTicket";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 export const TourScheduleDetail: React.FC = () => {
   const { t } = useTranslation();
@@ -340,7 +341,7 @@ export const TourScheduleDetail: React.FC = () => {
                   {t("tour.tourNameLabel")}
                 </span>
                 <span className="font-bold text-brand">
-                  {schedule.tour?.name || `ID: ${schedule.tourId}`}
+                  {schedule.tour?.name ? <DynamicText text={schedule.tour.name} /> : `ID: ${schedule.tourId}`}
                 </span>
               </div>
             </div>
@@ -378,7 +379,7 @@ export const TourScheduleDetail: React.FC = () => {
             <h2 className="mb-3 text-base font-bold text-slate-900">{t("tour.scheduleNote")}</h2>
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5 leading-relaxed text-slate-700">
               {schedule.note ? (
-                <p className="whitespace-pre-wrap text-sm text-slate-600">{schedule.note}</p>
+                <p className="whitespace-pre-wrap text-sm text-slate-600"><DynamicText text={schedule.note} /></p>
               ) : (
                 <p className="text-sm italic text-slate-400">
                   {t("tour.noScheduleNotes")}
@@ -523,7 +524,7 @@ export const TourScheduleDetail: React.FC = () => {
                                         {idx + 1}
                                       </span>
                                       <div className="flex flex-col min-w-0">
-                                        <h4 className="truncate font-bold text-slate-800">{iti.title || t("tour.untitledItinerary")}</h4>
+                                        <h4 className="truncate font-bold text-slate-800">{iti.title ? <DynamicText text={iti.title} /> : t("tour.untitledItinerary")}</h4>
                                         <div className="flex items-center gap-2 text-[11px] text-slate-500">
                                           <span className="flex items-center gap-0.5">
                                             <Clock className="h-3 w-3" />
@@ -532,7 +533,7 @@ export const TourScheduleDetail: React.FC = () => {
                                           <span className="text-slate-300">•</span>
                                           <span className="flex items-center gap-0.5">
                                             <MapPin className="h-3 w-3 text-emerald-500" />
-                                            {iti.locationName || t("tour.noLocationSpec")}
+                                            {iti.locationName ? <DynamicText text={iti.locationName} /> : t("tour.noLocationSpec")}
                                           </span>
                                         </div>
                                       </div>
@@ -565,10 +566,9 @@ export const TourScheduleDetail: React.FC = () => {
                                   {isExpanded && (
                                     <div className="border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 space-y-4">
                                       {iti.description && (
-                                        <div
-                                          className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5"
-                                          dangerouslySetInnerHTML={{ __html: iti.description.replace(/&nbsp;/g, " ") }}
-                                        />
+                                          <div className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+                                            <DynamicText text={iti.description.replace(/&nbsp;/g, " ")} isHtml />
+                                          </div>
                                       )}
                                       {iti.tourismInfoId && (
                                         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white text-sm">
@@ -586,15 +586,17 @@ export const TourScheduleDetail: React.FC = () => {
                                               </div>
                                               <div className="space-y-1.5 p-3">
                                                 <div className="flex flex-wrap items-center gap-1.5">
-                                                  <h5 className="font-bold text-slate-800">{tourismInfo.name}</h5>
-                                                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">{tourismInfo.type}</span>
+                                                  <h5 className="font-bold text-slate-800"><DynamicText text={tourismInfo.name} /></h5>
+                                                  <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-500">
+                                                    {t(`content.tourismType${tourismInfo.type}`, { defaultValue: tourismInfo.type })}
+                                                  </span>
                                                 </div>
                                                 {tourismInfo.description && (
-                                                  <p className="text-xs leading-relaxed text-slate-500">{tourismInfo.description}</p>
+                                                  <p className="text-xs leading-relaxed text-slate-500"><DynamicText text={tourismInfo.description} /></p>
                                                 )}
                                                 <div className="flex items-start gap-1.5 text-xs text-slate-500">
                                                   <Globe className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
-                                                  <span>{[tourismInfo.address, tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ") || t("common.na")}</span>
+                                                  <span>{[tourismInfo.address, tourismInfo.city, tourismInfo.country].some(Boolean) ? <DynamicText text={[tourismInfo.address, tourismInfo.city, tourismInfo.country].filter(Boolean).join(", ")} /> : t("common.na")}</span>
                                                 </div>
                                                 {(tourismInfo.latitude || tourismInfo.longitude) && (
                                                   <div className="flex items-start gap-1.5 text-xs text-slate-500">
@@ -740,11 +742,11 @@ export const TourScheduleDetail: React.FC = () => {
                                 </div>
                                 <div className="min-w-0">
                                   <span className="font-semibold text-slate-800">
-                                    {getScheduleTicketName(ticket, ticketType)}
+                                    <DynamicText text={getScheduleTicketName(ticket, ticketType)} />
                                   </span>
                                   {ticket.note && (
                                     <p className="mt-0.5 max-w-xs truncate text-xs font-medium text-slate-400">
-                                      {ticket.note}
+                                      <DynamicText text={ticket.note} />
                                     </p>
                                   )}
                                 </div>

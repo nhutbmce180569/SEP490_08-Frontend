@@ -27,6 +27,7 @@ import { tourismInformationService } from "../../content/services/tourismInforma
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 import {
   downloadItineraryExcelTemplate,
   parseItineraryExcel,
@@ -325,7 +326,7 @@ export const CreateItinerary: React.FC = () => {
             </h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
               {t("tour.createItineraryBatchDesc")} (
-              {tour?.name || `Tour #${tourId}`})
+              {tour?.name ? <DynamicText text={tour.name} /> : `Tour #${tourId}`})
             </p>
           </div>
           <div className="flex w-full sm:w-auto shrink-0 justify-end gap-3">

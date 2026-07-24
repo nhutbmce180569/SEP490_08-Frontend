@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Image as ImageIcon, MapPin, Search, Tag, X } from "lucide-react";
 import type { TourismInformation } from "../types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface TourismInformationSelectorProps {
   items: TourismInformation[];
@@ -117,10 +118,10 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-slate-800">
-                      {item.name}
+                      <DynamicText text={item.name} />
                     </div>
                     <div className="mt-0.5 truncate text-xs font-medium text-slate-500">
-                      {item.type} - {getAddressText(item) || `ID ${item.id}`}
+                      {t(`content.tourismType${item.type}`, { defaultValue: item.type })} - {getAddressText(item) ? <DynamicText text={getAddressText(item)} /> : `ID ${item.id}`}
                     </div>
                   </div>
                 </button>
@@ -155,14 +156,14 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
             <div className="space-y-3 p-4">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h4 className="text-sm font-bold text-slate-900">{selectedItem.name}</h4>
+                  <h4 className="text-sm font-bold text-slate-900"><DynamicText text={selectedItem.name} /></h4>
                   <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-bold text-indigo-600">
-                    {selectedItem.type}
+                    {t(`content.tourismType${selectedItem.type}`, { defaultValue: selectedItem.type })}
                   </span>
                 </div>
                 {selectedItem.description && (
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                    {selectedItem.description}
+                    <DynamicText text={selectedItem.description} />
                   </p>
                 )}
               </div>
@@ -170,7 +171,7 @@ export const TourismInformationSelector: React.FC<TourismInformationSelectorProp
               {getAddressText(selectedItem) && (
                 <div className="flex items-start gap-2 text-xs font-medium text-slate-600">
                   <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                  <span>{getAddressText(selectedItem)}</span>
+                  <span><DynamicText text={getAddressText(selectedItem)} /></span>
                 </div>
               )}
 

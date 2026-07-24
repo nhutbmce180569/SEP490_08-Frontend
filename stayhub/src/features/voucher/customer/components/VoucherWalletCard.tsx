@@ -1,10 +1,10 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Clock, Copy, MapPin, TicketPercent } from 'lucide-react';
 import { PATH } from '../../../../config/routes/route';
 import { useTranslation } from '../../../../contexts/LocaleContext';
 import type { ReadSavedVoucherDTO } from '../types/customerVoucher';
-import { formatDateTime, formatVnd } from '../../utils/voucherHelpers';
+import { formatDateTime } from '../../utils/voucherHelpers';
 
 const WALLET_STATUS_STYLES: Record<string, string> = {
   Available: 'bg-emerald-100 text-emerald-700',
@@ -25,6 +25,7 @@ interface VoucherWalletCardProps {
 
 export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, onCopy }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const isUsable =
     voucher.status === 'Available' &&
     voucher.isActive &&
@@ -51,14 +52,14 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
       <div className="relative flex w-[88px] shrink-0 flex-col items-center justify-center bg-gradient-to-b from-brand to-brand-hover px-2 py-4 text-white">
         <div className="text-center">
           <div className="text-2xl font-black leading-none">
-            {isPercent ? `${voucher.discountValue}%` : formatVnd(voucher.discountValue).replace(/\s?₫/, '')}
+            {isPercent ? `${voucher.discountValue}%` : new Intl.NumberFormat('vi-VN').format(voucher.discountValue)}
           </div>
           <div className="mt-1 text-[10px] font-bold uppercase tracking-wider opacity-90">
             {isPercent ? t('voucher.walletOff') : 'VNĐ'}
           </div>
           {isPercent && voucher.maxDiscountAmount && (
             <div className="mt-2 text-[9px] font-medium leading-tight opacity-80">
-              {t('voucher.walletMax', { amount: formatVnd(voucher.maxDiscountAmount) })}
+              {t('voucher.walletMax', { amount: new Intl.NumberFormat('vi-VN').format(voucher.maxDiscountAmount) + '₫' })}
             </div>
           )}
         </div>
@@ -105,7 +106,7 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
             )}
             {voucher.minOrderAmount && voucher.minOrderAmount > 0 && (
               <div className="mt-1 text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60 inline-block">
-                {t('voucher.minOrderHint', { amount: formatVnd(voucher.minOrderAmount) })}
+                {t('voucher.minOrderHint', { amount: new Intl.NumberFormat('vi-VN').format(voucher.minOrderAmount) + '₫' })}
               </div>
             )}
           </div>
@@ -125,13 +126,19 @@ export const VoucherWalletCard: React.FC<VoucherWalletCardProps> = ({ voucher, o
           </button>
 
           {isUsable && (
-            <Link
-              to={voucher.tourId ? PATH.PUBLIC.TOUR_DETAIL(voucher.tourId) : PATH.PUBLIC.TOUR_SEARCH}
-              className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-hover !no-underline"
+            <button
+              type="button"
+              onClick={() => {
+                const targetPath = voucher.tourId 
+                  ? PATH.PUBLIC.TOUR_DETAIL(voucher.tourId) 
+                  : PATH.PUBLIC.TOUR_SEARCH;
+                navigate(targetPath);
+              }}
+              className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-hover"
             >
               <TicketPercent className="h-3.5 w-3.5" />
               {voucher.tourId ? t('voucher.useNow') : t('voucher.browseTours')}
-            </Link>
+            </button>
           )}
         </div>
       </div>

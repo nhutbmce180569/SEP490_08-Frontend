@@ -195,49 +195,45 @@ export const UpdateVoucher: React.FC = () => {
   }
 
   return (
-    <div className="mx-auto max-w-4xl pb-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-navy">{t('voucher.updateVoucher')}</h1>
-        <p className="mt-1 text-sm text-slate-500">{t('voucher.updateVoucherDesc', { id: String(id), code: voucher.code })}</p>
+    <>
+      <div className="mx-auto max-w-4xl">
+        {isUsed && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {t('voucher.voucherUsedWarning', { count: voucher.usedCount })}
+          </div>
+        )}
+        {serverErrors._form && (
+          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {serverErrors._form}
+          </div>
+        )}
       </div>
 
-      {isUsed && (
-        <div className="mx-auto mb-4 max-w-4xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {t('voucher.voucherUsedWarning', { count: voucher.usedCount })}
-        </div>
-      )}
-      {serverErrors._form && (
-        <div className="mx-auto mb-4 max-w-4xl rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {serverErrors._form}
-        </div>
-      )}
-
-      <div className="relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-8">
-        <DynamicForm
-          fields={voucherFields}
-          initialValues={{
-            code: voucher.code,
-            tourId: voucher.tourId ? String(voucher.tourId) : '',
-            discountType: voucher.discountType,
-            discountValue: voucher.discountValue,
-            maxDiscountAmount: voucher.maxDiscountAmount ?? '',
-            minOrderAmount: voucher.minOrderAmount ?? '',
-            availableCount: voucher.availableCount,
-            startDate: toDateTimeLocal(voucher.startDate),
-            endDate: toDateTimeLocal(voucher.endDate),
-            description: voucher.description || '',
-            voucherTarget: createDefaultVoucherTarget(),
-          }}
-          onSubmit={handleSubmit}
-          serverErrors={serverErrors}
-          onCancel={handleCancel}
-          submitText={t('common.saveChanges')}
-          cancelText={t('common.cancel')}
-          isSubmitting={isSubmitting}
-          gridCols={2}
-        />
-        <LoadingOverlay isOpen={isSubmitting} message={t('voucher.updatingVoucher')} />
-      </div>
-    </div>
+      <DynamicForm
+        title={t('voucher.updateVoucher')}
+        description={t('voucher.updateVoucherDesc', { id: String(id), code: voucher.code })}
+        fields={voucherFields}
+        initialValues={{
+          code: voucher.code,
+          tourId: voucher.tourId ? String(voucher.tourId) : '',
+          discountType: voucher.discountType,
+          discountValue: voucher.discountValue,
+          maxDiscountAmount: voucher.maxDiscountAmount ?? '',
+          minOrderAmount: voucher.minOrderAmount ?? '',
+          availableCount: voucher.availableCount,
+          startDate: toDateTimeLocal(voucher.startDate),
+          endDate: toDateTimeLocal(voucher.endDate),
+          description: voucher.description || '',
+          voucherTarget: createDefaultVoucherTarget(),
+        }}
+        onSubmit={handleSubmit}
+        serverErrors={serverErrors}
+        onCancel={handleCancel}
+        submitText={t('common.saveChanges')}
+        cancelText={t('common.cancel')}
+        isSubmitting={isSubmitting}
+      />
+      <LoadingOverlay isOpen={isSubmitting} message={t('voucher.updatingVoucher')} />
+    </>
   );
 };

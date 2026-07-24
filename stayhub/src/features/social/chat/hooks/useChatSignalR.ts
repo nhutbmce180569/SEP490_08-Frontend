@@ -4,11 +4,13 @@ import * as signalR from '@microsoft/signalr';
 import type { ChatMessage } from '../types/chat.type';
 import { chatService } from '../services/chatService';
 import { SIGNALR_HUB_BASE } from '../../../../config/api/api';
+import { useToast } from '../../../../contexts/ToastContext';
 
 export const useChatSignalR = (roomId: number | null) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (!roomId) {
@@ -67,7 +69,7 @@ export const useChatSignalR = (roomId: number | null) => {
           await connection.invoke('SendMessage', roomId, content.trim());
         } catch (err) {
           console.error('SignalR Error sending message:', err);
-          alert('Send error! Please check your connection and try again.');
+          toast.error('Send error! Please check your connection and try again.');
         }
       }
     },

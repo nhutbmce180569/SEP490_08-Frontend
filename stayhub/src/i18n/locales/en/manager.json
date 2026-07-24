@@ -74,7 +74,17 @@
     "msgApproveSuccess": "Content approved and kept.",
     "msgRejectSuccess": "Violation content hidden from system.",
     "msgDismissSuccess": "Report dismissed.",
-    "msgActionFail": "Action failed. Please try again."
+    "msgActionFail": "Action failed. Please try again.",
+    "categoryFilter": "Category:",
+    "allCategories": "All Categories",
+    "sortFilter": "Sort:",
+    "sortNewest": "Newest first",
+    "sortOldest": "Oldest first",
+    "confirmKeepTitle": "Confirm Clean Content",
+    "confirmKeepMsg": "Are you sure this content is clean and should be kept?",
+    "confirmHideTitle": "Confirm Hide Content",
+    "confirmHideMsg": "Are you sure this content is a violation and should be hidden?",
+    "confirmBtn": "Confirm"
   },
   "trendPredictionPage": {
     "badge": "AI FORECAST COMMAND CENTER",

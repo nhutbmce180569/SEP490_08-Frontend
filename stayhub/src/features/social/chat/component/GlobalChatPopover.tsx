@@ -707,7 +707,7 @@ export const GlobalChatPopover: React.FC = () => {
 
                 return (
                   <div key={msg.id || Math.random()} className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} shrink-0 ${isFirstInGroup ? 'mt-3.5' : 'mt-0.5'}`}>
-                    <div className={`flex gap-2 max-w-[85%] ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto'} items-end`}>
+                    <div className={`flex gap-2 max-w-[85%] min-w-0 ${isMe ? 'ml-auto flex-row-reverse' : 'mr-auto'} items-end`}>
                       {!isMe && (
                         isLastInGroup ? (
                           <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-250 overflow-hidden flex items-center justify-center shrink-0 text-[8px] font-extrabold mb-0.5 shadow-sm text-slate-700 dark:text-slate-250">
@@ -734,7 +734,7 @@ export const GlobalChatPopover: React.FC = () => {
                           <div className="w-6 h-6 shrink-0" />
                         )
                       )}
-                      <div className="flex flex-col">
+                      <div className="flex flex-col min-w-0">
                         {!isMe && isFirstInGroup && selectedRoom?.isGroupChat && (
                           <span className="text-[9px] font-black text-slate-400 mb-1 px-1 tracking-wide uppercase">
                             {senderName}
@@ -798,7 +798,7 @@ export const GlobalChatPopover: React.FC = () => {
                         }
                         return <div className="text-xs px-3.5 py-2 rounded-2xl bg-slate-100 text-slate-800">{msg.content}</div>;
                       })() : (
-                        <div className={`text-xs px-3.5 py-2 rounded-2xl leading-relaxed whitespace-pre-wrap break-words ${
+                        <div className={`text-xs px-3.5 py-2 rounded-2xl leading-relaxed whitespace-pre-wrap break-all ${
                           isMe 
                             ? 'bg-brand text-white rounded-br-sm' 
                             : 'bg-slate-100 text-slate-800 rounded-bl-sm border border-slate-100/50'

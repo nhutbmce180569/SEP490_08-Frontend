@@ -94,10 +94,10 @@ export const SystemSettings: React.FC = () => {
         appLogoFile: appLogoFile || undefined,
       });
 
-      success(t("admin.settingsSavedSuccess", "Settings saved successfully"));
+      success(t("admin.settingsSavedSuccess"));
       refetch();
     } catch (err: any) {
-      showError(err.response?.data?.message || t("admin.settingsSaveFailed", "Failed to save settings"));
+      showError(err.response?.data?.message || t("admin.settingsSaveFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -108,25 +108,25 @@ export const SystemSettings: React.FC = () => {
   }
 
   const tabs = [
-    { id: "branding", label: t("admin.branding", "Branding"), icon: <ImageIcon className="h-4 w-4" /> },
-    { id: "general", label: t("admin.generalInfo", "General Info"), icon: <Briefcase className="h-4 w-4" /> },
-    { id: "policies", label: t("admin.policies", "Policies & HTML Pages"), icon: <FileText className="h-4 w-4" /> },
+    { id: "branding", label: t("admin.branding"), icon: <ImageIcon className="h-4 w-4" /> },
+    { id: "general", label: t("admin.generalInfo"), icon: <Briefcase className="h-4 w-4" /> },
+    { id: "policies", label: t("admin.policies"), icon: <FileText className="h-4 w-4" /> },
   ];
 
   const htmlFields = [
-    { key: "AboutUs", label: t("admin.aboutUs", "About Us") },
-    { key: "PrivacyPolicy", label: t("admin.privacyPolicy", "Privacy Policy") },
-    { key: "TermsAndConditions", label: t("admin.terms", "Terms & Conditions") },
-    { key: "BookingRegulations", label: t("admin.bookingRegulations", "Booking Regulations") },
-    { key: "RefundRegulations", label: t("admin.refundRegulations", "Refund Regulations") },
-    { key: "DataPolicy", label: t("admin.dataPolicy", "Data Policy") },
-    { key: "CookiePolicy", label: t("admin.cookiePolicy", "Cookie Policy") },
+    { key: "AboutUs", label: t("admin.aboutUs") },
+    { key: "PrivacyPolicy", label: t("admin.privacyPolicy") },
+    { key: "TermsAndConditions", label: t("admin.terms") },
+    { key: "BookingRegulations", label: t("admin.bookingRegulations") },
+    { key: "RefundRegulations", label: t("admin.refundRegulations") },
+    { key: "DataPolicy", label: t("admin.dataPolicy") },
+    { key: "CookiePolicy", label: t("admin.cookiePolicy") },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-800">{t("admin.systemSettings", "System Settings")}</h1>
+        <h1 className="text-2xl font-bold text-slate-800">{t("admin.systemSettings")}</h1>
         <div className="flex items-center gap-4">
           <button
             onClick={handleSubmit}
@@ -161,37 +161,53 @@ export const SystemSettings: React.FC = () => {
           <div className="space-y-8">
             <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Web Logo</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">{t("admin.webLogo")}</label>
                 <div className="mb-4 flex h-32 w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
                   {webLogoPreview ? (
-                    <img src={webLogoPreview} alt="Web Logo" className="max-h-full object-contain" />
+                    <img src={webLogoPreview} alt={t("admin.webLogo")} className="max-h-full object-contain" />
                   ) : (
-                    <span className="text-sm text-slate-400">No Web Logo</span>
+                    <span className="text-sm text-slate-400">{t("admin.noWebLogo")}</span>
                   )}
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "web")}
-                  className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand hover:file:bg-brand-100"
-                />
+                <div className="flex items-center gap-4">
+                  <label className="cursor-pointer rounded-full bg-brand-50 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand-100">
+                    {t("common.chooseFile")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "web")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-sm text-slate-500 max-w-[200px] truncate">
+                    {webLogoFile ? webLogoFile.name : t("common.noFileChosen")}
+                  </span>
+                </div>
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Mobile App Logo</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">{t("admin.appLogo")}</label>
                 <div className="mb-4 flex h-32 w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
                   {appLogoPreview ? (
-                    <img src={appLogoPreview} alt="App Logo" className="max-h-full object-contain" />
+                    <img src={appLogoPreview} alt={t("admin.appLogo")} className="max-h-full object-contain" />
                   ) : (
-                    <span className="text-sm text-slate-400">No App Logo</span>
+                    <span className="text-sm text-slate-400">{t("admin.noAppLogo")}</span>
                   )}
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "app")}
-                  className="block w-full text-sm text-slate-500 file:mr-4 file:rounded-full file:border-0 file:bg-brand-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-brand hover:file:bg-brand-100"
-                />
+                <div className="flex items-center gap-4">
+                  <label className="cursor-pointer rounded-full bg-brand-50 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand-100">
+                    {t("common.chooseFile")}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, "app")}
+                      className="hidden"
+                    />
+                  </label>
+                  <span className="text-sm text-slate-500 max-w-[200px] truncate">
+                    {appLogoFile ? appLogoFile.name : t("common.noFileChosen")}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -200,10 +216,10 @@ export const SystemSettings: React.FC = () => {
         {activeTab === "general" && (
           <div className="grid gap-6 md:grid-cols-2">
             {[
-              { key: "CompanyName", label: "Company Name" },
-              { key: "CompanyPhone", label: "Company Phone" },
-              { key: "CompanyEmail", label: "Company Email" },
-              { key: "CompanyAddress", label: "Company Address" },
+              { key: "CompanyName", label: t("admin.companyName") },
+              { key: "CompanyPhone", label: t("admin.companyPhone") },
+              { key: "CompanyEmail", label: t("admin.companyEmail") },
+              { key: "CompanyAddress", label: t("admin.companyAddress") },
             ].map((field) => (
               <div key={field.key}>
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700">{field.label}</label>
@@ -217,7 +233,7 @@ export const SystemSettings: React.FC = () => {
             ))}
             <div className="col-span-full grid gap-6 md:grid-cols-2">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Company Description (VI)</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">{t("admin.companyDescriptionVi")}</label>
                 <textarea
                   value={formData["CompanyDescription"] || ""}
                   onChange={(e) => handleTextChange("CompanyDescription", e.target.value)}
@@ -226,7 +242,7 @@ export const SystemSettings: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Company Description (EN)</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">{t("admin.companyDescriptionEn")}</label>
                 <textarea
                   value={formData["CompanyDescription_en"] || ""}
                   onChange={(e) => handleTextChange("CompanyDescription_en", e.target.value)}
@@ -236,7 +252,7 @@ export const SystemSettings: React.FC = () => {
               </div>
             </div>
             <div className="col-span-full">
-              <label className="mb-1.5 block text-sm font-semibold text-slate-700">Google Map Iframe URL</label>
+              <label className="mb-1.5 block text-sm font-semibold text-slate-700">{t("admin.googleMapIframe")}</label>
               <textarea
                 value={formData["MapIframeUrl"] || ""}
                 onChange={(e) => handleTextChange("MapIframeUrl", e.target.value)}
@@ -254,7 +270,7 @@ export const SystemSettings: React.FC = () => {
                 <label className="block text-lg font-bold text-slate-800">{field.label}</label>
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-600">Tiếng Việt</label>
+                    <label className="block text-sm font-semibold text-slate-600">{t("admin.vietnamese")}</label>
                     <ReactQuill
                       theme="snow"
                       value={formData[field.key] || ""}
@@ -263,7 +279,7 @@ export const SystemSettings: React.FC = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="block text-sm font-semibold text-slate-600">English</label>
+                    <label className="block text-sm font-semibold text-slate-600">{t("admin.english")}</label>
                     <ReactQuill
                       theme="snow"
                       value={formData[`${field.key}_en`] || ""}

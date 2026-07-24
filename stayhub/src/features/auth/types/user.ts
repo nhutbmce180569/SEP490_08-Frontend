@@ -22,7 +22,6 @@ export interface CreateUserDTO {
   phoneNumber?: string;
   gender?: string;
   dateOfBirth?: string;
-  status?: string;
   roleIds?: number[];
   sendCredentialsEmail?: boolean;
 }
@@ -39,9 +38,6 @@ export interface UpdateUserDTO {
   phoneNumber?: string;
   gender?: string;
   dateOfBirth?: string;
-  status?: string;
-  locPrivacy?: boolean;
-  momentPrivacy?: boolean;
   roleIds?: number[];
 }
 

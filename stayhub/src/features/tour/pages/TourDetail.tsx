@@ -458,7 +458,7 @@ export const TourDetail: React.FC = () => {
                       className="gap-2 px-4 py-2 text-sm"
                     >
                       <Plus className="h-4 w-4" />
-                      {t("tour.addItinerary")}
+                      {t("tour.createItinerary")}
                     </ActionButton>
                   )}
                 </div>

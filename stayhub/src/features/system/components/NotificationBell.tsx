@@ -64,10 +64,10 @@ export default function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    if (isOpen && !hasLoaded && !isLoading) {
+    if (!hasLoaded && !isLoading) {
       void refresh();
     }
-  }, [hasLoaded, isLoading, isOpen, refresh]);
+  }, [hasLoaded, isLoading, refresh]);
 
   const handleNotiClick = (noti: NotificationWithMeta) => {
     if (noti.id > 0) {

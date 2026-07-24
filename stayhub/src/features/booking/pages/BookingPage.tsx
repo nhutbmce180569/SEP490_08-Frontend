@@ -22,6 +22,7 @@ import { ActionButton } from "../../../components/home/ActionButton";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { useBookingCheckout } from "../hooks/useBookingCheckout";
 import { VoucherCheckoutPanel } from "../../voucher/customer/components/VoucherCheckoutPanel";
+import { DynamicText } from "../../../components/DynamicText";
 import { PATH } from "../../../config/routes/route";
 import { useToast } from "../../../contexts/ToastContext";
 import { useTranslation } from "../../../contexts/LocaleContext";
@@ -878,7 +879,7 @@ export const BookingPage: React.FC = () => {
                       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <div className="font-bold text-slate-900 flex items-center gap-2">
-                            <span>{getScheduleTicketName(ticketOption)}</span>
+                            <span><DynamicText text={getScheduleTicketName(ticketOption)} /></span>
                             {(ticketOption.ticketType?.minAge != null || ticketOption.ticketType?.maxAge != null) && (
                               <span className="text-[10px] font-medium text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200">
                                 {ticketOption.ticketType?.minAge != null && ticketOption.ticketType?.maxAge != null
@@ -1057,7 +1058,7 @@ export const BookingPage: React.FC = () => {
                               {ticket.attendeeName || t("booking.passenger", { count: index + 1 })}
                             </div>
                             <div className="mt-0.5 text-xs text-slate-500">
-                              {ticket.ticketTypeName} -{" "}
+                              <DynamicText text={ticket.ticketTypeName} /> -{" "}
                               {ticket.idCard ? `ID: ${ticket.idCard}` : t("booking.detailsRequired")}
                             </div>
                           </div>
@@ -1311,7 +1312,7 @@ export const BookingPage: React.FC = () => {
                   {t("booking.passengerDetails", { count: editingTicketIndex + 1 })}
                 </h3>
                 <p className="text-xs font-medium text-slate-500">
-                  {tickets[editingTicketIndex].ticketTypeName}
+                  <DynamicText text={tickets[editingTicketIndex].ticketTypeName} />
                 </p>
               </div>
               <button
@@ -1578,7 +1579,7 @@ export const BookingPage: React.FC = () => {
                       <div key={ticket.passengerKey || idx} className="text-xs text-slate-600 pt-2.5 first:pt-0">
                         <div className="flex justify-between font-semibold text-slate-800">
                           <span>{idx + 1}. {ticket.attendeeName}</span>
-                          <span className="text-slate-500">{ticket.ticketTypeName}</span>
+                          <span className="text-slate-500"><DynamicText text={ticket.ticketTypeName} /></span>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5 mt-1 text-[11px] text-slate-500">
                           <div>{t("booking.idPassport")}: <span className="font-medium text-slate-700">{ticket.idCard}</span></div>

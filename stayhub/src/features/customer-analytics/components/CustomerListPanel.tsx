@@ -11,7 +11,7 @@ import type {
   SortOrder,
 } from '../types/customerAnalytics.types';
 import {
-  formatCompactVnd,
+  formatCompactAnalyticsMoney,
   formatDateTime,
   formatNumber,
   getSegmentLabel,
@@ -19,6 +19,7 @@ import {
   STATUS_STYLES,
 } from '../utils/analyticsHelpers';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { useCurrency } from '../../currency/CurrencyContext';
 
 interface CustomerListPanelProps {
   dateParams: DateRangeParams;
@@ -30,6 +31,7 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
   onViewCustomer,
 }) => {
   const { t, locale } = useTranslation();
+  const { mode, usdToVndRate } = useCurrency();
 
   const getSegmentLabelTranslated = (segment: string) => {
     if (segment === 'NeverPurchased') return t('analytics.customer.neverPurchased');
@@ -140,7 +142,7 @@ export const CustomerListPanel: React.FC<CustomerListPanelProps> = ({
       {
         header: t('analytics.customer.colSpend'),
         render: (c) => (
-          <span className="font-black text-brand text-sm">{formatCompactVnd(c.totalSpend)}</span>
+          <span className="font-black text-brand text-sm">{formatCompactAnalyticsMoney(c.totalSpend, mode, usdToVndRate)}</span>
         ),
       },
       {

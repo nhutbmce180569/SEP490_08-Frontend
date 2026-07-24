@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useCallback, useState } from "react";
 import { useToast } from "../../../contexts/ToastContext";
 import {
@@ -14,6 +15,7 @@ import { getOrCreateAiSessionId } from "../utils/sessionId";
 
 export const useRecommendFromProfile = () => {
   const { error: showError } = useToast();
+  const { t } = useTranslation();
   const [data, setData] = useState<PersonalizedRecommendationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [modelsNotReady, setModelsNotReady] = useState(false);
@@ -40,8 +42,7 @@ export const useRecommendFromProfile = () => {
           setIsLoading(false);
           return result;
         } catch (err: unknown) {
-          const message = getApiErrorMessage(err, "Unable to get tour recommendations.");
-          
+          const message = getApiErrorMessage(err, t('ai.recommendFailed', { defaultValue: "Unable to get tour recommendations." }));
           if (isAiModelsNotReadyMessage(message)) {
             attempts++;
             if (attempts >= maxRetries) {

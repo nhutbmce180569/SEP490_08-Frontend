@@ -1,13 +1,58 @@
 import type { CustomerSegment } from '../types/customerAnalytics.types';
+import type { CurrencyMode } from '../../currency/CurrencyContext';
 
-export const formatVnd = (amount: number) =>
-  new Intl.NumberFormat('vi-VN').format(amount) + ' VND';
+const FALLBACK_USD_TO_VND_RATE = 26000;
 
-export const formatCompactVnd = (amount: number) => {
-  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)}B VND`;
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M VND`;
-  if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K VND`;
-  return formatVnd(amount);
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+export const formatVnd = (amount: number, locale = 'vi') =>
+  new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US').format(amount) + ' VNĐ';
+
+export const formatCompactVnd = (amount: number, locale = 'vi') => {
+  if (locale === 'vi') {
+    if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)} Tỷ VNĐ`;
+    if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)} Tr VNĐ`;
+    if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)} N VNĐ`;
+    return formatVnd(amount, locale);
+  }
+  if (amount >= 1_000_000_000) return `${(amount / 1_000_000_000).toFixed(1)}B VNĐ`;
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M VNĐ`;
+  if (amount >= 1_000) return `${(amount / 1_000).toFixed(1)}K VNĐ`;
+  return formatVnd(amount, locale);
+};
+
+export const formatAnalyticsMoney = (
+  amount: number,
+  mode?: CurrencyMode | string | null,
+  rate?: number | null
+) => {
+  if (mode !== 'USD') {
+    return formatVnd(amount);
+  }
+  const validRate = rate && rate > 0 ? rate : FALLBACK_USD_TO_VND_RATE;
+  const usdAmount = Math.max(0, amount) / validRate;
+  return usdFormatter.format(usdAmount);
+};
+
+export const formatCompactAnalyticsMoney = (
+  amount: number,
+  mode?: CurrencyMode | string | null,
+  rate?: number | null
+) => {
+  if (mode !== 'USD') {
+    return formatCompactVnd(amount);
+  }
+  const validRate = rate && rate > 0 ? rate : FALLBACK_USD_TO_VND_RATE;
+  const usdAmount = Math.max(0, amount) / validRate;
+  if (usdAmount >= 1_000_000_000) return `$${(usdAmount / 1_000_000_000).toFixed(2)}B`;
+  if (usdAmount >= 1_000_000) return `$${(usdAmount / 1_000_000).toFixed(2)}M`;
+  if (usdAmount >= 1_000) return `$${(usdAmount / 1_000).toFixed(2)}K`;
+  return usdFormatter.format(usdAmount);
 };
 
 export const formatPercent = (value: number, decimals = 1) =>

@@ -116,6 +116,7 @@ export const FogOfWarCanvas: React.FC<FogOfWarCanvasProps> = ({
         
         if (cloudAlpha > 0) {
           const bounds = map.getBounds();
+          if (!bounds) return;
           const GRID_DEG = 0.04; // Use a massive 4km grid cell to completely break the "lined up" grid pattern
           
           // Chill drift: move the entire cloud field slowly diagonally over time

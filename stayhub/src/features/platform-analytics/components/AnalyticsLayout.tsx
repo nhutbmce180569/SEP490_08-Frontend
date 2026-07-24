@@ -109,7 +109,7 @@ export const KpiGrid: React.FC<{
 
 // ─── Legacy MetricStrip ────────────────────────────────────────────────────────
 export const MetricStrip: React.FC<{
-  items: { label: string; value: string; hint?: string }[];
+  items: { label: string; value: React.ReactNode; hint?: string }[];
   columns?: 2 | 3 | 4 | 5 | 6;
 }> = ({ items, columns = 4 }) => {
   const colClass =
@@ -143,7 +143,7 @@ const BAR_COLORS: Record<string, string> = {
 
 export const StatRow: React.FC<{
   label: string;
-  value: string;
+  value: React.ReactNode;
   bar?: number;       // 0-100
   barColor?: string;  // one of BAR_COLORS keys or fallback
 }> = ({ label, value, bar, barColor = 'brand' }) => (

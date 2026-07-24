@@ -104,7 +104,7 @@
     "statusNeedsAttention": "Cần chú ý",
     "statusCritical": "Nghiêm trọng",
     "noBookingData": "Không có dữ liệu đặt tour trong khoảng thời gian đã chọn.",
-    "colTour": "Tour",
+    "colTour": "Tên tour",
     "colBookings": "Đặt chỗ",
     "healthScheduleOccupancy": "Công suất lịch trình",
     "healthCheckInRate": "Tỷ lệ check-in",
@@ -268,10 +268,10 @@
     "mostWishlistedTours": "Tour được yêu thích nhất",
     "mostReviewedTours": "Tour được đánh giá nhiều nhất",
     "noData": "Không có dữ liệu",
-    "tourFallback": "Tour #{{id}}",
+    "tourFallback": "Tên tour #{{id}}",
     "colHash": "#",
-    "colTour": "Tour",
+    "colTour": "Tên tour",
     "colReviews": "Đánh giá",
-    "colAvgRating": "Điểm TB"
+    "colAvgRating": "Đánh giá trung bình"
   }
 }

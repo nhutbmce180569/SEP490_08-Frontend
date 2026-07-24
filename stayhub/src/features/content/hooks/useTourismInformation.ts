@@ -1,3 +1,4 @@
+import { useTranslation } from "../../../contexts/LocaleContext";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,7 @@ export const useTourismInformation = (filters: TourismInformationFilters = {}) =
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const query = useQuery({
     queryKey: [
@@ -30,7 +32,7 @@ export const useTourismInformation = (filters: TourismInformationFilters = {}) =
   return {
     data: query.data,
     isLoading: query.isLoading,
-    error: query.isError ? "Failed to fetch tourism information." : null,
+    error: query.isError ? t('content.fetchFailed', { defaultValue: "Failed to fetch tourism information." }) : null,
     page,
     pageSize,
     setPage,

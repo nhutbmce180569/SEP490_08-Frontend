@@ -15,6 +15,8 @@ import {
 } from '../../customer-analytics/components/DateRangeFilter';
 import {
   CHART_COLORS,
+  formatAnalyticsMoney,
+  formatCompactAnalyticsMoney,
   formatCompactVnd,
   formatDate,
   formatNumber,
@@ -29,6 +31,8 @@ import {
   MetricStrip,
 } from '../../platform-analytics/components/AnalyticsLayout';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { useCurrency } from '../../currency/CurrencyContext';
+import { CurrencyToggle } from '../../currency/CurrencyToggle';
 import { ticketTypeService } from '../../content/services/ticketType.service';
 import { useBookingStatistics } from '../hooks/useBookingStatistics';
 import type {
@@ -41,6 +45,7 @@ const GROUP_BY_OPTIONS: BookingStatisticsGroupBy[] = ['Day', 'Month', 'Year'];
 
 export const RevenueStatisticsPage: React.FC = () => {
   const { t } = useTranslation();
+  const { mode, usdToVndRate } = useCurrency();
   const { preset, setPreset, from, setFrom, to, setTo } = useDateRangeState();
   const [groupBy, setGroupBy] = useState<BookingStatisticsGroupBy>('Day');
 
@@ -106,22 +111,25 @@ export const RevenueStatisticsPage: React.FC = () => {
             onToChange={setTo}
           />
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-slate-600">{t('booking.statistics.groupBy')}</span>
-            <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-              {GROUP_BY_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setGroupBy(option)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${groupBy === option
-                    ? 'bg-brand text-white shadow-sm'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                    }`}
-                >
-                  {t(groupByLabelKey(option))}
-                </button>
-              ))}
+          <div className="flex flex-wrap items-center gap-4">
+            <CurrencyToggle className="inline-flex" />
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-600">{t('booking.statistics.groupBy')}</span>
+              <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
+                {GROUP_BY_OPTIONS.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => setGroupBy(option)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${groupBy === option
+                      ? 'bg-brand text-white shadow-sm'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                      }`}
+                  >
+                    {t(groupByLabelKey(option))}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -144,7 +152,7 @@ export const RevenueStatisticsPage: React.FC = () => {
                     <span className="text-sm font-bold">{t('booking.statistics.actualRevenue')}</span>
                   </div>
                   <div className="mt-2 text-3xl font-black text-slate-900">
-                    {formatVnd(data.metrics.totalRevenue)}
+                    {formatAnalyticsMoney(data.metrics.totalRevenue, mode, usdToVndRate)}
                   </div>
                   <p className="text-xs font-semibold text-slate-500">
                     {t('booking.statistics.actualRevenueHint')}
@@ -157,7 +165,7 @@ export const RevenueStatisticsPage: React.FC = () => {
                     <span className="text-sm font-bold">{t('booking.statistics.discounts')}</span>
                   </div>
                   <div className="mt-2 text-2xl font-bold text-slate-900">
-                    {formatVnd(data.metrics.totalDiscount)}
+                    {formatAnalyticsMoney(data.metrics.totalDiscount, mode, usdToVndRate)}
                   </div>
                   <p className="text-xs font-medium text-slate-500">
                     {t('booking.statistics.discountsHint')}
@@ -170,7 +178,7 @@ export const RevenueStatisticsPage: React.FC = () => {
                     <span className="text-sm font-bold">{t('booking.statistics.refunded')}</span>
                   </div>
                   <div className="mt-2 text-2xl font-bold text-slate-900">
-                    {formatVnd(data.metrics.totalRefundAmount)}
+                    {formatAnalyticsMoney(data.metrics.totalRefundAmount, mode, usdToVndRate)}
                   </div>
                   <p className="text-xs font-medium text-slate-500">
                     {t('booking.statistics.refundedHint')}
@@ -202,7 +210,7 @@ export const RevenueStatisticsPage: React.FC = () => {
                   group: t(groupByLabelKey(groupBy)).toLowerCase(),
                 })}
               >
-                <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} />
+                <RevenueLineChart data={data.revenueTrend} groupBy={groupBy} mode={mode} usdToVndRate={usdToVndRate} />
               </AnalyticsPanel>
 
             </div>
@@ -223,7 +231,9 @@ const BookingStatisticsSkeleton = () => (
 const RevenueLineChart: React.FC<{
   data: RevenueTrendPoint[];
   groupBy: BookingStatisticsGroupBy;
-}> = ({ data, groupBy }) => {
+  mode?: string | null;
+  usdToVndRate?: number | null;
+}> = ({ data, groupBy, mode, usdToVndRate }) => {
   const width = 920;
   const height = 260;
   const padding = 28;
@@ -267,7 +277,7 @@ const RevenueLineChart: React.FC<{
                   strokeWidth="1"
                 />
                 <text x="0" y={y + 4} fontSize="11" fontWeight="700" fill="#94a3b8">
-                  {formatCompactVnd(value)}
+                  {formatCompactAnalyticsMoney(value, mode, usdToVndRate)}
                 </text>
               </g>
             );

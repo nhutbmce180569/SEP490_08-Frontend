@@ -5,7 +5,6 @@ import {
   Calendar,
   Image as ImageIcon,
   Search,
-  ChevronDown,
   Navigation,
 } from "lucide-react";
 import { PATH } from "../../../../config/routes/route";
@@ -172,12 +171,12 @@ export const ManagerLocationsPage: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl">
+    <div className="space-y-4">
       {/* Header section */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row flex-wrap flex-1 items-stretch sm:items-center gap-3">
           {/* Search */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white sm:w-64">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
             <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               value={search}
@@ -188,23 +187,22 @@ export const ManagerLocationsPage: React.FC = () => {
           </div>
 
           {/* Dropdown filter */}
-          <div className="relative">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
             <select
               value={upcomingOnly ? "upcoming" : "all"}
               onChange={(e) => {
                 setUpcomingOnly(e.target.value === "upcoming");
                 setPage(1);
               }}
-              className="appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2 pl-3 pr-8 text-sm font-semibold text-slate-700 outline-none transition-colors hover:border-slate-300 hover:bg-white cursor-pointer"
+              className="bg-transparent text-sm text-slate-700 outline-none cursor-pointer"
             >
               <option value="upcoming">{t("tour.upcomingOnly") || "Sắp tới"}</option>
               <option value="all">{t("tour.showAll") || "Tất cả"}</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           </div>
 
           {/* Page Size Filter */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-slate-400 focus-within:bg-white transition-colors">
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
             <select
               className="bg-transparent text-sm text-slate-700 outline-none"
               value={pageSize}

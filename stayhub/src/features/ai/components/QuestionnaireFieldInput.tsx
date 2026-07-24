@@ -130,7 +130,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
             </span>
             <span className="text-xl font-bold text-brand">
               {numericValue > 0 ? numericValue.toLocaleString(locale === "vi" ? "vi-VN" : "en-US") : t("ai.unlimited")}{" "}
-              {numericValue > 0 && <span className="text-sm font-medium text-[var(--text-muted)]">VND</span>}
+              {numericValue > 0 && <span className="text-sm font-medium text-[var(--text-muted)]">VNĐ</span>}
             </span>
           </div>
           <input
@@ -147,7 +147,7 @@ export const QuestionnaireFieldInput: React.FC<Props> = ({
           />
           <div className="flex justify-between text-[11px] font-medium text-[var(--text-muted)]">
             <span>{t("ai.unlimited")}</span>
-            <span>20,000,000+ VND</span>
+            <span>20,000,000+ VNĐ</span>
           </div>
           {error && <p className="mt-1 text-xs font-bold text-rose-500">{error}</p>}
         </div>

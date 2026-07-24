@@ -1520,8 +1520,8 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
             disabled={points.length === 0}
             className={`glass-button flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all shadow-md ${
               points.length === 0 
-                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70' 
-                : 'text-slate-800 hover:scale-105 active:scale-95 bg-white/95 backdrop-blur-md'
+                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70 dark:bg-slate-800/70' 
+                : 'text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800'
             }`}
           >
             <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
@@ -1557,10 +1557,10 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 );
               }
             }}
-            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-md border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none backdrop-blur-md"
+            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 dark:text-slate-200 bg-white/95 dark:bg-slate-900/95 shadow-md border border-slate-200/80 dark:border-slate-800 transition-all hover:scale-105 hover:text-brand dark:hover:text-brand focus:outline-none backdrop-blur-md"
             title="Vị trí của bạn"
           >
-            <Navigation className={`h-4.5 w-4.5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600'}`} />
+            <Navigation className={`h-4.5 w-4.5 ${myLocation ? 'text-brand fill-current' : 'text-slate-600 dark:text-slate-300'}`} />
           </button>
         )}
         {tourStops && tourStops.length > 0 && (
@@ -1576,7 +1576,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 ], { padding: 60, duration: 1000 });
               }
             }}
-            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 bg-white/95 shadow-md border border-slate-200/80 transition-all hover:scale-105 hover:text-brand focus:outline-none backdrop-blur-md"
+            className="glass-button flex h-11 w-11 items-center justify-center rounded-full text-slate-700 dark:text-slate-200 bg-white/95 dark:bg-slate-900/95 shadow-md border border-slate-200/80 dark:border-slate-800 transition-all hover:scale-105 hover:text-brand dark:hover:text-brand focus:outline-none backdrop-blur-md"
             title="Tiêu điểm Tour"
           >
             <Compass className="h-4.5 w-4.5" />
@@ -1716,7 +1716,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       {/* Timeline Replay Bar (iOS 26 Liquid Glass Bar - Spacious, Premium & Non-blocking) */}
       {isReplayMode && (!isSpecificTour || timelineEvents.length > 0) && (
         <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-30 w-full max-w-xl md:max-w-2xl lg:max-w-3xl px-2 sm:px-4 pointer-events-auto transition-all duration-300">
-          <div className="w-full bg-white/85 backdrop-blur-2xl border border-white/80 rounded-[1.25rem] sm:rounded-3xl p-2 sm:p-4 shadow-[0_16px_50px_rgba(0,0,0,0.18),inset_0_1.5px_2px_rgba(255,255,255,0.9)] flex flex-col gap-2 sm:gap-2.5 relative">
+          <div className="w-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl border border-white/80 dark:border-slate-800 rounded-[1.25rem] sm:rounded-3xl p-2 sm:p-4 shadow-[0_16px_50px_rgba(0,0,0,0.18),inset_0_1.5px_2px_rgba(255,255,255,0.9)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.4)] flex flex-col gap-2 sm:gap-2.5 relative">
             
             {/* Top Row: Event Info & All Controls in 1 Single Line */}
             <div className="flex items-center justify-between gap-3.5 w-full">
@@ -1730,19 +1730,19 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   }
                 }}
               >
-                <div className={`w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-white/90 shrink-0 ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
+                <div className={`w-10 h-10 rounded-xl overflow-hidden shadow-sm border border-white/90 dark:border-slate-700 shrink-0 ${!timelineEvents[currentEventIndex]?.imageUrl ? 'bg-gradient-to-br from-brand to-cyan-400 text-white flex items-center justify-center' : ''}`}>
                   <SafeImage src={timelineEvents[currentEventIndex]?.imageUrl} alt="Event" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-cyan-400 text-white" fallbackText={<MapPin className="w-4 h-4" />} />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[9.5px] font-black text-brand bg-brand/10 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
+                    <span className="text-[9.5px] font-black text-brand bg-brand/10 dark:bg-brand/20 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
                       {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
                     </span>
-                    <span className="text-[10.5px] text-slate-400 font-bold shrink-0">
+                    <span className="text-[10.5px] text-slate-400 dark:text-slate-500 font-bold shrink-0">
                       {currentEventIndex + 1}/{timelineEvents.length}
                     </span>
                   </div>
-                  <span className="text-xs sm:text-sm font-bold text-slate-800 truncate mt-0.5">
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-white truncate mt-0.5">
                     {timelineEvents[currentEventIndex]?.title}
                   </span>
                 </div>
@@ -1753,7 +1753,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 <button 
                   onClick={handlePrevCard} 
                   title={locale === 'vi' ? 'Lùi bài' : 'Previous'} 
-                  className="w-8.5 h-8.5 rounded-full text-slate-700 bg-slate-100/80 hover:bg-brand/10 hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                  className="w-8.5 h-8.5 rounded-full text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-slate-800 hover:bg-brand/10 hover:text-brand dark:hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
                 >
                   <SkipBack className="w-4 h-4" />
                 </button>
@@ -1774,7 +1774,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 <button 
                   onClick={handleNextCard} 
                   title={locale === 'vi' ? 'Tiếp theo' : 'Next'} 
-                  className="w-8.5 h-8.5 rounded-full text-slate-700 bg-slate-100/80 hover:bg-brand/10 hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
+                  className="w-8.5 h-8.5 rounded-full text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-slate-800 hover:bg-brand/10 hover:text-brand dark:hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
                 >
                   <SkipForward className="w-4 h-4" />
                 </button>
@@ -1782,7 +1782,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 <button 
                   onClick={() => setPlaybackSpeed(prev => prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1)}
                   title={locale === 'vi' ? 'Tốc độ phát' : 'Playback Speed'}
-                  className="px-2.5 py-1 text-xs font-black bg-slate-100/90 text-slate-800 rounded-full hover:bg-brand/10 hover:text-brand transition-colors shadow-sm ml-0.5"
+                  className="px-2.5 py-1 text-xs font-black bg-slate-100/90 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full hover:bg-brand/10 hover:text-brand dark:hover:text-brand transition-colors shadow-sm ml-0.5"
                 >
                   {playbackSpeed}x
                 </button>
@@ -1790,7 +1790,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 <button 
                   onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} 
                   title={locale === 'vi' ? 'Đóng' : 'Close'}
-                  className="w-8.5 h-8.5 rounded-full bg-slate-100/80 text-slate-500 flex items-center justify-center hover:bg-slate-200 hover:text-slate-800 transition-colors ml-1"
+                  className="w-8.5 h-8.5 rounded-full bg-slate-100/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200 transition-colors ml-1"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1799,7 +1799,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
             {/* Bottom Line: Scrubber Range */}
             <div className="w-full h-2.5 group relative px-0.5 mt-0.5">
-              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+              <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-slate-200/80 dark:bg-slate-700/80 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-brand via-cyan-400 to-indigo-500 transition-all duration-300" style={{ width: `${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}%` }}></div>
               </div>
               <input 

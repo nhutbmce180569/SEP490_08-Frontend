@@ -5,6 +5,7 @@ import {
   Percent,
   Tag,
   Ticket,
+  AlertCircle,
 } from 'lucide-react';
 import { DynamicForm, type FormField } from '../../../components/dashboard/DynamicForm';
 import { LoadingOverlay } from '../../../components/dashboard/LoadingOverlay';
@@ -70,17 +71,6 @@ export const UpdateVoucher: React.FC = () => {
         type: 'number',
         icon: <Hash className="h-4 w-4" />,
         readOnly: isUsed,
-        validate: (value, formData) => {
-          if (isUsed) return undefined;
-          const val = Number(value);
-          const type = formData.discountType || voucher.discountType;
-          if (type === 'Percent') {
-            if (val < 1 || val > 100) return t('voucher.percentInvalidRange');
-          } else if (val <= 0) {
-            return t('voucher.amountInvalidMin');
-          }
-          return undefined;
-        },
       },
       {
         name: 'maxDiscountAmount',
@@ -89,16 +79,6 @@ export const UpdateVoucher: React.FC = () => {
         icon: <Hash className="h-4 w-4" />,
         readOnly: isUsed,
         visible: (formData) => (formData.discountType || voucher.discountType) === 'Percent',
-        validate: (value, formData) => {
-          if (isUsed) return undefined;
-          const type = formData.discountType || voucher.discountType;
-          if (type === 'Percent') {
-            if (!value || Number(value) <= 0) {
-              return t('voucher.maxDiscountRequired');
-            }
-          }
-          return undefined;
-        },
       },
       {
         name: 'minOrderAmount',
@@ -106,24 +86,12 @@ export const UpdateVoucher: React.FC = () => {
         type: 'number',
         placeholder: t('voucher.minOrderAmountPlaceholder'),
         icon: <Hash className="h-4 w-4" />,
-        validate: (value) => {
-          if (value !== undefined && value !== null && value !== '' && Number(value) > 0) {
-            if (Number(value) < 10000) return t('voucher.minOrderAmountMin');
-          }
-          return undefined;
-        },
       },
       {
         name: 'availableCount',
         label: t('voucher.availableCount'),
         type: 'number',
         icon: <Hash className="h-4 w-4" />,
-        validate: (value) => {
-          if (!value || Number(value) < voucher.usedCount) {
-            return t('voucher.availableCountMinUsed', { count: voucher.usedCount });
-          }
-          return undefined;
-        },
       },
       {
         name: 'startDate',
@@ -136,14 +104,6 @@ export const UpdateVoucher: React.FC = () => {
         label: t('voucher.endDate'),
         type: 'datetime-local',
         icon: <Calendar className="h-4 w-4" />,
-        validate: (value, formData) => {
-          const start = formData.startDate || toDateTimeLocal(voucher.startDate);
-          if (!value || !start) return undefined;
-          if (new Date(value) <= new Date(start)) {
-            return t('voucher.endDateAfterStart');
-          }
-          return undefined;
-        },
       },
       {
         name: 'description',
@@ -173,25 +133,56 @@ export const UpdateVoucher: React.FC = () => {
   if (isFetching) {
     return (
       <div className="flex justify-center p-10 text-slate-500">
-        {t('voucher.loadingVoucherDetails')}
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+          <p>{t('voucher.loadingVoucherDetails')}</p>
+        </div>
       </div>
     );
   }
 
   if (fetchError) {
-    return <div className="flex justify-center p-10 text-rose-500">{fetchError}</div>;
+    return (
+      <div className="mx-auto max-w-md py-12 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 text-rose-500">
+          <AlertCircle className="h-8 w-8" />
+        </div>
+        <h2 className="mt-4 text-lg font-bold text-slate-800">{t('voucher.errorLoading')}</h2>
+        <p className="mt-2 text-sm text-slate-500">{fetchError}</p>
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="mt-6 rounded-lg bg-slate-100 px-6 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+        >
+          {t('voucher.backToVouchers')}
+        </button>
+      </div>
+    );
   }
 
   if (!voucher) {
     return (
-      <div className="flex justify-center p-10 text-slate-500">{t('voucher.voucherNotFound')}</div>
+      <div className="mx-auto max-w-md py-12 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+          <Ticket className="h-8 w-8" />
+        </div>
+        <h2 className="mt-4 text-lg font-bold text-slate-800">{t('voucher.voucherNotFound')}</h2>
+        <p className="mt-2 text-sm text-slate-500">{t('voucher.voucherNotFoundDesc', { defaultValue: 'The voucher you are looking for does not exist or has been removed.' })}</p>
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="mt-6 rounded-lg bg-brand px-6 py-2.5 text-sm font-semibold text-white hover:bg-brand/90"
+        >
+          {t('voucher.backToVouchers')}
+        </button>
+      </div>
     );
   }
 
   if (voucher.isActive) {
     return (
       <div className="mx-auto max-w-2xl py-8 text-center">
-        <p className="text-sm text-slate-600">{t('voucher.voucherActiveNoEdit') || 'Voucher đang hoạt động, vui lòng tắt voucher trước khi chỉnh sửa.'}</p>
+        <p className="text-sm text-slate-600">{t('voucher.voucherActiveNoEdit', { defaultValue: 'Voucher đang hoạt động, vui lòng tắt voucher trước khi chỉnh sửa.' })}</p>
         <button
           type="button"
           onClick={handleCancel}
@@ -205,16 +196,19 @@ export const UpdateVoucher: React.FC = () => {
 
   return (
     <>
-      {isUsed && (
-        <div className="mx-auto mb-4 max-w-4xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          {t('voucher.voucherUsedWarning', { count: voucher.usedCount })}
-        </div>
-      )}
-      {serverErrors._form && (
-        <div className="mx-auto mb-4 max-w-4xl rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {serverErrors._form}
-        </div>
-      )}
+      <div className="mx-auto max-w-4xl">
+        {isUsed && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {t('voucher.voucherUsedWarning', { count: voucher.usedCount })}
+          </div>
+        )}
+        {serverErrors._form && (
+          <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {serverErrors._form}
+          </div>
+        )}
+      </div>
+
       <DynamicForm
         title={t('voucher.updateVoucher')}
         description={t('voucher.updateVoucherDesc', { id: String(id), code: voucher.code })}
@@ -236,6 +230,8 @@ export const UpdateVoucher: React.FC = () => {
         serverErrors={serverErrors}
         onCancel={handleCancel}
         submitText={t('common.saveChanges')}
+        cancelText={t('common.cancel')}
+        isSubmitting={isSubmitting}
       />
       <LoadingOverlay isOpen={isSubmitting} message={t('voucher.updatingVoucher')} />
     </>

@@ -7,6 +7,7 @@ import {
   getWeatherConditionLabel,
 } from "../utils/weatherHelpers";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
+import { WeatherModal } from "./WeatherModal";
 
 interface Props {
   weather: WeatherAdvice;
@@ -16,6 +17,8 @@ interface Props {
 export const WeatherAdviceCard: React.FC<Props> = ({ weather, compact }) => {
   const { t } = useTranslation();
   const { locale } = useLocale();
+  const [showModal, setShowModal] = React.useState(false);
+  
   const condition = detectWeatherCondition(weather);
   const conditionLabel = getWeatherConditionLabel(condition, locale);
 
@@ -23,20 +26,25 @@ export const WeatherAdviceCard: React.FC<Props> = ({ weather, compact }) => {
 
   if (compact) {
     return (
-      <div className="space-y-2 text-xs">
-        <p className="font-bold text-navy">
-          {weather.city}{" "}
-          <span className="font-semibold text-slate-500">({conditionLabel})</span>
-        </p>
-        <p className="text-slate-600">{periodLabel}</p>
-        <div className="flex flex-wrap gap-2 text-slate-700">
-          {weather.avgMaxTempC != null && <span>↑ {weather.avgMaxTempC.toFixed(0)}°C</span>}
-          {weather.avgMinTempC != null && <span>↓ {weather.avgMinTempC.toFixed(0)}°C</span>}
-          {weather.totalRainMm != null && <span>☔ {weather.totalRainMm.toFixed(0)}mm</span>}
-        </div>
-        <p className="leading-relaxed text-slate-600">{weather.summary}</p>
-        <p className="leading-relaxed text-slate-500">{weather.impactOnTours}</p>
-      </div>
+      <>
+        <button 
+          type="button" 
+          onClick={() => setShowModal(true)}
+          className="w-full flex items-center justify-between gap-2 text-left group"
+        >
+          <div className="flex items-center gap-2 overflow-hidden">
+            <CloudRain size={16} className="text-sky-500 shrink-0" />
+            <p className="truncate text-[11px] font-semibold text-navy group-hover:text-brand transition-colors">
+              <span className="font-bold">{weather.city}:</span> {conditionLabel}
+              {weather.avgMaxTempC != null ? ` • ${weather.avgMaxTempC.toFixed(0)}°C` : ""}
+            </p>
+          </div>
+          <span className="shrink-0 text-[10px] font-bold text-sky-600 underline-offset-2 group-hover:underline">
+            {t("ai.viewDetails")}
+          </span>
+        </button>
+        {showModal && <WeatherModal weather={weather} onClose={() => setShowModal(false)} />}
+      </>
     );
   }
 

@@ -23,6 +23,7 @@ export const MANAGER_ROUTES = {
   PAYOUT: '/manager/payout',
   MODERATION: '/manager/moderation',
   TREND_PREDICTION: '/manager/trend-prediction',
+  CHAT: '/manager/chat',
 
   // Dynamic Routes & Delete Confirms
   TOUR_DETAIL: (id: string | number = ':id') => `/manager/tours/${id}`,

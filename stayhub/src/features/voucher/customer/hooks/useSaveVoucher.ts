@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { customerVoucherService } from '../services/customerVoucher.service';
 import { useToast } from '../../../../contexts/ToastContext';
+import { useTranslation } from '../../../../contexts/LocaleContext';
 import { getApiErrorMessage } from '../../../content/utils/apiError';
 import { validateVoucherCode } from '../../utils/voucherHelpers';
 
@@ -10,19 +11,20 @@ export const useSaveVoucher = (onSaved?: () => void) => {
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { success, error: showError } = useToast();
+  const { t } = useTranslation();
 
   const mutation = useMutation({
     mutationFn: (voucherCode: string) =>
       customerVoucherService.saveVoucher({ code: voucherCode.trim().toUpperCase() }),
     onSuccess: (saved) => {
-      success(`Voucher ${saved.code} saved to your wallet.`);
+      success(t('voucher.saveSuccess', { code: saved.code, defaultValue: `Voucher ${saved.code} saved to your wallet.` }));
       setCode('');
       setError(null);
       queryClient.invalidateQueries({ queryKey: ['myVouchers'] });
       onSaved?.();
     },
     onError: (err: unknown) => {
-      const message = getApiErrorMessage(err, 'Failed to save voucher.');
+      const message = getApiErrorMessage(err, t('voucher.saveFailed', { defaultValue: 'Failed to save voucher.' }));
       setError(message);
       showError(message);
     },

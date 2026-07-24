@@ -3,11 +3,12 @@ import { Crown, Medal, Star } from 'lucide-react';
 import { getImg } from '../../../config/api/api';
 import type { TopCustomerAnalytics } from '../types/customerAnalytics.types';
 import {
-  formatCompactVnd,
+  formatCompactAnalyticsMoney,
   formatDateTime,
   formatNumber,
 } from '../utils/analyticsHelpers';
 import { useTranslation } from '../../../contexts/LocaleContext';
+import { useCurrency } from '../../currency/CurrencyContext';
 
 interface TopCustomersTableProps {
   customers: TopCustomerAnalytics[];
@@ -27,6 +28,8 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
   onViewCustomer,
 }) => {
   const { t, locale } = useTranslation();
+  const { mode, usdToVndRate } = useCurrency();
+
   const rows = useMemo(() => customers.slice(0, 10), [customers]);
 
   const headers = useMemo(
@@ -116,7 +119,7 @@ export const TopCustomersTable: React.FC<TopCustomersTableProps> = ({
                 </div>
               </td>
               <td className="px-5 py-4 font-black text-brand text-sm">
-                {formatCompactVnd(c.totalSpend)}
+                {formatCompactAnalyticsMoney(c.totalSpend, mode, usdToVndRate)}
               </td>
               <td className="px-5 py-4 text-sm font-bold text-slate-700">
                 {formatNumber(c.orderCount)}

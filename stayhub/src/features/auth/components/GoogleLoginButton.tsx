@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import ReactDOM from "react-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { Phone, User } from "lucide-react";
 import { useGoogleLogin } from "../hooks/useGoogleLogin";
@@ -89,8 +90,8 @@ export const GoogleLoginButton: React.FC = () => {
       )}
 
       {/* MODAL BỔ SUNG SỐ ĐIỆN THOẠI CHO TÀI KHOẢN GOOGLE MỚI */}
-      {pendingGoogleAuth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-sm p-4 animate-fadeIn">
+      {pendingGoogleAuth && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/65 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 text-left relative">
             <div className="flex items-center gap-3.5 mb-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
@@ -184,7 +185,8 @@ export const GoogleLoginButton: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </SocialAuthButtonShell>
   );

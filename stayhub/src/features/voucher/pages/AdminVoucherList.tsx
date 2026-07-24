@@ -28,6 +28,7 @@ import {
 } from "../utils/voucherHelpers";
 import { BirthdayDistributeModal } from "../components/BirthdayDistributeModal";
 import { VoucherDetailModal } from "../components/VoucherDetailModal";
+import { MoneyDisplay } from "../../currency/MoneyDisplay";
 
 export const AdminVoucherList: React.FC = () => {
   const { t } = useTranslation();
@@ -124,16 +125,16 @@ export const AdminVoucherList: React.FC = () => {
         render: (voucher) => (
           <div className="text-sm">
             <div className="font-medium text-slate-800">
-              {formatDiscount(voucher.discountType, voucher.discountValue)}
+              {voucher.discountType.toLowerCase() === 'percent' ? `${voucher.discountValue}%` : <MoneyDisplay amountVnd={voucher.discountValue} compact />}
             </div>
             {voucher.discountType === "Percent" && voucher.maxDiscountAmount && (
-              <div className="text-xs text-slate-500">
-                {t("voucher.max")} {formatVnd(voucher.maxDiscountAmount)}
+              <div className="text-xs text-slate-500 flex items-center gap-1">
+                {t("voucher.max")} <MoneyDisplay amountVnd={voucher.maxDiscountAmount} compact />
               </div>
             )}
             {voucher.minOrderAmount && voucher.minOrderAmount > 0 ? (
-              <div className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 inline-block mt-0.5">
-                {t("voucher.minOrderHint", { amount: formatVnd(voucher.minOrderAmount) })}
+              <div className="text-[11px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 mt-0.5 flex items-center gap-1 w-fit">
+                {t("voucher.minOrderHint", { amount: "" }).replace(":", "").trim()} <MoneyDisplay amountVnd={voucher.minOrderAmount} compact />
               </div>
             ) : null}
           </div>
@@ -256,19 +257,19 @@ export const AdminVoucherList: React.FC = () => {
   );
 
   return (
-    <div className="rounded-2xl">
-      {/* Top action bar structured like TourismInformationList and TicketTypeList */}
-      <div className="flex flex-col gap-3 border-b border-slate-100 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
+    <div className="space-y-4">
+      {/* Top action bar structured like CancellationListPage */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row flex-wrap flex-1 items-stretch sm:items-center gap-3">
           {/* Search Box */}
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
+            <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
             <input
               type="text"
               placeholder={t("voucher.searchCodeOrDesc")}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm outline-none transition-colors focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
+              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -392,7 +393,7 @@ export const AdminVoucherList: React.FC = () => {
         </div>
 
         {/* Right side Buttons */}
-        <div className="flex items-center gap-2 shrink-0 mt-3 sm:mt-0">
+        <div className="flex items-center gap-2 shrink-0">
           <ActionButton 
             variant="secondary" 
             onClick={() => setIsBirthdayModalOpen(true)} 
@@ -406,9 +407,7 @@ export const AdminVoucherList: React.FC = () => {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center p-10 text-slate-500">{t("voucher.loadingVouchers")}</div>
-      ) : error ? (
+      {error ? (
         <div className="flex justify-center p-10 text-rose-500">{error}</div>
       ) : (
         <Table
@@ -416,6 +415,8 @@ export const AdminVoucherList: React.FC = () => {
           columns={columns}
           keyExtractor={(item) => item.id}
           emptyMessage={t("voucher.noVouchersFound")}
+          isLoading={isLoading}
+          skeletonRows={pageSize}
         />
       )}
 

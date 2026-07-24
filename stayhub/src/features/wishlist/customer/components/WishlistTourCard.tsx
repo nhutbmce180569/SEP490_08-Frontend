@@ -14,6 +14,13 @@ const STATUS_STYLES: Record<string, string> = {
   Rejected: 'bg-rose-100 text-rose-700',
 };
 
+const STATUS_LOCALE: Record<string, string> = {
+  Active: 'tour.statusActive',
+  Inactive: 'tour.statusInactive',
+  Pending: 'tour.statusPending',
+  Rejected: 'tour.statusRejected',
+};
+
 interface WishlistTourCardProps {
   item: ReadWishlistItemDTO;
   onRemove: (tourId: number) => void;
@@ -27,7 +34,8 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const isActive = isTourActive(item.tourStatus);
-  const statusLabel = item.tourStatus ?? t('tour.unknownStatus');
+  const statusLabel = item.tourStatus || '';
+  const displayStatus = STATUS_LOCALE[statusLabel] ? t(STATUS_LOCALE[statusLabel]) : (statusLabel || t('tour.unknownStatus'));
 
   return (
     <div
@@ -56,7 +64,7 @@ export const WishlistTourCard: React.FC<WishlistTourCardProps> = ({
               STATUS_STYLES[statusLabel] ?? 'bg-slate-100 text-slate-600'
             }`}
           >
-            {statusLabel}
+            {displayStatus}
           </span>
         </div>
 

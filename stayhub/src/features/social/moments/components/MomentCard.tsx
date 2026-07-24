@@ -154,27 +154,27 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
 
   return (
     <>
-      <div className="mx-auto w-full max-w-[450px] shrink-0 bg-white/70 backdrop-blur-xl border border-white/60 rounded-[2rem] shadow-sm mb-4 pb-3 overflow-hidden">
+      <div className="mx-auto w-full max-w-[450px] shrink-0 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border border-white/60 dark:border-slate-800/60 rounded-[2rem] shadow-sm mb-4 pb-3 overflow-hidden transition-colors">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
             {momentUserId ? (
-              <Link to={`/social/profile/${momentUserId}`} className="h-8 w-8 shrink-0 !rounded-full overflow-hidden bg-slate-100 border border-slate-200 hover:opacity-85 transition-opacity">
-                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100" fallbackText={userFullName.charAt(0)} />
+              <Link to={`/social/profile/${momentUserId}`} className="h-8 w-8 shrink-0 !rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:opacity-85 transition-opacity">
+                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100 dark:bg-slate-800 dark:text-slate-200" fallbackText={userFullName.charAt(0)} />
               </Link>
             ) : (
-              <div className="h-8 w-8 shrink-0 !rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100" fallbackText={userFullName.charAt(0)} />
+              <div className="h-8 w-8 shrink-0 !rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <SafeImage src={displayAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-100 dark:bg-slate-800 dark:text-slate-200" fallbackText={userFullName.charAt(0)} />
               </div>
             )}
             <div className="flex flex-col">
               {momentUserId ? (
-                <Link to={`/social/profile/${momentUserId}`} className="text-sm font-semibold text-slate-900 leading-tight hover:underline hover:text-brand transition-all">
+                <Link to={`/social/profile/${momentUserId}`} className="text-sm font-semibold text-slate-900 dark:text-white leading-tight hover:underline hover:text-brand transition-all">
                   {userFullName}
                 </Link>
               ) : (
-                <span className="text-sm font-semibold text-slate-900 leading-tight">{userFullName}</span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">{userFullName}</span>
               )}
-              {moment.locationName && <span className="text-[11px] text-slate-500 leading-tight mt-0.5">{moment.locationName}</span>}
+              {moment.locationName && <span className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">{moment.locationName}</span>}
             </div>
           </div>
           
@@ -223,27 +223,27 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
         </div>
 
         <div 
-          className="w-full h-[350px] sm:h-[450px] bg-black/5 flex items-center justify-center overflow-hidden cursor-pointer"
+          className="w-full h-[350px] sm:h-[450px] bg-black/5 dark:bg-black/30 flex items-center justify-center overflow-hidden cursor-pointer"
           onDoubleClick={handleLike}
         >
 
-          <SafeImage src={moment.imageUrl} alt="Moment" className="w-full h-full object-contain" fallbackClassName="w-full h-full flex items-center justify-center bg-black/5 text-slate-500 font-medium text-sm" fallbackText={t("social.noImage")} />
+          <SafeImage src={moment.imageUrl} alt="Moment" className="w-full h-full object-contain" fallbackClassName="w-full h-full flex items-center justify-center bg-black/5 dark:bg-black/30 text-slate-500 dark:text-slate-400 font-medium text-sm" fallbackText={t("social.noImage")} />
 
         </div>
 
         <div className="flex items-center gap-4 px-4 pt-2 pb-1">
           <button onClick={handleLike} disabled={isPending}>
-            <Heart className={`h-7 w-7 transition-all active:scale-125 ${isLiked ? "fill-rose-500 text-rose-500" : "text-slate-900"}`} />
+            <Heart className={`h-7 w-7 transition-all active:scale-125 ${isLiked ? "fill-rose-500 text-rose-500" : "text-slate-900 dark:text-slate-200"}`} />
           </button>
           <button onClick={() => setIsModalOpen(true)}>
-            <MessageCircle className="h-7 w-7 text-slate-900 hover:text-slate-600 transition-colors" />
+            <MessageCircle className="h-7 w-7 text-slate-900 dark:text-slate-200 hover:text-slate-600 dark:hover:text-white transition-colors" />
           </button>
         </div>
 
         <div className="px-4 mt-1">
-          <div className="text-sm font-bold text-slate-900 mb-1">{t("social.momentLikesCount", { count: likeCount })}</div>
+          <div className="text-sm font-bold text-slate-900 dark:text-white mb-1">{t("social.momentLikesCount", { count: likeCount })}</div>
           {moment.caption && (
-            <div className="text-sm text-slate-800 leading-relaxed">
+            <div className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed">
               {momentUserId ? (
                 <Link to={`/social/profile/${momentUserId}`} className="font-bold mr-2 hover:underline hover:text-brand transition-all">
                   {userFullName}
@@ -257,14 +257,14 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
           
           {commentList.length > 0 && (
             <div 
-              className="text-sm text-slate-500 mt-1 cursor-pointer hover:text-slate-700"
+              className="text-sm text-slate-500 dark:text-slate-400 mt-1 cursor-pointer hover:text-slate-700 dark:hover:text-slate-300"
               onClick={() => setIsModalOpen(true)}
             >
               {t("social.momentViewAllComments", { count: commentList.length })}
             </div>
           )}
           
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 uppercase mt-2 tracking-tight font-medium">
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 uppercase mt-2 tracking-tight font-medium">
             <span>{formatTimeAgo(moment.createdAt)}</span>
             <span>•</span>
             <span className="flex items-center gap-1" title={t("social.privacyLabel", { privacy: privacyLabel })}>
@@ -276,33 +276,33 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
       </div>
       {isReportModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 text-left">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Report Moment</h3>
-            <p className="text-xs text-slate-500 mb-4">Select a reason for reporting this moment for community standards violations.</p>
+          <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Report Moment</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Select a reason for reporting this moment for community standards violations.</p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Reason</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Reason</label>
                 <select 
                   value={reportReason} 
                   onChange={(e) => setReportReason(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 focus:outline-none focus:border-brand"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand"
                 >
-                  <option value="Spam">Spam (Garbage / Ads)</option>
-                  <option value="Hate Speech">Hate Speech</option>
-                  <option value="Harassment">Harassment / Threat</option>
-                  <option value="Violence">Violence / Gore</option>
-                  <option value="Other">Other Reason</option>
+                  <option value="Spam" className="dark:bg-slate-800">Spam (Garbage / Ads)</option>
+                  <option value="Hate Speech" className="dark:bg-slate-800">Hate Speech</option>
+                  <option value="Harassment" className="dark:bg-slate-800">Harassment / Threat</option>
+                  <option value="Violence" className="dark:bg-slate-800">Violence / Gore</option>
+                  <option value="Other" className="dark:bg-slate-800">Other Reason</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Details (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Details (Optional)</label>
                 <textarea
                   value={reportDetails}
                   onChange={(e) => setReportDetails(e.target.value)}
                   placeholder="Enter more details about the violation..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-2 text-sm text-slate-800 h-20 focus:outline-none focus:border-brand resize-none"
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm text-slate-800 dark:text-slate-100 h-20 focus:outline-none focus:border-brand resize-none"
                 />
               </div>
             </div>
@@ -311,7 +311,7 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
               <button
                 onClick={() => setIsReportModalOpen(false)}
                 disabled={isSubmittingReport}
-                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+                className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
               >
                 Cancel
               </button>

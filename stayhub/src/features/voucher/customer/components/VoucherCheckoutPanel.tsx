@@ -69,7 +69,7 @@ export const VoucherCheckoutPanel: React.FC<VoucherCheckoutPanelProps> = ({
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">{t('voucher.applied')}</p>
               <p className="mt-1 font-mono text-sm font-black text-emerald-900">{appliedVoucher.code}</p>
-              <p className="mt-1 text-xs text-emerald-700">{t('voucher.youSave', { amount: formatVnd(appliedVoucher.discountAmount) })}</p>
+              <p className="mt-1 text-xs text-emerald-700">{t('voucher.youSave', { amount: new Intl.NumberFormat('vi-VN').format(appliedVoucher.discountAmount) + '₫' })}</p>
             </div>
             <button type="button" onClick={onClear} className="rounded-lg p-1.5 text-emerald-700 hover:bg-emerald-100">
               <X className="h-4 w-4" />
@@ -147,8 +147,8 @@ const WalletPickerItem: React.FC<{
         {formatDiscount(voucher.discountType, voucher.discountValue)}
         {voucher.tourName ? ` · ${voucher.tourName}` : ` · ${t('voucher.allTours')}`}
         {voucher.minOrderAmount && voucher.minOrderAmount > 0 ? (
-          <span className="text-[10px] text-amber-700 font-medium ml-1">
-            · {t('voucher.minOrderHint', { amount: formatVnd(voucher.minOrderAmount) })}
+          <span className="text-[10px] text-amber-700 font-medium ml-1 flex items-center gap-1">
+            · {t('voucher.minOrderHint', { amount: "" }).replace(":", "").trim()} <MoneyDisplay amountVnd={voucher.minOrderAmount} compact />
           </span>
         ) : null}
       </div>

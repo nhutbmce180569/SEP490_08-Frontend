@@ -18,17 +18,8 @@ export default function BookingTermsPage() {
       title={t("legal.bookingTermsTitle")}
       subtitle={t("legal.bookingTermsSubtitle")}
       lastUpdated={isVi ? BOOKING_TERMS_LAST_UPDATED_VI : BOOKING_TERMS_LAST_UPDATED}
+      activePath="/booking-terms"
       sections={isVi ? bookingTermsSectionsVi : bookingTermsSections}
-      relatedDocuments={[
-        {
-          label: t("legal.relatedTerms"),
-          href: "/terms",
-        },
-        {
-          label: t("legal.relatedPrivacy"),
-          href: "/privacy",
-        },
-      ]}
     />
   );
 }

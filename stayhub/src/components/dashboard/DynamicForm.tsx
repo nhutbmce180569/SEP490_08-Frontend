@@ -4,6 +4,7 @@ import { useTranslation } from "../../contexts/LocaleContext";
 import { ActionButton } from "./ActionButton";
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
 import { SearchableSelect } from "./SearchableSelect";
+import { ImageCropModal } from "../profile/ImageCropModal";
 const DynamicFileInput: React.FC<{
   field: FormField;
   value: any;
@@ -14,6 +15,8 @@ const DynamicFileInput: React.FC<{
   const { t } = useTranslation();
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (value instanceof File) {
@@ -35,7 +38,15 @@ const DynamicFileInput: React.FC<{
         e.target.value = "";
         return;
       }
-      onChange(file);
+      if (field.crop) {
+        setTempImageSrc(URL.createObjectURL(file));
+        setIsCropModalOpen(true);
+      } else {
+        onChange(file);
+      }
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -53,8 +64,19 @@ const DynamicFileInput: React.FC<{
         onError(t("content.onlyImageFilesAllowed"));
         return;
       }
-      onChange(file);
+      if (field.crop) {
+        setTempImageSrc(URL.createObjectURL(file));
+        setIsCropModalOpen(true);
+      } else {
+        onChange(file);
+      }
     }
+  };
+
+  const handleCropComplete = (croppedFile: File, croppedUrl: string) => {
+    onChange(croppedFile);
+    setIsCropModalOpen(false);
+    setTempImageSrc(null);
   };
 
   const handleRemoveImage = () => {
@@ -137,6 +159,16 @@ const DynamicFileInput: React.FC<{
         )}
       </div>
       {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
+      {tempImageSrc && (
+        <ImageCropModal
+          isOpen={isCropModalOpen}
+          imageSrc={tempImageSrc}
+          onClose={() => setIsCropModalOpen(false)}
+          onCropComplete={handleCropComplete}
+          aspect={field.cropAspect}
+          cropShape={field.cropShape}
+        />
+      )}
     </div>
   );
 };
@@ -159,6 +191,9 @@ export interface FormField {
   validate?: (value: any, formData: Record<string, any>) => string | undefined; // Hàm validate custom
   onChangeCustom?: (value: any, setFormData: React.Dispatch<React.SetStateAction<Record<string, any>>>) => void; // Side effect khi field thay đổi
   render?: (value: any, onChange: (val: any) => void, error?: string, setFormData?: React.Dispatch<React.SetStateAction<Record<string, any>>>, formData?: Record<string, any>) => React.ReactNode; // Dùng cho các field đặc biệt
+  crop?: boolean;
+  cropShape?: 'round' | 'rect';
+  cropAspect?: number;
 }
 
 interface DynamicFormProps {

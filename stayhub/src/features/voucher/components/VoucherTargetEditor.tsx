@@ -5,6 +5,7 @@ import { useTranslation } from '../../../contexts/LocaleContext';
 import { analyticsKeys } from '../../customer-analytics/hooks/useCustomerAnalytics';
 import { customerAnalyticsService } from '../../customer-analytics/services/customerAnalytics.service';
 import { formatVnd } from '../utils/voucherHelpers';
+import { MoneyDisplay } from '../../currency/MoneyDisplay';
 import { getRevenuePeriodRange } from '../utils/voucherTargetHelpers';
 import type { RevenuePeriod, TopCustomerVoucherAssignmentDTO, VoucherTargetType } from '../types/voucher';
 import { CustomerAssignmentEditor, type CustomerAssignmentRow } from './CustomerAssignmentEditor';
@@ -228,7 +229,7 @@ export const VoucherTargetEditor: React.FC<VoucherTargetEditorProps> = ({
                           <span className="font-medium text-slate-800">{customer.fullName}</span>
                           <span className="block text-xs text-slate-500">{customer.email}</span>
                         </td>
-                        <td className="px-3 py-2 text-slate-700">{formatVnd(customer.totalSpend)}</td>
+                        <td className="px-3 py-2 text-slate-700"><MoneyDisplay amountVnd={customer.totalSpend} compact /></td>
                       </tr>
                     ))}
                   </tbody>

@@ -96,7 +96,6 @@ export const CreateUser: React.FC = () => {
       placeholder: t("errors.emailPlaceholder"),
       icon: <Mail className="h-4 w-4" />,
       required: true,
-      colSpan: 2,
     },
     {
       name: "fullName",
@@ -105,14 +104,6 @@ export const CreateUser: React.FC = () => {
       placeholder: t("errors.fullNamePlaceholder"),
       icon: <UserIcon className="h-4 w-4" />,
       required: true,
-      colSpan: 2,
-    },
-    {
-      name: "avatarFile",
-      label: t("auth.avatar"),
-      type: "file",
-      icon: <UserIcon className="h-4 w-4" />,
-      colSpan: 2,
     },
     {
       name: "phoneNumber",
@@ -120,6 +111,12 @@ export const CreateUser: React.FC = () => {
       type: "text",
       placeholder: t("errors.phonePlaceholder"),
       icon: <Phone className="h-4 w-4" />,
+    },
+    {
+      name: "dateOfBirth",
+      label: t("common.dateOfBirth"),
+      type: "date",
+      icon: <Calendar className="h-4 w-4" />,
     },
     {
       name: "gender",
@@ -133,28 +130,19 @@ export const CreateUser: React.FC = () => {
       ],
     },
     {
-      name: "dateOfBirth",
-      label: t("common.dateOfBirth"),
-      type: "date",
-      icon: <Calendar className="h-4 w-4" />,
-    },
-    {
-      name: "status",
-      label: t("common.status"),
-      type: "select",
-      icon: <Tag className="h-4 w-4" />,
-      options: [
-        { label: t("common.active"), value: "Active" },
-        { label: t("auth.blocked"), value: "Blocked" },
-      ],
-    },
-    {
       name: "roleIds",
       label: t("auth.rolesLabel"),
       type: "multiselect",
       icon: <Shield className="h-4 w-4" />,
       options: roleOptions,
+    },
+    {
+      name: "avatarFile",
+      label: t("auth.avatar"),
+      type: "file",
+      icon: <UserIcon className="h-4 w-4" />,
       colSpan: 2,
+      crop: true,
     },
     {
       name: "sendCredentialsEmail",
@@ -184,7 +172,7 @@ export const CreateUser: React.FC = () => {
 
   return (
     <>
-      <DynamicForm title={t("auth.createNewUser")} description={t("auth.createNewUserDesc")} fields={userFields} initialValues={{ status: "Active", sendCredentialsEmail: false }} onSubmit={handleSubmit} serverErrors={serverErrors} onCancel={handleCancel} />
+      <DynamicForm title={t("auth.createNewUser")} description={t("auth.createNewUserDesc")} fields={userFields} initialValues={{ sendCredentialsEmail: false }} onSubmit={handleSubmit} serverErrors={serverErrors} onCancel={handleCancel} />
       <LoadingOverlay isOpen={isSubmitting} message={t("auth.creatingUser")} />
     </>
   );

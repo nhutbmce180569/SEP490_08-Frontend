@@ -1,8 +1,8 @@
 // Lấy biến môi trường từ Vite (.env)
-export const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "http://localhost:7010";
+export const API_BASE_URL: string = import.meta.env.VITE_API_BASE_URL || "https://localhost:7010";
 export const API_PREFIX: string = import.meta.env.VITE_API_PREFIX || "/api";
   
-// URL đầy đủ: http://localhost:7010/api
+// URL đầy đủ: https://localhost:7010/api
 export const FULL_API: string = `${API_BASE_URL}${API_PREFIX}`;
 
 // Đặc biệt: Cổng kết nối Real-time WebSockets/SignalR (Thường không có /api)

@@ -73,7 +73,7 @@ export default function AboutPage() {
           <div className="border-b border-slate-100 p-5 md:p-6">
             <div 
               className="prose prose-sm max-w-none prose-slate"
-              dangerouslySetInnerHTML={{ __html: getLocalizedSetting("AboutUs") || content.system.summary }}
+              dangerouslySetInnerHTML={{ __html: (getLocalizedSetting("AboutUs") || content.system.summary || "").replace(/&nbsp;/g, ' ') }}
             />
           </div>
 

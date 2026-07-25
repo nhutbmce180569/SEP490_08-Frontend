@@ -307,8 +307,19 @@ export const TourScheduleDetail: React.FC = () => {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40">
-          <Calendar className="h-16 w-16 text-white opacity-20" />
+        <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40 overflow-hidden">
+          {schedule.tour?.imageUrl ? (
+            <>
+              <img 
+                src={schedule.tour.imageUrl} 
+                alt={schedule.tour.name || "Tour"}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/40" />
+            </>
+          ) : (
+            <Calendar className="h-16 w-16 text-white opacity-20" />
+          )}
           
           {/* Nút Back */}
           <div className="absolute left-4 top-4">

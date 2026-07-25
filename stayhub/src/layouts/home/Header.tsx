@@ -40,11 +40,16 @@ import { useQuery } from "@tanstack/react-query";
 import { chatService } from "../../features/social/chat/services/chatService";
 import { useChatNotification } from "../../features/social/chat/component/ChatNotificationContext";
 import { getSearchSuggestions } from "../../hooks/useSearchTours";
+import { useSystemSettings } from "../../features/system/hooks/useSystemSettings";
+import { getImg } from "../../config/api/api";
 
 export default function Header() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { success } = useToast();
+  const { getSetting } = useSystemSettings();
+  const webVideoLogo = getSetting("WebVideoLogo");
+  const videoSource = webVideoLogo ? getImg(webVideoLogo) : dragonLogoVideo;
   const { t } = useTranslation();
   const { user, logout: contextLogout } = useContext(AuthContext);
   const { open: openAiPlanner } = useAiPlanner();
@@ -166,7 +171,7 @@ export default function Header() {
             aria-label="StayHub home"
           >
             <video
-              src={dragonLogoVideo}
+              src={videoSource}
               className="absolute left-1/2 top-1/2 h-28 w-28 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain md:h-32 md:w-32"
               autoPlay
               loop

@@ -12,5 +12,5 @@ export interface SystemSettingUpdateItem {
 export interface UpdateSystemSettingsDTO {
   settings: SystemSettingUpdateItem[];
   webLogoFile?: File;
-  appLogoFile?: File;
+  webVideoLogoFile?: File;
 }

@@ -19,10 +19,9 @@ export const SystemSettings: React.FC = () => {
   // Form states
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [webLogoFile, setWebLogoFile] = useState<File | null>(null);
-  const [appLogoFile, setAppLogoFile] = useState<File | null>(null);
-  
+  const [webVideoLogoFile, setWebVideoLogoFile] = useState<File | null>(null);
   const [webLogoPreview, setWebLogoPreview] = useState<string>("");
-  const [appLogoPreview, setAppLogoPreview] = useState<string>("");
+  const [webVideoLogoPreview, setWebVideoLogoPreview] = useState<string>("");
 
   useEffect(() => {
     if (settings.length > 0) {
@@ -52,8 +51,8 @@ export const SystemSettings: React.FC = () => {
       if (initialData["WebLogo"]) {
         setWebLogoPreview(getImg(initialData["WebLogo"]));
       }
-      if (initialData["AppLogo"]) {
-        setAppLogoPreview(getImg(initialData["AppLogo"]));
+      if (initialData["WebVideoLogo"]) {
+        setWebVideoLogoPreview(getImg(initialData["WebVideoLogo"]));
       }
     }
   }, [settings]);
@@ -62,21 +61,25 @@ export const SystemSettings: React.FC = () => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "web" | "app") => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "web" | "webVideo") => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
+    if (type === "web" && !file.type.startsWith("image/")) {
       showError(t("content.onlyImageFilesAllowed"));
+      return;
+    }
+    if (type === "webVideo" && !file.type.startsWith("video/")) {
+      showError("Chỉ chấp nhận file video"); // Keep simple, or use translation
       return;
     }
 
     if (type === "web") {
       setWebLogoFile(file);
       setWebLogoPreview(URL.createObjectURL(file));
-    } else {
-      setAppLogoFile(file);
-      setAppLogoPreview(URL.createObjectURL(file));
+    } else if (type === "webVideo") {
+      setWebVideoLogoFile(file);
+      setWebVideoLogoPreview(URL.createObjectURL(file));
     }
   };
 
@@ -91,7 +94,7 @@ export const SystemSettings: React.FC = () => {
       await systemService.updateSettings({
         settings: updateItems,
         webLogoFile: webLogoFile || undefined,
-        appLogoFile: appLogoFile || undefined,
+        webVideoLogoFile: webVideoLogoFile || undefined,
       });
 
       success(t("admin.settingsSavedSuccess"));
@@ -184,14 +187,14 @@ export const SystemSettings: React.FC = () => {
                   </span>
                 </div>
               </div>
-
+              
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">{t("admin.appLogo")}</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">Logo Video Header (Web)</label>
                 <div className="mb-4 flex h-32 w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
-                  {appLogoPreview ? (
-                    <img src={appLogoPreview} alt={t("admin.appLogo")} className="max-h-full object-contain" />
+                  {webVideoLogoPreview ? (
+                    <video src={webVideoLogoPreview} autoPlay loop muted className="max-h-full object-contain" />
                   ) : (
-                    <span className="text-sm text-slate-400">{t("admin.noAppLogo")}</span>
+                    <span className="text-sm text-slate-400">Chưa có video logo</span>
                   )}
                 </div>
                 <div className="flex items-center gap-4">
@@ -199,13 +202,13 @@ export const SystemSettings: React.FC = () => {
                     {t("common.chooseFile")}
                     <input
                       type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(e, "app")}
+                      accept="video/*"
+                      onChange={(e) => handleFileChange(e, "webVideo")}
                       className="hidden"
                     />
                   </label>
                   <span className="text-sm text-slate-500 max-w-[200px] truncate">
-                    {appLogoFile ? appLogoFile.name : t("common.noFileChosen")}
+                    {webVideoLogoFile ? webVideoLogoFile.name : t("common.noFileChosen")}
                   </span>
                 </div>
               </div>

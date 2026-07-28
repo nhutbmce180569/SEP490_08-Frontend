@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { getAllCategories } from "../services/category.service";
 import { PATH } from "../../../config/routes/route";
 import type { ReadCategoryDTO, PaginationDTO } from "../types/category";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useCategories = (initialPageSize: number = 5, keyword?: string) => {
+  const { t } = useTranslation();
   const [data, setData] = useState<PaginationDTO<ReadCategoryDTO> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -20,7 +22,7 @@ export const useCategories = (initialPageSize: number = 5, keyword?: string) => 
       const res = await getAllCategories(page, pageSize, keyword);
       setData(res);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load categories.");
+      setError(err.response?.data?.message || t("content.loadCategoryFailed", "Failed to load categories."));
     } finally {
       setIsLoading(false);
     }

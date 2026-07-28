@@ -140,6 +140,20 @@ export const UpdateCategory: React.FC = () => {
       <div className="flex justify-center p-10 text-slate-500">{t("content.categoryNotFound")}</div>
     );
 
+  if (category.isActive) {
+    return (
+      <div className="flex flex-col items-center justify-center p-10 mt-10 rounded-xl border border-rose-100 bg-rose-50 text-rose-500 space-y-4 max-w-lg mx-auto">
+        <p className="text-center font-medium">{t("content.cannotEditActive")}</p>
+        <button 
+          onClick={handleCancel}
+          className="px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-sm text-sm font-medium text-slate-700 hover:bg-slate-50"
+        >
+          {t("common.back")}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       <DynamicForm

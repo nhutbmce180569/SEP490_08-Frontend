@@ -6,9 +6,11 @@ import type { UpdateUserDTO } from "../types/user";
 import { PATH } from "../../../config/routes/route";
 
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { useToast } from "../../../contexts/ToastContext";
 
 export const useUpdateUser = () => {
   const { t } = useTranslation();
+  const { success, error: showError } = useToast();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -22,12 +24,14 @@ export const useUpdateUser = () => {
 
   const mutation = useMutation({
     mutationFn: (data: UpdateUserDTO) => userService.updateUser(id!, data),
-    onSuccess: () => {
+    onSuccess: (res) => {
+      success(res?.message || t("admin.updateUserSuccess") || "User updated successfully!");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["user", id] });
       navigate(PATH.ADMIN.USER_MANAGEMENT);
     },
     onError: (error: any) => {
+      showError(t("admin.updateUserError") || "Failed to update user. Please check the inputs.");
       if (error.response?.data?.errors) {
         const translatedErrors: Record<string, string> = {};
         Object.entries(error.response.data.errors).forEach(([key, val]) => {

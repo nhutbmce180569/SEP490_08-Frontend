@@ -258,7 +258,17 @@
     "longitudeInvalid": "Longitude must be between -180 and 180.",
     "sourceUrlInvalid": "Source URL is invalid.",
     "locationPickRequired": "Please pick a valid location.",
-    "cannotEditActive": "Category must be inactive to update."
+    "cannotEditActive": "Category must be inactive to update.",
+    "categoryCreatedSuccess": "Category created successfully.",
+    "categoryCreateFailed": "Failed to create category.",
+    "categoryUpdatedSuccess": "Category updated successfully.",
+    "categoryUpdateFailed": "Failed to update category.",
+    "categoryDeactivatedSuccess": "Category deactivated successfully.",
+    "categoryActivatedSuccess": "Category activated successfully.",
+    "categoryStatusChangeFailed": "Failed to change category status.",
+    "categoryDeleted": "Category deleted successfully.",
+    "failedToDeleteCategory": "Failed to delete category.",
+    "loadCategoryFailed": "Failed to load category details."
   },
   "contact": {
     "facebookTitle": "StayHub Official Fanpage",

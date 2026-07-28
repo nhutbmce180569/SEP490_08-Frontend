@@ -128,7 +128,7 @@ export const BookingStatisticsPage: React.FC = () => {
           ) : (
             <div className="space-y-5">
               <MetricStrip
-                columns={6}
+                columns={4}
                 items={[
                   {
                     label: t('booking.statistics.actualRevenue'),
@@ -136,9 +136,9 @@ export const BookingStatisticsPage: React.FC = () => {
                     hint: t('booking.statistics.actualRevenueHint'),
                   },
                   {
-                    label: 'Khuyến mãi (Promotions)',
+                    label: t('booking.statistics.promotions'),
                     value: formatAnalyticsMoney(data.metrics.totalPromotionDiscount ?? 0, mode, usdToVndRate),
-                    hint: 'Tổng giá trị ưu đãi từ các chương trình khuyến mãi',
+                    hint: t('booking.statistics.promotionsHint'),
                   },
                   {
                     label: t('booking.statistics.discounts'),
@@ -150,6 +150,12 @@ export const BookingStatisticsPage: React.FC = () => {
                     value: formatAnalyticsMoney(data.metrics.totalRefundAmount, mode, usdToVndRate),
                     hint: t('booking.statistics.refundedHint'),
                   },
+                ]}
+              />
+
+              <MetricStrip
+                columns={2}
+                items={[
                   {
                     label: t('booking.statistics.orders'),
                     value: formatNumber(data.metrics.totalOrders),
@@ -198,8 +204,8 @@ export const BookingStatisticsPage: React.FC = () => {
 
               <ChartGrid columns={2}>
                 <AnalyticsPanel
-                  title="Ưu đãi & Khuyến mãi (Promotions vs Vouchers)"
-                  subtitle="So sánh tỷ trọng giảm giá giữa chương trình khuyến mãi và mã giảm giá"
+                  title={t('booking.statistics.discountBreakdownTitle')}
+                  subtitle={t('booking.statistics.discountBreakdownSubtitle')}
                 >
                   <DiscountDonutChart
                     data={data.discountBreakdown || [
@@ -455,13 +461,15 @@ const DiscountDonutChart: React.FC<{
   const totalValue = data.reduce((sum, item) => sum + item.totalAmount, 0);
   let current = 0;
 
+  const { t } = useTranslation();
+  
   if (data.length === 0 || totalValue <= 0) {
     return <EmptyChart icon={<CircleDollarSign className="h-5 w-5" />} />;
   }
 
   const formattedData = data.map((item, index) => {
     const isPromo = item.type.toLowerCase() === 'promotion';
-    const label = isPromo ? 'Khuyến mãi (Promotions)' : 'Mã giảm giá (Vouchers)';
+    const label = isPromo ? t('booking.promotionDiscount') : t('booking.voucherDiscount');
     return {
       label,
       amount: item.totalAmount,

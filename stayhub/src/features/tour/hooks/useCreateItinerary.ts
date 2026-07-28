@@ -186,7 +186,7 @@ export const useCreateItinerary = () => {
         setServerErrors(error.response.data.errors);
         showError(t("common.error.formErrors"));
       } else {
-        showError(error.message || "Failed to create itineraries.");
+        showError(error.message || t("tour.error.itinerariesCreateFailed"));
       }
     } finally {
       setIsSubmitting(false);

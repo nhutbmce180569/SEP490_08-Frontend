@@ -4,11 +4,13 @@ import { deleteScheduleItinerary } from "../services/tourScheduleItinerary.servi
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import { useTourSchedule } from "./useTourSchedule";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useDeleteScheduleItinerary = () => {
   const { scheduleId, itineraryId } = useParams<{ scheduleId: string; itineraryId: string }>();
   const navigate = useNavigate();
   const { success, error } = useToast();
+  const { t } = useTranslation();
 
   const { currentSchedule: schedule, isLoading: isFetching, error: fetchError, fetchScheduleById } = useTourSchedule();
 
@@ -29,10 +31,10 @@ export const useDeleteScheduleItinerary = () => {
     try {
       setIsDeleting(true);
       await deleteScheduleItinerary(itineraryId);
-      success("Schedule itinerary deleted successfully!");
+      success(t("tour.deleteScheduleItinerarySuccess"));
       navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (err: any) {
-      error(err.response?.data?.message || err.message || "Failed to delete schedule itinerary.");
+      error(err.response?.data?.message || err.message || t("tour.failedDeleteScheduleItinerary"));
     } finally {
       setIsDeleting(false);
     }

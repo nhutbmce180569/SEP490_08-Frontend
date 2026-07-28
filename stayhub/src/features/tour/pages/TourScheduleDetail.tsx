@@ -264,7 +264,7 @@ export const TourScheduleDetail: React.FC = () => {
       await fetchItineraries(schedule.id);
       setDeletingItineraryId(null);
     } catch (err: unknown) {
-      showError(getApiErrorMessage(err, t("tour.failedDeleteItinerary") || "Failed to delete schedule itinerary."));
+      showError(getApiErrorMessage(err, t("tour.failedDeleteScheduleItinerary") || "Failed to delete schedule itinerary."));
     } finally {
       setIsDeletingItinerary(false);
     }
@@ -299,10 +299,7 @@ export const TourScheduleDetail: React.FC = () => {
     </span>
   );
 
-  const confirmButtonText =
-    confirmAction?.type === "deactivateTicket"
-      ? t("tour.deactivate")
-      : t("tour.activate");
+  const confirmButtonText = t("common.confirm");
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

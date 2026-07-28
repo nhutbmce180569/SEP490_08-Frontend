@@ -288,6 +288,10 @@
   "activate": "Kích hoạt",
   "deleteItineraryConfirm": "Xác nhận xóa lịch trình",
   "deleteItineraryWarning": "Bạn có chắc muốn xóa lịch trình này? Hành động này sẽ xóa vĩnh viễn dữ liệu và không thể hoàn tác.",
+  "deleteItinerarySuccess": "Đã xóa lịch trình thành công!",
+  "failedDeleteItinerary": "Không thể xóa lịch trình.",
+  "deleteScheduleItinerarySuccess": "Đã xóa lịch trình khởi hành thành công!",
+  "failedDeleteScheduleItinerary": "Không thể xóa lịch trình khởi hành.",
   "backToTourDetails": "Quay lại chi tiết tour",
   "itineraryDetailsToDelete": "Chi tiết lịch trình sẽ bị xóa:",
   "yesDeleteItinerary": "Có, xóa lịch trình",
@@ -595,6 +599,8 @@
   "error": {
     "noItinerariesToClone": "Tour này không có lịch trình để sao chép.",
     "cloneFailed": "Đã xảy ra lỗi khi sao chép lịch trình.",
+    "itinerariesCreateFailed": "Không thể tạo lịch trình.",
+    "scheduleItinerariesCreateFailed": "Không thể tạo lịch trình cho lịch khởi hành.",
     "dayNumberPositive": "Mục {{item}}: Số ngày phải lớn hơn 0.",
     "titleMinLength": "Ngày {{day}}: Tiêu đề phải có ít nhất 3 ký tự.",
     "descriptionMinLength": "Ngày {{day}}: Mô tả phải có ít nhất 10 ký tự.",
@@ -621,7 +627,9 @@
   "consultationError": "Đã có lỗi xảy ra khi gửi yêu cầu tư vấn.",
   "requestConsultation": "Yêu cầu tư vấn",
   "success": {
-    "clonedMissingDays": "Đã sao chép và thêm thành công {{count}} ngày còn thiếu từ tour gốc."
+    "clonedMissingDays": "Đã sao chép và thêm thành công {{count}} ngày còn thiếu từ tour gốc.",
+    "itinerariesAdded": "Thêm lịch trình tour thành công!",
+    "scheduleItinerariesAdded": "Thêm lịch trình ngày khởi hành thành công!"
   },
   "province_1": "Thành phố Hà Nội",
   "province_4": "Tỉnh Cao Bằng",

@@ -4,11 +4,13 @@ import { useTour } from "./useTour";
 import { deleteItinerary } from "../services/itinerary.service";
 import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useDeleteItinerary = () => {
   const { tourId, itineraryId } = useParams<{ tourId: string; itineraryId: string }>();
   const navigate = useNavigate();
   const { success, error } = useToast();
+  const { t } = useTranslation();
   
   const { tour, isLoading: isFetching, error: fetchError } = useTour(tourId);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -21,10 +23,10 @@ export const useDeleteItinerary = () => {
     try {
       setIsDeleting(true);
       await deleteItinerary(itineraryId);
-      success("Itinerary deleted successfully!");
+      success(t("tour.deleteItinerarySuccess"));
       navigate(PATH.MANAGER.TOUR_DETAIL(tourId));
     } catch (err: any) {
-      error(err.response?.data?.message || err.message || "Failed to delete itinerary.");
+      error(err.response?.data?.message || err.message || t("tour.failedDeleteItinerary"));
     } finally {
       setIsDeleting(false);
     }

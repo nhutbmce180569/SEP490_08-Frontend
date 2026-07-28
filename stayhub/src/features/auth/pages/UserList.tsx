@@ -160,6 +160,13 @@ export const UserList: React.FC = () => {
         className: "w-[120px] sm:w-[130px]",
         render: (user) => {
           const isAdmin = user.roles?.includes("Admin");
+          const isCustomer = user.roles?.includes("Customer");
+          const cannotEdit = isAdmin || isCustomer;
+
+          let editTitle = t("common.edit");
+          if (isAdmin) editTitle = t("auth.cannotEditAdmin");
+          else if (isCustomer) editTitle = t("auth.cannotEditCustomer", { defaultValue: "Cannot edit Customer" });
+
           return (
           <div className="flex items-center gap-1.5">
             <ActionButton variant="secondary" onClick={() => openViewDialog(user)} className="h-8 w-8" title={t("auth.viewDetails")}>
@@ -168,9 +175,9 @@ export const UserList: React.FC = () => {
             <ActionButton 
               variant="secondary" 
               onClick={() => handleEdit(user.id)} 
-              className={`h-8 w-8 ${isAdmin ? "opacity-50 cursor-not-allowed" : ""}`}
-              disabled={isAdmin}
-              title={isAdmin ? t("auth.cannotEditAdmin") : t("common.edit")}
+              className={`h-8 w-8 ${cannotEdit ? "opacity-50 cursor-not-allowed" : ""}`}
+              disabled={cannotEdit}
+              title={editTitle}
             >
               <Pencil className="h-3.5 w-3.5" />
             </ActionButton>

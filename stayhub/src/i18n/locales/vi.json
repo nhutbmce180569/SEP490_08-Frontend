@@ -192,7 +192,8 @@
     "premiumJourney": "Hành Trình Đẳng Cấp",
     "absoluteSecurity": "Bảo Mật Tuyệt Đối",
     "satisfiedCustomers": "100k+ Khách Hài Lòng",
-    "cannotEditAdmin": "Không thể thao tác trên Quản trị viên khác"
+    "cannotEditAdmin": "Không thể thao tác trên Quản trị viên khác",
+    "cannotEditCustomer": "Không thể chỉnh sửa tài khoản Khách hàng"
   },
   "nav": {
     "profile": "Hồ sơ",

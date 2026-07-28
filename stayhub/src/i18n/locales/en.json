@@ -191,7 +191,8 @@
     "premiumJourney": "Premium Journey",
     "absoluteSecurity": "Absolute Security",
     "satisfiedCustomers": "100k+ Satisfied Customers",
-    "cannotEditAdmin": "Cannot modify other Admins"
+    "cannotEditAdmin": "Cannot modify other Admins",
+    "cannotEditCustomer": "Cannot edit Customer accounts"
   },
   "nav": {
     "profile": "Profile",

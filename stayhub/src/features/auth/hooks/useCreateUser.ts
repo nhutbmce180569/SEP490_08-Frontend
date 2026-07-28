@@ -5,9 +5,11 @@ import { userService } from "../services/user.service";
 import type { AdminCreatedUserDTO, CreateUserDTO } from "../types/user";
 import { PATH } from "../../../config/routes/route";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { useToast } from "../../../contexts/ToastContext";
 
 export const useCreateUser = () => {
   const { t } = useTranslation();
+  const { success, error: showError } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
@@ -16,10 +18,12 @@ export const useCreateUser = () => {
   const mutation = useMutation({
     mutationFn: (data: CreateUserDTO) => userService.createUser(data),
     onSuccess: (result) => {
+      success(result?.message || t("admin.createUserSuccess") || "User created successfully!");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       setCreatedAccount(result);
     },
     onError: (error: any) => {
+      showError(t("admin.createUserError") || "Failed to create user. Please check the inputs.");
       if (error.response?.data?.errors) {
         const translatedErrors: Record<string, string> = {};
         Object.entries(error.response.data.errors).forEach(([key, val]) => {

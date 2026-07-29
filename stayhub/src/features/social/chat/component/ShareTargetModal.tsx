@@ -16,9 +16,10 @@ interface ShareTargetModalProps {
 export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({ 
   onClose, 
   shareContent,
-  successMessage = "Chia sẻ thành công!"
+  successMessage
 }) => {
   const { t } = useTranslation();
+  const resolvedSuccessMsg = successMessage || t("social.shareSuccessDefault", "Shared successfully!");
   const { success, error } = useToast();
   const [searchInput, setSearchInput] = useState('');
   const [sharingRoomId, setSharingRoomId] = useState<number | null>(null);
@@ -53,11 +54,11 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
       await connection.invoke('SendMessage', roomId, shareContent);
       await connection.stop();
       
-      success(successMessage);
+      success(resolvedSuccessMsg);
       onClose();
     } catch (err) {
       console.error("Lỗi chia sẻ:", err);
-      error("Chia sẻ thất bại. Vui lòng thử lại!");
+      error(t("social.shareFailedRetry", "Sharing failed. Please try again!"));
     } finally {
       setSharingRoomId(null);
     }
@@ -74,7 +75,7 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-100 bg-white flex-none">
-          <h3 className="text-base font-extrabold text-slate-900">Gửi đến cuộc trò chuyện</h3>
+          <h3 className="text-base font-extrabold text-slate-900">{t("social.sendToConversation", "Send to conversation")}</h3>
           <button 
             onClick={onClose} 
             className="p-1.5 hover:bg-slate-100 rounded-xl transition-colors text-slate-500 hover:text-slate-800"
@@ -91,7 +92,7 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
               type="text" 
               value={searchInput} 
               onChange={(e) => setSearchInput(e.target.value)} 
-              placeholder="Tìm kiếm cuộc trò chuyện..." 
+              placeholder={t("social.searchConversationPlaceholder", "Search conversations...")} 
               className="w-full pl-9 pr-4 py-2 border border-slate-200 bg-white rounded-xl focus:outline-none focus:ring-1 focus:ring-brand text-xs font-semibold placeholder:text-slate-400 text-slate-800"
             />
           </div>
@@ -102,11 +103,11 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
           {isLoading ? (
             <div className="flex flex-col justify-center items-center h-48 gap-2">
               <Loader2 className="w-5 h-5 text-brand animate-spin" />
-              <span className="text-[10px] text-slate-400 font-semibold">Đang tải phòng chat...</span>
+              <span className="text-[10px] text-slate-400 font-semibold">{t("social.loadingChatRooms", "Loading chat rooms...")}</span>
             </div>
           ) : filteredRooms.length === 0 ? (
             <div className="text-center text-slate-400 py-12 text-xs font-semibold">
-              Không tìm thấy cuộc trò chuyện nào
+              {t("social.noConversationsFound", "No conversations found")}
             </div>
           ) : (
             filteredRooms.map((room: any) => (
@@ -133,7 +134,7 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
                   ) : (
                     <Send className="w-3.5 h-3.5 -rotate-45" />
                   )}
-                  <span>Gửi</span>
+                  <span>{t("common.send", "Send")}</span>
                 </button>
               </div>
             ))
@@ -146,7 +147,7 @@ export const ShareTargetModal: React.FC<ShareTargetModalProps> = ({
             onClick={onClose}
             className="w-full py-2.5 border border-slate-200 text-slate-700 font-bold text-xs bg-white rounded-xl hover:bg-slate-50 transition-colors"
           >
-            Hủy bỏ
+            {t("common.cancel", "Cancel")}
           </button>
         </div>
 

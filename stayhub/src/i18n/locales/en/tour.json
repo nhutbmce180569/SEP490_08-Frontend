@@ -284,6 +284,10 @@
   "activate": "Activate",
   "deleteItineraryConfirm": "Delete Itinerary Confirmation",
   "deleteItineraryWarning": "Are you absolutely sure you want to delete this itinerary? This action will permanently remove the data and cannot be undone.",
+  "deleteItinerarySuccess": "Itinerary deleted successfully!",
+  "failedDeleteItinerary": "Failed to delete itinerary.",
+  "deleteScheduleItinerarySuccess": "Schedule itinerary deleted successfully!",
+  "failedDeleteScheduleItinerary": "Failed to delete schedule itinerary.",
   "backToTourDetails": "Back to Tour Details",
   "itineraryDetailsToDelete": "Itinerary Details to be deleted:",
   "yesDeleteItinerary": "Yes, Delete Itinerary",
@@ -595,6 +599,8 @@
   "error": {
     "noItinerariesToClone": "This tour does not have any itineraries to clone.",
     "cloneFailed": "An error occurred while cloning itineraries.",
+    "itinerariesCreateFailed": "Failed to create itineraries.",
+    "scheduleItinerariesCreateFailed": "Failed to create schedule itineraries.",
     "dayNumberPositive": "Item {{item}}: Day number must be greater than 0.",
     "titleMinLength": "Day {{day}}: Title must contain at least 3 characters.",
     "descriptionMinLength": "Day {{day}}: Description must contain at least 10 characters.",
@@ -621,7 +627,9 @@
   "consultationError": "An error occurred while sending the consultation request.",
   "requestConsultation": "Request Consultation",
   "success": {
-    "clonedMissingDays": "Successfully cloned and added {{count}} missing day(s) from the original tour."
+    "clonedMissingDays": "Successfully cloned and added {{count}} missing day(s) from the original tour.",
+    "itinerariesAdded": "Itineraries added successfully!",
+    "scheduleItinerariesAdded": "Schedule itineraries created successfully!"
   },
   "province_1": "Hanoi City",
   "province_4": "Province Cao Bang",

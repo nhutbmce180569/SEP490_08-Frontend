@@ -30,7 +30,6 @@ const getStatusDisplay = (status: string, t: any) => {
   if (normalized === "pending") return t("common.pending");
   if (normalized === "approved") return t("common.approved");
   if (normalized === "rejected") return t("common.rejected");
-  if (normalized === "refunded") return t("common.refunded");
   if (normalized === "active") return t("common.active");
   if (normalized === "inactive") return t("common.inactive");
   if (normalized === "cancelled" || normalized === "canceled") return t("common.cancelled");
@@ -171,7 +170,6 @@ export const CancellationListPage: React.FC = () => {
               <option value="Pending">{getStatusDisplay("Pending", t)}</option>
               <option value="Approved">{getStatusDisplay("Approved", t)}</option>
               <option value="Rejected">{getStatusDisplay("Rejected", t)}</option>
-              <option value="Refunded">{getStatusDisplay("Refunded", t)}</option>
             </select>
           </div>
 

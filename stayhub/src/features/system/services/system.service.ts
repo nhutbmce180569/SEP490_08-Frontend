@@ -21,8 +21,8 @@ export const systemService = {
     if (dto.webLogoFile) {
       formData.append("WebLogoFile", dto.webLogoFile);
     }
-    if (dto.appLogoFile) {
-      formData.append("AppLogoFile", dto.appLogoFile);
+    if (dto.webVideoLogoFile) {
+      formData.append("WebVideoLogoFile", dto.webVideoLogoFile);
     }
 
     return apiClient.put<{ message: string }>("/system-settings", formData, {

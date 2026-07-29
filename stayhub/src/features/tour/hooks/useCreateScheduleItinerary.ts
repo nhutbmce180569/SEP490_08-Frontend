@@ -398,17 +398,17 @@ export const useCreateScheduleItinerary = () => {
       };
 
       await createScheduleItineraryBatch(payload);
-      success("Schedule itineraries created successfully!");
+      success(t("tour.success.scheduleItinerariesAdded"));
       navigate(PATH.MANAGER.SCHEDULE_DETAIL(scheduleId));
     } catch (error: any) {
       if (error.response?.status === 400 && error.response.data?.errors) {
         setServerErrors(error.response.data.errors);
-        showError("Please check the form for errors.");
+        showError(t("common.error.formErrors"));
       } else {
         showError(
           error.response?.data?.message ||
             error.message ||
-            "Failed to create schedule itineraries.",
+            t("tour.error.scheduleItinerariesCreateFailed"),
         );
       }
     } finally {

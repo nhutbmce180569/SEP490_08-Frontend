@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useContext, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Camera, LayoutList, Map, Globe, Users, Lock, Sparkles, Filter } from "lucide-react";
-import { useInfiniteMomentFeed, useToggleReaction, useGetMomentById } from "../hooks/useMoments"; 
-import { useGetEligibleSchedules } from "../hooks/useEligibleSchedules";
-import { CreateMomentForm } from "./CreateMomentForm";
-import { MomentsMapFeed } from "./MomentsMapFeed";
-import { MomentModal } from "./MomentModal";
+import { useInfiniteMomentFeed, useToggleReaction, useGetMomentById } from "../../moments/hooks/useMoments"; 
+import { useGetEligibleSchedules } from "../../moments/hooks/useEligibleSchedules";
+import { CreateMomentForm } from "../../moments/components/CreateMomentForm";
+import { StaffMomentsMapFeed } from "./StaffMomentsMapFeed";
+import { MomentModal } from "../../moments/components/MomentModal";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useTranslation } from "../../../../contexts/LocaleContext";
@@ -21,14 +21,19 @@ const TranslatedOption: React.FC<{ schedule: any }> = ({ schedule }) => {
   );
 };
 
-export const MomentsFeed: React.FC = () => {
+interface StaffMomentsFeedProps {
+  initialScheduleId?: number;
+  hideAdvancedFeatures?: boolean;
+}
+
+export const StaffMomentsFeed: React.FC<StaffMomentsFeedProps> = ({ initialScheduleId, hideAdvancedFeatures }) => {
   const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const { warning, error } = useToast();
   const { mutate: toggleReaction } = useToggleReaction();
 
   // Quản lý lọc tour và phân trang trực tiếp trong component
-  const [scheduleId, setScheduleId] = useState<number | null>(null);
+  const [scheduleId, setScheduleId] = useState<number | null>(initialScheduleId ?? null);
   const { data: schedules } = useGetEligibleSchedules();
 
   const { 
@@ -232,23 +237,25 @@ export const MomentsFeed: React.FC = () => {
         </div>
 
         {/* Right Selector Filter Dropdown (iOS 26 Liquid Glass) */}
-        <div className="relative h-9 shrink-0 max-w-[95px] xs:max-w-[125px] sm:max-w-[180px] md:max-w-[260px]">
-          <select
-            className="appearance-none bg-slate-100/80 dark:bg-slate-800/80 hover:bg-white/90 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 font-bold text-[11px] h-full pl-3.5 pr-8 rounded-full focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand cursor-pointer transition-all shadow-sm w-full truncate backdrop-blur-md"
-            onChange={(e) => setScheduleId(e.target.value ? Number(e.target.value) : null)}
-            value={scheduleId || ""}
-          >
-            <option value="" className="dark:bg-slate-800">🌍 {t("app.allTripsGlobal") || "All trips (Global)"}</option>
-            {schedules?.map((s) => (
-              <TranslatedOption key={s.scheduleId} schedule={s} />
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500 dark:text-slate-400">
-            <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-            </svg>
+        {!initialScheduleId && (
+          <div className="relative h-9 shrink-0 max-w-[95px] xs:max-w-[125px] sm:max-w-[180px] md:max-w-[260px]">
+            <select
+              className="appearance-none bg-slate-100/80 dark:bg-slate-800/80 hover:bg-white/90 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-800 dark:text-slate-100 font-bold text-[11px] h-full pl-3.5 pr-8 rounded-full focus:outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand cursor-pointer transition-all shadow-sm w-full truncate backdrop-blur-md"
+              onChange={(e) => setScheduleId(e.target.value ? Number(e.target.value) : null)}
+              value={scheduleId || ""}
+            >
+              <option value="" className="dark:bg-slate-800">🌍 {t("app.allTripsGlobal") || "All trips (Global)"}</option>
+              {schedules?.map((s) => (
+                <TranslatedOption key={s.scheduleId} schedule={s} />
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500 dark:text-slate-400">
+              <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+              </svg>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Main Content Viewport */}
@@ -343,11 +350,12 @@ export const MomentsFeed: React.FC = () => {
           </div>
         ) : (
           <div className="h-full w-full absolute inset-0">
-            <MomentsMapFeed 
+            <StaffMomentsMapFeed 
               scheduleId={scheduleId!} 
               onMarkerClick={setSelectedMomentId} 
               onReplayStateChange={setIsReplayActive} 
               onPostMomentClick={() => setIsCreateOpen(true)}
+              hideAdvancedFeatures={hideAdvancedFeatures}
             />
           </div>
         )}
@@ -372,7 +380,7 @@ export const MomentsFeed: React.FC = () => {
 
       {/* Create Moment Modal Overlay */}
       {isCreateOpen && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fadeIn">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fadeIn">
           <CreateMomentForm scheduleId={scheduleId as any} onClose={() => setIsCreateOpen(false)} />
         </div>
       )}

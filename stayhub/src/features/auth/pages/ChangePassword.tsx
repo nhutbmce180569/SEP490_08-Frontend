@@ -61,10 +61,10 @@ export default function ChangePassword() {
         user?.requirePasswordChange ? undefined : (
           <div className="mt-8 text-center">
             <Link
-              to={PATH.PUBLIC.HOME}
+              to={getDashboardPath(user?.roles || [])}
               className="text-sm font-semibold text-slate-500 transition-colors hover:text-brand !no-underline"
             >
-              &larr; {t("auth.backToHome")}
+              &larr; {t("auth.backToDashboard", { defaultValue: "Back to Dashboard" })}
             </Link>
           </div>
         )
@@ -89,7 +89,7 @@ export default function ChangePassword() {
               to={getDashboardPath(user?.roles || [])}
               className="inline-flex items-center justify-center rounded-xl bg-brand px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:bg-brand-600 !no-underline"
             >
-              &larr; {t("auth.backToDashboard", { defaultValue: "Quay lại Bảng điều khiển" })}
+              &larr; {t("auth.backToDashboard", { defaultValue: "Back to Dashboard" })}
             </Link>
           </div>
         </div>

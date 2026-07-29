@@ -281,9 +281,9 @@ export const TourScheduleDetail: React.FC = () => {
     : null;
   const confirmTicketName = confirmTicket
     ? getScheduleTicketName(
-        confirmTicket,
-        confirmTicketTypeId ? ticketTypeDetails[confirmTicketTypeId] : undefined,
-      )
+      confirmTicket,
+      confirmTicketTypeId ? ticketTypeDetails[confirmTicketTypeId] : undefined,
+    )
     : null;
 
   const confirmMessage = (
@@ -307,8 +307,8 @@ export const TourScheduleDetail: React.FC = () => {
         <div className="relative flex h-32 w-full items-center justify-center bg-gradient-to-r from-blue-500 to-blue-700 sm:h-40 overflow-hidden">
           {schedule.tour?.imageUrl ? (
             <>
-              <img 
-                src={schedule.tour.imageUrl} 
+              <img
+                src={schedule.tour.imageUrl}
                 alt={schedule.tour.name || "Tour"}
                 className="absolute inset-0 h-full w-full object-cover"
               />
@@ -317,7 +317,7 @@ export const TourScheduleDetail: React.FC = () => {
           ) : (
             <Calendar className="h-16 w-16 text-white opacity-20" />
           )}
-          
+
           {/* Nút Back */}
           <div className="absolute left-4 top-4">
             <button
@@ -403,17 +403,16 @@ export const TourScheduleDetail: React.FC = () => {
         <div className="flex border-b border-slate-200 bg-slate-50">
           {([
             { key: "itinerary" as const, label: t("tour.scheduleItinerarySection"), icon: <Route className="h-4 w-4" /> },
-            { key: "tickets" as const,   label: t("tour.scheduleTickets"),           icon: <Ticket className="h-4 w-4" /> },
-            { key: "staff" as const,     label: t("tour.staff") || "Staff",          icon: <Users className="h-4 w-4" /> },
+            { key: "tickets" as const, label: t("tour.scheduleTickets"), icon: <Ticket className="h-4 w-4" /> },
+            { key: "staff" as const, label: t("tour.staff") || "Staff", icon: <Users className="h-4 w-4" /> },
           ]).map(({ key, label, icon }) => (
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-all border-b-2 ${
-                activeTab === key
+              className={`flex items-center gap-2 px-6 py-4 text-sm font-semibold transition-all border-b-2 ${activeTab === key
                   ? "border-brand text-brand bg-white"
                   : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-100"
-              }`}
+                }`}
             >
               {icon}
               {label}
@@ -468,11 +467,10 @@ export const TourScheduleDetail: React.FC = () => {
                           <button
                             key={dayNumber}
                             onClick={() => setSelectedDay(dayNumber)}
-                            className={`relative flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${
-                              isSelected
+                            className={`relative flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${isSelected
                                 ? "bg-brand text-white shadow-sm"
                                 : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            }`}
+                              }`}
                           >
                             <span className="capitalize">{t("tour.day")}</span> {dayNumber}
                             {isMissing && (
@@ -574,9 +572,9 @@ export const TourScheduleDetail: React.FC = () => {
                                   {isExpanded && (
                                     <div className="border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 space-y-4">
                                       {iti.description && (
-                                          <div className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
-                                            <DynamicText text={iti.description.replace(/&nbsp;/g, " ")} isHtml />
-                                          </div>
+                                        <div className="prose prose-sm max-w-none leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+                                          <DynamicText text={iti.description.replace(/&nbsp;/g, " ")} isHtml />
+                                        </div>
                                       )}
                                       {iti.tourismInfoId && (
                                         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white text-sm">
@@ -793,9 +791,8 @@ export const TourScheduleDetail: React.FC = () => {
                             </td>
                             <td className="px-5 py-3.5">
                               <span
-                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
-                                  isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"
-                                }`}
+                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${isActive ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-700"
+                                  }`}
                               >
                                 {isActive ? t("common.active") : t("common.inactive")}
                               </span>

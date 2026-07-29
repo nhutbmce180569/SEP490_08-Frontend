@@ -129,14 +129,16 @@ export const Profile: React.FC = () => {
           <p className="mt-1.5 text-sm text-slate-500">{t('auth.profileSubtitle')}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate(`/social/profile/${user?.id || user?.Id}`)}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
-          >
-            <Globe size={16} />
-            <span>{t('auth.viewProfile') || 'View Profile'}</span>
-          </button>
+          {!location.pathname.includes('/staff') && (
+            <button
+              type="button"
+              onClick={() => navigate(`/social/profile/${user?.id || user?.Id}`)}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+            >
+              <Globe size={16} />
+              <span>{t('auth.viewProfile') || 'View Profile'}</span>
+            </button>
+          )}
         </div>
       </div>
 

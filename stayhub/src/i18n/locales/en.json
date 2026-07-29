@@ -89,6 +89,7 @@
     "forgotSubtitleLong": "Enter your email address and we'll send you a code to reset your password.",
     "backToLogin": "Back to Login",
     "backToHome": "Back to Home",
+    "backToDashboard": "Back to Dashboard",
     "resetHeroTitle": "Almost there.",
     "resetHeroDesc": "Verify your identity and set a new password to regain access to your account.",
     "resetSubtitleLong": "Enter the verification code sent to your email and choose a new password.",
@@ -318,7 +319,8 @@
     "hotSearchLabel": "HOT:"
   },
   "social": {
-    "memberAdded": "New member joined the group:"
+    "memberAdded": "New member joined the group:",
+    "personalMoment": "Personal (Outside Tour)"
   },
   "voucher": {
     "saveSuccess": "Voucher {{code}} saved to your wallet.",
@@ -356,7 +358,9 @@
     "statusInactive": "Inactive",
     "statusPending": "Pending",
     "statusRejected": "Rejected",
-    "unknownStatus": "Unknown"
+    "unknownStatus": "Unknown",
+    "tourRoute": "Tour Route",
+    "customerLocations": "Customer Locations"
   },
   "ai": {
     "messageTooShort": "Message must be at least 2 characters.",

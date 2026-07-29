@@ -276,5 +276,7 @@
   "roomMembers": "Thành viên nhóm",
   "memberAdded": "Đã thêm thành viên!",
   "noMembersFound": "Không tìm thấy thành viên",
-  "noImage": "Không có ảnh"
+  "noImage": "Không có ảnh",
+  "gettingLocation": "Đang lấy vị trí của bạn để dẫn đường...",
+  "locationError": "Không thể lấy vị trí của bạn. Vui lòng cấp quyền vị trí."
 }

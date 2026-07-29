@@ -276,5 +276,7 @@
   "roomMembers": "Room Members",
   "memberAdded": "Member added!",
   "noMembersFound": "No members found",
-  "noImage": "No image"
+  "noImage": "No image",
+  "gettingLocation": "Getting your location to generate route...",
+  "locationError": "Unable to get your location. Please grant location permissions."
 }

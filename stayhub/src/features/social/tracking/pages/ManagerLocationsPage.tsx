@@ -1,250 +1,137 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Calendar,
-  Image as ImageIcon,
-  Search,
-  Navigation,
-} from "lucide-react";
-import { PATH } from "../../../../config/routes/route";
-import { useToast } from "../../../../contexts/ToastContext";
+import { MapPin, Navigation, Compass, AlertCircle } from "lucide-react";
 import { useTranslation } from "../../../../contexts/LocaleContext";
+import { useToast } from "../../../../contexts/ToastContext";
 import { tourScheduleService } from "../../../tour/services/tourSchedule.service";
-import { ActionButton } from "../../../../components/dashboard/ActionButton";
-import { Table, type Column } from "../../../../components/dashboard/Table";
-import { PaginationButton } from "../../../../components/dashboard/PaginationButton";
-import type { TourSchedule } from "../../../tour/types/tourSchedule";
+import { ManagerScheduleMapFeed } from "../components/ManagerScheduleMapFeed";
 import { DynamicText } from "../../../../components/DynamicText";
+import { getStoredLocale } from "../../../../i18n";
 
 export const ManagerLocationsPage: React.FC = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { error: showError } = useToast();
+  const locale = getStoredLocale();
 
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
-  const [upcomingOnly, setUpcomingOnly] = useState(true);
+  const [selectedScheduleId, setSelectedScheduleId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(search);
-      setPage(1);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [search]);
-
+  // Fetch all ongoing/upcoming schedules for the manager
   const {
     data: response,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["managerTrackingSchedules", page, pageSize, upcomingOnly, debouncedSearch],
+    queryKey: ["managerTrackingMapSchedules"],
     queryFn: () => {
-      // If upcomingOnly is true, pass today's date to fetch only upcoming/ongoing schedules
-      const startDate = upcomingOnly ? new Date().toISOString().split("T")[0] : undefined;
-      return tourScheduleService.getMySchedules(
-        page,
-        pageSize,
-        null,
-        startDate,
-        undefined,
-        debouncedSearch
-      );
+      // Just fetch recent/ongoing ones. You can adjust pagination if needed.
+      // We pass a large page size to get options for the dropdown.
+      return tourScheduleService.getMySchedules(1, 1000);
     },
-    staleTime: 1000 * 60,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
-  const schedules = useMemo(() => response?.data || [], [response]);
+  const schedules = useMemo(() => {
+    if (!response?.data) {
+      return [];
+    }
+    
+    const now = new Date();
+    // Relaxed date range: -7 days to +7 days to avoid timezone strictness hiding active tours
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7, 0, 0, 0, 0);
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7, 23, 59, 59, 999);
+
+    const filtered = response.data
+      .filter((s) => {
+        const departure = new Date(s.departureDate);
+        const returnD = new Date(s.returnDate);
+        
+        return departure.getTime() <= todayEnd.getTime() && returnD.getTime() >= todayStart.getTime();
+      })
+      .sort(
+        (a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime()
+      );
+
+    // Removed Mock Data. Use only real schedules from the database.
+
+    return filtered;
+  }, [response]);
 
   useEffect(() => {
     if (error) {
       showError(
-        (error as Error)?.message || t("social.trackingLoadSchedulesError") || "Không thể tải danh sách chuyến đi."
+        (error as Error)?.message || t("social.trackingLoadSchedulesError", "Không thể tải danh sách chuyến đi.")
       );
     }
   }, [error, showError, t]);
 
-  const filteredSchedules = useMemo(() => {
-    let result = schedules;
-    
-    // Client-side search (as fallback if API search isn't perfect)
-    if (debouncedSearch.trim()) {
-      const term = debouncedSearch.toLowerCase().trim();
-      result = result.filter((s) => 
-        s.tour?.name?.toLowerCase().includes(term) || 
-        s.id.toString().includes(term)
-      );
-    }
-
-    return result;
-  }, [schedules, debouncedSearch]);
-
-  const sortedSchedules = useMemo(
-    () =>
-      [...filteredSchedules].sort(
-        (a, b) =>
-          new Date(a.departureDate).getTime() -
-          new Date(b.departureDate).getTime(),
-      ),
-    [filteredSchedules],
-  );
-
-  const columns: Column<TourSchedule>[] = useMemo(
-    () => [
-      {
-        header: "",
-        className: "w-24",
-        render: (item) =>
-          item.tour?.imageUrl ? (
-            <img
-              src={item.tour.imageUrl}
-              alt={item.tour.name ?? ""}
-              className="h-10 w-10 min-w-[40px] shrink-0 rounded-lg border border-slate-100 object-cover bg-slate-100"
-            />
-          ) : (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-100 bg-slate-100 text-slate-400">
-              <ImageIcon className="h-4 w-4" />
-            </div>
-          ),
-      },
-      {
-        header: t("tour.tourNameCol") || "Tên Tour",
-        className: "min-w-[280px]",
-        render: (item) => (
-          <div>
-            <div className="font-semibold text-slate-900">
-              {item.tour?.name ? <DynamicText text={item.tour.name} /> : t("social.trackingUntitledTour")}
-            </div>
-            <div className="text-sm text-slate-500">
-              ID: {item.id}
-            </div>
-          </div>
-        ),
-      },
-      {
-        header: t("tour.departureReturn") || "Khởi hành / Trở về",
-        render: (item) => (
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <Calendar className="h-4 w-4 shrink-0 text-slate-400" />
-            <div className="flex flex-wrap items-center gap-1">
-              <span className="font-medium">
-                {new Date(item.departureDate).toLocaleDateString("vi-VN")}
-              </span>
-              <span className="text-slate-400">{t("tour.to") || "đến"}</span>
-              <span className="font-medium">
-                {new Date(item.returnDate).toLocaleDateString("vi-VN")}
-              </span>
-            </div>
-          </div>
-        ),
-      },
-      {
-        header: t("tour.tourIdCol") || "Mã Tour",
-        render: (item) => (
-          <span className="inline-flex rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-600">
-            #{item.tourId}
-          </span>
-        ),
-      },
-      {
-        header: t("common.actions") || "Hành động",
-        className: "w-[120px]",
-        render: (item) => (
-          <div className="flex items-center gap-1.5">
-            <ActionButton
-              variant="secondary"
-              onClick={() =>
-                navigate(PATH.MANAGER.TRACK_SCHEDULE_LOCATIONS(item.id))
-              }
-              className="h-8 w-8 text-brand hover:bg-brand-light hover:text-brand-hover"
-              aria-label={t("common.track") || "Theo dõi"}
-            >
-              <Navigation className="h-3.5 w-3.5" />
-            </ActionButton>
-          </div>
-        ),
-      },
-    ],
-    [t, navigate],
-  );
+  const selectedSchedule = useMemo(() => {
+    return schedules.find(s => s.id === selectedScheduleId);
+  }, [schedules, selectedScheduleId]);
 
   return (
-    <div className="space-y-4">
-      {/* Header section */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col sm:flex-row flex-wrap flex-1 items-stretch sm:items-center gap-3">
-          {/* Search */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0 w-full sm:w-64">
-            <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("tour.searchAssignedPlaceholder") || "Tìm kiếm chuyến đi..."}
-              className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-            />
+    <div className="flex flex-col h-[calc(100vh-140px)] gap-4">
+      {/* Top Bar for Schedule Selection */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-brand/10 flex items-center justify-center text-brand">
+            <Compass className="w-5 h-5" />
           </div>
-
-          {/* Dropdown filter */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
-            <select
-              value={upcomingOnly ? "upcoming" : "all"}
-              onChange={(e) => {
-                setUpcomingOnly(e.target.value === "upcoming");
-                setPage(1);
-              }}
-              className="bg-transparent text-sm text-slate-700 outline-none cursor-pointer"
-            >
-              <option value="upcoming">{t("tour.upcomingOnly") || "Sắp tới"}</option>
-              <option value="all">{t("tour.showAll") || "Tất cả"}</option>
-            </select>
+          <div>
+            <h2 className="text-lg font-bold text-slate-800">
+              {t("social.scheduleOnMap", "Schedule on Map")}
+            </h2>
+            <p className="text-sm text-slate-500 font-medium">
+              {t("social.scheduleOnMapDesc", "Monitor the real-time location of Staff during schedules")}
+            </p>
           </div>
+        </div>
 
-          {/* Page Size Filter */}
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 transition-colors focus-within:border-slate-400 focus-within:bg-white shrink-0">
+        <div className="flex-1 max-w-md">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <MapPin className="h-5 w-5 text-slate-400" />
+            </div>
             <select
-              className="bg-transparent text-sm text-slate-700 outline-none"
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
+              value={selectedScheduleId || ""}
+              onChange={(e) => setSelectedScheduleId(e.target.value ? Number(e.target.value) : null)}
+              className="block w-full pl-10 pr-10 py-3 text-base border-slate-200 focus:outline-none focus:ring-brand focus:border-brand sm:text-sm rounded-xl font-medium bg-slate-50 text-slate-700 shadow-inner appearance-none cursor-pointer"
+              disabled={isLoading}
             >
-              <option value={5}>5 {t("common.perPage") || "/ trang"}</option>
-              <option value={10}>10 {t("common.perPage") || "/ trang"}</option>
-              <option value={15}>15 {t("common.perPage") || "/ trang"}</option>
-              <option value={20}>20 {t("common.perPage") || "/ trang"}</option>
-              <option value={50}>50 {t("common.perPage") || "/ trang"}</option>
+              <option value="">
+                {isLoading ? (t("common.loadingSchedules", "Loading schedules...")) : (t("social.selectScheduleToTrack", "--- Select a schedule to track ---"))}
+              </option>
+              {schedules.map((schedule) => (
+                <option key={schedule.id} value={schedule.id}>
+                  ID: {schedule.id} • {schedule.tour?.name || (t("social.trackingUntitledTour", "Untitled Tour"))} ({new Date(schedule.departureDate).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')})
+                </option>
+              ))}
             </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <Navigation className="h-4 w-4 text-slate-400" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Table */}
-      {error ? (
-        <div className="p-10 text-center text-sm font-semibold text-rose-600">
-        </div>
-      ) : (
-        <Table
-          data={sortedSchedules}
-          columns={columns}
-          keyExtractor={(item) => item.id}
-          isLoading={isLoading}
-          emptyMessage={t("social.trackingNoSchedulesFound") || "Không tìm thấy chuyến đi nào."}
-          skeletonRows={pageSize}
-        />
-      )}
-
-      {/* Pagination */}
-      <PaginationButton
-        currentPage={response?.currentPage || page}
-        totalPages={response?.totalPages || 1}
-        totalItems={response?.total || 0}
-        pageSize={response?.pageSize || pageSize}
-        onPageChange={setPage}
-      />
+      {/* Map Container */}
+      <div className="flex-1 w-full bg-slate-100 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden">
+        {selectedScheduleId ? (
+           <ManagerScheduleMapFeed scheduleId={selectedScheduleId} />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-10 text-center px-4">
+             <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4 border-4 border-white shadow-lg">
+                <MapPin className="w-8 h-8 text-slate-400" />
+             </div>
+             <h3 className="text-xl font-bold text-slate-800 mb-2">
+                {t("social.noScheduleSelected", "No schedule selected")}
+             </h3>
+             <p className="text-slate-500 max-w-sm">
+                {t("social.noScheduleSelectedDesc", "Please select a schedule from the dropdown above to view the map and staff locations.")}
+             </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

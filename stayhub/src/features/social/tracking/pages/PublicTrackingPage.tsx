@@ -37,10 +37,11 @@ export const PublicTrackingPage: React.FC = () => {
       .build();
 
     let isCancelled = false;
+    const startPromise = connection.start();
 
-    connection.start().then(async () => {
+    startPromise.then(async () => {
       if (isCancelled) {
-        connection.stop();
+        connection.stop().catch(() => {});
         return;
       }
       await connection.invoke("JoinTrackingGroup", token);
@@ -57,7 +58,13 @@ export const PublicTrackingPage: React.FC = () => {
     return () => {
       isCancelled = true;
       connection.off("ReceivePublicLocation");
-      connection.stop().catch(() => {});
+      startPromise
+        .then(() => {
+          if (connection.state === signalR.HubConnectionState.Connected) {
+            connection.stop().catch(() => {});
+          }
+        })
+        .catch(() => {});
     };
   }, [token, isError, data]);
 

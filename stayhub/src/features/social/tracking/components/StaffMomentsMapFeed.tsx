@@ -3,19 +3,18 @@ import Map, { Marker, Source, Layer, type MapRef } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
 import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
-import type { Moment } from "../types/moment.type";
-import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments"; 
-import { useGetScheduleLiveLocations, useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
-import { MomentCard } from "./MomentCard"; 
+import type { Moment } from "../../moments/types/moment.type";
+import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../../moments/hooks/useMoments"; 
+import { useGetScheduleLiveLocations, useGetTourRouteData } from "../hooks/useScheduleTracking";
+import { MomentCard } from "../../moments/components/MomentCard"; 
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
-import { ShareLocationButton } from "../../tracking/components/ShareLocationButton";
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { getStoredLocale } from "../../../../i18n";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
-import { FogOfWarCanvas } from "./FogOfWarCanvas";
+import { FogOfWarCanvas } from "../../moments/components/FogOfWarCanvas";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -25,18 +24,20 @@ const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any
   return <img src={src} alt={alt} className={className} onError={() => setHasError(true)} loading="lazy" decoding="async" />;
 };
 
-interface MomentsMapFeedProps {
+interface StaffMomentsMapFeedProps {
   scheduleId: number;
   onMarkerClick: (momentId: number) => void;
   onReplayStateChange?: (isActive: boolean) => void;
   onPostMomentClick?: () => void;
+  hideAdvancedFeatures?: boolean;
 }
 
-export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
+export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
   scheduleId,
   onMarkerClick,
   onReplayStateChange,
   onPostMomentClick,
+  hideAdvancedFeatures = false,
 }) => {
   const { t } = useTranslation();
   const locale = getStoredLocale();
@@ -54,7 +55,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   // --- API FETCHING ---
   const { data: moments, isLoading: isMomentsLoading } = useGetMomentFeed(scheduleId);
-  const { data: footprints } = useGetMyFootprints(scheduleId);
+  // Temporarily disable footprints and heatmap on Staff side to prevent 403 errors
+  const footprints = useMemo<any[]>(() => [], []);
+  const heatmapData = useMemo<any[]>(() => [], []);
   const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleId);
   const { data: scheduleLocations } = useGetScheduleLiveLocations(scheduleId ?? 0);
 
@@ -71,8 +74,6 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const [dynamicFootprints, setDynamicFootprints] = useState<any[]>([]);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heatmapType, setHeatmapType] = useState<'online' | 'moments'>('online');
-  // Heatmap lay tu LocationLogs (giong mobile); chi fetch khi bat lop heatmap.
-  const { data: heatmapData } = useGetHeatmap(scheduleId, heatmapType, showHeatmap);
   const [isNightMode, setIsNightMode] = useState(false);
   const [dockState, setDockState] = useState<'collapsed' | 'expanded'>('expanded');
   
@@ -389,12 +390,12 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
       .build();
 
     let isCancelled = false;
+    const startPromise = connection.start();
 
-    connection
-      .start()
+    startPromise
       .then(async () => {
         if (isCancelled) {
-          connection.stop();
+          connection.stop().catch(() => {});
           return;
         }
         await connection.invoke("JoinTourTrackingGroup", scheduleId);
@@ -423,7 +424,13 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     return () => {
       isCancelled = true;
       connection.off("ReceiveTourLocationUpdate");
-      connection.stop().catch(() => {});
+      startPromise
+        .then(() => {
+          if (connection.state === signalR.HubConnectionState.Connected) {
+            connection.stop().catch(() => {});
+          }
+        })
+        .catch(() => {});
     };
   }, [scheduleId, showLiveLocations]);
 
@@ -1286,15 +1293,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         showTourRoute={showTourRoute}
       />
 
-      {/* Share Button */}
-      <div className="absolute top-[124px] md:top-4 left-4 z-20">
-        <ShareLocationButton 
-          onShareStart={() => {
-            setIsSharingLocation(true);
-            localStorage.setItem("share_my_location", "true");
-          }} 
-        />
-      </div>
+
 
       {uniqueDays.length > 0 && (
         <div 
@@ -1378,20 +1377,6 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                   </div>
                 </div>
 
-                {/* Vị trí bạn bè */}
-                <div onClick={() => setShowLiveLocations(!showLiveLocations)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl transition-colors ${showLiveLocations ? 'bg-green-100 text-green-600' : 'bg-slate-100 text-slate-500'}`}><Users className="w-5 h-5" /></div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold text-slate-800">{t("social.mapLayerFriendLocations")}</span>
-                      {showLiveLocations && lastPingTime && <span className="text-[10px] text-slate-500 font-medium leading-none mt-1">Live</span>}
-                    </div>
-                  </div>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showLiveLocations ? 'bg-brand' : 'bg-slate-300'}`}>
-                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showLiveLocations ? 'translate-x-5' : 'translate-x-[2px]'}`} />
-                  </div>
-                </div>
-
                 {/* Chia sẻ vị trí của tôi */}
                 <div onClick={async () => {
                   const newVal = !isSharingLocation;
@@ -1415,53 +1400,60 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                 </div>
 
                 {/* Dấu chân (Fog of War) */}
-                <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-xl transition-colors ${showFootprints ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}><Layers className="w-5 h-5" /></div>
-                    <span className="text-sm font-bold text-slate-800">{t("social.mapLayerFootprints")}</span>
+                {!hideAdvancedFeatures && (
+                  <div onClick={() => setShowFootprints(!showFootprints)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className={`p-2 rounded-xl transition-colors ${showFootprints ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'}`}><Layers className="w-5 h-5" /></div>
+                      <span className="text-sm font-bold text-slate-800">{t("social.mapLayerFootprints")}</span>
+                    </div>
+                    <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showFootprints ? 'bg-brand' : 'bg-slate-300'}`}>
+                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showFootprints ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+                    </div>
                   </div>
-                  <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showFootprints ? 'bg-brand' : 'bg-slate-300'}`}>
-                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showFootprints ? 'translate-x-5' : 'translate-x-[2px]'}`} />
-                  </div>
-                </div>
+                )}
 
                 {/* Heatmap (Social Energy) */}
-                <div>
-                  <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
-                      <span className="text-sm font-bold text-slate-800">Social Energy</span>
+                {!hideAdvancedFeatures && (
+                  <div>
+                    <div onClick={() => setShowHeatmap(!showHeatmap)} className="flex items-center justify-between px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl hover:bg-white/50 cursor-pointer transition-colors">
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className={`p-2 rounded-xl transition-colors ${showHeatmap ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-500'}`}><Flame className="w-5 h-5" /></div>
+                        <span className="text-sm font-bold text-slate-800">Social Energy</span>
+                      </div>
+                      <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showHeatmap ? 'bg-orange-500' : 'bg-slate-300'}`}>
+                        <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
+                      </div>
                     </div>
-                    <div className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-300 ${showHeatmap ? 'bg-orange-500' : 'bg-slate-300'}`}>
-                      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
-                    </div>
+                    
+                    {/* Heatmap Type Sub-options */}
+                    {showHeatmap && (
+                      <div className="pl-14 pr-4 pb-3 flex gap-2">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setHeatmapType('online'); }}
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                            heatmapType === 'online' 
+                              ? 'bg-orange-100 text-orange-600 border border-orange-200' 
+                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          }`}
+                        >
+                          <Users className="w-3.5 h-3.5" />
+                          Online
+                        </button>
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setHeatmapType('moments'); }}
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                            heatmapType === 'moments' 
+                              ? 'bg-rose-100 text-rose-600 border border-rose-200' 
+                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                          }`}
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                          Moments
+                        </button>
+                      </div>
+                    )}
                   </div>
-
-                  {showHeatmap && (
-                    <div className="mt-1.5 flex gap-1.5 px-4 pb-2">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setHeatmapType('online'); }}
-                        className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all border ${
-                          heatmapType === 'online'
-                            ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm'
-                            : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100/50'
-                        }`}
-                      >
-                        Online Users
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setHeatmapType('moments'); }}
-                        className={`flex-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all border ${
-                          heatmapType === 'moments'
-                            ? 'bg-orange-50 border-orange-200 text-orange-600 shadow-sm'
-                            : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100/50'
-                        }`}
-                      >
-                        Popular Moments
-                      </button>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             </div>
           )}
@@ -1483,29 +1475,31 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
         )}
 
         {/* Nút Timeline Replay */}
-        <button
-          onClick={(e) => { 
-            e.stopPropagation(); 
-            setIsLayerMenuOpen(false);
-            setIsReplayMode(!isReplayMode); 
-            if (isSpecificTour) setIsPlaying(!isReplayMode); 
-            setCurrentEventIndex(0); 
-            setDockState('expanded');
-          }}
-          className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none shadow-md ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
-          title="Timeline Replay"
-        >
-          <div className="relative">
-            {isReplayMode ? (
-              <Pause className="h-6 w-6" fill="currentColor" />
-            ) : (
-              <History className="h-6 w-6" />
-            )}
-            {isReplayMode && (
-              <div className="absolute inset-0 animate-ping rounded-full border-2 border-white opacity-50" />
-            )}
-          </div>
-        </button>
+        {!hideAdvancedFeatures && (
+          <button
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              setIsLayerMenuOpen(false);
+              setIsReplayMode(!isReplayMode); 
+              if (isSpecificTour) setIsPlaying(!isReplayMode); 
+              setCurrentEventIndex(0); 
+              setDockState('expanded');
+            }}
+            className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none shadow-md ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
+            title="Timeline Replay"
+          >
+            <div className="relative">
+              {isReplayMode ? (
+                <Pause className="h-6 w-6" fill="currentColor" />
+              ) : (
+                <History className="h-6 w-6" />
+              )}
+              {isReplayMode && (
+                <div className="absolute inset-0 animate-ping rounded-full border-2 border-white opacity-50" />
+              )}
+            </div>
+          </button>
+        )}
 
         {/* Nút Hướng dẫn */}
         <button

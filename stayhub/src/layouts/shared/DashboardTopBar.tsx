@@ -140,14 +140,16 @@ export function DashboardTopBar({
 
       <div className="flex items-center gap-1.5 sm:gap-2">
 
-        <ActionButton
-          variant="secondary"
-          onClick={() => navigate(PATH.PUBLIC.HOME)}
-          className="hidden h-9 gap-1.5 px-3 md:inline-flex"
-        >
-          <Home className="h-4 w-4" />
-          <span className="text-xs font-semibold">{t("dashboard.home")}</span>
-        </ActionButton>
+        {role !== "staff" && (
+          <ActionButton
+            variant="secondary"
+            onClick={() => navigate(PATH.PUBLIC.HOME)}
+            className="hidden h-9 gap-1.5 px-3 md:inline-flex"
+          >
+            <Home className="h-4 w-4" />
+            <span className="text-xs font-semibold">{t("dashboard.home")}</span>
+          </ActionButton>
+        )}
 
 
         <LanguageCurrencySelector className="hidden md:block" />

@@ -90,6 +90,7 @@
     "forgotSubtitleLong": "Nhập địa chỉ email và chúng tôi sẽ gửi mã để đặt lại mật khẩu.",
     "backToLogin": "Quay lại đăng nhập",
     "backToHome": "Quay lại trang chủ",
+    "backToDashboard": "Quay lại Bảng điều khiển",
     "resetHeroTitle": "Sắp xong rồi.",
     "resetHeroDesc": "Xác minh danh tính và đặt mật khẩu mới để lấy lại quyền truy cập tài khoản.",
     "resetSubtitleLong": "Nhập mã xác minh đã gửi qua email và chọn mật khẩu mới.",
@@ -319,7 +320,8 @@
     "hotSearchLabel": "HOT:"
   },
   "social": {
-    "memberAdded": "Thành viên mới được thêm vào nhóm:"
+    "memberAdded": "Thành viên mới được thêm vào nhóm:",
+    "personalMoment": "Cá nhân (Ngoài Tour)"
   },
   "voucher": {
     "saveSuccess": "Voucher {{code}} đã được lưu vào ví.",
@@ -357,7 +359,9 @@
     "statusInactive": "Ngưng hoạt động",
     "statusPending": "Chờ duyệt",
     "statusRejected": "Bị từ chối",
-    "unknownStatus": "Không xác định"
+    "unknownStatus": "Không xác định",
+    "tourRoute": "Lộ trình tour",
+    "customerLocations": "Vị trí khách hàng"
   },
   "ai": {
     "messageTooShort": "Tin nhắn phải có ít nhất 2 ký tự.",

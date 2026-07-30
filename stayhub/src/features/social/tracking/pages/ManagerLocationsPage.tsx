@@ -103,7 +103,7 @@ export const ManagerLocationsPage: React.FC = () => {
               </option>
               {schedules.map((schedule) => (
                 <option key={schedule.id} value={schedule.id}>
-                  ID: {schedule.id} • {schedule.tour?.name || (t("social.trackingUntitledTour", "Untitled Tour"))} ({new Date(schedule.departureDate).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')})
+                  {schedule.tour?.name || (t("social.trackingUntitledTour", "Untitled Tour"))} ({new Date(schedule.departureDate).toLocaleDateString(locale === 'vi' ? 'vi-VN' : 'en-US')})
                 </option>
               ))}
             </select>

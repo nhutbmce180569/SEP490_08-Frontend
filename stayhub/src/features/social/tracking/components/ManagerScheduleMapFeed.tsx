@@ -128,35 +128,6 @@ export const ManagerScheduleMapFeed: React.FC<ManagerScheduleMapFeedProps> = ({ 
   // Sync scheduleLocations data from API polling
   useEffect(() => {
     setScheduleMemberLocations([]);
-
-    // --- MOCK DATA CHO MỤC ĐÍCH TEST ---
-    if (scheduleId) {
-      const timer = setTimeout(() => {
-        setScheduleMemberLocations((prev) => {
-           if (prev.length > 0) return prev; 
-           return [
-             {
-               userId: "mock-staff-1",
-               fullName: "Nguyễn Văn Test (Staff)",
-               avatarUrl: "https://i.pravatar.cc/150?u=staff1",
-               role: "Staff",
-               lat: 10.0287, 
-               lng: 105.7706 
-             },
-             {
-               userId: "mock-staff-2",
-               fullName: "Trần Thị Demo (Staff)",
-               avatarUrl: "https://i.pravatar.cc/150?u=staff2",
-               role: "Staff",
-               lat: 10.0355, 
-               lng: 105.7820 
-             }
-           ];
-        });
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-    // -----------------------------------
   }, [scheduleId]);
 
   useEffect(() => {

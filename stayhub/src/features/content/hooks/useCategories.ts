@@ -1,0 +1,39 @@
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { getAllCategories } from "../services/category.service";
+import { PATH } from "../../../config/routes/route";
+import type { ReadCategoryDTO, PaginationDTO } from "../types/category";
+import { useTranslation } from "../../../contexts/LocaleContext";
+
+export const useCategories = (initialPageSize: number = 5, keyword?: string) => {
+  const { t } = useTranslation();
+  const [data, setData] = useState<PaginationDTO<ReadCategoryDTO> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+
+  const navigate = useNavigate();
+
+  const fetchCategories = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await getAllCategories(page, pageSize, keyword);
+      setData(res);
+    } catch (err: any) {
+      setError(err.response?.data?.message || t("content.loadCategoryFailed", "Failed to load categories."));
+    } finally {
+      setIsLoading(false);
+    }
+  }, [page, pageSize, keyword]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  const handleCreate = () => navigate(PATH.ADMIN.CATEGORY_MANAGEMENT + "/create");
+  const handleEdit = (id: number | string) => navigate(`${PATH.ADMIN.CATEGORY_MANAGEMENT}/${id}/edit`);
+
+  return { data, isLoading, error, page, pageSize, setPage, setPageSize, handleCreate, handleEdit, refetch: fetchCategories };
+};

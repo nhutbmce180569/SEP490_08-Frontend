@@ -1,0 +1,46 @@
+export interface ReadUserDTO {
+  id: number;
+  email: string;
+  fullName: string;
+  avatarUrl?: string | null;
+  provider?: string | null;
+  phoneNumber?: string | null;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  status?: string | null;
+  lastOnline?: string | null;
+  roles: string[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  requirePasswordChange: boolean;
+}
+
+export interface CreateUserDTO {
+  email: string;
+  fullName: string;
+  avatarFile?: File | null;
+  phoneNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  roleIds?: number[];
+  sendCredentialsEmail?: boolean;
+}
+
+export interface AdminCreatedUserDTO {
+  user: ReadUserDTO;
+  temporaryPassword: string;
+  credentialsEmailSent: boolean | null;
+}
+
+export interface UpdateUserDTO {
+  fullName: string;
+  avatarFile?: File | null;
+  phoneNumber?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  roleIds?: number[];
+}
+
+export interface ChangeUserStatusDTO {
+  status: string;
+}

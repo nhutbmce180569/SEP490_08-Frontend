@@ -1,0 +1,122 @@
+import { useState, useContext, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { updateTour } from "../services/tour.service";
+import { useToast } from "../../../contexts/ToastContext";
+import { PATH } from "../../../config/routes/route";
+import { useTour } from "./useTour";
+import type { UpdateTourRequest } from "../types/tour";
+import { AuthContext } from "../../../contexts/AuthContext";
+import { categoryService } from "../../content/services/category.service";
+
+const buildUpdateTourFormData = (data: Record<string, any>): FormData => {
+  const formData = new FormData();
+
+  formData.append("name", data.name);
+  formData.append("operatorId", String(data.operatorId));
+  formData.append("categoryId", String(data.categoryId));
+  if (data.description) {
+    formData.append("description", data.description);
+  }
+  if (data.status) {
+    formData.append("status", data.status);
+  }
+  if (data.image instanceof File) {
+    formData.append("image", data.image);
+  } else if (data.image === null) {
+    // Nếu image là null (do người dùng bấm Remove), báo cho Backend xóa ảnh cũ
+    formData.append("RemoveImage", "true");
+  }
+  if (data.country) formData.append("country", data.country);
+  if (data.city) formData.append("city", data.city);
+  if (data.address) formData.append("address", data.address);
+  formData.append("transportationType", data.transportationType);
+  
+  if (data.tourImages && data.tourImages.length > 0) {
+    data.tourImages.forEach((file: File) => {
+      formData.append("tourImages", file);
+    });
+  }
+
+  if (data.removedTourImageIds && data.removedTourImageIds.length > 0) {
+    data.removedTourImageIds.forEach((id: number) => {
+      formData.append("removedTourImageIds", String(id));
+    });
+  }
+  return formData;
+};
+
+export const useUpdateTour = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { success, error: showError } = useToast();
+  const { user } = useContext(AuthContext);
+
+  const { tour, isLoading: isFetching, error: fetchError } = useTour(id);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [serverErrors, setServerErrors] = useState<Record<string, any>>({});
+  const [categoryOptions, setCategoryOptions] = useState<{ label: string, value: number }[]>([]);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+  const loadCategories = async () => {
+    try {
+      const res = await categoryService.getActiveCategories(1, 9999);
+      const opts = (res.data || []).map((c: any) => ({
+        label: c.name,
+        value: c.id
+      }));
+      setCategoryOptions(opts);
+    } catch (error) {
+      console.error("Failed to load categories", error);
+    }
+  };
+  const handleSubmit = async (data: Record<string, any>) => {
+    if (!id) return;
+    setServerErrors({});
+    try {
+      setIsSubmitting(true);
+
+      const requestData: UpdateTourRequest = {
+        name: data.name,
+        operatorId: Number(user?.id) || 1, // Fallback if no user
+        categoryId: Number(data.categoryId),
+        status: data.status,
+        description: data.description,
+        image: data.image,
+        country: data.country,
+        city: data.city,
+        address: data.address,
+        transportationType: data.transportationType,
+        tourImages: data.tourImages,
+        removedTourImageIds: data.removedTourImageIds,
+      };
+
+      const payload = buildUpdateTourFormData(requestData);
+      await updateTour(id, payload);
+      success("Tour updated successfully!");
+      navigate(PATH.MANAGER.MY_TOURS);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || err.message || "";
+      if (err.response?.status === 400 && err.response.data?.errors) {
+        setServerErrors(err.response.data.errors);
+        showError("Please check again the errors in the form.");
+      } else if (errorMessage.includes("Tour name already exists.")) {
+        setServerErrors({ name: ["Tour name already exists."] });
+        showError("Please check again the errors in the form.");
+      } else if (errorMessage.includes("Special characters are not allowed")) {
+        setServerErrors({ name: ["Special characters are not allowed in the tour name."] });
+        showError("Please check again the errors in the form.");
+      } else {
+        showError(errorMessage || "Failed to update tour.");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => navigate(PATH.MANAGER.MY_TOURS);
+
+  return { id, tour, isFetching, fetchError, isSubmitting, serverErrors, handleSubmit, handleCancel, categoryOptions };
+};

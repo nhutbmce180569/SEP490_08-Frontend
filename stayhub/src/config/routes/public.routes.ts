@@ -1,0 +1,26 @@
+export const PUBLIC_ROUTES = {
+  HOME: '/',
+  LOGIN: '/login',
+  REGISTER: '/register',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
+  CHANGE_PASSWORD: '/change-password',
+  TOURS: '/tours',
+  HOT_TOURS: '/tours/hot',
+  SALE_TOURS: '/tours/sale',
+  UPCOMING_TOURS: '/tours/upcoming',
+  REGION_TOURS: '/tours/region',
+  TOUR_SEARCH: '/search',
+  UNAUTHORIZED: '/unauthorized',
+  TERMS: '/terms',
+  PRIVACY: '/privacy',
+  BOOKING_TERMS: '/booking-terms',
+  ABOUT: '/about',
+  NHUT_PORTFOLIO: '/portfolio/bui-minh-nhut',
+  INFO: (slug: string = ':slug') => `/info/${slug}`,
+  // AI Tour Assistant (public — no login required)
+  AI_ASSISTANT: '/ai-assistant',
+  AI_RECOMMENDATIONS: '/ai/recommendations',
+  // Dynamic Route
+  TOUR_DETAIL: (id: string | number = ':id') => `/tours/${id}`,
+} as const;

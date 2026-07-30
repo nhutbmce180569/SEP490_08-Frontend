@@ -6,6 +6,7 @@ import { PATH } from "../../../config/routes/route";
 import { AuthContext } from "../../../contexts/AuthContext";
 import { useToast } from "../../../contexts/ToastContext";
 import { decodeJWT, normalizeRoles, getDashboardPath } from "../../../utils/jwt";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 
 export const useLogin = () => {
@@ -15,6 +16,7 @@ export const useLogin = () => {
   // Đổi tên hàm login lấy từ Context thành contextLogin để tránh trùng với tên service
   const { login: contextLogin } = useContext(AuthContext);
   const { success, error: showError } = useToast();
+  const { t } = useTranslation();
 
   const handleLoginSubmit = async (payload: LoginDTO) => {
     setIsSubmitting(true);
@@ -78,7 +80,12 @@ export const useLogin = () => {
 
     } catch (err: any) {
       console.error("Error processing Login:", err);
-      const errorMessage = err.response?.data?.message || err.response?.data?.title || err.message || "Login failed. Please check your credentials.";
+      let errorMessage = err.response?.data?.message || err.response?.data?.title || err.message || "Login failed. Please check your credentials.";
+      
+      if (errorMessage === "InvalidProvider") {
+        errorMessage = t("auth.InvalidProvider");
+      }
+
       setServerError(errorMessage);
       showError(errorMessage);
     } finally {

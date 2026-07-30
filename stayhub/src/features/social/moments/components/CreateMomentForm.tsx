@@ -1,6 +1,6 @@
 import React, { useState, useContext, useRef, useCallback, useEffect } from "react";
 import Webcam from "react-webcam";
-import { Loader2, X, RefreshCw, MapPin, Globe, Users, Lock, ChevronDown, CameraOff } from "lucide-react";
+import { Loader2, X, RefreshCw, MapPin, ChevronDown, CameraOff, Globe, Users, Lock } from "lucide-react";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { useCreateMoment } from "../hooks/useMoments";
@@ -48,10 +48,12 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
     }
   }, [eligibleSchedules, scheduleId]);
 
-  // Reset privacy if personal moment is chosen
+  // Automatically adjust default privacy when switching between All trips and a specific Tour
   useEffect(() => {
     if (selectedScheduleId === "0" && privacy === "Tour") {
       setPrivacy("Public");
+    } else if (selectedScheduleId !== "0" && privacy === "Public") {
+      setPrivacy("Tour");
     }
   }, [selectedScheduleId, privacy]);
 
@@ -171,39 +173,46 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
         </button>
       )}
 
-      {/* DROPDOWN CHỌN CHUYẾN ĐI (Floating trên góc trái) */}
-      <div className="absolute top-4 left-4 z-50 flex items-center bg-black/50 backdrop-blur-md pl-2 pr-1 py-1 rounded-full text-xs font-medium border border-white/10">
-        <MapPin className="w-3.5 h-3.5 text-brand mr-2" />
-        <select 
-          value={selectedScheduleId}
-          onChange={(e) => setSelectedScheduleId(e.target.value)}
-          className="bg-transparent text-white focus:outline-none appearance-none font-semibold truncate max-w-[120px]"
-        >
-          {isSchedulesLoading ? (
-            <option className="bg-slate-800" disabled>{t("social.momentLoadingSchedules")}</option>
-          ) : (
-            <>
-              <option value="0" className="bg-slate-800">
-                🌍 {t("social.personalMoment") || "Cá nhân (Ngoài Tour)"}
-              </option>
-              {ongoingSchedules?.map((trip: any) => (
-                <option key={trip.scheduleId} value={trip.scheduleId} className="bg-slate-800">
-                  {trip.tourName}
-                </option>
-              ))}
-            </>
+      {/* DROPDOWN CHỌN CHUYẾN ĐI & RADAR GPS (Chỉ xuất hiện sau khi chụp ảnh theo yêu cầu UX) */}
+      {imageSrc && (
+        <>
+          {(privacy === 'Public' || privacy === 'Tour') && (
+            <div className="absolute top-4 left-4 z-50 flex items-center bg-black/50 backdrop-blur-md pl-2 pr-1 py-1 rounded-full text-xs font-medium border border-white/10 shadow-lg animate-in fade-in duration-200">
+              <MapPin className="w-3.5 h-3.5 text-brand mr-2" />
+              <select 
+                value={selectedScheduleId}
+                onChange={(e) => setSelectedScheduleId(e.target.value)}
+                className="bg-transparent text-white focus:outline-none appearance-none font-semibold truncate max-w-[140px] cursor-pointer"
+              >
+                {isSchedulesLoading ? (
+                  <option className="bg-slate-800" disabled>{t("social.momentLoadingSchedules")}</option>
+                ) : (
+                  <>
+                    <option value="0" className="bg-slate-800">
+                      🌍 {t("app.allTripsGlobal", "All trips (Global)")}
+                    </option>
+                    {ongoingSchedules?.map((trip: any) => (
+                      <option key={trip.scheduleId} value={trip.scheduleId} className="bg-slate-800">
+                        {trip.tourName}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+              <ChevronDown className="w-3 h-3 text-white/50 pointer-events-none ml-1" />
+            </div>
           )}
-        </select>
-        <ChevronDown className="w-3 h-3 text-white/50 pointer-events-none" />
-      </div>
 
-      {/* RADAR GPS (Dịch xuống dưới Dropdown) */}
-      <div className="absolute top-14 left-4 z-50 flex items-center gap-2 bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-medium border border-white/5">
-        <div className={`w-2 h-2 rounded-full ${geoStatus === 'locating' ? 'animate-ping bg-yellow-400' : geoStatus === 'success' ? 'bg-green-400' : 'bg-red-400'}`} />
-        {geoStatus === 'locating' && <span className="text-yellow-400">{t("social.momentLocatingGps")}</span>}
-        {geoStatus === 'success' && <span className="text-green-400">{t("social.momentGpsPinned")}</span>}
-        {geoStatus === 'error' && <span className="text-red-400">{t("social.momentGpsError")}</span>}
-      </div>
+          <div className={`absolute left-4 z-50 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-medium border border-white/10 shadow-md transition-all duration-300 ${
+            (privacy === 'Public' || privacy === 'Tour') ? 'top-14' : 'top-4'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${geoStatus === 'locating' ? 'animate-ping bg-yellow-400' : geoStatus === 'success' ? 'bg-green-400' : 'bg-red-400'}`} />
+            {geoStatus === 'locating' && <span className="text-yellow-400">{t("social.momentLocatingGps", "Locating...")}</span>}
+            {geoStatus === 'success' && <span className="text-green-400">{t("social.momentGpsPinned", "Location pinned")}</span>}
+            {geoStatus === 'error' && <span className="text-red-400">{t("social.momentGpsError", "Location failed")}</span>}
+          </div>
+        </>
+      )}
 
       {isPending && (
         <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/80 backdrop-blur-md">
@@ -223,7 +232,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
             onUserMediaError={(err) => {
               console.error("Camera access error:", err);
               setHasCameraError(true);
-              showError(t("social.cameraAccessError") || "Không thể truy cập camera. Vui lòng cấp quyền camera trong cài đặt trình duyệt để tiếp tục.");
+              showError(t("social.cameraAccessError", "Cannot access camera. Please allow camera permissions in browser settings to continue."));
             }}
             className="w-full h-full object-cover"
           />
@@ -234,10 +243,10 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 <CameraOff className="w-8 h-8" />
               </div>
               <h3 className="text-base font-bold text-slate-100 mb-2">
-                {t("social.cameraErrorTitle") || "Yêu cầu quyền truy cập Camera"}
+                {t("social.cameraErrorTitle", "Camera Access Required")}
               </h3>
               <p className="text-xs text-slate-400 max-w-[260px] leading-relaxed mb-6">
-                {t("social.cameraErrorDesc") || "Ứng dụng cần truy cập camera của bạn để chụp ảnh Moment. Vui lòng cấp quyền camera trong cài đặt trình duyệt của bạn."}
+                {t("social.cameraErrorDesc", "We need access to your camera to take Moment photos. Please enable camera access in your browser settings.")}
               </p>
               <button
                 onClick={() => {
@@ -245,7 +254,7 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
                 }}
                 className="px-4 py-2 bg-white/10 hover:bg-white/20 text-xs font-bold rounded-xl transition-colors active:scale-95 cursor-pointer"
               >
-                {t("social.cameraRetry") || "Thử lại"}
+                {t("social.cameraRetry", "Retry")}
               </button>
             </div>
           ) : (
@@ -267,18 +276,18 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
         <div className="relative flex-1 flex flex-col bg-black">
           <img src={imageSrc} alt="Preview" className="w-full h-full object-cover opacity-90" />
           
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col gap-4">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent flex flex-col gap-3">
             <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
               {[
-                { id: 'Public', icon: Globe, label: t('social.public') },
-                { id: 'Tour', icon: MapPin, label: 'Thành viên Tour' },
-                { id: 'Friend', icon: Users, label: t('social.momentPrivacyFriends') },
-                { id: 'Private', icon: Lock, label: t('social.momentPrivacyOnlyMe') }
-              ].filter(opt => opt.id !== 'Tour' || selectedScheduleId !== "0").map(opt => (
+                { id: 'Public', icon: Globe, label: t('social.public', 'Public'), hidden: selectedScheduleId !== "0" },
+                { id: 'Tour', icon: MapPin, label: t('social.tourMembers', 'Tour Members'), hidden: selectedScheduleId === "0" },
+                { id: 'Friend', icon: Users, label: t('social.momentPrivacyFriends', 'Friends'), hidden: false },
+                { id: 'Private', icon: Lock, label: t('social.momentPrivacyPrivate', 'Private'), hidden: false }
+              ].filter(opt => !opt.hidden).map(opt => (
                 <button
                   key={opt.id}
                   onClick={() => setPrivacy(opt.id as any)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap ${privacy === opt.id ? 'bg-brand text-white shadow-md' : 'bg-black/40 text-white/70 hover:bg-black/60 border border-white/10'}`}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${privacy === opt.id ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102' : 'bg-black/40 text-white/70 hover:bg-black/60 border border-white/10'}`}
                 >
                   <opt.icon className="w-3.5 h-3.5" />
                   {opt.label}
@@ -286,16 +295,6 @@ export const CreateMomentForm: React.FC<CreateMomentFormProps> = ({
               ))}
             </div>
 
-            {privacy === 'Public' && (
-              <p className="text-[11px] text-white/60 px-1 leading-normal">
-                💡 {t('social.momentPrivacyPublicDesc') || "Decides who can view the Moment on the Feed."}
-              </p>
-            )}
-            {privacy === 'Tour' && (
-              <p className="text-[11px] text-white/60 px-1 leading-normal">
-                💡 {t('social.momentPrivacyTourDesc') || "Used to link the Moment with the trip and display it on the trip map."}
-              </p>
-            )}
             <div className="relative">
               <input
                 type="text"

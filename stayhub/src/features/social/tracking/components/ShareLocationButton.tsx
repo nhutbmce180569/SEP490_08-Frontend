@@ -113,8 +113,8 @@ export const ShareLocationButton: React.FC<ShareLocationButtonProps> = ({ onShar
       {showChatSelect && locationToken && (
         <ShareTargetModal
           onClose={() => setShowChatSelect(false)}
-          shareContent={`📍 Vị trí hiện tại của tôi: [LocationShare:${JSON.stringify({ token: locationToken })}]`}
-          successMessage="Đã chia sẻ vị trí của bạn qua tin nhắn!"
+          shareContent={`📍 ${t("social.myCurrentLocation", "My current location")}: [LocationShare:${JSON.stringify({ token: locationToken })}]`}
+          successMessage={t("social.shareLocationSuccess", "Location shared via message successfully!")}
         />
       )}
     </div>

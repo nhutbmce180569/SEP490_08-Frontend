@@ -193,7 +193,8 @@
     "absoluteSecurity": "Absolute Security",
     "satisfiedCustomers": "100k+ Satisfied Customers",
     "cannotEditAdmin": "Cannot modify other Admins",
-    "cannotEditCustomer": "Cannot edit Customer accounts"
+    "cannotEditCustomer": "Cannot edit Customer accounts",
+    "InvalidProvider": "This email is registered with a different login method. Please select the correct login method."
   },
   "nav": {
     "profile": "Profile",

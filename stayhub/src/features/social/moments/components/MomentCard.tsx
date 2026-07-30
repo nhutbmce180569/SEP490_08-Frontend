@@ -278,31 +278,48 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
       {isReportModalOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 text-left">
           <div className="bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-xl relative animate-in fade-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Report Moment</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Select a reason for reporting this moment for community standards violations.</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{t("social.reportMoment", "Report Moment")}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">{t("social.reportMomentDesc", "Select a reason for reporting this moment for community standards violations.")}</p>
             
+            {/* Moment Content & Author Preview */}
+            <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl p-3 mb-4 flex items-center gap-3 shadow-inner">
+              {moment.imageUrl && (
+                <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-700 border border-slate-300 dark:border-slate-600">
+                  <img src={moment.imageUrl} alt="Thumbnail" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate flex items-center gap-1.5">
+                  <span>👤</span> {userFullName}
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-2 italic">
+                  "{moment.caption || t("social.noCaption", "No caption provided")}"
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Reason</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">{t("social.reportReason", "Reason")}</label>
                 <select 
                   value={reportReason} 
                   onChange={(e) => setReportReason(e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:border-brand"
                 >
-                  <option value="Spam" className="dark:bg-slate-800">Spam (Garbage / Ads)</option>
-                  <option value="Hate Speech" className="dark:bg-slate-800">Hate Speech</option>
-                  <option value="Harassment" className="dark:bg-slate-800">Harassment / Threat</option>
-                  <option value="Violence" className="dark:bg-slate-800">Violence / Gore</option>
-                  <option value="Other" className="dark:bg-slate-800">Other Reason</option>
+                  <option value="Spam" className="dark:bg-slate-800">{t("social.reportSpam", "Spam (Garbage / Ads)")}</option>
+                  <option value="Hate Speech" className="dark:bg-slate-800">{t("social.reportHateSpeech", "Hate Speech")}</option>
+                  <option value="Harassment" className="dark:bg-slate-800">{t("social.reportHarassment", "Harassment / Threat")}</option>
+                  <option value="Violence" className="dark:bg-slate-800">{t("social.reportViolence", "Violence / Gore")}</option>
+                  <option value="Other" className="dark:bg-slate-800">{t("social.reportOther", "Other Reason")}</option>
                 </select>
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Details (Optional)</label>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">{t("social.reportDetails", "Details (Optional)")}</label>
                 <textarea
                   value={reportDetails}
                   onChange={(e) => setReportDetails(e.target.value)}
-                  placeholder="Enter more details about the violation..."
+                  placeholder={t("social.reportDetailsPlaceholder", "Enter more details about the violation...")}
                   className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-2 text-sm text-slate-800 dark:text-slate-100 h-20 focus:outline-none focus:border-brand resize-none"
                 />
               </div>
@@ -312,22 +329,22 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
               <button
                 onClick={() => setIsReportModalOpen(false)}
                 disabled={isSubmittingReport}
-                className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50"
+                className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold py-2 px-4 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
               >
-                Cancel
+                {t("social.reportCancel", "Cancel")}
               </button>
               <button
                 onClick={handleSendReport}
                 disabled={isSubmittingReport}
-                className="flex-1 bg-brand hover:bg-brand-hover text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 bg-brand hover:bg-brand-hover text-white text-sm font-semibold py-2 px-4 rounded-xl transition-all shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmittingReport ? (
                   <>
                     <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Sending...
+                    {t("social.reportSending", "Sending...")}
                   </>
                 ) : (
-                  "Submit Report"
+                  t("social.reportSubmit", "Submit Report")
                 )}
               </button>
             </div>
@@ -349,8 +366,8 @@ const MomentCardBase: React.FC<MomentCardProps> = ({ moment }) => {
         open={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
         onConfirm={executeDeleteMoment}
-        title="Xóa khoảnh khắc"
-        message="Bạn có chắc chắn muốn xóa khoảnh khắc này không? Thao tác này không thể hoàn tác."
+        title={t("social.momentDeleteTitle")}
+        message={t("social.momentConfirmDelete")}
         variant="warning"
       />
     </>

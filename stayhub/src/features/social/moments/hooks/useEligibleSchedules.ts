@@ -16,9 +16,9 @@ const fetchEligibleSchedules = async (role: string, token: string | null): Promi
 
   let url = `${FULL_API}/orders/me/eligible-schedules`;
   if (role === "Manager") {
-    url = `${FULL_API}/TourSchedules/my?page=1&pageSize=100`;
+    url = `${FULL_API}/TourSchedules/my?page=1&pageSize=1000`;
   } else if (role === "Staff") {
-    url = `${FULL_API}/TourScheduleStaffs/assigned?page=1&pageSize=100`;
+    url = `${FULL_API}/TourScheduleStaffs/assigned?page=1&pageSize=1000`;
   }
 
   const response = await axios.get(url, {
@@ -55,7 +55,7 @@ const fetchEligibleSchedules = async (role: string, token: string | null): Promi
       returnDate: item.returnDate || item.ReturnDate || new Date().toISOString(),
       statusContext: item.statusContext || item.StatusContext || "",
     };
-  });
+  }).sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
 };
 
 export const useGetEligibleSchedules = () => {

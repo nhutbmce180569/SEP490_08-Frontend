@@ -36,19 +36,21 @@ export const FriendsManagement: React.FC = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as any;
-  const initialTab = ['friends', 'pending', 'sent', 'add', 'suggestions'].includes(tabParam)
+  const initialTab = ['friends', 'pending', 'sent', 'add'].includes(tabParam)
     ? tabParam
-    : 'friends';
+    : (tabParam === 'suggestions' ? 'add' : 'friends');
 
-  const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'sent' | 'add' | 'suggestions'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'friends' | 'pending' | 'sent' | 'add'>(initialTab);
 
   useEffect(() => {
-    if (tabParam && ['friends', 'pending', 'sent', 'add', 'suggestions'].includes(tabParam)) {
+    if (tabParam === 'suggestions') {
+      setActiveTab('add');
+    } else if (tabParam && ['friends', 'pending', 'sent', 'add'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
 
-  const handleTabChange = (tab: 'friends' | 'pending' | 'sent' | 'add' | 'suggestions') => {
+  const handleTabChange = (tab: 'friends' | 'pending' | 'sent' | 'add') => {
     setActiveTab(tab);
     setSearchParams({ tab });
   };
@@ -303,14 +305,14 @@ export const FriendsManagement: React.FC = () => {
           <button
             onClick={() => handleTabChange('add')}
             className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer ${
-              activeTab === 'add' || activeTab === 'suggestions'
+              activeTab === 'add'
                 ? 'bg-brand/10 text-brand'
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
             }`}
           >
             <div className="flex items-center gap-3">
               <UserPlus className="w-5 h-5" />
-              <span>{t('social.findFriends') || 'Find & Suggestions'}</span>
+              <span>{t('social.findFriends') || 'Find Friends'}</span>
             </div>
             {filteredSuggestions.length > 0 && (
               <span className="text-xs bg-brand/20 px-2 py-0.5 rounded-full text-brand font-bold">
@@ -613,8 +615,8 @@ export const FriendsManagement: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 4 & 5: TÌM BẠN BÈ & GỢI Ý KẾT BẠN (COMBINED SEARCH + SUGGESTIONS) */}
-        {(activeTab === 'add' || activeTab === 'suggestions') && (
+        {/* TAB 4: TÌM BẠN BÈ & GỢI Ý KẾT BẠN (COMBINED SEARCH + SUGGESTIONS) */}
+        {activeTab === 'add' && (
           <div className="flex flex-col gap-8">
             {/* Search Box Header */}
             <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col gap-4">

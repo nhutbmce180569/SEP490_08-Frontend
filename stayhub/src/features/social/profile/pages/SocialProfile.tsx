@@ -5,7 +5,7 @@ import { useGetUserProfile, useGetUserMoments } from '../hooks/useProfile';
 import { useTranslation } from "../../../../contexts/LocaleContext";
 import { DynamicText } from "../../../../components/DynamicText";
 import { AuthContext } from '../../../../contexts/AuthContext';
-import { useGetFriendshipStatus, useSendFriendRequest, useRespondToRequest, useDeleteFriendship, useGetFriendships, useGetPendingRequests, useGetSentRequests } from '../../friends/hooks/useFriends';
+import { useGetFriendshipStatus, useSendFriendRequest, useRespondToRequest, useDeleteFriendship, useGetFriendships, useGetPendingRequests, useGetSentRequests, useGetSuggestions } from '../../friends/hooks/useFriends';
 import { useCreateChatRoom } from '../../chat/hooks/useChatSignalR';
 import { useToast } from '../../../../contexts/ToastContext';
 import { PATH } from '../../../../config/routes/route';
@@ -45,6 +45,7 @@ export const SocialProfile: React.FC = () => {
   const { data: allFriendships = [] } = useGetFriendships();
   const { data: pendingRequests = [] } = useGetPendingRequests();
   const { data: sentRequests = [] } = useGetSentRequests();
+  const { data: suggestions = [] } = useGetSuggestions();
 
   const queryClient = useQueryClient();
 
@@ -444,19 +445,14 @@ export const SocialProfile: React.FC = () => {
             className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
           >
             <div className="flex items-center gap-3">
-              <Search className="w-5 h-5" />
+              <UserPlus className="w-5 h-5" />
               <span>{t('social.findFriends') || 'Find Friends'}</span>
             </div>
-          </button>
-
-          <button
-            onClick={() => navigate(`${PATH.CUSTOMER.SOCIAL_FRIENDS}?tab=suggestions`)}
-            className="flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all cursor-pointer text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <div className="flex items-center gap-3">
-              <UserPlus className="w-5 h-5" />
-              <span>{t('social.friendSuggestions') || 'Friend Suggestions'}</span>
-            </div>
+            {suggestions.length > 0 && (
+              <span className="text-xs bg-brand/20 px-2 py-0.5 rounded-full text-brand font-bold">
+                {suggestions.length}
+              </span>
+            )}
           </button>
         </div>
       </div>

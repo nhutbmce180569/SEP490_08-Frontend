@@ -193,7 +193,8 @@
     "absoluteSecurity": "Bảo Mật Tuyệt Đối",
     "satisfiedCustomers": "100k+ Khách Hài Lòng",
     "cannotEditAdmin": "Không thể thao tác trên Quản trị viên khác",
-    "cannotEditCustomer": "Không thể chỉnh sửa tài khoản Khách hàng"
+    "cannotEditCustomer": "Không thể chỉnh sửa tài khoản Khách hàng",
+    "InvalidProvider": "Email này đã được đăng ký bằng phương thức khác. Vui lòng chọn đúng phương thức đăng nhập."
   },
   "nav": {
     "profile": "Hồ sơ",

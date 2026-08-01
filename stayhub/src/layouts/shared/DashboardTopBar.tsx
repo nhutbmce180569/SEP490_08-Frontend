@@ -18,6 +18,7 @@ import { PATH } from "../../config/routes/route";
 import { AuthContext } from "../../contexts/AuthContext";
 import { useTranslation } from "../../contexts/LocaleContext";
 import NotificationBell from "../../features/system/components/NotificationBell";
+import { ThemeToggle } from "../../components/ui/ThemeToggle";
 
 export type DashboardRole = "partner" | "admin" | "staff";
 
@@ -201,6 +202,12 @@ export function DashboardTopBar({
                 {t("header.changePassword")}
               </button>
               
+              <div className="border-t border-slate-100/80 px-2 py-2 mt-1">
+                <p className="mb-1 text-[10px] font-bold text-slate-400">
+                  {t("common.theme")}
+                </p>
+                <ThemeToggle variant="menu" className="w-full" />
+              </div>
 
               <button
                 type="button"

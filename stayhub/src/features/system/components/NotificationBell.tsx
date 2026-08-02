@@ -186,7 +186,7 @@ export default function NotificationBell() {
                             <DynamicText text={noti.title} />
                           </h4>
                         </div>
-                        <p className={`line-clamp-2 text-[13px] leading-relaxed ${!noti.isRead ? "font-medium text-slate-700" : "text-slate-500"}`}>
+                        <p className={`text-[13px] leading-relaxed ${!noti.isRead ? "font-medium text-slate-700" : "text-slate-500"}`}>
                           <DynamicText text={noti.content} />
                         </p>
                         <span className="mt-1.5 block text-[11px] font-medium text-slate-400">

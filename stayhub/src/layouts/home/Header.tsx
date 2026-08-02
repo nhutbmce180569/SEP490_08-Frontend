@@ -68,16 +68,12 @@ export default function Header() {
     upperRoles.includes("ADMIN") ||
     upperRoles.includes("MANAGER") ||
     upperRoles.includes("OPERATOR") ||
-    upperRoles.includes("STAFF");
+    upperRoles.includes("STAFF") ||
+    upperRoles.includes("TOURGUIDE") ||
+    upperRoles.includes("TOUR_GUIDE");
 
   const handleGoToDashboard = () => {
-    if (upperRoles.includes("ADMIN")) {
-      navigate(PATH.ADMIN.DASHBOARD);
-    } else if (upperRoles.includes("MANAGER")) {
-      navigate(PATH.MANAGER.CUSTOMER_ANALYTICS);
-    } else {
-      navigate(PATH.STAFF.DASHBOARD);
-    }
+    navigate(getDashboardPath(user?.roles));
   };
 
   const isSocialLogin =

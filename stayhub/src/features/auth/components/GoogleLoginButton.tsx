@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import ReactDOM from "react-dom";
 import { GoogleLogin } from "@react-oauth/google";
 import { Phone, User } from "lucide-react";
@@ -12,7 +12,6 @@ const GOOGLE_ICON =
 
 export const GoogleLoginButton: React.FC = () => {
   const { t } = useTranslation();
-  const hiddenRef = useRef<HTMLDivElement>(null);
   const {
     handleGoogleLoginSubmit,
     handleConfirmPhoneNumber,
@@ -25,13 +24,6 @@ export const GoogleLoginButton: React.FC = () => {
 
   const [phoneInput, setPhoneInput] = useState("");
   const [phoneError, setPhoneError] = useState("");
-
-  const triggerGoogleLogin = () => {
-    setPhoneInput("");
-    setPhoneError("");
-    const btn = hiddenRef.current?.querySelector('[role="button"]') as HTMLElement | null;
-    btn?.click();
-  };
 
   const handleSubmitPhone = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,41 +44,41 @@ export const GoogleLoginButton: React.FC = () => {
 
   return (
     <SocialAuthButtonShell>
-      {/* Nút Google ẩn — chỉ dùng để lấy idToken */}
-      <div
-        ref={hiddenRef}
-        className="pointer-events-none fixed -left-[9999px] top-0 h-0 w-0 overflow-hidden opacity-0"
-        aria-hidden
-      >
-        <GoogleLogin
-          type="icon"
-          shape="circle"
-          onSuccess={(credentialResponse) => {
-            if (credentialResponse.credential) {
-              handleGoogleLoginSubmit({ idToken: credentialResponse.credential });
-            }
-          }}
-          onError={() => {
-            error(t("errors.googleLoginFailed"));
-          }}
-        />
+      <div className="relative w-full h-[48px]">
+        {/* Custom styled button underneath */}
+        <button
+          type="button"
+          disabled={isSubmitting}
+          className={SOCIAL_AUTH_BUTTON_CLASS}
+        >
+          <img src={GOOGLE_ICON} alt="" aria-hidden className="h-5 w-5 shrink-0" />
+          {t("common.google")}
+        </button>
+
+        {/* Hidden standard GoogleLogin overlayed on top with zero opacity */}
+        <div className="absolute inset-0 opacity-0 cursor-pointer overflow-hidden [&_iframe]:!w-full [&_iframe]:!h-full [&_iframe]:!max-w-none">
+          <GoogleLogin
+            theme="outline"
+            size="large"
+            shape="rectangular"
+            width="400px"
+            onSuccess={(credentialResponse) => {
+              if (credentialResponse.credential) {
+                handleGoogleLoginSubmit({ idToken: credentialResponse.credential });
+              }
+            }}
+            onError={() => {
+              error(t("errors.googleLoginFailed"));
+            }}
+          />
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={triggerGoogleLogin}
-        disabled={isSubmitting}
-        className={SOCIAL_AUTH_BUTTON_CLASS}
-      >
-        <img src={GOOGLE_ICON} alt="" aria-hidden className="h-5 w-5 shrink-0" />
-        {t("common.google")}
-      </button>
-
       {isSubmitting && !pendingGoogleAuth && (
-        <p className="text-xs text-slate-500">{t("common.processing")}</p>
+        <p className="text-xs text-center text-slate-500 mt-1">{t("common.processing")}</p>
       )}
       {serverError && !pendingGoogleAuth && (
-        <p className="text-xs text-rose-500">{serverError}</p>
+        <p className="text-xs text-center text-rose-500 mt-1">{serverError}</p>
       )}
 
       {/* MODAL BỔ SUNG SỐ ĐIỆN THOẠI CHO TÀI KHOẢN GOOGLE MỚI */}

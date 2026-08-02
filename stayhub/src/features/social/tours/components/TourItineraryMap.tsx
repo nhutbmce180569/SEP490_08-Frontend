@@ -127,7 +127,13 @@ export const TourItineraryMap: React.FC<TourItineraryMapProps> = ({
           setUserLocation({ lat: latitude, lng: longitude });
           locationService.pingLocation(latitude, longitude, scheduleId)
             .then(() => setLastPingTime(new Date()))
-            .catch((err) => console.error("Lỗi ping vị trí:", err));
+            .catch((err) => {
+              if (err.response?.status === 409) {
+                console.warn("Vị trí đang được chia sẻ ưu tiên trên Mobile. Bỏ qua ping trên Web.");
+              } else {
+                console.error("Lỗi ping vị trí:", err);
+              }
+            });
         },
         (err) => console.warn("Lỗi lấy vị trí GPS:", err),
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }

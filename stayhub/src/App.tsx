@@ -11,6 +11,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import ScrollToTop from "./components/ScrollToTop";
+import MobileDetector from "./components/MobileDetector";
 import OnboardingTour from "./components/OnboardingTour";
 import { CustomBrandCursor } from "./components/ui/CustomBrandCursor";
 import { PATH } from "./config/routes/route";
@@ -278,12 +279,13 @@ const App: React.FC = () => {
                 <ChatNotificationProvider>
                   <TourAssistantChatProvider>
                     <AiPlannerProvider>
-                      {/* <CustomBrandCursor /> */}
-                      <AiPlannerModal />
-                      <ScrollToTop />
-                      <OnboardingTour />
-                      <PasswordChangeEnforcer>
-                        <Routes>
+                      <MobileDetector>
+                        {/* <CustomBrandCursor /> */}
+                        <AiPlannerModal />
+                        <ScrollToTop />
+                        <OnboardingTour />
+                        <PasswordChangeEnforcer>
+                          <Routes>
                           <Route element={<GuestRoute />}>
                             <Route path={PATH.PUBLIC.LOGIN} element={<Login />} />
                             <Route path={PATH.PUBLIC.REGISTER} element={<Register />} />
@@ -680,8 +682,9 @@ const App: React.FC = () => {
                             path="*"
                             element={mock("app.titles.notFound", "app.mock404", "app.sectionSystem")}
                           />
-                        </Routes>
-                      </PasswordChangeEnforcer>
+                          </Routes>
+                        </PasswordChangeEnforcer>
+                      </MobileDetector>
                     </AiPlannerProvider>
                   </TourAssistantChatProvider>
                 </ChatNotificationProvider>

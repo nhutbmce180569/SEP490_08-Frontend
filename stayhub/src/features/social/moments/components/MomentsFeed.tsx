@@ -48,7 +48,6 @@ export const MomentsFeed: React.FC = () => {
   const [selectedMomentId, setSelectedMomentId] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<'feed' | 'map'>('feed');
   const [isReplayActive, setIsReplayActive] = useState(false);
-  const [reportedMomentIds, setReportedMomentIds] = useState<number[]>([]);
 
   // Tải chi tiết moment từ backend nếu có query param momentId
   const { data: sharedMoment } = useGetMomentById(queryMomentId);
@@ -69,13 +68,7 @@ export const MomentsFeed: React.FC = () => {
 
   const moments = useMemo(() => data?.pages.flat() || [], [data]);
 
-  const filteredMoments = useMemo(() => {
-    return moments.filter((m: any) => !reportedMomentIds.includes(m.id || m.Id));
-  }, [moments, reportedMomentIds]);
-
-  const handleReportSuccess = useCallback((momentId: number) => {
-    setReportedMomentIds(prev => [...prev, momentId]);
-  }, []);
+  const filteredMoments = moments;
 
   const selectedMoment = useMemo(() => {
     if (selectedMomentId) {
@@ -386,7 +379,6 @@ export const MomentsFeed: React.FC = () => {
           isLiked={isLiked}
           likeCount={likeCount}
           onToggleLike={handleToggleLike}
-          onReportSuccess={handleReportSuccess}
           onNext={handleNextMomentInFeed}
           onPrev={handlePrevMomentInFeed}
         />

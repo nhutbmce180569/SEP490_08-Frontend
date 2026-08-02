@@ -44,23 +44,31 @@ const MobileDetector: React.FC<{ children: React.ReactNode }> = ({ children }) =
           
           <div className="flex flex-col gap-4">
             <a
-              href="https://play.google.com/store/apps/details?id=com.stayhub.app"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#"
+              onClick={(e) => e.preventDefault()}
               className="flex items-center justify-center gap-3 bg-brand text-white px-6 py-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19.5v-15h-11v15z"/><path d="M5 4.5h14v15H5z"/><path d="M12 16.5v.01"/></svg>
-              Tải ứng dụng Android (Tạm thời)
+              Tải ứng dụng Android (Đang phát triển)
             </a>
             
             <a
-              href="https://apps.apple.com/app/stayhub/id123456789"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#"
+              onClick={(e) => e.preventDefault()}
               className="flex items-center justify-center gap-3 bg-slate-900 text-white px-6 py-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5h-2c0-3-1-4-2-5Z"/></svg>
-              Tải ứng dụng iOS (Tạm thời)
+              Tải ứng dụng iOS (Đang phát triển)
+            </a>
+            
+            <a
+              href="https://drive.google.com/uc?export=download&id=1jNrE3DYo6pbY9S_mp-fO-C05Lde-yvOa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-3 bg-green-600 text-white px-6 py-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Tải StayHub APK
             </a>
           </div>
           

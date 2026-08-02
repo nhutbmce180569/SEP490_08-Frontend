@@ -335,7 +335,7 @@
   .dashboard-topbar {
     position: sticky;
     top: 0;
-    z-index: 20;
+    z-index: 40;
     display: flex;
     height: 72px;
     align-items: center;

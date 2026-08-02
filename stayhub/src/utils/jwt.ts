@@ -36,7 +36,7 @@ export const getDashboardPath = (roles: any): string => {
     return "/manager"; // PATH.MANAGER.DASHBOARD
   }
   if (upperRoles.includes("STAFF")) {
-    return "/staff"; // PATH.STAFF.DASHBOARD
+    return "/staff"; // PATH.STAFF.SCHEDULES
   }
   return "/"; // PATH.PUBLIC.HOME
 };

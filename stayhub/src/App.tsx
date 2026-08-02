@@ -568,7 +568,7 @@ const App: React.FC = () => {
                             </Route>
                           </Route>
 
-                          <Route element={<ProtectedRoute allowedRoles={["STAFF"]} />}>
+                          <Route element={<ProtectedRoute allowedRoles={["STAFF", "TOURGUIDE"]} />}>
                             <Route path={PATH.STAFF.DASHBOARD} element={<StaffLayout />}>
                               <Route index element={<RoleIntroDashboard role="staff" />} />
                               <Route path={childPath(PATH.STAFF.PROFILE)} element={<Profile />} />

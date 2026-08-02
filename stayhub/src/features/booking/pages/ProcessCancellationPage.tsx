@@ -416,11 +416,6 @@ export const ProcessCancellationPage: React.FC = () => {
                 <DetailRow label={t("content.address")} value={detail.tour?.address ? <DynamicText text={detail.tour.address} /> : t("common.na")} />
               </div>
             </div>
-            {detail.tour?.description && (
-              <div className="whitespace-pre-wrap break-words rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700">
-                <DynamicText text={detail.tour.description} />
-              </div>
-            )}
           </section>
 
           <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-5">

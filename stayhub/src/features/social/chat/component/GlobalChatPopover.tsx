@@ -782,11 +782,23 @@ export const GlobalChatPopover: React.FC = () => {
                                 }`}
                               >
                                 <div className="flex items-center gap-2 mb-2">
-                                  <div className="relative flex h-3 w-3">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                                  <div className="w-5 h-5 rounded-full overflow-hidden shadow-sm shrink-0 border border-white/20">
+                                    {avatarToUse ? (
+                                      <img src={avatarToUse} alt={senderName} className="w-full h-full object-cover" />
+                                    ) : (
+                                      <div className="w-full h-full bg-slate-200 text-slate-600 flex items-center justify-center text-[8px] font-bold">
+                                        {getInitials(senderName || 'User')}
+                                      </div>
+                                    )}
                                   </div>
-                                  <span className="text-[10px] font-black uppercase tracking-widest">Vị trí trực tiếp</span>
+                                  <div className="flex flex-col">
+                                    <span className="text-[9px] font-black uppercase tracking-widest leading-tight">Vị trí trực tiếp</span>
+                                    <span className={`text-[8px] font-bold line-clamp-1 ${isMe ? 'text-blue-200' : 'text-slate-500'}`}>{senderName}</span>
+                                  </div>
+                                  <div className="relative flex h-2 w-2 ml-auto shrink-0">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                                  </div>
                                 </div>
                                 <p className="text-[9px] text-slate-400 font-medium leading-relaxed mb-3">Bấm để theo dõi lộ trình di chuyển trực tuyến của tôi.</p>
                                 <span className="text-[9px] font-bold py-1.5 bg-brand text-white rounded-xl text-center shadow-sm">Xem vị trí</span>

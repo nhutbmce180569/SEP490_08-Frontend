@@ -4,9 +4,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import useSupercluster from "use-supercluster";
 import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
 import type { Moment } from "../../moments/types/moment.type";
-import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../../moments/hooks/useMoments"; 
+import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../../moments/hooks/useMoments";
 import { useGetScheduleLiveLocations, useGetTourRouteData } from "../hooks/useScheduleTracking";
-import { MomentCard } from "../../moments/components/MomentCard"; 
+import { MomentCard } from "../../moments/components/MomentCard";
 import * as signalR from '@microsoft/signalr';
 import { SIGNALR_HUB_BASE } from "../../../../config/api/api";
 import { locationService } from "../../locations/services/locationService";
@@ -76,7 +76,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
   const [heatmapType, setHeatmapType] = useState<'online' | 'moments'>('online');
   const [isNightMode, setIsNightMode] = useState(false);
   const [dockState, setDockState] = useState<'collapsed' | 'expanded'>('expanded');
-  
+
   const [isPostButtonHidden, setIsPostButtonHidden] = useState<boolean>(() => {
     return localStorage.getItem("post_button_hidden") === "true";
   });
@@ -93,7 +93,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       localStorage.setItem("post_button_hidden", "true");
     }
   };
-  
+
   const discreteZoom = Math.round(viewState.zoom);
 
   // --- TIMELINE SCOPE ---
@@ -101,11 +101,11 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
   // --- STATES QUẢN LÝ LỚP (LAYERS) ---
   const [showMoments, setShowMoments] = useState(true);
-  const [showLiveLocations, setShowLiveLocations] = useState(true); 
+  const [showLiveLocations, setShowLiveLocations] = useState(true);
   const [showFootprints, setShowFootprints] = useState(false);
   const [showTourRoute, setShowTourRoute] = useState(true);
   const [isLayerMenuOpen, setIsLayerMenuOpen] = useState(false);
-  
+
   const [friendLocations, setFriendLocations] = useState<any[]>([]);
   const [scheduleMemberLocations, setScheduleMemberLocations] = useState<any[]>([]);
   const [lastPingTime, setLastPingTime] = useState<Date | null>(null);
@@ -135,7 +135,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
     if (footprints && Array.isArray(footprints)) {
       setDynamicFootprints(footprints);
     }
-    
+
     // Auto Day/Night theme based on time
     const hour = new Date().getHours();
     setIsNightMode(hour < 6 || hour > 18);
@@ -162,7 +162,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
     const activeKey = String(selectedDay);
     const activeBtn = daySelectorButtonRefs.current[activeKey];
     const container = daySelectorContainerRef.current;
-    
+
     if (activeBtn && container) {
       setDaySelectorPillStyle({
         left: `${activeBtn.offsetLeft}px`,
@@ -217,7 +217,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
         }
 
         const segmentsCoords = await Promise.all(segmentPromises);
-        
+
         if (isCancelled) return;
 
         // Flatten all segment coordinates into one single route linestring
@@ -258,7 +258,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
           } else if (typeof roles === "string") {
             isStaffOrManager = roles === "Manager" || roles === "Staff" || roles === "Admin";
           }
-        } catch {}
+        } catch { }
       }
 
       if (isStaffOrManager || isCancelled) {
@@ -303,6 +303,14 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
           });
         });
 
+        connection.on("ForceStopTracking", (activePlatform: string) => {
+          if (isCancelled) return;
+          if (activePlatform === "Mobile") {
+            setIsSharingLocation(false);
+            toastError(locale === 'vi' ? "Vị trí đang được chia sẻ ưu tiên trên Mobile. Đã tự động tắt trên Web." : "Mobile is currently sharing location. Web tracking stopped to yield priority.");
+          }
+        });
+
         connection.on("ReceiveUserStoppedSharing", (userId: number) => {
           if (isCancelled) return;
           setFriendLocations((prev) => prev.filter((f) => String(f.userId) !== String(userId)));
@@ -320,6 +328,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       isCancelled = true;
       if (connection) {
         connection.off("ReceiveFriendLocation");
+        connection.off("ForceStopTracking");
         connection.off("ReceiveUserStoppedSharing");
         connection.stop();
       }
@@ -345,7 +354,14 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                 return [...prev, { lat: latitude, lng: longitude }];
               });
             })
-            .catch((err) => console.warn("Lỗi ping vị trí:", err));
+            .catch((err) => {
+              if (err.response?.status === 409) {
+                setIsSharingLocation(false);
+                toastError(locale === 'vi' ? "Vị trí đang được chia sẻ ưu tiên trên Mobile. Đã tự động tắt trên Web." : "Mobile is currently sharing location. Web tracking stopped to yield priority.");
+              } else {
+                console.warn("Lỗi ping vị trí:", err);
+              }
+            });
         },
         (err) => console.warn("Lỗi lấy vị trí GPS:", err),
         { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
@@ -395,7 +411,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
     startPromise
       .then(async () => {
         if (isCancelled) {
-          connection.stop().catch(() => {});
+          connection.stop().catch(() => { });
           return;
         }
         await connection.invoke("JoinTourTrackingGroup", scheduleId);
@@ -427,10 +443,10 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       startPromise
         .then(() => {
           if (connection.state === signalR.HubConnectionState.Connected) {
-            connection.stop().catch(() => {});
+            connection.stop().catch(() => { });
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     };
   }, [scheduleId, showLiveLocations]);
 
@@ -464,7 +480,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
   // --- TIMELINE REPLAY LOGIC ---
   const timelineEvents = useMemo(() => {
     const events: any[] = [];
-    
+
     // 1. Add moment posts as primary timeline events
     const momentsArray = Array.isArray(moments) ? moments : ((moments as any)?.pages?.flat() || []);
     momentsArray.forEach((m: any) => {
@@ -643,7 +659,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       const fLng = Number(friend.lng ?? friend.Lng);
       if (isNaN(fLat) || isNaN(fLng)) return;
 
-      const overlaps = placed.filter(p => 
+      const overlaps = placed.filter(p =>
         Math.abs(p.lat - fLat) < threshold && Math.abs(p.lng - fLng) < threshold
       );
 
@@ -654,7 +670,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
         const offsetLat = fLat + pushRadius * Math.cos(angle);
         const offsetLng = fLng + pushRadius * Math.sin(angle);
-        
+
         placed.push({ lat: offsetLat, lng: offsetLng });
         result.push({ ...friend, visualLat: offsetLat, visualLng: offsetLng });
       } else {
@@ -670,11 +686,11 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
   useEffect(() => {
     if (!isPlaying || timelineEvents.length === 0) return;
     if (currentEventIndex >= timelineEvents.length - 1) {
-       setIsPlaying(false);
-       if (isRecording) {
-         stopRecording();
-       }
-       return;
+      setIsPlaying(false);
+      if (isRecording) {
+        stopRecording();
+      }
+      return;
     }
     const interval = 3000 / playbackSpeed;
     const timer = setTimeout(() => setCurrentEventIndex(prev => prev + 1), interval);
@@ -734,9 +750,9 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = 'video/webm';
       }
-      const options: MediaRecorderOptions = { 
+      const options: MediaRecorderOptions = {
         mimeType,
-        videoBitsPerSecond: 8000000 
+        videoBitsPerSecond: 8000000
       };
 
       const recorder = new MediaRecorder(stream, options);
@@ -807,11 +823,11 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       const event = timelineEvents[currentEventIndex];
       if (event && !isNaN(event.lng) && !isNaN(event.lat)) {
         lastFlownIndexRef.current = currentEventIndex;
-        mapRef.current.flyTo({ 
-          center: [event.lng, event.lat], 
-          zoom: 15.5, 
-          duration: 1000, 
-          essential: true 
+        mapRef.current.flyTo({
+          center: [event.lng, event.lat],
+          zoom: 15.5,
+          duration: 1000,
+          essential: true
         });
       }
     }
@@ -822,42 +838,42 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
     const raw = (dynamicFootprints || []).filter(
       (f: any) => typeof f.lat === "number" && typeof f.lng === "number"
     );
-    
+
     // --- TẠO DỮ LIỆU DẤU CHÂN "THAM QUAN" THỰC TẾ ---
     // Khắc phục tình trạng "chim bay thẳng", giả lập người dùng đi bộ khám phá
     // xung quanh các điểm du lịch (random walk) và di chuyển dọc theo tuyến đường.
-    const mock: {lat: number, lng: number}[] = [];
+    const mock: { lat: number, lng: number }[] = [];
     if (routeCoordinates && routeCoordinates.length > 0 && tourStops && tourStops.length > 0) {
       // 1. Đi dọc theo tuyến đường chính
       routeCoordinates.forEach(coord => mock.push({ lat: coord[1], lng: coord[0] }));
-      
+
       // 2. Giả lập đi bộ khám phá xung quanh mỗi điểm dừng (Random Walk)
       tourStops.forEach((stop: any) => {
         let cLat = stop.lat;
         let cLng = stop.lng;
         let cAngle = Math.random() * Math.PI * 2;
-        
+
         // 40 bước chân khám phá ngõ hẻm quanh điểm đến
         for (let i = 0; i < 40; i++) {
           mock.push({ lat: cLat, lng: cLng });
-          
+
           // Đổi hướng ngẫu nhiên (giống như quẹo các góc phố)
-          cAngle += (Math.random() - 0.5) * 1.5; 
-          
+          cAngle += (Math.random() - 0.5) * 1.5;
+
           // Khoảng cách mỗi bước ~20m - 50m (tính theo độ)
-          const dist = 0.0002 + Math.random() * 0.0003; 
+          const dist = 0.0002 + Math.random() * 0.0003;
           cLat += Math.sin(cAngle) * dist;
           cLng += Math.cos(cAngle) * dist;
-          
+
           // Vòng giới hạn: không đi lạc quá xa khỏi điểm tham quan (~500m)
-          const distSq = (cLat - stop.lat)**2 + (cLng - stop.lng)**2;
+          const distSq = (cLat - stop.lat) ** 2 + (cLng - stop.lng) ** 2;
           if (distSq > 0.00003) {
             cAngle += Math.PI; // Quay đầu lại
           }
         }
       });
     }
-    
+
     return [...raw, ...mock];
   }, [dynamicFootprints, routeCoordinates, tourStops]);
 
@@ -896,13 +912,13 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
         return {
           type: "Feature" as const,
           properties: {
-            cluster: false, 
-            momentId: m.id || m.Id, 
+            cluster: false,
+            momentId: m.id || m.Id,
             userId: m.userId || userObj.id || 0,
             avatarUrl: userObj.avatarUrl || m.avatarUrl || null,
             imageUrl: m.imageUrl || m.ImageUrl || null,
-            userFullName: userObj.fullName || m.fullName || "?", 
-            rawMoment: m 
+            userFullName: userObj.fullName || m.fullName || "?",
+            rawMoment: m
           },
           geometry: { type: "Point" as const, coordinates: [Number(m.lng || m.Lng), Number(m.lat || m.Lat)] },
         };
@@ -1094,8 +1110,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
             {/* Lớp Heatmap (Social Energy) */}
             {showHeatmap && heatmapPoints && heatmapPoints.length > 0 && (
               <Source id="heatmap-source" type="geojson" data={{ type: "FeatureCollection" as const, features: heatmapPoints }}>
-                <Layer 
-                  id="heatmap-layer" 
+                <Layer
+                  id="heatmap-layer"
                   type="heatmap"
                   paint={{
                     "heatmap-weight": ["interpolate", ["linear"], ["get", "weight"], 0, 0, 1, 1],
@@ -1175,12 +1191,12 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                       <SafeImage src={momentPhoto} alt="Moment" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" fallbackClassName="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400" fallbackText={userInitial} />
                     </div>
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[3px] border-b-[3px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
-                    
+
                     {/* Hover Tooltip */}
                     <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none z-20 flex flex-col items-center">
                       <div className="glass-panel-dark text-white px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shadow-xl flex items-center gap-2">
                         <div className="w-5 h-5 rounded-full overflow-hidden border border-white/20">
-                           <SafeImage src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" fallbackClassName="bg-white/20 w-full h-full" fallbackText="" />
+                          <SafeImage src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" fallbackClassName="bg-white/20 w-full h-full" fallbackText="" />
                         </div>
                         <span>{userFullName}</span>
                       </div>
@@ -1203,7 +1219,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
               return (
                 <Marker key={`friend-${friend.userId}`} longitude={fLng} latitude={fLat} anchor="bottom">
-                  <div 
+                  <div
                     className="relative flex flex-col items-center justify-center transition-all duration-500 group pointer-events-auto cursor-pointer hover:-translate-y-2"
                     onClick={(e) => {
                       if (momentId) {
@@ -1214,7 +1230,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                   >
                     <div className={`absolute inset-0 ${pingColor} rounded-full opacity-20 animate-ping w-16 h-16 -left-2 -top-2 pointer-events-none`}></div>
                     <div className="relative z-10">
-                      <div 
+                      <div
                         className="w-12 h-12 rounded-full border-[3px] overflow-hidden shadow-[0_4px_15px_rgba(0,0,0,0.2)] bg-slate-100"
                         style={{ borderColor: isStaff ? "#10b981" : "#ffffff" }}
                       >
@@ -1237,9 +1253,9 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
             {/* Lớp Highlight Sự kiện (Timeline Replay) */}
             {isReplayMode && timelineEvents[currentEventIndex] && (
-              <Marker 
-                longitude={timelineEvents[currentEventIndex].lng} 
-                latitude={timelineEvents[currentEventIndex].lat} 
+              <Marker
+                longitude={timelineEvents[currentEventIndex].lng}
+                latitude={timelineEvents[currentEventIndex].lat}
                 anchor="bottom"
               >
                 <div className="relative flex flex-col items-center justify-center animate-bounce">
@@ -1252,34 +1268,34 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
               </Marker>
             )}
 
-          {/* Lớp Vị trí Hiện tại của Bản thân */}
-          {myLocation && (() => {
-            const myMoment = points.find((p: any) => String(p.properties.userId) === String(user?.id));
-            const myMomentId = myMoment?.properties.momentId;
-            return (
-              <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
-                <div className="relative flex flex-col items-center justify-center pointer-events-none">
-                  <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-[ping_2s_ease-in-out_infinite] w-20 h-20 -left-4 -top-4"></div>
-                  <div className="absolute inset-0 bg-blue-400 rounded-full opacity-30 animate-[ping_3s_ease-in-out_infinite] w-16 h-16 -left-2 -top-2"></div>
-                  <div className="relative z-10">
-                    <div 
-                      className="w-12 h-12 rounded-full border-[3px] border-white overflow-hidden bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)] pointer-events-auto cursor-pointer hover:scale-110 transition-transform duration-300"
-                      onClick={(e) => {
-                        if (myMomentId) {
-                          e.stopPropagation();
-                          onMarkerClick(myMomentId);
-                        }
-                      }}
-                    >
-                      <SafeImage src={myAvatar} alt="Me" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-blue-500 text-white font-bold text-lg" fallbackText={user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"} />
+            {/* Lớp Vị trí Hiện tại của Bản thân */}
+            {myLocation && (() => {
+              const myMoment = points.find((p: any) => String(p.properties.userId) === String(user?.id));
+              const myMomentId = myMoment?.properties.momentId;
+              return (
+                <Marker longitude={myLocation.lng} latitude={myLocation.lat} anchor="center">
+                  <div className="relative flex flex-col items-center justify-center pointer-events-none">
+                    <div className="absolute inset-0 bg-blue-500 rounded-full opacity-20 animate-[ping_2s_ease-in-out_infinite] w-20 h-20 -left-4 -top-4"></div>
+                    <div className="absolute inset-0 bg-blue-400 rounded-full opacity-30 animate-[ping_3s_ease-in-out_infinite] w-16 h-16 -left-2 -top-2"></div>
+                    <div className="relative z-10">
+                      <div
+                        className="w-12 h-12 rounded-full border-[3px] border-white overflow-hidden bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.6)] pointer-events-auto cursor-pointer hover:scale-110 transition-transform duration-300"
+                        onClick={(e) => {
+                          if (myMomentId) {
+                            e.stopPropagation();
+                            onMarkerClick(myMomentId);
+                          }
+                        }}
+                      >
+                        <SafeImage src={myAvatar} alt="Me" className="w-full h-full object-cover" fallbackClassName="w-full h-full flex items-center justify-center bg-blue-500 text-white font-bold text-lg" fallbackText={user?.fullName ? user.fullName.charAt(0).toUpperCase() : "U"} />
+                      </div>
+                      {/* Directional Beacon Arrow */}
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rotate-45 border-r-[2px] border-b-[2px] border-white z-0 rounded-sm"></div>
                     </div>
-                    {/* Directional Beacon Arrow */}
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-blue-500 rotate-45 border-r-[2px] border-b-[2px] border-white z-0 rounded-sm"></div>
                   </div>
-                </div>
-              </Marker>
-            );
-          })()}
+                </Marker>
+              );
+            })()}
           </>
         )}
       </Map>
@@ -1296,26 +1312,25 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
 
       {uniqueDays.length > 0 && (
-        <div 
+        <div
           ref={daySelectorContainerRef}
           className="absolute top-[72px] sm:top-[88px] md:top-20 left-1/2 -translate-x-1/2 z-10 flex gap-2 glass-panel p-1.5 rounded-full shadow-lg animate-[fadeIn_0.5s_ease] max-w-[95vw] sm:max-w-[90vw] overflow-x-auto"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {/* Sliding indicator background pill */}
-          <div 
+          <div
             className="absolute bg-gradient-to-r from-brand to-cyan-500 rounded-full shadow-[0_4px_12px_rgba(0,104,224,0.3)] pointer-events-none"
             style={daySelectorPillStyle}
           />
-          
+
           <button
             ref={(el) => { daySelectorButtonRefs.current['ALL'] = el; }}
             onClick={() => setSelectedDay('ALL')}
             style={{ transition: 'color 300ms ease, transform 300ms ease' }}
-            className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${
-              selectedDay === 'ALL'
+            className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${selectedDay === 'ALL'
                 ? 'text-white font-black scale-105 bg-gradient-to-r from-brand to-cyan-500 shadow-sm'
                 : 'text-slate-700 hover:text-brand hover:scale-102'
-            }`}
+              }`}
           >
             {locale === 'vi' ? 'Tổng quan' : 'Overview'}
           </button>
@@ -1325,11 +1340,10 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
               ref={(el) => { daySelectorButtonRefs.current[String(day)] = el; }}
               onClick={() => setSelectedDay(day)}
               style={{ transition: 'color 300ms ease, transform 300ms ease' }}
-              className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${
-                selectedDay === day
+              className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${selectedDay === day
                   ? 'text-white font-black scale-105'
                   : 'text-slate-700 hover:text-brand hover:scale-102'
-              }`}
+                }`}
             >
               {locale === 'vi' ? `Ngày ${day}` : `Day ${day}`}
             </button>
@@ -1341,17 +1355,17 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       <div className="absolute top-[124px] md:top-4 right-4 z-20 flex flex-col gap-3">
         <div className="relative">
           <button
-            onClick={(e) => { 
-              e.stopPropagation(); 
+            onClick={(e) => {
+              e.stopPropagation();
               if (!isLayerMenuOpen) setIsReplayMode(false);
-              setIsLayerMenuOpen(!isLayerMenuOpen); 
+              setIsLayerMenuOpen(!isLayerMenuOpen);
             }}
             className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none shadow-md"
             title={t("social.mapLayerMoments") || "Map Layers"}
           >
             <Layers className="h-6 w-6" />
           </button>
-          
+
           {isLayerMenuOpen && (
             <div className="absolute top-0 right-14 w-[calc(100vw-80px)] sm:w-72 max-w-[288px] origin-top-right rounded-[1.5rem] sm:rounded-[2rem] glass-panel p-2 sm:p-3 shadow-2xl animate-fade-in-down z-50" onClick={(e) => e.stopPropagation()}>
               <div className="flex flex-col gap-1">
@@ -1424,28 +1438,26 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                         <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-300 ${showHeatmap ? 'translate-x-5' : 'translate-x-[2px]'}`} />
                       </div>
                     </div>
-                    
+
                     {/* Heatmap Type Sub-options */}
                     {showHeatmap && (
                       <div className="pl-14 pr-4 pb-3 flex gap-2">
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); setHeatmapType('online'); }}
-                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
-                            heatmapType === 'online' 
-                              ? 'bg-orange-100 text-orange-600 border border-orange-200' 
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${heatmapType === 'online'
+                              ? 'bg-orange-100 text-orange-600 border border-orange-200'
                               : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                          }`}
+                            }`}
                         >
                           <Users className="w-3.5 h-3.5" />
                           Online
                         </button>
-                        <button 
+                        <button
                           onClick={(e) => { e.stopPropagation(); setHeatmapType('moments'); }}
-                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${
-                            heatmapType === 'moments' 
-                              ? 'bg-rose-100 text-rose-600 border border-rose-200' 
+                          className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${heatmapType === 'moments'
+                              ? 'bg-rose-100 text-rose-600 border border-rose-200'
                               : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                          }`}
+                            }`}
                         >
                           <Camera className="w-3.5 h-3.5" />
                           Moments
@@ -1477,12 +1489,12 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
         {/* Nút Timeline Replay */}
         {!hideAdvancedFeatures && (
           <button
-            onClick={(e) => { 
-              e.stopPropagation(); 
+            onClick={(e) => {
+              e.stopPropagation();
               setIsLayerMenuOpen(false);
-              setIsReplayMode(!isReplayMode); 
-              if (isSpecificTour) setIsPlaying(!isReplayMode); 
-              setCurrentEventIndex(0); 
+              setIsReplayMode(!isReplayMode);
+              if (isSpecificTour) setIsPlaying(!isReplayMode);
+              setCurrentEventIndex(0);
               setDockState('expanded');
             }}
             className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none shadow-md ${isReplayMode ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
@@ -1518,14 +1530,13 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       {/* Nút Điều hướng Nhanh & Ảnh mới nhất (Góc dưới trái) */}
       <div className="absolute bottom-6 left-4 z-20 flex flex-col gap-2.5">
         {!isReplayMode && (
-          <button 
-            onClick={handleJumpToNewest} 
+          <button
+            onClick={handleJumpToNewest}
             disabled={points.length === 0}
-            className={`glass-button flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all shadow-md ${
-              points.length === 0 
-                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70 dark:bg-slate-800/70' 
+            className={`glass-button flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all shadow-md ${points.length === 0
+                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70 dark:bg-slate-800/70'
                 : 'text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800'
-            }`}
+              }`}
           >
             <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
             {t("social.mapNewestPhoto")}
@@ -1534,12 +1545,11 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       </div>
 
       {/* Floating Location Buttons (Lower Right) */}
-      <div 
-        className={`absolute ${
-          isReplayMode 
-            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[230px]' : 'bottom-[90px]') 
+      <div
+        className={`absolute ${isReplayMode
+            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[230px]' : 'bottom-[90px]')
             : 'bottom-6'
-        } right-4 z-20 flex flex-col gap-2.5 transition-all duration-300`}
+          } right-4 z-20 flex flex-col gap-2.5 transition-all duration-300`}
       >
         {typeof navigator !== 'undefined' && 'geolocation' in navigator && (
           <button
@@ -1591,7 +1601,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
       {/* Immersive Floating Post Moment Button (Clean Icon Only) */}
       {onPostMomentClick && !isReplayMode && !isPostButtonHidden && (
-        <div 
+        <div
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onClick={(e) => { e.stopPropagation(); onPostMomentClick(); }}
@@ -1608,7 +1618,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       {isReplayMode && timelineEvents.length > 0 && (
         <div className="absolute right-1/2 translate-x-1/2 md:translate-x-0 md:right-4 bottom-[8.5rem] md:bottom-auto md:top-16 z-30 w-[85vw] sm:w-80 pointer-events-auto transition-all duration-500 ease-out select-none">
           <div className="relative group">
-            
+
             {/* Background Card Layer 2 (Bottom photo peeking out of deck) */}
             {timelineEvents[(currentEventIndex + 2) % timelineEvents.length] && (
               <div className="absolute inset-0 bg-white/70 rounded-3xl p-3 shadow-md transform rotate-[-6deg] translate-y-3 translate-x-2 border border-slate-200/60 pointer-events-none transition-transform duration-500">
@@ -1628,7 +1638,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
             )}
 
             {/* Front Active Polaroid Photo Card (Shuffles automatically on Play or drag left/right to swipe) */}
-            <div 
+            <div
               key={`deck-card-${currentEventIndex}`}
               onMouseDown={(e) => handleCardDragStart(e.clientX)}
               onMouseMove={(e) => handleCardDragMove(e.clientX)}
@@ -1641,9 +1651,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                 transform: `translateX(${dragX}px) rotate(${dragX * 0.08}deg)`,
                 transition: isDraggingCard ? 'none' : 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
               }}
-              className={`relative bg-white/95 backdrop-blur-xl rounded-3xl p-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white cursor-grab active:cursor-grabbing hover:shadow-[0_25px_70px_rgba(0,0,0,0.3)] ${
-                cardAnimDirection === 'next' ? 'animate-polaroid-shuffle-next' : 'animate-polaroid-shuffle-prev'
-              }`}
+              className={`relative bg-white/95 backdrop-blur-xl rounded-3xl p-3.5 shadow-[0_20px_60px_rgba(0,0,0,0.25)] border border-white cursor-grab active:cursor-grabbing hover:shadow-[0_25px_70px_rgba(0,0,0,0.3)] ${cardAnimDirection === 'next' ? 'animate-polaroid-shuffle-next' : 'animate-polaroid-shuffle-prev'
+                }`}
             >
               {/* Visual Swipe Indicator Hints */}
               {dragX < -25 && (
@@ -1668,7 +1677,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                       {timelineEvents[currentEventIndex]?.data?.user?.fullName || timelineEvents[currentEventIndex]?.data?.fullName || timelineEvents[currentEventIndex]?.title}
                     </span>
                     <span className="text-[10px] text-slate-500 font-medium leading-none mt-0.5">
-                      {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
+                      {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                   </div>
                 </div>
@@ -1678,7 +1687,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
               </div>
 
               {/* Rounded Photo Frame */}
-              <div 
+              <div
                 className="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden shadow-inner bg-slate-900 transition-transform duration-300 pointer-events-auto cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1688,12 +1697,12 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                   }
                 }}
               >
-                <SafeImage 
-                  src={timelineEvents[currentEventIndex]?.imageUrl} 
-                  alt="Moment Photo" 
-                  className="w-full h-full object-cover" 
-                  fallbackClassName="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-white p-4 text-center" 
-                  fallbackText={<div className="flex flex-col items-center gap-1.5"><MapPin className="w-7 h-7 text-brand" /><span className="text-xs font-bold">{timelineEvents[currentEventIndex]?.title}</span></div>} 
+                <SafeImage
+                  src={timelineEvents[currentEventIndex]?.imageUrl}
+                  alt="Moment Photo"
+                  className="w-full h-full object-cover"
+                  fallbackClassName="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-white p-4 text-center"
+                  fallbackText={<div className="flex flex-col items-center gap-1.5"><MapPin className="w-7 h-7 text-brand" /><span className="text-xs font-bold">{timelineEvents[currentEventIndex]?.title}</span></div>}
                 />
               </div>
 
@@ -1720,11 +1729,11 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       {isReplayMode && (!isSpecificTour || timelineEvents.length > 0) && (
         <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-30 w-full max-w-xl md:max-w-2xl lg:max-w-3xl px-2 sm:px-4 pointer-events-auto transition-all duration-300">
           <div className="w-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-2xl border border-white/80 dark:border-slate-800 rounded-[1.25rem] sm:rounded-3xl p-2 sm:p-4 shadow-[0_16px_50px_rgba(0,0,0,0.18),inset_0_1.5px_2px_rgba(255,255,255,0.9)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.4)] flex flex-col gap-2 sm:gap-2.5 relative">
-            
+
             {/* Top Row: Event Info & All Controls in 1 Single Line */}
             <div className="flex items-center justify-between gap-3.5 w-full">
               {/* Left: Thumbnail & Info */}
-              <div 
+              <div
                 className={`flex items-center gap-3 min-w-0 flex-1 ${timelineEvents[currentEventIndex]?.momentId ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
                 onClick={() => {
                   const evt = timelineEvents[currentEventIndex];
@@ -1739,7 +1748,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-[9.5px] font-black text-brand bg-brand/10 dark:bg-brand/20 px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-                      {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', {hour: '2-digit', minute:'2-digit'})}
+                      {new Date(timelineEvents[currentEventIndex]?.time).toLocaleTimeString(locale === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className="text-[10.5px] text-slate-400 dark:text-slate-500 font-bold shrink-0">
                       {currentEventIndex + 1}/{timelineEvents.length}
@@ -1753,36 +1762,36 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
               {/* Right: Liquid Glass Controls */}
               <div className="flex items-center gap-2 shrink-0">
-                <button 
-                  onClick={handlePrevCard} 
-                  title={locale === 'vi' ? 'Lùi bài' : 'Previous'} 
+                <button
+                  onClick={handlePrevCard}
+                  title={locale === 'vi' ? 'Lùi bài' : 'Previous'}
                   className="w-8.5 h-8.5 rounded-full text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-slate-800 hover:bg-brand/10 hover:text-brand dark:hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
                 >
                   <SkipBack className="w-4 h-4" />
                 </button>
 
-                <button 
-                  onClick={() => { 
-                    if (currentEventIndex >= timelineEvents.length - 1) { 
-                      setCurrentEventIndex(0); 
-                    } 
-                    setIsPlaying(!isPlaying); 
-                  }} 
+                <button
+                  onClick={() => {
+                    if (currentEventIndex >= timelineEvents.length - 1) {
+                      setCurrentEventIndex(0);
+                    }
+                    setIsPlaying(!isPlaying);
+                  }}
                   title={isPlaying ? 'Pause' : 'Play'}
                   className="w-10 h-10 rounded-full bg-brand text-white flex items-center justify-center shadow-[0_4px_16px_rgba(0,104,224,0.4)] hover:bg-brand-hover hover:scale-105 active:scale-95 transition-all"
                 >
                   {isPlaying ? <Pause className="w-4.5 h-4.5 fill-current" /> : <Play className="w-4.5 h-4.5 ml-0.5 fill-current" />}
                 </button>
 
-                <button 
-                  onClick={handleNextCard} 
-                  title={locale === 'vi' ? 'Tiếp theo' : 'Next'} 
+                <button
+                  onClick={handleNextCard}
+                  title={locale === 'vi' ? 'Tiếp theo' : 'Next'}
                   className="w-8.5 h-8.5 rounded-full text-slate-700 dark:text-slate-200 bg-slate-100/80 dark:bg-slate-800 hover:bg-brand/10 hover:text-brand dark:hover:text-brand flex items-center justify-center active:scale-95 transition-all shadow-sm"
                 >
                   <SkipForward className="w-4 h-4" />
                 </button>
 
-                <button 
+                <button
                   onClick={() => setPlaybackSpeed(prev => prev === 1 ? 1.5 : prev === 1.5 ? 2 : 1)}
                   title={locale === 'vi' ? 'Tốc độ phát' : 'Playback Speed'}
                   className="px-2.5 py-1 text-xs font-black bg-slate-100/90 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-full hover:bg-brand/10 hover:text-brand dark:hover:text-brand transition-colors shadow-sm ml-0.5"
@@ -1790,8 +1799,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                   {playbackSpeed}x
                 </button>
 
-                <button 
-                  onClick={() => { setIsReplayMode(false); setIsPlaying(false); }} 
+                <button
+                  onClick={() => { setIsReplayMode(false); setIsPlaying(false); }}
                   title={locale === 'vi' ? 'Đóng' : 'Close'}
                   className="w-8.5 h-8.5 rounded-full bg-slate-100/80 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-slate-200 transition-colors ml-1"
                 >
@@ -1805,14 +1814,14 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
               <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 h-1.5 bg-slate-200/80 dark:bg-slate-700/80 rounded-full overflow-hidden">
                 <div className="h-full bg-gradient-to-r from-brand via-cyan-400 to-indigo-500 transition-all duration-300" style={{ width: `${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}%` }}></div>
               </div>
-              <input 
-                type="range" min="0" max={Math.max(0, timelineEvents.length - 1)} 
-                value={currentEventIndex} 
+              <input
+                type="range" min="0" max={Math.max(0, timelineEvents.length - 1)}
+                value={currentEventIndex}
                 onChange={(e) => { setCurrentEventIndex(Number(e.target.value)); setIsPlaying(false); }}
                 className="absolute top-1/2 -translate-y-1/2 w-full h-2.5 opacity-0 cursor-pointer z-10"
               />
-              <div 
-                className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border-2 border-brand rounded-full shadow-md pointer-events-none transition-all duration-300" 
+              <div
+                className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-white border-2 border-brand rounded-full shadow-md pointer-events-none transition-all duration-300"
                 style={{ left: `calc(${(currentEventIndex / Math.max(1, timelineEvents.length - 1)) * 100}% - 7px)` }}
               ></div>
             </div>
@@ -1841,8 +1850,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       {isGuideOpen && (
         <div className="absolute inset-0 z-[100] h-full w-full bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in" onClick={() => setIsGuideOpen(false)}>
           <div className="w-full max-w-lg glass-panel-dark text-white rounded-3xl p-6 shadow-2xl relative animate-scale-up" onClick={(e) => e.stopPropagation()}>
-            <button 
-              onClick={() => setIsGuideOpen(false)} 
+            <button
+              onClick={() => setIsGuideOpen(false)}
               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white transition-colors"
             >
               <X className="w-5 h-5" />
@@ -1887,7 +1896,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                 </div>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setIsGuideOpen(false)}
               className="mt-6 w-full py-3 bg-brand text-white font-bold rounded-2xl shadow-lg hover:bg-brand-hover active:scale-[0.98] transition-all text-center"
             >

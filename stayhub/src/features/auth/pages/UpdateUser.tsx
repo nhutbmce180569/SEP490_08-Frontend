@@ -16,10 +16,14 @@ export const UpdateUser: React.FC = () => {
   if (fetchError) return <div className="flex justify-center p-10 text-rose-500">{fetchError}</div>;
   if (!user) return <div className="flex justify-center p-10 text-slate-500">{t("auth.userNotFound")}</div>;
 
-  const roleOptions = Array.isArray(rolesList) ? rolesList.map((role) => ({
-    label: getRoleDisplay(role.name || "", t) || t("auth.unknown"),
-    value: role.id,
-  })) : [];
+  const roleOptions = Array.isArray(rolesList) 
+    ? rolesList
+        .filter((role) => role.name !== "Admin")
+        .map((role) => ({
+          label: getRoleDisplay(role.name || "", t) || t("auth.unknown"),
+          value: role.id,
+        })) 
+    : [];
 
   const currentRoleIds = user?.roles?.map(roleName => {
     const found = Array.isArray(rolesList) ? rolesList.find((r) => r.name === roleName) : null;

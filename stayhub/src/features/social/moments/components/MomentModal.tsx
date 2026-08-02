@@ -74,8 +74,6 @@ export const MomentModal: React.FC<MomentModalProps> = ({
       await reportContent('Moment', moment.id, reportReason as any, reportDetails.trim() || undefined);
       success("Report submitted successfully");
       setIsReportModalOpen(false);
-      onReportSuccess?.(moment.id);
-      onClose(); // đóng modal chi tiết để bài ẩn đi
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Failed to submit report.";
       error(msg);

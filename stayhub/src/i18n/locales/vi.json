@@ -322,7 +322,8 @@
   },
   "social": {
     "memberAdded": "Thành viên mới được thêm vào nhóm:",
-    "personalMoment": "Cá nhân (Ngoài Tour)"
+    "personalMoment": "Cá nhân (Ngoài Tour)",
+    "roomMembers": "Thành viên nhóm"
   },
   "voucher": {
     "saveSuccess": "Voucher {{code}} đã được lưu vào ví.",

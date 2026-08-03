@@ -96,8 +96,8 @@ export default function NotificationBell() {
   const mappedFriendRequests: NotificationWithMeta[] = (pendingRequests ?? []).map((req: any) => ({
     id: -req.id, // ID âm để tránh trùng lặp
     userId: 0,
-    title: "Lời mời kết bạn mới",
-    content: `${req.senderName || "Ai đó"} đã gửi lời mời kết bạn cho bạn.`,
+    title: t("social.newFriendRequest", "Lời mời kết bạn mới"),
+    content: `${req.senderName || t("common.user", "Người dùng")} ${t("header.sentYouRequest", "đã gửi lời mời kết bạn").toLowerCase()}`,
     isRead: false,
     createdAt: req.createdAt || new Date().toISOString(),
     type: "friend_request",
@@ -186,7 +186,7 @@ export default function NotificationBell() {
                             <DynamicText text={noti.title} />
                           </h4>
                         </div>
-                        <p className={`line-clamp-2 text-[13px] leading-relaxed ${!noti.isRead ? "font-medium text-slate-700" : "text-slate-500"}`}>
+                        <p className={`text-[13px] leading-relaxed ${!noti.isRead ? "font-medium text-slate-700" : "text-slate-500"}`}>
                           <DynamicText text={noti.content} />
                         </p>
                         <span className="mt-1.5 block text-[11px] font-medium text-slate-400">

@@ -321,7 +321,8 @@
   },
   "social": {
     "memberAdded": "New member joined the group:",
-    "personalMoment": "Personal (Outside Tour)"
+    "personalMoment": "Personal (Outside Tour)",
+    "roomMembers": "Room Members"
   },
   "voucher": {
     "saveSuccess": "Voucher {{code}} saved to your wallet.",

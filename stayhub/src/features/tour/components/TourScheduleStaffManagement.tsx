@@ -460,7 +460,7 @@ export const TourScheduleStaffManagement: React.FC<
                   {isRemoving ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    t("tour.confirmRemove")
+                    t("common.confirm")
                   )}
                 </button>
               </div>

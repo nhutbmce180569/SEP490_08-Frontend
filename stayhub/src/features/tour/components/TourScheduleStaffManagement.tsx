@@ -74,22 +74,14 @@ export const TourScheduleStaffManagement: React.FC<
       );
 
       if (combinedRoles.length > 0) {
-        return (
-          combinedRoles.includes("STAFF") ||
-          combinedRoles.includes("MANAGER") ||
-          combinedRoles.includes("ADMIN")
-        );
+        return combinedRoles.includes("STAFF");
       }
 
       const roleIds = Array.isArray(user.roleIds)
         ? user.roleIds.map(String)
         : [];
       if (roleIds.length > 0) {
-        return (
-          roleIds.includes("1") ||
-          roleIds.includes("2") ||
-          roleIds.includes("3")
-        );
+        return roleIds.includes("3");
       }
 
       return false;
@@ -289,8 +281,8 @@ export const TourScheduleStaffManagement: React.FC<
       {/* ========== ASSIGN MODAL ========== */}
       {!isReadOnly && showAssignModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[500] p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white z-10">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-visible">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-2xl">
               <h3 className="text-lg font-bold text-slate-900">
                 {t("tour.assignStaffModalTitle")}
               </h3>

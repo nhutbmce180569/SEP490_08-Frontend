@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocale } from "../contexts/LocaleContext";
+import { FULL_API } from "../config/api/api";
 
 // Simple in-memory cache to avoid re-fetching the same string during the session
 const translationCache = new Map<string, string>();
@@ -49,17 +50,7 @@ export function useDynamicTranslation(text: string | undefined | null, isHtml: b
       const translate = async () => {
         setIsLoading(true);
         try {
-          const apiKey = import.meta.env.VITE_DEEPL_KEY;
-          if (!apiKey) {
-            console.warn("VITE_DEEPL_KEY is not defined");
-            setTranslatedText(text);
-            return;
-          }
-          
-          const isFree = apiKey.endsWith(":fx");
-          const url = isFree 
-            ? "/deepl-api/v2/translate" 
-            : "/deepl-api-pro/v2/translate";
+          const url = `${FULL_API}/translation/translate`;
           
           const params: any = {
             text: [text],
@@ -73,7 +64,6 @@ export function useDynamicTranslation(text: string | undefined | null, isHtml: b
           const response = await fetch(url, {
             method: "POST",
             headers: {
-              "Authorization": `DeepL-Auth-Key ${apiKey}`,
               "Content-Type": "application/json"
             },
             body: JSON.stringify(params),

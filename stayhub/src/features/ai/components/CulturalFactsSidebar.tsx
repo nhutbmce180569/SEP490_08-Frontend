@@ -2,6 +2,7 @@ import React from "react";
 import { BookOpen, ExternalLink } from "lucide-react";
 import type { CulturalFact } from "../types/tourAssistant";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   facts: CulturalFact[];
@@ -25,7 +26,7 @@ export const CulturalFactsSidebar: React.FC<Props> = ({ facts }) => {
             className="border-b border-slate-100 pb-4 last:border-0 last:pb-0"
           >
             <p className="mb-2 text-sm font-medium leading-relaxed text-slate-700">
-              {fact.fact}
+              <DynamicText text={fact.fact} />
             </p>
             <div className="flex flex-wrap items-center gap-2">
               {fact.authorityLevel && (

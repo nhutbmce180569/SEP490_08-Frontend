@@ -372,6 +372,10 @@
     "recommendFailed": "Unable to get tour recommendations."
   },
   "onboarding": {
+    "btnStart": "Start now",
+    "btnSkip": "Skip",
+    "btnNext": "Next",
+    "btnBack": "Back",
     "step1Title": "Welcome to StayHub!",
     "step1Desc": "Let's explore some key features to give you the best experience.",
     "step2Title": "Search & Book Tours",

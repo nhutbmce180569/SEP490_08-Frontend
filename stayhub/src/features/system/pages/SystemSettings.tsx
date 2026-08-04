@@ -7,6 +7,8 @@ import ReactQuill from "react-quill-new";
 import { Save, Image as ImageIcon, Briefcase, FileText } from "lucide-react";
 import { LoadingOverlay } from "../../../components/dashboard/LoadingOverlay";
 import { getImg } from "../../../config/api/api";
+import { LogoCropModal } from "../../../components/profile/LogoCropModal";
+import { StayHubLogo } from "../../../components/brand/StayHubLogo";
 
 export const SystemSettings: React.FC = () => {
   const { t } = useTranslation();
@@ -22,6 +24,10 @@ export const SystemSettings: React.FC = () => {
   const [webVideoLogoFile, setWebVideoLogoFile] = useState<File | null>(null);
   const [webLogoPreview, setWebLogoPreview] = useState<string>("");
   const [webVideoLogoPreview, setWebVideoLogoPreview] = useState<string>("");
+
+  // Crop states
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
   useEffect(() => {
     if (settings.length > 0) {
@@ -75,12 +81,29 @@ export const SystemSettings: React.FC = () => {
     }
 
     if (type === "web") {
-      setWebLogoFile(file);
-      setWebLogoPreview(URL.createObjectURL(file));
+      const url = URL.createObjectURL(file);
+      setCropImageSrc(url);
+      setCropModalOpen(true);
     } else if (type === "webVideo") {
-      setWebVideoLogoFile(file);
-      setWebVideoLogoPreview(URL.createObjectURL(file));
+      const videoElement = document.createElement("video");
+      videoElement.preload = "metadata";
+      videoElement.onloadedmetadata = () => {
+        URL.revokeObjectURL(videoElement.src);
+        if (videoElement.duration > 10) {
+          showError("Video giới hạn tối đa 10 giây");
+          return;
+        }
+        setWebVideoLogoFile(file);
+        setWebVideoLogoPreview(URL.createObjectURL(file));
+      };
+      videoElement.src = URL.createObjectURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedFile: File, croppedUrl: string) => {
+    setWebLogoFile(croppedFile);
+    setWebLogoPreview(croppedUrl);
+    setCropModalOpen(false);
   };
 
   const handleSubmit = async () => {
@@ -162,6 +185,26 @@ export const SystemSettings: React.FC = () => {
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
         {activeTab === "branding" && (
           <div className="space-y-8">
+            <div className="mb-6 p-4 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-slate-800">{t("admin.logoSidebarPreview")}</h3>
+                <p className="text-sm text-slate-500">{t("admin.logoSidebarPreviewDesc")}</p>
+              </div>
+              <div className="h-16 flex items-center border border-slate-200 bg-white px-6 rounded-xl shadow-sm">
+                <img
+                  src={webLogoPreview || (settings.find(s => s.settingKey === "WebLogo")?.settingValue ? getImg(settings.find(s => s.settingKey === "WebLogo")!.settingValue) : "")}
+                  alt="StayHub"
+                  aria-hidden
+                  className="h-10 w-auto shrink-0 object-contain md:h-11"
+                  style={{
+                    width: formData["WebLogoWidth"] ? `${formData["WebLogoWidth"]}px` : undefined,
+                    height: formData["WebLogoHeight"] ? `${formData["WebLogoHeight"]}px` : undefined,
+                  }}
+                  draggable={false}
+                />
+              </div>
+            </div>
+
             <div className="grid gap-6 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">{t("admin.webLogo")}</label>
@@ -186,15 +229,38 @@ export const SystemSettings: React.FC = () => {
                     {webLogoFile ? webLogoFile.name : t("common.noFileChosen")}
                   </span>
                 </div>
+                
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-slate-500">{t("admin.widthPx")}</label>
+                    <input
+                      type="number"
+                      value={formData["WebLogoWidth"] || ""}
+                      onChange={(e) => handleTextChange("WebLogoWidth", e.target.value)}
+                      placeholder={t("admin.widthPlaceholder")}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm outline-none transition-colors focus:border-brand"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-2 block text-xs font-semibold text-slate-500">{t("admin.heightPx")}</label>
+                    <input
+                      type="number"
+                      value={formData["WebLogoHeight"] || ""}
+                      onChange={(e) => handleTextChange("WebLogoHeight", e.target.value)}
+                      placeholder={t("admin.heightPlaceholder")}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-2 text-sm outline-none transition-colors focus:border-brand"
+                    />
+                  </div>
+                </div>
               </div>
               
               <div>
-                <label className="mb-2 block text-sm font-semibold text-slate-700">Logo Video Header (Web)</label>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">{t("admin.videoLogoHeader")}</label>
                 <div className="mb-4 flex h-32 w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
                   {webVideoLogoPreview ? (
                     <video src={webVideoLogoPreview} autoPlay loop muted className="max-h-full object-contain" />
                   ) : (
-                    <span className="text-sm text-slate-400">Chưa có video logo</span>
+                    <span className="text-sm text-slate-400">{t("admin.noVideoLogo")}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-4">
@@ -210,6 +276,19 @@ export const SystemSettings: React.FC = () => {
                   <span className="text-sm text-slate-500 max-w-[200px] truncate">
                     {webVideoLogoFile ? webVideoLogoFile.name : t("common.noFileChosen")}
                   </span>
+                  {(webVideoLogoPreview || webVideoLogoFile) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWebVideoLogoFile(null);
+                        setWebVideoLogoPreview("");
+                        setFormData((prev) => ({ ...prev, WebVideoLogo: "" }));
+                      }}
+                      className="ml-auto text-sm font-semibold text-red-500 hover:underline"
+                    >
+                      {t("common.delete")}
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -223,6 +302,7 @@ export const SystemSettings: React.FC = () => {
               { key: "CompanyPhone", label: t("admin.companyPhone") },
               { key: "CompanyEmail", label: t("admin.companyEmail") },
               { key: "CompanyAddress", label: t("admin.companyAddress") },
+              { key: "ApkDownloadLink", label: t("admin.apkDownloadLink") },
             ].map((field) => (
               <div key={field.key}>
                 <label className="mb-1.5 block text-sm font-semibold text-slate-700">{field.label}</label>
@@ -299,6 +379,15 @@ export const SystemSettings: React.FC = () => {
         )}
       </div>
       <LoadingOverlay isOpen={isSaving} message={t("common.saving")} />
+
+      {cropModalOpen && cropImageSrc && (
+        <LogoCropModal
+          isOpen={cropModalOpen}
+          imageSrc={cropImageSrc}
+          onClose={() => setCropModalOpen(false)}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </div>
   );
 };

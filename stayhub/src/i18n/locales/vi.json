@@ -373,6 +373,10 @@
     "recommendFailed": "Không thể lấy gợi ý tour."
   },
   "onboarding": {
+    "btnStart": "Bắt đầu ngay",
+    "btnSkip": "Bỏ qua",
+    "btnNext": "Tiếp theo",
+    "btnBack": "Quay lại",
     "step1Title": "Chào mừng bạn đến với StayHub!",
     "step1Desc": "Cùng khám phá một vài tính năng chính để bạn có trải nghiệm tốt nhất nhé.",
     "step2Title": "Tìm kiếm & Đặt tour",

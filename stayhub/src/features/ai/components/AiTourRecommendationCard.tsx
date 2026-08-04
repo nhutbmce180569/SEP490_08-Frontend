@@ -138,16 +138,16 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             </h3>
           </Link>
 
-          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-600">{whySummary}</p>
+          <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-slate-600"><DynamicText text={whySummary} /></p>
 
           {compactTags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">
               {compactTags.map((label) => (
                 <span
                   key={label}
-                  className="rounded-md bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand"
+                  className="rounded-md bg-brand-light px-2 py-0.5 text-[10px] font-bold text-brand truncate max-w-[160px] inline-block align-bottom"
                 >
-                  {label.length > 28 ? `${label.slice(0, 28)}…` : label}
+                  <DynamicText text={label} />
                 </span>
               ))}
             </div>
@@ -157,7 +157,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             <p className="mt-2 flex items-center gap-1 text-[11px] text-slate-500">
               <CalendarDays size={12} className="shrink-0 text-brand" />
               <span className="line-clamp-1">
-                {tour.scheduleNote ?? formatDeparture(tour.nextDeparture, locale)}
+                {tour.scheduleNote ? <DynamicText text={tour.scheduleNote} /> : formatDeparture(tour.nextDeparture, locale)}
               </span>
             </p>
           )}
@@ -254,10 +254,10 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               {compactTags.map((label) => (
                 <span
                   key={label}
-                  className="rounded px-1.5 py-0.5 text-[9px] font-bold text-brand"
+                  className="rounded px-1.5 py-0.5 text-[9px] font-bold text-brand truncate max-w-[160px] inline-block align-bottom"
                   style={{ background: "var(--color-brand-light)" }}
                 >
-                  {label.length > 32 ? `${label.slice(0, 32)}…` : label}
+                  <DynamicText text={label} />
                 </span>
               ))}
             </div>
@@ -273,7 +273,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
               )}
               {(tour.scheduleNote || tour.nextDeparture) && (
                 <p className="mt-0.5 line-clamp-1 text-[9px]">
-                  {tour.scheduleNote ?? formatDeparture(tour.nextDeparture, locale)}
+                  {tour.scheduleNote ? <DynamicText text={tour.scheduleNote} /> : formatDeparture(tour.nextDeparture, locale)}
                 </p>
               )}
               {tour.destinationWeather && (
@@ -400,14 +400,14 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
             {fullTags.map((label) => (
               <span
                 key={label}
-                className="rounded-lg px-2.5 py-1 text-[10px] font-bold"
+                className="rounded-lg px-2.5 py-1 text-[10px] font-bold truncate max-w-[200px] inline-block align-bottom"
                 style={{
                   background: "var(--color-brand-light)",
                   color: "var(--color-brand)",
                   border: "1px solid rgba(235,102,43,0.15)",
                 }}
               >
-                {label.length > 48 ? `${label.slice(0, 48)}…` : label}
+                <DynamicText text={label} />
               </span>
             ))}
           </div>
@@ -416,7 +416,7 @@ export const AiTourRecommendationCard: React.FC<Props> = ({
         {(tour.scheduleNote || tour.nextDeparture) && (
           <div className="mb-3 flex items-start gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
             <CalendarDays size={14} className="mt-0.5 shrink-0 text-brand" />
-            <span>{tour.scheduleNote ?? formatDeparture(tour.nextDeparture, locale)}</span>
+            <span>{tour.scheduleNote ? <DynamicText text={tour.scheduleNote} /> : formatDeparture(tour.nextDeparture, locale)}</span>
           </div>
         )}
 

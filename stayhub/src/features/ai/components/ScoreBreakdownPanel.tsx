@@ -2,6 +2,7 @@ import React from "react";
 import type { TourScoreBreakdown } from "../types/tourAssistant";
 import { formatDimensionKey, formatMatchPercent, formatPersonaKey } from "../utils/formatters";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   breakdown: TourScoreBreakdown;
@@ -89,7 +90,7 @@ const BarRow: React.FC<{ label: string; value: number; color?: string }> = ({
 }) => (
   <div>
     <div className="flex justify-between text-xs font-bold text-slate-600 mb-1">
-      <span>{label}</span>
+      <span><DynamicText text={label} /></span>
       <span>{formatMatchPercent(value)}</span>
     </div>
     <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(5,7,60,0.06)" }}>

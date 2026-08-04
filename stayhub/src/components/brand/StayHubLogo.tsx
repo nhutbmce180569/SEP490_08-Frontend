@@ -22,7 +22,13 @@ export function StayHubLogo({
 }: StayHubLogoProps) {
   const { getSetting } = useSystemSettings();
   const webLogoUrl = getSetting("WebLogo");
+  const webLogoWidth = getSetting("WebLogoWidth");
+  const webLogoHeight = getSetting("WebLogoHeight");
   const actualLogoSrc = webLogoUrl ? getImg(webLogoUrl) : logoIcon;
+
+  const customStyles: React.CSSProperties = {};
+  if (webLogoWidth) customStyles.width = `${webLogoWidth}px`;
+  if (webLogoHeight) customStyles.height = `${webLogoHeight}px`;
 
   const wordmarkClass =
     theme === "light"
@@ -36,8 +42,9 @@ export function StayHubLogo({
       <img
         src={actualLogoSrc}
         alt="StayHub"
-        className="h-9 w-9 object-contain drop-shadow-sm"
+        className="h-9 w-9 object-contain"
         draggable={false}
+        style={customStyles}
       />
     ) : (
       <span className="flex items-center gap-2.5">
@@ -45,10 +52,9 @@ export function StayHubLogo({
           src={actualLogoSrc}
           alt=""
           aria-hidden
-          className={`h-10 w-10 shrink-0 object-contain md:h-11 md:w-11 ${
-            theme === "light" ? "drop-shadow-md" : "drop-shadow-sm"
-          }`}
+          className="h-10 w-auto max-w-[250px] shrink-0 object-contain md:h-11"
           draggable={false}
+          style={customStyles}
         />
         {!webLogoUrl && (
           <span className={wordmarkClass}>

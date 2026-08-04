@@ -1,4 +1,12 @@
 {
+  "mobileDetector": {
+    "title": "Better experience on the App",
+    "description": "We noticed you are accessing via a mobile phone. For a smoother and more feature-rich experience, please download our StayHub app.",
+    "downloadAndroid": "Download Android App (In Development)",
+    "downloadIos": "Download iOS App (In Development)",
+    "downloadApk": "Download StayHub APK",
+    "continueWeb": "Continue using web version (Not recommended)"
+  },
   "cancel": "Cancel",
   "confirm": "Confirm",
   "save": "Save",

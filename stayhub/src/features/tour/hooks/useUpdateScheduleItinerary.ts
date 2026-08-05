@@ -11,13 +11,15 @@ export const useUpdateScheduleItinerary = () => {
   const navigate = useNavigate();
   const { success, error: showError } = useToast();
 
-  const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById } = useTourSchedule();
+  const { currentSchedule: schedule, isLoading: isScheduleLoading, fetchScheduleById, checkScheduleHasOrders } = useTourSchedule();
+  const [hasPaidOrders, setHasPaidOrders] = useState(false);
 
   useEffect(() => {
     if (scheduleId) {
       fetchScheduleById(scheduleId);
+      checkScheduleHasOrders(scheduleId).then(setHasPaidOrders);
     }
-  }, [scheduleId, fetchScheduleById]);
+  }, [scheduleId, fetchScheduleById, checkScheduleHasOrders]);
 
   const [itinerary, setItinerary] = useState<TourScheduleItinerary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -120,5 +122,6 @@ export const useUpdateScheduleItinerary = () => {
     handleCancel,
     isSubmitting,
     serverErrors,
+    hasPaidOrders,
   };
 };

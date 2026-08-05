@@ -58,8 +58,10 @@ export const TourScheduleDetail: React.FC = () => {
     isLoading,
     error,
     fetchScheduleById,
+    checkScheduleHasOrders,
   } = useTourSchedule();
 
+  const [hasPaidOrders, setHasPaidOrders] = React.useState(false);
   const [tickets, setTickets] = React.useState<TourScheduleTicket[]>([]);
   const [scheduleItineraries, setScheduleItineraries] = React.useState<TourScheduleItinerary[]>([]);
   const [ticketTypeDetails, setTicketTypeDetails] = React.useState<
@@ -152,12 +154,14 @@ export const TourScheduleDetail: React.FC = () => {
   React.useEffect(() => {
     if (!id) return;
 
-    void Promise.resolve().then(() => {
+    void Promise.resolve().then(async () => {
       fetchScheduleById(id);
       fetchTickets(id);
       fetchItineraries(id);
+      const hasOrders = await checkScheduleHasOrders(id);
+      setHasPaidOrders(hasOrders);
     });
-  }, [id, fetchScheduleById, fetchTickets, fetchItineraries]);
+  }, [id, fetchScheduleById, fetchTickets, fetchItineraries, checkScheduleHasOrders]);
 
   React.useEffect(() => {
     const tourismInfoIds = Array.from(
@@ -433,8 +437,16 @@ export const TourScheduleDetail: React.FC = () => {
                   {schedule.canEdit && (
                     <ActionButton
                       variant="primary"
-                      onClick={() => navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id))}
-                      className="gap-2 px-4 py-2 text-sm"
+                      onClick={() => {
+                        if (hasPaidOrders) {
+                          showError(t("tour.cannotAddItineraryHasOrders") || "Cannot add new itinerary items to a schedule that has paid orders.");
+                          return;
+                        }
+                        navigate(PATH.MANAGER.CREATE_SCHEDULE_ITINERARY(schedule.id));
+                      }}
+                      disabled={hasPaidOrders}
+                      title={hasPaidOrders ? (t("tour.cannotAddItineraryHasOrders") || "Cannot add new itinerary items to a schedule that has paid orders.") : ""}
+                      className={`gap-2 px-4 py-2 text-sm ${hasPaidOrders ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       <Plus className="h-4 w-4" />
                       {t("tour.createItinerary")}
@@ -556,8 +568,16 @@ export const TourScheduleDetail: React.FC = () => {
                                           </ActionButton>
                                           <ActionButton
                                             variant="warning"
-                                            onClick={() => setDeletingItineraryId(iti.id)}
-                                            className="h-7 w-7"
+                                            onClick={() => {
+                                              if (hasPaidOrders) {
+                                                showError(t("tour.cannotDeleteItineraryHasOrders") || "Cannot delete itinerary items from a schedule that has paid orders.");
+                                                return;
+                                              }
+                                              setDeletingItineraryId(iti.id);
+                                            }}
+                                            disabled={hasPaidOrders}
+                                            title={hasPaidOrders ? (t("tour.cannotDeleteItineraryHasOrders") || "Cannot delete itinerary items from a schedule that has paid orders.") : ""}
+                                            className={`h-7 w-7 ${hasPaidOrders ? "opacity-50 cursor-not-allowed" : ""}`}
                                           >
                                             <Trash2 className="h-3 w-3" />
                                           </ActionButton>

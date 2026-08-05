@@ -238,12 +238,13 @@ export const UpdateScheduleTicket: React.FC = () => {
             <div className="relative">
               <Ticket className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <select
+                disabled
                 value={ticketTypeId}
                 onChange={(event) => {
                   setTicketTypeId(event.target.value);
                   setFormError(null);
                 }}
-                className="w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
+                className="w-full appearance-none cursor-not-allowed opacity-80 rounded-xl border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-500 outline-none transition-colors"
               >
                 <option value="">{t("tour.selectTicketType")}</option>
                 {ticketTypes.map((ticketType) => (
@@ -314,6 +315,14 @@ export const UpdateScheduleTicket: React.FC = () => {
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white"
                 />
               </div>
+              {ticket && (
+                <div className="mt-1.5 text-xs font-medium text-slate-500">
+                  {t("tour.ticketsSoldNote", { 
+                    sold: ticket.soldQuantity || 0,
+                    available: Math.max(0, (Number(quantity) || 0) - (ticket.soldQuantity || 0))
+                  })}
+                </div>
+              )}
             </div>
           </div>
 

@@ -363,7 +363,11 @@
     "statusRejected": "Bị từ chối",
     "unknownStatus": "Không xác định",
     "tourRoute": "Lộ trình tour",
-    "customerLocations": "Vị trí khách hàng"
+    "customerLocations": "Vị trí khách hàng",
+    "cannotAddItineraryHasOrders": "Không thể thêm lịch trình chi tiết mới vào lịch trình tour đã có đơn hàng thanh toán.",
+    "cannotDeleteItineraryHasOrders": "Không thể xóa lịch trình chi tiết khỏi lịch trình tour đã có đơn hàng thanh toán.",
+    "hasPaidOrdersItineraryUpdateWarning": "Do lịch trình này đã có đơn hàng thanh toán, bạn chỉ có thể cập nhật Thời gian bắt đầu và Thời gian kết thúc. Các thông tin cốt lõi khác không thể thay đổi.",
+    "ticketsSoldNote": "Đã bán: {{sold}} vé. Số vé còn lại (Available): {{available}}."
   },
   "ai": {
     "messageTooShort": "Tin nhắn phải có ít nhất 2 ký tự.",

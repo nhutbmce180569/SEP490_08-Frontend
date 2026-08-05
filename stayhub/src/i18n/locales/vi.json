@@ -123,7 +123,8 @@
     "viewProfile": "Xem trang cá nhân",
     "profileUpdated": "Cập nhật hồ sơ thành công!",
     "profileUpdateFailed": "Không thể cập nhật hồ sơ.",
-    "savingChanges": "Đang lưu thay đổi...",
+    "processingCancellation": "Đang xử lý hủy đơn hàng...",
+    "PendingCancellationExists": "Bạn đã có một yêu cầu hủy đang chờ xử lý cho đơn hàng này.",
     "userManagement": "Quản lý người dùng",
     "loadingUser": "Đang tải thông tin người dùng...",
     "userNotFound": "Không tìm thấy người dùng.",
@@ -195,7 +196,10 @@
     "satisfiedCustomers": "100k+ Khách Hài Lòng",
     "cannotEditAdmin": "Không thể thao tác trên Quản trị viên khác",
     "cannotEditCustomer": "Không thể chỉnh sửa tài khoản Khách hàng",
-    "InvalidProvider": "Email này đã được đăng ký bằng phương thức khác. Vui lòng chọn đúng phương thức đăng nhập."
+    "InvalidProvider": "Email này đã được đăng ký bằng phương thức khác. Vui lòng chọn đúng phương thức đăng nhập.",
+    "AccountInactiveOrInvalid": "Tài khoản không tồn tại hoặc đã bị khóa/chưa kích hoạt.",
+    "InvalidEmailOrPassword": "Email hoặc mật khẩu không hợp lệ. Bạn còn {{remaining}} lần thử.",
+    "AccountLocked": "Tài khoản đã bị khóa tạm thời do nhập sai quá nhiều lần. Vui lòng thử lại sau {{minutes}} phút."
   },
   "nav": {
     "profile": "Hồ sơ",

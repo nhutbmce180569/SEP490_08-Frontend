@@ -84,6 +84,16 @@ export const useLogin = () => {
       
       if (errorMessage === "InvalidProvider") {
         errorMessage = t("auth.InvalidProvider");
+      } else if (errorMessage === "AccountInactiveOrInvalid") {
+        errorMessage = t("auth.AccountInactiveOrInvalid");
+      } else if (errorMessage === "AccountLocked") {
+        const minutes = err.response?.data?.lockoutMinutes || 15;
+        errorMessage = t("auth.AccountLocked", { minutes });
+      } else if (errorMessage === "InvalidEmailOrPassword") {
+        const remaining = err.response?.data?.remainingAttempts;
+        if (remaining !== undefined) {
+          errorMessage = t("auth.InvalidEmailOrPassword", { remaining });
+        }
       }
 
       setServerError(errorMessage);

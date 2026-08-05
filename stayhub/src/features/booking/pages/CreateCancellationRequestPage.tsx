@@ -149,6 +149,10 @@ export const CreateCancellationRequestPage: React.FC = () => {
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;
+          
+      if (message === "PendingCancellationExists") {
+        message = t("booking.PendingCancellationExists");
+      }
       error(message || t("booking.cancellationSubmitFailed"));
     }
   };

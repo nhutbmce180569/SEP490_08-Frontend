@@ -194,7 +194,10 @@
     "satisfiedCustomers": "100k+ Satisfied Customers",
     "cannotEditAdmin": "Cannot modify other Admins",
     "cannotEditCustomer": "Cannot edit Customer accounts",
-    "InvalidProvider": "This email is registered with a different login method. Please select the correct login method."
+    "InvalidProvider": "This email is registered with a different login method. Please select the correct login method.",
+    "AccountInactiveOrInvalid": "Account does not exist or has been disabled/inactive.",
+    "InvalidEmailOrPassword": "Invalid email or password. You have {{remaining}} attempts left.",
+    "AccountLocked": "Account temporarily locked due to too many failed attempts. Please try again in {{minutes}} minutes."
   },
   "nav": {
     "profile": "Profile",

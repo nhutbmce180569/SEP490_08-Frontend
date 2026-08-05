@@ -186,6 +186,16 @@ export const useTourSchedule = () => {
     }
   };
 
+  const checkScheduleHasOrders = useCallback(async (id: string | number) => {
+    try {
+      const response = await tourScheduleService.checkScheduleHasOrders(id);
+      return response.hasOrders;
+    } catch (err: any) {
+      console.error("Failed to check if schedule has orders", err);
+      return false;
+    }
+  }, []);
+
   return {
     schedules,
     currentSchedule,
@@ -201,5 +211,6 @@ export const useTourSchedule = () => {
     deleteSchedule,
     reserveSeats,
     releaseSeats,
+    checkScheduleHasOrders,
   };
 };

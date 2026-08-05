@@ -365,7 +365,11 @@
     "statusRejected": "Rejected",
     "unknownStatus": "Unknown",
     "tourRoute": "Tour Route",
-    "customerLocations": "Customer Locations"
+    "customerLocations": "Customer Locations",
+    "cannotAddItineraryHasOrders": "Cannot add new itinerary items to a schedule that has paid orders.",
+    "cannotDeleteItineraryHasOrders": "Cannot delete itinerary items from a schedule that has paid orders.",
+    "hasPaidOrdersItineraryUpdateWarning": "Since there are paid orders for this schedule, you can only update the Start and End times of this itinerary. Core details cannot be changed.",
+    "ticketsSoldNote": "Sold: {{sold}} ticket(s). Available tickets: {{available}}."
   },
   "ai": {
     "messageTooShort": "Message must be at least 2 characters.",

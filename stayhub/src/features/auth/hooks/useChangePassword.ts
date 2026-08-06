@@ -21,10 +21,8 @@ export const useChangePassword = () => {
       const res = await changePassword(payload);
       const authData = res.data;
 
-      success(t("auth.passwordChangedSuccess", { defaultValue: "Password changed successfully! Please login again." }));
-      setTimeout(() => {
-        logout();
-      }, 1500);
+      sessionStorage.setItem("passwordChanged", "true");
+      logout();
 
       return true;
     } catch (err: unknown) {

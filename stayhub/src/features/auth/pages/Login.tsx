@@ -8,6 +8,7 @@ import { AuthLayout } from "../components/AuthLayout";
 import { AuthFormField } from "../components/AuthFormField";
 import { useTranslation } from "../../../contexts/LocaleContext";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { useToast } from "../../../contexts/ToastContext";
 import { PATH } from "../../../config/routes/route";
 import { getDashboardPath } from "../../../utils/jwt";
 
@@ -15,6 +16,7 @@ export default function Login() {
   const { t } = useTranslation();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { success } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -22,7 +24,15 @@ export default function Login() {
     }
   }, [user, navigate]);
 
-
+  useEffect(() => {
+    if (sessionStorage.getItem("passwordChanged") === "true") {
+      const timer = setTimeout(() => {
+        success(t("auth.passwordChangedSuccess", { defaultValue: "Password changed successfully! Please login again." }));
+        sessionStorage.removeItem("passwordChanged");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [success, t]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

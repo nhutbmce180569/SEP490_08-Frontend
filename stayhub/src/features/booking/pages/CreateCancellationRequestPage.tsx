@@ -145,7 +145,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
       success(t("booking.cancellationSubmitted"));
       navigate(CUSTOMER_ROUTES.MY_BOOKINGS);
     } catch (err: unknown) {
-      const message =
+      let message =
         err && typeof err === "object" && "response" in err
           ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
           : undefined;

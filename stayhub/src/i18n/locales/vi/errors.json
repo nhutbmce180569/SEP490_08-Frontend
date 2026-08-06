@@ -2,6 +2,7 @@
   "accessDenied": "Truy cập bị từ chối",
   "accessDeniedDesc": "Bạn không có quyền xem trang này. Liên hệ quản trị viên nếu bạn cho rằng đây là nhầm lẫn.",
   "passwordsNoMatch": "Mật khẩu không khớp!",
+  "newPasswordMustBeDifferent": "Mật khẩu mới không được trùng với mật khẩu cũ!",
   "createAccountTitle": "Tạo tài khoản",
   "createAccountSubtitle": "Điền thông tin bên dưới để tham gia StayHub.",
   "heroRegisterTitle": "Bắt đầu hành trình cùng chúng tôi.",

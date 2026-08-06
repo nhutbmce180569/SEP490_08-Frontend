@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { createOrder } from "../services/booking.service";
 import {
   cancelPayment,
@@ -25,6 +25,7 @@ export const useCreateBooking = () => {
   const [voucherCode, setVoucherCode] = useState("");
   const [isApplyingVoucher] = useState(false);
   const [appliedVoucher] = useState<{ code: string; discountAmount: number; finalAmount: number } | null>(null);
+  const idempotencyKeyRef = useRef<string | null>(null);
 
   const { error: showError } = useToast();
 
@@ -44,10 +45,39 @@ export const useCreateBooking = () => {
       return;
     }
 
+    if (!idempotencyKeyRef.current) {
+      idempotencyKeyRef.current = crypto.randomUUID();
+    }
+
     let createdOrderId: number | null = null;
     try {
       setIsSubmitting(true);
-      const order = await createOrder(data);
+      
+      let order: any = null;
+      let attempt = 0;
+      const maxAttempts = 3;
+
+      while (attempt < maxAttempts) {
+        attempt++;
+        try {
+          order = await createOrder(data, idempotencyKeyRef.current);
+          break;
+        } catch (error: unknown) {
+          const apiError = error as ApiError;
+          if (apiError.response?.status === 409) {
+            if (attempt >= maxAttempts) {
+              showError("Your booking is still processing. Please try again in a moment.");
+              return; // finally block will reset isSubmitting
+            }
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            continue;
+          }
+          throw error;
+        }
+      }
+
+      if (!order) return;
+
       createdOrderId = order.id;
       const paymentUrl = await createPayment(
         {
@@ -65,7 +95,16 @@ export const useCreateBooking = () => {
           // The provider callback or unpaid-order job may already have cancelled it.
         }
       }
+      
       const apiError = error as ApiError;
+      const isDefinitiveFailure = 
+        apiError.response?.status === 400 || 
+        apiError.response?.status === 422;
+
+      if (isDefinitiveFailure) {
+        idempotencyKeyRef.current = null;
+      }
+
       if (apiError.response?.status === 400 && apiError.response.data?.errors) {
         // Ném lỗi chứa thông tin validation để component cha có thể xử lý
         const validationError = new Error("Validation failed");

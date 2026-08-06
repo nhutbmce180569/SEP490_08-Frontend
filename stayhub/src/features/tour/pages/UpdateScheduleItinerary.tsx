@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Calendar, Type, FileText, MapPin, Map, AlertTriangle } from "lucide-react";
+import { Calendar, Type, FileText, MapPin, Map, AlertTriangle, Info } from "lucide-react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { DynamicForm, type FormField } from "../../../components/dashboard/DynamicForm";
@@ -25,6 +25,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
     handleCancel,
     isSubmitting,
     serverErrors,
+    hasPaidOrders,
   } = useUpdateScheduleItinerary();
   const [tourismInformationList, setTourismInformationList] = useState<TourismInformation[]>([]);
 
@@ -83,7 +84,8 @@ export const UpdateScheduleItinerary: React.FC = () => {
                 }
               }
             }}
-            className={`w-full rounded-xl border bg-slate-50 py-2.5 px-4 text-sm text-slate-700 outline-none transition-colors focus:bg-white ${error ? "border-rose-500 focus:border-rose-500 bg-rose-50/30" : "border-slate-200 focus:border-brand"}`}
+            disabled={hasPaidOrders}
+            className={`w-full rounded-xl border py-2.5 px-4 text-sm outline-none transition-colors ${hasPaidOrders ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : error ? "border-rose-500 focus:border-rose-500 bg-rose-50/30" : "bg-slate-50 border-slate-200 focus:border-brand focus:bg-white"}`}
           />
           {error && <span className="text-xs font-medium text-rose-500">{error}</span>}
         </div>
@@ -117,10 +119,10 @@ export const UpdateScheduleItinerary: React.FC = () => {
               <input
                 type="date"
                 required
-                disabled={isSynced}
+                disabled={isSynced || hasPaidOrders}
                 value={selectedDateStr}
                 onChange={(e) => onChange(e.target.value)}
-                className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors ${isSynced ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : error ? "bg-rose-50/30 border-rose-500" : "bg-slate-50 border-slate-200 focus:border-brand focus:bg-white"}`}
+                className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors ${(isSynced || hasPaidOrders) ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : error ? "bg-rose-50/30 border-rose-500" : "bg-slate-50 border-slate-200 focus:border-brand focus:bg-white"}`}
               />
             </div>
             {isSynced && (
@@ -165,6 +167,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
       placeholder: t("tour.itineraryTitlePlaceholder"),
       icon: <Type className="h-4 w-4" />,
       colSpan: 2,
+      readOnly: hasPaidOrders,
     },
     {
       name: "description",
@@ -177,12 +180,13 @@ export const UpdateScheduleItinerary: React.FC = () => {
           <div className="prose-sm max-w-none [&>.ql-toolbar]:rounded-t-xl [&>.ql-toolbar]:border-slate-200 [&>.ql-container]:rounded-b-xl [&>.ql-container]:border-slate-200">
             <ReactQuill
               theme="snow"
+              readOnly={hasPaidOrders}
               value={value || ""}
               onChange={onChange}
               placeholder={t("tour.updateItineraryDesc")}
-              className={error ? "[&>.ql-container]:!border-rose-500" : ""}
+              className={`${error ? "[&>.ql-container]:!border-rose-500" : ""} ${hasPaidOrders ? "opacity-70 bg-slate-50" : ""}`}
               modules={{
-                toolbar: [
+                toolbar: hasPaidOrders ? false : [
                   [{ 'header': [1, 2, 3, false] }],
                   ['bold', 'italic', 'underline', 'strike', 'blockquote'],
                   [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
@@ -243,7 +247,9 @@ export const UpdateScheduleItinerary: React.FC = () => {
           items={tourismInformationList}
           value={value === "" || value === null || value === undefined ? null : Number(value)}
           error={error}
+          disabled={hasPaidOrders}
           onChange={(selectedTourismInfo) => {
+            if (hasPaidOrders) return;
             const nextValue = selectedTourismInfo?.id ?? null;
             onChange(nextValue);
 
@@ -273,6 +279,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
               <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-emerald-500" />
               <input
                 type="text"
+                disabled={hasPaidOrders}
                 onChange={(e) => {
                   const locationName = e.target.value;
                   onChange(locationName);
@@ -285,7 +292,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
                     }));
                   }
                 }}
-                className={`w-full rounded-xl border bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-brand focus:bg-white ${(error || formData?.serverErrors?.locationLat || formData?.serverErrors?.locationLng || formData?.serverErrors?.LocationLat || formData?.serverErrors?.LocationLng) ? "border-rose-500 bg-rose-50/30" : "border-slate-200"}`}
+                className={`w-full rounded-xl border py-2.5 pl-10 pr-4 text-sm outline-none transition-colors ${hasPaidOrders ? "bg-slate-100 text-slate-500 cursor-not-allowed border-slate-200" : (error || formData?.serverErrors?.locationLat || formData?.serverErrors?.locationLng || formData?.serverErrors?.LocationLat || formData?.serverErrors?.LocationLng) ? "border-rose-500 bg-rose-50/30 text-slate-700" : "bg-slate-50 border-slate-200 focus:border-brand focus:bg-white text-slate-700"}`}
                 placeholder={t("tour.typeNameOrPickMap")}
                 value={value || ""}
               />
@@ -293,8 +300,9 @@ export const UpdateScheduleItinerary: React.FC = () => {
             <ActionButton
               type="button"
               variant="secondary"
-              onClick={() => setFormData && formData && openMapModal(setFormData, formData)}
-              className="gap-2 px-4 py-2 text-sm font-semibold text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100 shrink-0"
+              disabled={hasPaidOrders}
+              onClick={() => setFormData && formData && !hasPaidOrders && openMapModal(setFormData, formData)}
+              className={`gap-2 px-4 py-2 text-sm font-semibold shrink-0 ${hasPaidOrders ? "text-slate-400 bg-slate-100 border-slate-200 cursor-not-allowed" : "text-indigo-600 bg-indigo-50 border-indigo-100 hover:bg-indigo-100"}`}
             >
               <Map className="h-4 w-4" /> {t("tour.pickLocationOnMap")}
             </ActionButton>
@@ -303,7 +311,7 @@ export const UpdateScheduleItinerary: React.FC = () => {
         </div>
       )
     },
-  ], [t, schedule, itinerary, tourismInformationList]);
+  ], [t, schedule, itinerary, tourismInformationList, hasPaidOrders]);
 
   if (!scheduleId) {
     return <div className="p-10 text-center text-rose-500">{t("tour.scheduleIdMissing")}</div>;
@@ -319,6 +327,14 @@ export const UpdateScheduleItinerary: React.FC = () => {
 
   return (
     <>
+      {hasPaidOrders && (
+        <div className="mx-auto max-w-4xl mb-4 flex items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-800">
+          <Info className="h-5 w-5 shrink-0 text-blue-500" />
+          <p>
+            {t("tour.hasPaidOrdersItineraryUpdateWarning") || "Since there are paid orders for this schedule, you can only update the Start and End times of this itinerary. Core details cannot be changed."}
+          </p>
+        </div>
+      )}
       <DynamicForm
         title={t("tour.editScheduleItinerary", { day: itinerary.dayNumber })}
         description={t("tour.modifyScheduleItinerary", { id: scheduleId })}

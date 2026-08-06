@@ -12,6 +12,7 @@ export interface ImageCropModalProps {
   onCropComplete: (croppedFile: File, croppedUrl: string) => void;
   aspect?: number;
   cropShape?: 'round' | 'rect';
+  freeAspect?: boolean;
 }
 
 export const ImageCropModal: React.FC<ImageCropModalProps> = ({
@@ -21,6 +22,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
   onCropComplete,
   aspect = 1,
   cropShape = 'round',
+  freeAspect = false,
 }) => {
   const { t } = useTranslation();
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -90,7 +92,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={aspect}
+            aspect={freeAspect ? undefined : aspect}
             cropShape={cropShape}
             showGrid={false}
             onCropChange={setCrop}

@@ -74,14 +74,90 @@ const extractList = (raw: any): any[] => {
   return [];
 };
 
+const getStoredUserId = (): number | null => {
+  try {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      const parsed = JSON.parse(userStr);
+      const id = parsed.id ?? parsed.Id;
+      if (id) return Number(id);
+    }
+  } catch (e) {
+    console.error("Failed to parse user for ID:", e);
+  }
+  return null;
+};
+
 export const getMomentFeed = async (
   scheduleId: number | null,
   skip: number = 0,
   top: number = 5
 ): Promise<Moment[]> => {
+  if (scheduleId && scheduleId > 0) {
+    const raw: any = await apiClient.get<any>(
+      `${MOMENT_API_URL}?scheduleId=${scheduleId}&$skip=${skip}&$top=${top}`
+    );
+    return extractList(raw).map(mapMoment);
+  }
+
+  // All Trips: Two-Track Priority Loading
+  const myUserId = getStoredUserId();
+  const promises: Promise<any>[] = [
+    apiClient.get<any>(`${MOMENT_API_URL}?$skip=${skip}&$top=${top}`) // Social Track
+  ];
+  if (myUserId) {
+    promises.push(apiClient.get<any>(`${MOMENT_API_URL}/user/${myUserId}`)); // My Track
+  }
+
+  try {
+    const results = await Promise.all(promises);
+    const socialRaw = results[0];
+    const mineRaw = results[1] ? results[1] : null;
+
+    const socialList = extractList(socialRaw).map(mapMoment);
+    const mineList = mineRaw ? extractList(mineRaw).map(mapMoment).filter(m => m.lat != null && m.lng != null) : [];
+
+    // Deduplicate and merge (My moments first)
+    const seenIds = new Set<number>();
+    const merged: Moment[] = [];
+    
+    mineList.forEach(m => {
+      const id = m.id ?? m.Id;
+      if (id && !seenIds.has(id)) {
+        seenIds.add(id);
+        merged.push(m);
+      }
+    });
+
+    socialList.forEach(m => {
+      const id = m.id ?? m.Id;
+      if (id && !seenIds.has(id)) {
+        seenIds.add(id);
+        merged.push(m);
+      }
+    });
+
+    return merged;
+  } catch (e) {
+    console.error("Failed in two-track loading, falling back to standard:", e);
+    const raw: any = await apiClient.get<any>(
+      `${MOMENT_API_URL}?$skip=${skip}&$top=${top}`
+    );
+    return extractList(raw).map(mapMoment);
+  }
+};
+
+export const getMomentsInBounds = async (
+  minLat: number,
+  maxLat: number,
+  minLng: number,
+  maxLng: number,
+  scheduleId?: number | null,
+  top: number = 100
+): Promise<Moment[]> => {
   const scheduleQuery = scheduleId ? `scheduleId=${scheduleId}&` : "";
   const raw: any = await apiClient.get<any>(
-    `${MOMENT_API_URL}?${scheduleQuery}$skip=${skip}&$top=${top}`
+    `${MOMENT_API_URL}?${scheduleQuery}minLat=${minLat}&maxLat=${maxLat}&minLng=${minLng}&maxLng=${maxLng}&$skip=0&$top=${top}`
   );
   return extractList(raw).map(mapMoment);
 };

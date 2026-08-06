@@ -5,6 +5,7 @@ import useSupercluster from "use-supercluster";
 import { Users, X, Camera, Layers, Navigation, Compass, MapPin, Play, Pause, SkipForward, SkipBack, History, Flame, Film, HelpCircle, ChevronDown, Sparkles } from "lucide-react";
 import type { Moment } from "../types/moment.type";
 import { useGetMomentFeed, useGetMyFootprints, useGetHeatmap } from "../hooks/useMoments";
+import { getMomentsInBounds } from "../services/momentService";
 import { useGetScheduleLiveLocations, useGetTourRouteData } from "../../tracking/hooks/useScheduleTracking";
 import { MomentCard } from "./MomentCard";
 import * as signalR from '@microsoft/signalr';
@@ -57,6 +58,15 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
   const { data: footprints } = useGetMyFootprints(scheduleId);
   const { data: routeData, isLoading: isRouteLoading } = useGetTourRouteData(scheduleId);
   const { data: scheduleLocations } = useGetScheduleLiveLocations(scheduleId ?? 0);
+
+  const [activeMomentsList, setActiveMomentsList] = useState<Moment[]>([]);
+  const lastViewportSignatureRef = useRef<string>("");
+
+  useEffect(() => {
+    if (moments) {
+      setActiveMomentsList(moments);
+    }
+  }, [moments]);
 
   const mapRef = useRef<MapRef | null>(null);
   const [viewState, setViewState] = useState({
@@ -139,6 +149,32 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     const hour = new Date().getHours();
     setIsNightMode(hour < 6 || hour > 18);
   }, [footprints]);
+
+  useEffect(() => {
+    if (!isMapReady || !bounds || viewState.zoom < 8) return;
+
+    const [minLng, minLat, maxLng, maxLat] = bounds;
+    const signature = `${minLat.toFixed(2)},${maxLat.toFixed(2)},${minLng.toFixed(2)},${maxLng.toFixed(2)}|${scheduleId}`;
+
+    if (signature === lastViewportSignatureRef.current) return;
+    lastViewportSignatureRef.current = signature;
+
+    const timer = setTimeout(async () => {
+      try {
+        const viewportMoments = await getMomentsInBounds(minLat, maxLat, minLng, maxLng, scheduleId, 100);
+        setActiveMomentsList((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const newMoments = viewportMoments.filter((m) => m.id && !existingIds.has(m.id));
+          if (newMoments.length === 0) return prev;
+          return [...prev, ...newMoments];
+        });
+      } catch (err) {
+        console.error("Lỗi progressive viewport loading:", err);
+      }
+    }, 800); // 800ms debounce
+
+    return () => clearTimeout(timer);
+  }, [bounds, viewState.zoom, scheduleId, isMapReady]);
 
   // Trích xuất dữ liệu lộ trình
   const uniqueDays = useMemo(() => {
@@ -475,7 +511,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
     const events: any[] = [];
 
     // 1. Add moment posts as primary timeline events
-    const momentsArray = Array.isArray(moments) ? moments : ((moments as any)?.pages?.flat() || []);
+    const momentsArray = activeMomentsList;
     momentsArray.forEach((m: any) => {
       if (m.lat != null && m.lng != null && m.createdAt) {
         const uName = m.user?.fullName || m.User?.FullName || m.fullName || 'Someone';
@@ -515,7 +551,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
     events.sort((a, b) => a.time - b.time);
     return events;
-  }, [isSpecificTour, moments, tourStops]);
+  }, [isSpecificTour, activeMomentsList, tourStops]);
 
   // --- CARD DECK SHUFFLE & SWIPE GESTURES ---
   const [cardAnimDirection, setCardAnimDirection] = useState<'next' | 'prev'>('next');
@@ -895,8 +931,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
 
   // --- MOMENT POINTS ---
   const points = useMemo(() => {
-    if (!moments) return [];
-    const momentsArray = Array.isArray(moments) ? moments : ((moments as any).pages?.flat() || []);
+    const momentsArray = activeMomentsList;
     return momentsArray
       .filter((m: any) => m.lat != null && m.lng != null)
       .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -916,7 +951,7 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
           geometry: { type: "Point" as const, coordinates: [Number(m.lng || m.Lng), Number(m.lat || m.Lat)] },
         };
       });
-  }, [moments]);
+  }, [activeMomentsList]);
 
   // --- HEATMAP POINTS (tu LocationLogs, giong mobile) ---
   // Moi diem co weight = so lan di qua o luoi -> chuan hoa ve 0..1 cho mapbox.
@@ -1155,7 +1190,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                         <div className="relative z-10 flex items-center justify-center w-14 h-14 rounded-2xl border-[3px] border-white bg-white shadow-[0_8px_20px_rgba(0,0,0,0.15)] overflow-hidden">
                           <SafeImage src={cImageUrl} alt="Moment" className="w-full h-full object-cover" fallbackClassName="w-full h-full bg-slate-100 flex items-center justify-center text-lg font-bold text-slate-400" fallbackText={userInitial} />
                         </div>
-                        <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
+                        <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">
+                          {pointCount >= 100 ? "100+" : pointCount >= 10 ? "10+" : pointCount}
+                        </span>
                         <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-[3px] border-b-[3px] border-white shadow-[4px_4px_8px_rgba(0,0,0,0.1)] z-0"></div>
                       </div>
                     </Marker>
@@ -1165,7 +1202,9 @@ export const MomentsMapFeed: React.FC<MomentsMapFeedProps> = ({
                     <Marker key={`cluster-${cluster.id}`} longitude={longitude} latitude={latitude} anchor="center">
                       <div className="group relative flex items-center justify-center w-14 h-14 rounded-full shadow-[0_8px_20px_rgba(0,0,0,0.2)] border-[3px] border-white cursor-pointer transform transition-all duration-400 hover:scale-110 bg-gradient-to-br from-brand to-cyan-400" onClick={handleClusterClick}>
                         <Users className="w-6 h-6 text-white" />
-                        <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">{pointCount}</span>
+                        <span className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center !rounded-full bg-rose-500 text-xs font-bold text-white border-2 border-white shadow-md z-20">
+                          {pointCount >= 100 ? "100+" : pointCount >= 10 ? "10+" : pointCount}
+                        </span>
                         <div className="absolute inset-0 rounded-full border-[3px] border-white animate-ping opacity-30 group-hover:opacity-60 pointer-events-none"></div>
                       </div>
                     </Marker>

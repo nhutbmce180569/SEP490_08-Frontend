@@ -60,6 +60,8 @@ export const TOURS_API = {
     `${FULL_API}/TourSchedules/${id}/reserve`,
   RELEASE_SEATS: (id: string | number) =>
     `${FULL_API}/TourSchedules/${id}/release`,
+  CHECK_HAS_ORDERS: (id: string | number) =>
+    `${FULL_API}/orders/schedules/${id}/has-orders`,
   // These are now handled by tourSchedules.api.ts
   // Staff
   MANAGE_STAFF: (sId: string | number) => `${FULL_API}/schedules/${sId}/staff`,

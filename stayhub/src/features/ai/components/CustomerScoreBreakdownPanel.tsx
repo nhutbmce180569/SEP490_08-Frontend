@@ -2,6 +2,7 @@ import React from "react";
 import type { TourScoreBreakdown } from "../types/tourAssistant";
 import { formatDimensionKey, formatMatchPercent } from "../utils/formatters";
 import { useLocale, useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   breakdown: TourScoreBreakdown;
@@ -36,7 +37,7 @@ export const CustomerScoreBreakdownPanel: React.FC<Props> = ({ breakdown }) => {
         </p>
         {breakdown.overallExplanation && (
           <p className="mt-2 text-xs font-medium leading-relaxed text-slate-600">
-            {breakdown.overallExplanation}
+            <DynamicText text={breakdown.overallExplanation} />
           </p>
         )}
       </div>
@@ -72,7 +73,7 @@ const DimensionRow: React.FC<{
   return (
     <div className="rounded-xl bg-white p-3" style={{ border: "1px solid rgba(5,7,60,0.06)" }}>
       <div className="flex justify-between items-start gap-2 mb-1">
-        <span className="text-xs font-bold text-slate-700">{label}</span>
+        <span className="text-xs font-bold text-slate-700"><DynamicText text={label} /></span>
         <div className="text-right shrink-0">
           <span className="text-xs font-black" style={{ color: "var(--color-brand)" }}>
             {formatMatchPercent(score)}
@@ -91,7 +92,7 @@ const DimensionRow: React.FC<{
         />
       </div>
       {explanation && (
-        <p className="text-[11px] font-medium leading-relaxed text-slate-500">{explanation}</p>
+        <p className="text-[11px] font-medium leading-relaxed text-slate-500"><DynamicText text={explanation} /></p>
       )}
     </div>
   );

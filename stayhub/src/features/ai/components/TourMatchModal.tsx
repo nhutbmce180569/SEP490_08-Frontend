@@ -6,6 +6,7 @@ import { CustomerScoreBreakdownPanel } from "./CustomerScoreBreakdownPanel";
 import { TourWhyFitPanel } from "./TourWhyFitPanel";
 import { formatMatchPercent } from "../utils/formatters";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   tour: TourRecommendationItem | null;
@@ -47,7 +48,7 @@ export const TourMatchModal: React.FC<Props> = ({ tour, onClose }) => {
               <Sparkles size={14} />
               {t("ai.matchLabel", { percent: formatMatchPercent(tour.score) })}
             </p>
-            <h3 className="mt-1 line-clamp-2 text-base font-black text-navy">{tour.name}</h3>
+            <h3 className="mt-1 line-clamp-2 text-base font-black text-navy"><DynamicText text={tour.name} /></h3>
           </div>
           <button
             type="button"

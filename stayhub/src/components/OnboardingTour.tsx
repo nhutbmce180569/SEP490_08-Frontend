@@ -27,10 +27,10 @@ const OnboardingTour: React.FC = () => {
         const driverObj = driver({
             showProgress: true,
             allowClose: true,
-            doneBtnText: t('common.confirm', { defaultValue: 'Bắt đầu ngay' }),
-            closeBtnText: t('common.cancel', { defaultValue: 'Bỏ qua' }),
-            nextBtnText: t('common.next', { defaultValue: 'Tiếp theo' }),
-            prevBtnText: t('common.prev', { defaultValue: 'Quay lại' }),
+            doneBtnText: t('onboarding.btnStart', { defaultValue: 'Bắt đầu ngay' }),
+            closeBtnText: t('onboarding.btnSkip', { defaultValue: 'Bỏ qua' }),
+            nextBtnText: t('onboarding.btnNext', { defaultValue: 'Tiếp theo' }),
+            prevBtnText: t('onboarding.btnBack', { defaultValue: 'Quay lại' }),
             steps: [
                 {
                     popover: {

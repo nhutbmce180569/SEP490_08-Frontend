@@ -39,10 +39,15 @@ const unwrapApiResponse = <T>(response: unknown): T => {
   return unwrapApiResponse<T>(apiResponse.data);
 };
 
-export const createOrder = async (data: CreateOrderRequest) => {
+export const createOrder = async (data: CreateOrderRequest, idempotencyKey: string) => {
   const response: unknown = await apiClient.post(
     BOOKINGS_API.CREATE_ORDER,
     data,
+    {
+      headers: {
+        "Idempotency-Key": idempotencyKey,
+      },
+    }
   );
   const order = unwrapApiResponse<ReadOrderDTO>(response);
   if (!order || typeof order !== "object" || !("id" in order)) {

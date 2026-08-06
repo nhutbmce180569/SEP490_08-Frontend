@@ -1,4 +1,12 @@
 {
+  "mobileDetector": {
+    "title": "Trải nghiệm tốt hơn trên ứng dụng",
+    "description": "Hệ thống nhận thấy bạn đang truy cập bằng điện thoại. Để có trải nghiệm mượt mà và đầy đủ tính năng nhất, vui lòng tải ứng dụng StayHub của chúng tôi.",
+    "downloadAndroid": "Tải ứng dụng Android (Đang phát triển)",
+    "downloadIos": "Tải ứng dụng iOS (Đang phát triển)",
+    "downloadApk": "Tải StayHub APK",
+    "continueWeb": "Tiếp tục sử dụng bản web (Không khuyến nghị)"
+  },
   "cancel": "Hủy",
   "confirm": "Xác nhận",
   "save": "Lưu",

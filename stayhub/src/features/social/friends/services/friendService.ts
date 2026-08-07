@@ -24,6 +24,7 @@ export const getFriendships = async (): Promise<FriendshipResponse[]> => {
     // Bao vây mọi kiểu chữ hoa, chữ thường của FullName
     friendName: item.fullName || item.FullName || item.friendName || item.FriendName || "Ẩn danh (Do DB thiếu tên)",
     friendAvatarUrl: item.avatarUrl || item.AvatarUrl || item.friendAvatarUrl || item.FriendAvatarUrl || item.user?.avatarUrl || item.user?.AvatarUrl || item.friend?.avatarUrl || item.friend?.AvatarUrl || null,
+    friendEmail: item.email || item.Email || item.friendEmail || item.FriendEmail || "",
     status: item.status || item.Status || "Friend",
   }));
 };

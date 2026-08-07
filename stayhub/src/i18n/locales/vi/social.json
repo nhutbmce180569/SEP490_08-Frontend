@@ -278,5 +278,7 @@
   "noMembersFound": "Không tìm thấy thành viên",
   "noImage": "Không có ảnh",
   "gettingLocation": "Đang lấy vị trí của bạn để dẫn đường...",
-  "locationError": "Không thể lấy vị trí của bạn. Vui lòng cấp quyền vị trí."
+  "locationError": "Không thể lấy vị trí của bạn. Vui lòng cấp quyền vị trí.",
+  "confirmRemoveMemberTitle": "Xoá thành viên",
+  "confirmRemoveMemberDesc": "Bạn có chắc muốn xoá {{name}} ra khỏi đoạn chat này không?"
 }

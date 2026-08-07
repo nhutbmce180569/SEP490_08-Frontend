@@ -95,7 +95,9 @@ export const SocialProfile: React.FC = () => {
     return moments.find((m: any) => (m.id || m.Id) === selectedMomentId) || null;
   }, [moments, selectedMomentId]);
 
-  const activeMoment = selectedMomentLocal || fetchedMoment;
+  // fetchedMoment contains the full details (User, Comments). 
+  // selectedMomentLocal only has basic details for the grid.
+  const activeMoment = fetchedMoment || selectedMomentLocal;
   
   const initialIsLiked = useMemo(() => {
     if (!activeMoment || !currentUserId) return false;

@@ -100,51 +100,13 @@ export const getMomentFeed = async (
     return extractList(raw).map(mapMoment);
   }
 
-  // All Trips: Two-Track Priority Loading
-  const myUserId = getStoredUserId();
-  const promises: Promise<any>[] = [
-    apiClient.get<any>(`${MOMENT_API_URL}?$skip=${skip}&$top=${top}`) // Social Track
-  ];
-  if (myUserId) {
-    promises.push(apiClient.get<any>(`${MOMENT_API_URL}/user/${myUserId}`)); // My Track
-  }
-
-  try {
-    const results = await Promise.all(promises);
-    const socialRaw = results[0];
-    const mineRaw = results[1] ? results[1] : null;
-
-    const socialList = extractList(socialRaw).map(mapMoment);
-    const mineList = mineRaw ? extractList(mineRaw).map(mapMoment).filter(m => m.lat != null && m.lng != null) : [];
-
-    // Deduplicate and merge (My moments first)
-    const seenIds = new Set<number>();
-    const merged: Moment[] = [];
-    
-    mineList.forEach(m => {
-      const id = m.id ?? m.Id;
-      if (id && !seenIds.has(id)) {
-        seenIds.add(id);
-        merged.push(m);
-      }
-    });
-
-    socialList.forEach(m => {
-      const id = m.id ?? m.Id;
-      if (id && !seenIds.has(id)) {
-        seenIds.add(id);
-        merged.push(m);
-      }
-    });
-
-    return merged;
-  } catch (e) {
-    console.error("Failed in two-track loading, falling back to standard:", e);
-    const raw: any = await apiClient.get<any>(
-      `${MOMENT_API_URL}?$skip=${skip}&$top=${top}`
-    );
-    return extractList(raw).map(mapMoment);
-  }
+  // All Trips: Chỉ dùng Social Track (đã bao gồm moment của bản thân).
+  // Không merge "My Track" (/moments/user/{id}) vì endpoint đó trả về
+  // UserMomentResponseDto — không có thông tin user.fullName, gây ra "Ẩn danh".
+  const raw: any = await apiClient.get<any>(
+    `${MOMENT_API_URL}?$skip=${skip}&$top=${top}`
+  );
+  return extractList(raw).map(mapMoment);
 };
 
 export const getMomentsInBounds = async (

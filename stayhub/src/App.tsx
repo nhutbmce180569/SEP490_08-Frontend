@@ -346,7 +346,6 @@ const App: React.FC = () => {
                   path={PATH.CUSTOMER.SOCIAL_MOMENTS}
                   element={mock("Moments", "Social")}
                 /> */}
-                            <Route path="/social/profile/:id" element={<SocialProfile />} />
 
                             {/* Các trang yêu cầu đăng nhập dành cho khách hàng */}
                             <Route element={<ProtectedRoute />}>
@@ -400,10 +399,14 @@ const App: React.FC = () => {
                                 element={<ChatPage />}
                               />
 
-                              <Route
-                                path={PATH.CUSTOMER.SOCIAL_FRIENDS}
-                                element={<FriendsManagement />}
-                              />
+                              <Route element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>
+                                <Route path="/social/profile/:id" element={<SocialProfile />} />
+                                <Route
+                                  path={PATH.CUSTOMER.SOCIAL_FRIENDS}
+                                  element={<FriendsManagement />}
+                                />
+                              </Route>
+
                               <Route path="/social/moments" element={<MomentsRouteWrapper />} />
                             </Route>
                           </Route>

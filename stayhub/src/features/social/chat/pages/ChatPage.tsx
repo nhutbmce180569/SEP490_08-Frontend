@@ -17,7 +17,8 @@ import {
   SquarePen,
   Users,
   Camera,
-  MapPin
+  MapPin,
+  AlertCircle
 } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../../contexts/AuthContext';
@@ -139,12 +140,27 @@ interface RoomMembersModalProps {
 
 const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, roomId }) => {
   const { t } = useTranslation();
+  const { user } = useContext(AuthContext);
+  const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
+  const userRoles = Array.isArray(user?.roles) ? user.roles : typeof user?.roles === "string" ? [user.roles] : [];
+  const isStaffOrAdmin = userRoles.some((r: string) => ["admin", "manager", "staff"].includes(r.toLowerCase()));
+  const queryClient = useQueryClient();
+  const [memberToRemove, setMemberToRemove] = useState<any>(null);
+
   const { data: membersResponse, isLoading } = useQuery({
     queryKey: ['roomMembers', roomId],
     queryFn: () => chatService.getRoomMembers(roomId!),
     enabled: !!roomId && isOpen,
   });
   const members = membersResponse ?? [];
+
+  const { mutate: removeMember, isPending: isRemoving } = useMutation({
+    mutationFn: (userId: number) => chatService.removeMember(roomId!, userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['roomMembers', roomId] });
+      setMemberToRemove(null);
+    }
+  });
 
   useEffect(() => {
     if (isOpen) {
@@ -160,34 +176,81 @@ const RoomMembersModal: React.FC<RoomMembersModalProps> = ({ isOpen, onClose, ro
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed top-0 left-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[99999] p-4">
-      <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
-          <h2 className="text-lg font-bold text-slate-900">{t('social.roomMembers')}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg transition-colors"><X className="w-5 h-5 text-slate-500" /></button>
-        </div>
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-          {isLoading ? (
-            <div className="flex justify-center items-center py-8"><Loader2 className="w-5 h-5 text-brand animate-spin" /></div>
-          ) : members.length > 0 ? (
-            members.map((user: any) => (
-              <div key={user.id || Math.random()} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 transition-colors border border-transparent">
-                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm shadow-sm">
-                  {user?.avatarUrl ? <img src={user.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span>{(user.fullName || 'U').charAt(0).toUpperCase()}</span>}
+    <>
+      <div className="fixed top-0 left-0 w-screen h-screen bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[99999] p-4">
+        <div className="bg-white rounded-[28px] shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between p-6 border-b border-slate-200">
+            <h2 className="text-lg font-bold text-slate-900">{t('social.roomMembers')}</h2>
+            <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg transition-colors"><X className="w-5 h-5 text-slate-500" /></button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            {isLoading ? (
+              <div className="flex justify-center items-center py-8"><Loader2 className="w-5 h-5 text-brand animate-spin" /></div>
+            ) : members.length > 0 ? (
+              members.map((memberUser: any) => (
+                <div key={memberUser.id || Math.random()} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 transition-colors border border-transparent">
+                  <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand to-brand flex items-center justify-center shrink-0 overflow-hidden text-white font-semibold text-sm shadow-sm">
+                    {memberUser?.avatarUrl ? <img src={memberUser.avatarUrl} alt="avatar" className="w-full h-full object-cover" /> : <span>{(memberUser.fullName || 'U').charAt(0).toUpperCase()}</span>}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm text-slate-900 truncate">{memberUser.fullName || t('common.user')}</h4>
+                    <p className="text-xs text-slate-500 truncate">{memberUser.email}</p>
+                  </div>
+                  {isStaffOrAdmin && memberUser.id !== currentUserId && (
+                    <button
+                      onClick={() => setMemberToRemove(memberUser)}
+                      disabled={isRemoving && memberToRemove?.id === memberUser.id}
+                      className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors ml-auto disabled:opacity-50"
+                      title={t('social.confirmRemoveMemberTitle') || 'Remove'}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm text-slate-900 truncate">{user.fullName || t('common.user')}</h4>
-                  <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                </div>
-              </div>
-            ))
-          ) : <div className="text-center text-slate-400 py-8 text-sm">{t('social.noMembersFound')}</div>}
-        </div>
-        <div className="flex gap-2 p-4 border-t border-slate-200 bg-slate-50">
-          <button onClick={onClose} className="w-full px-4 py-2 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 transition-colors">{t('common.close')}</button>
+              ))
+            ) : <div className="text-center text-slate-400 py-8 text-sm">{t('social.noMembersFound')}</div>}
+          </div>
+          <div className="flex gap-2 p-4 border-t border-slate-200 bg-slate-50">
+            <button onClick={onClose} className="w-full px-4 py-2 border border-slate-200 text-slate-700 font-semibold rounded-lg hover:bg-slate-100 transition-colors">{t('common.close')}</button>
+          </div>
         </div>
       </div>
-    </div>,
+
+      {memberToRemove && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100000] p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-12 h-12 bg-rose-100 rounded-full flex items-center justify-center mb-4">
+                <AlertCircle className="w-6 h-6 text-rose-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 mb-2">
+                {t('social.confirmRemoveMemberTitle')}
+              </h3>
+              <p className="text-sm text-slate-500 mb-6">
+                {t('social.confirmRemoveMemberDesc', { name: memberToRemove.fullName || memberToRemove.name || t('common.user') })}
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={() => setMemberToRemove(null)}
+                  disabled={isRemoving}
+                  className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors text-sm"
+                >
+                  {t('common.cancel')}
+                </button>
+                <button
+                  onClick={() => removeMember(memberToRemove.id)}
+                  disabled={isRemoving}
+                  className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-300 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  {isRemoving ? <Loader2 className="w-4 h-4 animate-spin" /> : t('common.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>,
     document.body
   );
 };
@@ -538,9 +601,7 @@ const { mutate: mutateMarkAsRead } = useMutation({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <button onClick={() => setShowMembersModal(true)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><Users className="w-4.5 h-4.5" /></button>
-                    {isStaffOrAdmin && (
-                      <button onClick={() => setShowAddMemberModal(true)} disabled={isAddingMembers} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><UserPlus className="w-4.5 h-4.5" /></button>
-                    )}
+                    <button onClick={() => setShowAddMemberModal(true)} disabled={isAddingMembers} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"><UserPlus className="w-4.5 h-4.5" /></button>
                     <button onClick={() => { if(selectedRoomId) mutatePin(selectedRoomId); }} disabled={isPinning} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isPinned ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}><Pin className="w-4.5 h-4.5" /></button>
                     <button onClick={() => { if(selectedRoomId) mutateMute(selectedRoomId); }} disabled={isMuting} className={`p-2 rounded-xl transition-colors ${selectedRoom?.isMuted ? 'text-slate-400 dark:text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800/30' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}><BellOff className="w-4.5 h-4.5" /></button>
                   </div>

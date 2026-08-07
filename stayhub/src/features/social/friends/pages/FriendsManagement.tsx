@@ -382,7 +382,7 @@ export const FriendsManagement: React.FC = () => {
                             >
                               {friend?.friendName || t('auth.unknown')}
                             </h3>
-                            <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1 select-all">{friend?.friendEmail || 'friend@stayhub.com'}</p>
+                            <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1 select-all">{friend?.friendEmail || t('social.noEmail', 'No email')}</p>
                           </div>
 
                           <div className="flex flex-col gap-1.5 mt-2">

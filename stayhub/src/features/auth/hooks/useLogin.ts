@@ -64,7 +64,7 @@ export const useLogin = () => {
       // CẬP NHẬT: Gọi contextLogin với 3 tham số (thêm refreshToken)
       if (token && refreshToken && user) {
         contextLogin(token, refreshToken, user);
-        success("Welcome back! Login successful.");
+        success(t("auth.loginSuccess", { defaultValue: "Welcome back! Login successful." }));
       }
 
       // Chuẩn hóa roles thành mảng để dễ bề kiểm tra

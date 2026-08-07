@@ -382,20 +382,20 @@ export const MomentModal: React.FC<MomentModalProps> = ({
                   <div key={c.id} className="flex gap-3 text-sm group relative">
                     {commentUserId ? (
                       <Link to={`/social/profile/${commentUserId}`} className="h-8 w-8 shrink-0 !rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-85 transition-opacity">
-                        <SafeImage src={cAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-700 dark:text-slate-200" fallbackText={(c.user?.fullName || "A").charAt(0)} />
+                        <SafeImage src={cAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-700 dark:text-slate-200" fallbackText={(c.user?.fullName || c.userName || "A").charAt(0)} />
                       </Link>
                     ) : (
                       <div className="h-8 w-8 shrink-0 !rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden border border-slate-200 dark:border-slate-700">
-                        <SafeImage src={cAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-700 dark:text-slate-200" fallbackText={(c.user?.fullName || "A").charAt(0)} />
+                        <SafeImage src={cAvatar} alt="Avatar" className="h-full w-full object-cover" fallbackClassName="h-full w-full flex items-center justify-center font-bold text-xs bg-slate-200 dark:bg-slate-700 dark:text-slate-200" fallbackText={(c.user?.fullName || c.userName || "A").charAt(0)} />
                       </div>
                     )}
                     <div className="flex-1 leading-relaxed pr-6">
                       {commentUserId ? (
                         <Link to={`/social/profile/${commentUserId}`} className="font-bold mr-2 hover:underline hover:text-brand transition-all text-slate-900 dark:text-white">
-                          {c.user?.fullName || t("tour.anonymousCustomer")}
+                          {c.user?.fullName || c.userName || t("tour.anonymousCustomer")}
                         </Link>
                       ) : (
-                        <span className="font-bold mr-2 text-slate-900 dark:text-white">{c.user?.fullName || t("tour.anonymousCustomer")}</span>
+                        <span className="font-bold mr-2 text-slate-900 dark:text-white">{c.user?.fullName || c.userName || t("tour.anonymousCustomer")}</span>
                       )}
                       
                       {editingCommentId === c.id ? (

@@ -278,5 +278,7 @@
   "noMembersFound": "No members found",
   "noImage": "No image",
   "gettingLocation": "Getting your location to generate route...",
-  "locationError": "Unable to get your location. Please grant location permissions."
+  "locationError": "Unable to get your location. Please grant location permissions.",
+  "confirmRemoveMemberTitle": "Remove Member",
+  "confirmRemoveMemberDesc": "Are you sure you want to remove {{name}} from this chat room?"
 }

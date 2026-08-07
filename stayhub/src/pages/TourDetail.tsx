@@ -243,9 +243,12 @@ export default function PublicTourDetail() {
   const { expandedItiIds, toggleIti, groupedItineraries } = useGroupedItineraries(tour?.tourItineraries);
 
   const sortedSchedules = useMemo(() => {
-    const arr = [...(tour?.tourSchedules || [])].filter(
-      (s) => new Date(s.departureDate).getTime() > Date.now()
-    );
+    const arr = [...(tour?.tourSchedules || [])].filter((s) => {
+      const depDate = new Date(s.departureDate);
+      depDate.setHours(0, 0, 0, 0);
+      depDate.setDate(depDate.getDate() - 1);
+      return Date.now() < depDate.getTime();
+    });
     return arr.sort((a, b) => new Date(a.departureDate).getTime() - new Date(b.departureDate).getTime());
   }, [tour?.tourSchedules]);
 

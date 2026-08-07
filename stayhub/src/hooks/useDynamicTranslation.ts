@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocale } from "../contexts/LocaleContext";
+import { API_BASE_URL } from "../config/api/api";
 
 // Simple in-memory cache to avoid re-fetching the same string during the session
 const translationCache = new Map<string, string>();
@@ -58,8 +59,8 @@ export function useDynamicTranslation(text: string | undefined | null, isHtml: b
           
           const isFree = apiKey.endsWith(":fx");
           const url = isFree 
-            ? "/deepl-api/v2/translate" 
-            : "/deepl-api-pro/v2/translate";
+            ? `${API_BASE_URL}/deepl-api/v2/translate` 
+            : `${API_BASE_URL}/deepl-api-pro/v2/translate`;
           
           const params: any = {
             text: [text],

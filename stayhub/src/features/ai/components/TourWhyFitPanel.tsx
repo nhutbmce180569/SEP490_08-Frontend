@@ -6,6 +6,7 @@ import {
   formatMatchReasonTechnical,
   getCustomerWhyFitContent,
 } from "../utils/customerMatchReasons";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   reason?: string;
@@ -32,14 +33,14 @@ export const TourWhyFitPanel: React.FC<Props> = ({
           <Sparkles size={14} />
           {t("ai.whyThisTour")}
         </p>
-        <p className="mb-2 text-xs font-semibold leading-relaxed text-slate-800">{summary}</p>
+        <p className="mb-2 text-xs font-semibold leading-relaxed text-slate-800"><DynamicText text={summary} /></p>
 
         {positive.length > 0 && (
           <ul className="space-y-1.5">
             {positive.map((item) => (
               <li key={item} className="flex gap-2 text-xs leading-relaxed text-slate-600">
                 <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand" />
-                {item}
+                <DynamicText text={item} />
               </li>
             ))}
           </ul>
@@ -54,7 +55,7 @@ export const TourWhyFitPanel: React.FC<Props> = ({
             <ul className="space-y-1">
               {cautions.map((item) => (
                 <li key={item} className="text-xs leading-relaxed text-amber-900">
-                  {item}
+                  <DynamicText text={item} />
                 </li>
               ))}
             </ul>
@@ -77,14 +78,14 @@ export const TourWhyFitPanel: React.FC<Props> = ({
         {t("ai.whyThisTourTechnical")}
       </p>
       {reason && (
-        <p className="mb-2 text-xs font-medium leading-relaxed text-slate-600">{reason}</p>
+        <p className="mb-2 text-xs font-medium leading-relaxed text-slate-600"><DynamicText text={reason} /></p>
       )}
       {bullets.length > 0 && (
         <ul className="space-y-1.5">
           {bullets.map((item) => (
             <li key={item} className="flex gap-2 text-xs leading-relaxed text-slate-600">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-slate-400" />
-              {item}
+              <DynamicText text={item} />
             </li>
           ))}
         </ul>

@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { Link } from "react-router-dom";
-import { Lock, ArrowRight } from "lucide-react";
+import { Lock } from "lucide-react";
 import { ActionButton } from "../../../components/home/ActionButton";
 import { useChangePassword } from "../hooks/useChangePassword";
 import { PATH } from "../../../config/routes/route";
@@ -34,6 +34,11 @@ export default function ChangePassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (formData.newPassword === formData.oldPassword) {
+      setErrors((prev) => ({ ...prev, newPassword: t("errors.newPasswordMustBeDifferent", { defaultValue: "Mật khẩu mới không được trùng với mật khẩu cũ" }) }));
+      return;
+    }
 
     if (formData.newPassword !== formData.confirmPassword) {
       setErrors((prev) => ({ ...prev, confirmPassword: t("errors.passwordsNoMatch") }));
@@ -129,6 +134,9 @@ export default function ChangePassword() {
             onTogglePassword={() => setShowPassword(!showPassword)}
             required
           />
+          {errors.newPassword && (
+            <p className="text-sm text-rose-600">{errors.newPassword}</p>
+          )}
 
           <AuthFormField
             label={t("auth.confirmNewPassword")}
@@ -151,7 +159,6 @@ export default function ChangePassword() {
             className="group !mt-6 !h-[50px] !w-full gap-2 text-[15px]"
           >
             {isSubmitting ? t("errors.changingPassword") : t("errors.changePasswordBtn")}
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </ActionButton>
         </form>
       )}

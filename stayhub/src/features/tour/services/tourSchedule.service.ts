@@ -88,4 +88,12 @@ export const tourScheduleService = {
       { quantity },
     );
   },
+
+  checkScheduleHasOrders: async (
+    id: string | number,
+  ): Promise<{ hasOrders: boolean, scheduleId: number }> => {
+    return await apiClient.get<{ hasOrders: boolean, scheduleId: number }>(
+      TOURS_API.CHECK_HAS_ORDERS(id)
+    );
+  },
 };

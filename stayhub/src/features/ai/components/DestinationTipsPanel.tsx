@@ -7,6 +7,7 @@ import {
   shouldShowFactHeadline,
 } from "../utils/destinationFactFormat";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { DynamicText } from "../../../components/DynamicText";
 
 interface Props {
   facts: CulturalFact[];
@@ -64,7 +65,7 @@ export const DestinationTipsPanel: React.FC<Props> = ({ facts, allowedCities = [
           >
             <p className="mb-3 inline-flex items-center gap-1.5 rounded-lg bg-brand-light px-2.5 py-1 text-xs font-bold text-brand">
               <MapPin size={12} />
-              {group.city}
+              <DynamicText text={group.city} />
             </p>
 
             <ul className="space-y-3">
@@ -76,10 +77,10 @@ export const DestinationTipsPanel: React.FC<Props> = ({ facts, allowedCities = [
                   <li key={`${group.city}-${i}`} className="rounded-xl bg-white p-3">
                     {showHeadline && (
                       <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-brand">
-                        {headline}
+                        <DynamicText text={headline} />
                       </p>
                     )}
-                    <p className="text-sm leading-relaxed text-slate-700">{body}</p>
+                    <p className="text-sm leading-relaxed text-slate-700"><DynamicText text={body} /></p>
                   </li>
                 );
               })}

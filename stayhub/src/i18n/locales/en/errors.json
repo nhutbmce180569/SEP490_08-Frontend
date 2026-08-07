@@ -2,6 +2,7 @@
   "accessDenied": "Access denied",
   "accessDeniedDesc": "You do not have permission to view this page. Contact an administrator if you believe this is a mistake.",
   "passwordsNoMatch": "Passwords do not match!",
+  "newPasswordMustBeDifferent": "New password must be different from the old password!",
   "createAccountTitle": "Create an account",
   "createAccountSubtitle": "Fill in the details below to join StayHub.",
   "heroRegisterTitle": "Start your journey with us.",

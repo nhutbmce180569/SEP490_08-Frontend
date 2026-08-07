@@ -82,7 +82,7 @@ export const useGoogleLogin = () => {
 
       if (token && refreshToken && user) {
         contextLogin(token, refreshToken, user);
-        success("Google login successful!");
+        success(t("auth.googleLoginSuccess", { defaultValue: "Google login successful!" }));
       }
 
       setPendingGoogleAuth(null);

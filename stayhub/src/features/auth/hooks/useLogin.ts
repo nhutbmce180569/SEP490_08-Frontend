@@ -64,7 +64,7 @@ export const useLogin = () => {
       // CẬP NHẬT: Gọi contextLogin với 3 tham số (thêm refreshToken)
       if (token && refreshToken && user) {
         contextLogin(token, refreshToken, user);
-        success("Welcome back! Login successful.");
+        success(t("auth.loginSuccess", { defaultValue: "Welcome back! Login successful." }));
       }
 
       // Chuẩn hóa roles thành mảng để dễ bề kiểm tra
@@ -84,6 +84,16 @@ export const useLogin = () => {
       
       if (errorMessage === "InvalidProvider") {
         errorMessage = t("auth.InvalidProvider");
+      } else if (errorMessage === "AccountInactiveOrInvalid") {
+        errorMessage = t("auth.AccountInactiveOrInvalid");
+      } else if (errorMessage === "AccountLocked") {
+        const minutes = err.response?.data?.lockoutMinutes || 15;
+        errorMessage = t("auth.AccountLocked", { minutes });
+      } else if (errorMessage === "InvalidEmailOrPassword") {
+        const remaining = err.response?.data?.remainingAttempts;
+        if (remaining !== undefined) {
+          errorMessage = t("auth.InvalidEmailOrPassword", { remaining });
+        }
       }
 
       setServerError(errorMessage);

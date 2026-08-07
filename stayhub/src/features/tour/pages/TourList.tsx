@@ -402,13 +402,8 @@ export const TourList: React.FC = () => {
         message={
           <span>
             {shouldActivateSelectedTour
-              ? t("tour.activateTourConfirm")
-              : t("tour.deactivateTourConfirm")}
-            {tourStatusAction && (
-              <span className="mt-2 block font-semibold text-slate-700">
-                <DynamicText text={tourStatusAction.name} />
-              </span>
-            )}
+              ? t("tour.activateTourConfirm", { name: tourStatusAction?.name || "" })
+              : t("tour.deactivateTourConfirm", { name: tourStatusAction?.name || "" })}
           </span>
         }
         confirmText="Confirm"

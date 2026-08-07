@@ -42,6 +42,7 @@ import { useChatNotification } from "../../features/social/chat/component/ChatNo
 import { getSearchSuggestions } from "../../hooks/useSearchTours";
 import { useSystemSettings } from "../../features/system/hooks/useSystemSettings";
 import { getImg } from "../../config/api/api";
+import { StayHubLogo } from "../../components/brand/StayHubLogo";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -49,7 +50,6 @@ export default function Header() {
   const { success } = useToast();
   const { getSetting } = useSystemSettings();
   const webVideoLogo = getSetting("WebVideoLogo");
-  const videoSource = webVideoLogo ? getImg(webVideoLogo) : dragonLogoVideo;
   const { t } = useTranslation();
   const { user, logout: contextLogout } = useContext(AuthContext);
   const { open: openAiPlanner } = useAiPlanner();
@@ -161,21 +161,25 @@ export default function Header() {
       <div className="page-container flex h-16 items-center gap-3 md:h-[68px] md:gap-4">
         {/* Logo + search */}
         <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-4">
-          <Link
-            to={PATH.PUBLIC.HOME}
-            className="relative inline-flex h-16 w-20 shrink-0 items-center !no-underline outline-none"
-            aria-label="StayHub home"
-          >
-            <video
-              src={videoSource}
-              className="absolute left-1/2 top-1/2 h-28 w-28 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain md:h-32 md:w-32"
-              autoPlay
-              loop
-              muted
-              playsInline
-              aria-hidden
-            />
-          </Link>
+          {webVideoLogo ? (
+            <Link
+              to={PATH.PUBLIC.HOME}
+              className="relative inline-flex h-16 w-20 shrink-0 items-center !no-underline outline-none"
+              aria-label="StayHub home"
+            >
+              <video
+                src={getImg(webVideoLogo)}
+                className="absolute left-1/2 top-1/2 h-28 w-28 max-w-none -translate-x-1/2 -translate-y-1/2 object-contain md:h-32 md:w-32"
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-hidden
+              />
+            </Link>
+          ) : (
+            <StayHubLogo />
+          )}
 
 
           {/* Header Quick Search Input */}

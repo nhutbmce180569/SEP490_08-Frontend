@@ -280,5 +280,7 @@
   "gettingLocation": "Getting your location to generate route...",
   "locationError": "Unable to get your location. Please grant location permissions.",
   "confirmRemoveMemberTitle": "Remove Member",
-  "confirmRemoveMemberDesc": "Are you sure you want to remove {{name}} from this chat room?"
+  "confirmRemoveMemberDesc": "Are you sure you want to remove {{name}} from this chat room?",
+  "confirmShareLocationTitle": "Share Live Location",
+  "confirmShareLocationMessage": "Are you sure you want to share your current live location with this chat? People in this room will be able to see your path."
 }

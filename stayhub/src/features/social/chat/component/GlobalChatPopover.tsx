@@ -30,6 +30,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import { useShareLocation } from '../../tracking/hooks/useLocationTracking';
 import { DynamicText } from '../../../../components/DynamicText';
 import { useChatNotification } from './ChatNotificationContext';
+import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 import { useTourAssistantChat } from '../../../ai/hooks/useTourAssistantChat';
 import { SystemFaqBrowser } from '../../../ai/components/SystemFaqBrowser';
 
@@ -177,6 +178,8 @@ export const GlobalChatPopover: React.FC = () => {
   
   const { user } = useContext(AuthContext);
   const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
+  const userRoles = Array.isArray(user?.roles) ? user.roles : typeof user?.roles === "string" ? [user.roles] : [];
+  const isManager = userRoles.some((r: string) => ["manager", "operator"].includes(r.toLowerCase()));
 
   // Trạng thái popover được quản lý toàn cục qua ChatNotificationContext
   const { 
@@ -192,6 +195,7 @@ export const GlobalChatPopover: React.FC = () => {
   const [textValue, setTextValue] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>('');
   const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+  const [showConfirmShareLocation, setShowConfirmShareLocation] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const lastMessagesLengthRef = useRef<number>(0);
@@ -251,6 +255,12 @@ export const GlobalChatPopover: React.FC = () => {
 
   const handleShareLocationInChat = useCallback(() => {
     if (!activeRoomId || !isConnected) return;
+    setShowConfirmShareLocation(true);
+  }, [activeRoomId, isConnected]);
+
+  const executeShareLocation = useCallback(() => {
+    setShowConfirmShareLocation(false);
+    if (!activeRoomId || !isConnected) return;
     const isAlreadyEnabled = localStorage.getItem("share_my_location") === "true";
     localStorage.setItem("share_my_location", "true");
     if (!isAlreadyEnabled) {
@@ -261,13 +271,13 @@ export const GlobalChatPopover: React.FC = () => {
     }
     shareLocation(undefined, {
       onSuccess: (token) => {
-        const shareContent = `📍 Vị trí hiện tại của tôi: [LocationShare:${JSON.stringify({ token })}]`;
+        const shareContent = `📍 ${t('social.myCurrentLocation') || 'My current location'}: [LocationShare:${JSON.stringify({ token })}]`;
         sendMessage(shareContent);
-        success("Đã gửi vị trí của bạn!");
+        success(t('social.locationSent') || 'Location sent successfully!');
         queryClient.invalidateQueries({ queryKey: ['chatRooms'] });
       },
       onError: () => {
-        error("Không thể chia sẻ vị trí.");
+        error(t('social.unableToShareLocation') || 'Unable to share location.');
       }
     });
   }, [activeRoomId, isConnected, shareLocation, sendMessage, success, error, warning, t, queryClient]);
@@ -839,19 +849,21 @@ export const GlobalChatPopover: React.FC = () => {
                 placeholder="Message..." 
                 className="flex-1 bg-transparent focus:outline-none text-xs font-semibold placeholder:text-slate-400 text-slate-800"
               />
-              <button
-                type="button"
-                onClick={handleShareLocationInChat}
-                disabled={isSharingLocation}
-                className="text-slate-400 hover:text-brand transition-colors cursor-pointer flex-none"
-                title="Chia sẻ vị trí của tôi"
-              >
-                {isSharingLocation ? (
-                  <Loader2 className="w-3.5 h-3.5 text-brand animate-spin" />
-                ) : (
-                  <MapPin className="w-4 h-4" />
-                )}
-              </button>
+              {!isManager && (
+                <button
+                  type="button"
+                  onClick={handleShareLocationInChat}
+                  disabled={isSharingLocation}
+                  className="text-slate-400 hover:text-brand transition-colors cursor-pointer flex-none"
+                  title="Chia sẻ vị trí của tôi"
+                >
+                  {isSharingLocation ? (
+                    <Loader2 className="w-3.5 h-3.5 text-brand animate-spin" />
+                  ) : (
+                    <MapPin className="w-4 h-4" />
+                  )}
+                </button>
+              )}
             </div>
 
             <button 
@@ -864,6 +876,16 @@ export const GlobalChatPopover: React.FC = () => {
           </form>
         </div>
       )}
+      <ConfirmDialog
+        open={showConfirmShareLocation}
+        onClose={() => setShowConfirmShareLocation(false)}
+        onConfirm={executeShareLocation}
+        title={t('social.confirmShareLocationTitle') || 'Share Live Location'}
+        message={t('social.confirmShareLocationMessage') || 'Are you sure you want to share your current live location with this chat? People in this room will be able to see your path.'}
+        confirmText={t('common.confirm') || 'Confirm'}
+        cancelText={t('common.cancel') || 'Cancel'}
+        variant="warning"
+      />
     </div>
   );
 };

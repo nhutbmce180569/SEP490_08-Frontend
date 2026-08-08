@@ -280,5 +280,7 @@
   "gettingLocation": "Đang lấy vị trí của bạn để dẫn đường...",
   "locationError": "Không thể lấy vị trí của bạn. Vui lòng cấp quyền vị trí.",
   "confirmRemoveMemberTitle": "Xoá thành viên",
-  "confirmRemoveMemberDesc": "Bạn có chắc muốn xoá {{name}} ra khỏi đoạn chat này không?"
+  "confirmRemoveMemberDesc": "Bạn có chắc muốn xoá {{name}} ra khỏi đoạn chat này không?",
+  "confirmShareLocationTitle": "Chia sẻ vị trí trực tiếp",
+  "confirmShareLocationMessage": "Bạn có chắc chắn muốn chia sẻ vị trí trực tiếp hiện tại của mình với cuộc trò chuyện này không? Mọi người trong phòng này sẽ có thể xem lộ trình của bạn."
 }

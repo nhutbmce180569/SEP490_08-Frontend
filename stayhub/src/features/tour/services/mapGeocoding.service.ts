@@ -458,6 +458,7 @@ const searchWithMapbox = async (
     q: query,
     limit: String(Math.min(Math.max(limit, 1), 10)),
     autocomplete: "true",
+    types: "poi,address,street,place,locality,neighborhood,district,region",
   });
 
   return (payload.features || [])

@@ -180,7 +180,19 @@ export const useMapPicker = (
       setPredictions([]);
 
       try {
-        const place = await reverseGeocodePlace(coordinates);
+        const fetchedPlace = await reverseGeocodePlace(coordinates);
+        // Overwrite the coordinates of the fetched place with the exact original coordinates
+        // so we don't snap to the center of the reverse-geocoded feature.
+        const place = {
+          ...fetchedPlace,
+          geometry: {
+            ...fetchedPlace.geometry,
+            location: {
+              lat: () => coordinates.lat,
+              lng: () => coordinates.lng,
+            }
+          }
+        };
         setLocations((prev) => ({ ...prev, [pin]: place }));
         setQueries((prev) => ({
           ...prev,
@@ -224,7 +236,12 @@ export const useMapPicker = (
       }
 
       if (initialCoordinates) {
-        await reverseGeocode(coordinates, pin);
+        if (initial?.address) {
+          const place = createFallbackPlace(coordinates, { name: initial.address });
+          setLocations((prev) => ({ ...prev, [pin]: place }));
+        } else {
+          await reverseGeocode(coordinates, pin);
+        }
         return;
       }
 

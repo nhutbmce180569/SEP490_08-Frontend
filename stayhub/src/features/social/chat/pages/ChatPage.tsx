@@ -11,7 +11,6 @@ import {
   Pin,
   BellOff,
   CheckCheck,
-  SmilePlus,
   X,
   Search,
   SquarePen,
@@ -27,6 +26,7 @@ import { useToast } from '../../../../contexts/ToastContext';
 import { createPortal } from 'react-dom';
 import { useShareLocation } from '../../tracking/hooks/useLocationTracking';
 import { DynamicText } from '../../../../components/DynamicText';
+import { ConfirmDialog } from '../../../../components/dashboard/ConfirmDialog';
 
 // ============ COMPONENT: Add Member Modal ============
 interface AddMemberModalProps {
@@ -277,10 +277,10 @@ export const ChatPage: React.FC<ChatPageProps> = ({ isEmbedded = false }) => {
   const { success, error, warning } = useToast();
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [textValue, setTextValue] = useState<string>('');
-  const [hoveredMessageId, setHoveredMessageId] = useState<number | null>(null);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showConfirmShareLocation, setShowConfirmShareLocation] = useState(false);
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -290,6 +290,7 @@ export const ChatPage: React.FC<ChatPageProps> = ({ isEmbedded = false }) => {
   const currentUserId = user?.id || user?.Id || user?.nameid || user?.sub || 0;
   const userRoles = Array.isArray(user?.roles) ? user.roles : typeof user?.roles === "string" ? [user.roles] : [];
   const isStaffOrAdmin = userRoles.some((r: string) => ["admin", "manager", "staff"].includes(r.toLowerCase()));
+  const isManager = userRoles.some((r: string) => ["manager", "operator"].includes(r.toLowerCase()));
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -334,6 +335,12 @@ export const ChatPage: React.FC<ChatPageProps> = ({ isEmbedded = false }) => {
   const { mutate: shareLocation, isPending: isSharingLocation } = useShareLocation();
 
   const handleShareLocationInChat = useCallback(() => {
+    if (!selectedRoomId || !isConnected) return;
+    setShowConfirmShareLocation(true);
+  }, [selectedRoomId, isConnected]);
+
+  const executeShareLocation = useCallback(() => {
+    setShowConfirmShareLocation(false);
     if (!selectedRoomId || !isConnected) return;
     const isAlreadyEnabled = localStorage.getItem("share_my_location") === "true";
     localStorage.setItem("share_my_location", "true");
@@ -669,8 +676,6 @@ const { mutate: mutateMarkAsRead } = useMutation({
                       return (
                         <div
                           key={`${msgId}-${idx}`}
-                          onMouseEnter={() => setHoveredMessageId(msgId)}
-                          onMouseLeave={() => setHoveredMessageId(null)}
                           className={`w-full flex flex-col ${isMe ? 'items-end' : 'items-start'} group shrink-0 ${isFirstInGroup ? 'mt-3' : 'mt-1'}`}
                         >
                           <div className={`flex gap-3 items-end max-w-[70%] min-w-0 ${isMe ? 'flex-row-reverse' : ''}`}>
@@ -781,11 +786,6 @@ const { mutate: mutateMarkAsRead } = useMutation({
                                 })() : (
                                   <p className="break-all font-medium whitespace-pre-wrap">{content}</p>
                                 )}
-                                {hoveredMessageId === msgId && (
-                                  <div className="absolute -bottom-8 right-0 flex gap-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full p-1 shadow-md z-30">
-                                    <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-750 rounded-full transition-colors"><SmilePlus className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" /></button>
-                                  </div>
-                                )}
                               </div>
                             </div>
                           </div>
@@ -801,19 +801,21 @@ const { mutate: mutateMarkAsRead } = useMutation({
  
                 {/* Message input */}
                 <div className="px-4 py-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleShareLocationInChat}
-                    disabled={isSharingLocation}
-                    className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-brand rounded-full transition-colors flex-none"
-                    title="Chia sẻ vị trí"
-                  >
-                    {isSharingLocation ? (
-                      <Loader2 className="w-5 h-5 text-brand animate-spin" />
-                    ) : (
-                      <MapPin className="w-5 h-5" />
-                    )}
-                  </button>
+                  {!isManager && (
+                    <button
+                      type="button"
+                      onClick={handleShareLocationInChat}
+                      disabled={isSharingLocation}
+                      className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-brand rounded-full transition-colors flex-none"
+                      title="Chia sẻ vị trí"
+                    >
+                      {isSharingLocation ? (
+                        <Loader2 className="w-5 h-5 text-brand animate-spin" />
+                      ) : (
+                        <MapPin className="w-5 h-5" />
+                      )}
+                    </button>
+                  )}
                   
                   <form onSubmit={handleSendMessage} className="flex-1 flex items-center gap-3">
                     <div className="flex-1 flex items-center bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-1.5 focus-within:bg-white dark:focus-within:bg-slate-900 focus-within:ring-2 focus-within:ring-brand/20 transition-all border border-transparent focus-within:border-slate-200 dark:focus-within:border-slate-700">
@@ -837,6 +839,16 @@ const { mutate: mutateMarkAsRead } = useMutation({
       <AddMemberModal isOpen={showAddMemberModal} onClose={() => setShowAddMemberModal(false)} onConfirm={handleAddMembers} isLoading={isAddingMembers} isSingleSelect={false} roomId={selectedRoomId} />
       <AddMemberModal isOpen={showNewChatModal} onClose={() => setShowNewChatModal(false)} onConfirm={handleStartNewChat} isLoading={isCreatingNewChat} isSingleSelect={true} roomId={null} />
       <RoomMembersModal isOpen={showMembersModal} onClose={() => setShowMembersModal(false)} roomId={selectedRoomId} />
+      <ConfirmDialog
+        open={showConfirmShareLocation}
+        onClose={() => setShowConfirmShareLocation(false)}
+        onConfirm={executeShareLocation}
+        title={t('social.confirmShareLocationTitle') || 'Share Live Location'}
+        message={t('social.confirmShareLocationMessage') || 'Are you sure you want to share your current live location with this chat? People in this room will be able to see your path.'}
+        confirmText={t('common.confirm') || 'Confirm'}
+        cancelText={t('common.cancel') || 'Cancel'}
+        variant="warning"
+      />
     </>
   );
 };

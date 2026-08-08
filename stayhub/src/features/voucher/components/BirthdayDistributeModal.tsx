@@ -26,6 +26,7 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [isDistributing, setIsDistributing] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Helper to generate default date ISO strings for month
   const getDefaultDates = (m: number) => {
@@ -106,6 +107,19 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
       showError(error?.response?.data?.message || error.message || t('admin.distributeFailed', { defaultValue: 'Failed to distribute vouchers' }));
     } finally {
       setIsDistributing(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    setIsCancelling(true);
+    try {
+      const response = await voucherService.cancelBirthdayVouchers(selectedMonth, currentYear);
+      success(response.message || t('admin.cancelSuccess', { defaultValue: 'Voucher cancelled successfully.' }));
+      loadPreview(selectedMonth);
+    } catch (error: any) {
+      showError(error?.response?.data?.message || error.message || t('admin.cancelFailed', { defaultValue: 'Failed to cancel voucher' }));
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -204,11 +218,33 @@ export const BirthdayDistributeModal: React.FC<BirthdayDistributeModalProps> = (
               <>
                 {/* Status Notice */}
                 {previewData.isDistributed ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-800 flex items-start gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-                    <div>
-                      <span className="font-semibold block">{t('admin.birthdayAlreadyDistributedTitle')}</span>
-                      <span>{t('admin.birthdayAlreadyDistributedDesc', { code: previewData.voucherCode, month: selectedMonth, year: currentYear })}</span>
+                  <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-800 flex flex-col gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+                      <div>
+                        <span className="font-semibold block">{t('admin.birthdayAlreadyDistributedTitle')}</span>
+                        <span>{t('admin.birthdayAlreadyDistributedDesc', { code: previewData.voucherCode, month: selectedMonth, year: currentYear })}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-end border-t border-amber-200/50 pt-2.5">
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        disabled={isCancelling}
+                        className="flex items-center gap-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:shadow transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+                      >
+                        {isCancelling ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>{t('admin.cancelling', { defaultValue: 'Hủy...' })}</span>
+                          </>
+                        ) : (
+                          <>
+                            <X className="h-3.5 w-3.5" />
+                            <span>{t('admin.cancelDistributionBtn', { defaultValue: 'Hủy phát voucher' })}</span>
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 ) : previewData.totalEligibleCustomers === 0 ? (

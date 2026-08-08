@@ -103,4 +103,10 @@ export const voucherService = {
     const response = await apiClient.get(VOUCHER_API.DISTRIBUTE_BIRTHDAY_STATUS, { params });
     return unwrap(response);
   },
+
+  cancelBirthdayVouchers: async (month: number, year: number): Promise<{ message: string }> => {
+    const params = { month, year };
+    const response = await apiClient.delete(VOUCHER_API.DISTRIBUTE_BIRTHDAY, { params });
+    return unwrap(response);
+  },
 };

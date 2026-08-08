@@ -21,6 +21,8 @@ import {
   ExternalLink,
   Copy,
 } from "lucide-react";
+import MapboxMap, { Marker } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { QRCodeSVG } from "qrcode.react";
 import { PATH } from "../../../config/routes/route";
 import { useOrderDetail } from "../hooks/useOrderDetail";
@@ -103,6 +105,7 @@ export const OrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { order, isLoading, error, refetch } = useOrderDetail(id);
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
   const [isItineraryModalOpen, setIsItineraryModalOpen] = useState(false);
   const [isTicketsModalOpen, setIsTicketsModalOpen] = useState(false);
   const { success, error: showError } = useToast();
@@ -1001,9 +1004,9 @@ export const OrderDetailPage: React.FC = () => {
                                   {isExpanded && (
                                     <div className="bg-slate-50/50 px-5 pb-5 pt-2 sm:pl-[130px]">
                                       {iti.description && (
-                                        <p className="mb-4 text-sm leading-relaxed text-slate-600">
-                                          <DynamicText text={iti.description} />
-                                        </p>
+                                        <div className="prose prose-sm mb-4 max-w-none text-sm leading-relaxed text-slate-600 [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5">
+                                          <DynamicText text={iti.description.replace(/&nbsp;/g, ' ')} isHtml={true} />
+                                        </div>
                                       )}
 
                                       {(iti.startLocationName ||
@@ -1111,9 +1114,8 @@ export const OrderDetailPage: React.FC = () => {
                                                     rel="noreferrer"
                                                     className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700"
                                                   >
-                                                    {tourismInfo.sourceName ||
-                                                      t("content.source")}
-                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                    {tourismInfo.sourceUrl}
+                                                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                                                   </a>
                                                 )}
                                               </div>
@@ -1128,6 +1130,32 @@ export const OrderDetailPage: React.FC = () => {
                                               </span>
                                             </div>
                                           )}
+                                        </div>
+                                      )}
+                                      
+                                      {iti.locationLat != null && iti.locationLng != null && mapboxToken && (
+                                        <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={{ height: "200px" }}>
+                                          <MapboxMap
+                                            initialViewState={{
+                                              latitude: iti.locationLat,
+                                              longitude: iti.locationLng,
+                                              zoom: 14,
+                                            }}
+                                            mapboxAccessToken={mapboxToken}
+                                            mapStyle="mapbox://styles/mapbox/streets-v12"
+                                            attributionControl={false}
+                                            cooperativeGestures={true}
+                                          >
+                                            <Marker
+                                              latitude={iti.locationLat}
+                                              longitude={iti.locationLng}
+                                              anchor="center"
+                                            >
+                                              <div className="flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-white bg-brand text-white shadow-lg">
+                                                <MapPin className="h-4 w-4" />
+                                              </div>
+                                            </Marker>
+                                          </MapboxMap>
                                         </div>
                                       )}
                                     </div>

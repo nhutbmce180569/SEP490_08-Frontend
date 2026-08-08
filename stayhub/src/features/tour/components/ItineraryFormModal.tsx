@@ -286,17 +286,11 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
               </label>
               <input
                 type="text"
-                maxLength={255}
+                readOnly
+                onClick={openMapModal}
                 value={itinerary.locationName ?? ""}
-                onChange={(e) => {
-                  const locationName = e.target.value;
-                  patchItinerary({
-                    locationName,
-                    ...(locationName.trim() ? {} : { locationLat: null, locationLng: null }),
-                  });
-                }}
-                placeholder={t("tour.typeNameOrPickMap")}
-                className={`w-full rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError("locationName") || getError("locationLat") || getError("locationLng") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50"}`}
+                placeholder={t("tour.pickLocationOnMap")}
+                className={`w-full cursor-pointer rounded-xl border px-4 py-2.5 text-sm outline-none transition-all focus:border-brand focus:bg-white ${getError("locationName") || getError("locationLat") || getError("locationLng") ? "border-rose-500 bg-rose-50/30" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
               />
               {getError("locationName") && <span className="mt-1 block text-xs font-medium text-rose-500">{getError("locationName")}</span>}
               {(getError("locationLat") || getError("locationLng")) && <span className="mt-1 block text-xs font-medium text-rose-500">{getError("locationLat") || getError("locationLng")}</span>}

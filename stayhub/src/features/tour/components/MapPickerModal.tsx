@@ -213,10 +213,10 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
               ref={mapRef}
               initialViewState={{
                 latitude:
-                  markerCoordinates[mode === "route" ? "start" : "single"]?.lat ??
+                  (mode === "route" ? initialData?.start?.lat : initialData?.single?.lat) ??
                   10.762622,
                 longitude:
-                  markerCoordinates[mode === "route" ? "start" : "single"]?.lng ??
+                  (mode === "route" ? initialData?.start?.lng : initialData?.single?.lng) ??
                   106.660172,
                 zoom: 13,
               }}
@@ -226,11 +226,14 @@ export const MapPickerModal: React.FC<MapPickerModalProps> = ({
               style={{ width: "100%", height: "100%" }}
               attributionControl={false}
               onLoad={() => {
-                const coordinates =
-                  markerCoordinates[mode === "route" ? "start" : "single"];
-                if (coordinates) {
+                const markerCoords = markerCoordinates[mode === "route" ? "start" : "single"];
+                const initialCoords = mode === "route" ? initialData?.start : initialData?.single;
+                const lat = markerCoords?.lat ?? initialCoords?.lat;
+                const lng = markerCoords?.lng ?? initialCoords?.lng;
+                
+                if (lat && lng) {
                   mapRef.current?.jumpTo({
-                    center: [coordinates.lng, coordinates.lat],
+                    center: [lng, lat],
                     zoom: 13,
                   });
                 }

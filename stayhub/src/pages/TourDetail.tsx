@@ -23,6 +23,8 @@ import {
   Bus,
   Plane,
 } from "lucide-react";
+import MapboxMap, { Marker } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { usePublicTour } from "../hooks/usePublicTour";
 import { ActionButton } from "../components/home/ActionButton";
 import { PATH } from "../config/routes/route";
@@ -195,6 +197,7 @@ export default function PublicTourDetail() {
   const initialTitle = location.state?.initialTitle;
   const { tour, isLoading, error } = usePublicTour(id ? Number(id) : undefined);
   const { error: showError, success: showSuccess } = useToast();
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
   // States cho modal tư vấn
   const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
@@ -1521,8 +1524,8 @@ export default function PublicTourDetail() {
                                             rel="noreferrer"
                                             className="inline-flex items-center gap-1 mt-1 text-[11px] font-bold text-brand hover:text-brand-hover"
                                           >
-                                            {tourismInfo.sourceName || t("tour.source")}
-                                            <ExternalLink className="h-3 w-3" />
+                                            {tourismInfo.sourceUrl}
+                                            <ExternalLink className="h-3 w-3 shrink-0" />
                                           </a>
                                         )}
                                       </div>
@@ -1537,6 +1540,32 @@ export default function PublicTourDetail() {
                                   )}
                                 </div>
                               )}
+                            </div>
+                          )}
+                          
+                          {iti.locationLat != null && iti.locationLng != null && mapboxToken && (
+                            <div className="mt-4 overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={{ height: "200px" }}>
+                              <MapboxMap
+                                initialViewState={{
+                                  latitude: iti.locationLat,
+                                  longitude: iti.locationLng,
+                                  zoom: 14,
+                                }}
+                                mapboxAccessToken={mapboxToken}
+                                mapStyle="mapbox://styles/mapbox/streets-v12"
+                                attributionControl={false}
+                                cooperativeGestures={true}
+                              >
+                                <Marker
+                                  latitude={iti.locationLat}
+                                  longitude={iti.locationLng}
+                                  anchor="center"
+                                >
+                                  <div className="flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-white bg-brand text-white shadow-lg">
+                                    <MapPin className="h-4 w-4" />
+                                  </div>
+                                </Marker>
+                              </MapboxMap>
                             </div>
                           )}
                         </div>

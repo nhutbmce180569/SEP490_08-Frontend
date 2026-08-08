@@ -22,6 +22,8 @@ import {
   Users,
   Route,
 } from "lucide-react";
+import Map, { Marker } from "react-map-gl/mapbox";
+import "mapbox-gl/dist/mapbox-gl.css";
 import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { ConfirmDialog } from "../../../components/dashboard/ConfirmDialog";
 import { useToast } from "../../../contexts/ToastContext";
@@ -81,6 +83,7 @@ export const TourScheduleDetail: React.FC = () => {
   const [deletingItineraryId, setDeletingItineraryId] = React.useState<number | string | null>(null);
   const [isDeletingItinerary, setIsDeletingItinerary] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"itinerary" | "tickets" | "staff">("itinerary");
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
 
   const renderedItineraries = React.useMemo(
     () =>
@@ -636,9 +639,9 @@ export const TourScheduleDetail: React.FC = () => {
                                                   </div>
                                                 )}
                                                 {tourismInfo.sourceUrl && (
-                                                  <a href={tourismInfo.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover">
-                                                    {tourismInfo.sourceName || t("tour.source")}
-                                                    <ExternalLink className="h-3 w-3" />
+                                                  <a href={tourismInfo.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:text-brand-hover mt-1">
+                                                    {tourismInfo.sourceUrl}
+                                                    <ExternalLink className="h-3 w-3 shrink-0" />
                                                   </a>
                                                 )}
                                               </div>
@@ -649,6 +652,31 @@ export const TourScheduleDetail: React.FC = () => {
                                               {t("tour.tourismInfoId", { id: iti.tourismInfoId })}
                                             </div>
                                           )}
+                                        </div>
+                                      )}
+                                      {iti.locationLat != null && iti.locationLng != null && mapboxToken && (
+                                        <div className="overflow-hidden rounded-xl border border-slate-200 shadow-sm" style={{ height: "200px" }}>
+                                          <Map
+                                            initialViewState={{
+                                              latitude: iti.locationLat,
+                                              longitude: iti.locationLng,
+                                              zoom: 14,
+                                            }}
+                                            mapboxAccessToken={mapboxToken}
+                                            mapStyle="mapbox://styles/mapbox/streets-v12"
+                                            attributionControl={false}
+                                            cooperativeGestures={true}
+                                          >
+                                            <Marker
+                                              latitude={iti.locationLat}
+                                              longitude={iti.locationLng}
+                                              anchor="center"
+                                            >
+                                              <div className="flex h-8 w-8 items-center justify-center rounded-full border-[3px] border-white bg-brand text-white shadow-lg">
+                                                <MapPin className="h-4 w-4" />
+                                              </div>
+                                            </Marker>
+                                          </Map>
                                         </div>
                                       )}
                                     </div>

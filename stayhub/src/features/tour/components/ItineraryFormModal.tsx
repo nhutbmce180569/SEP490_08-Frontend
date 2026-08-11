@@ -17,6 +17,7 @@ import { ActionButton } from "../../../components/dashboard/ActionButton";
 import { TourismInformationSelector } from "../../content/components/TourismInformationSelector";
 import type { TourismInformation } from "../../content/types/tourismInformation";
 import { useTranslation } from "../../../contexts/LocaleContext";
+import { useToast } from "../../../contexts/ToastContext";
 
 interface ItineraryFormModalProps {
   isOpen: boolean;
@@ -52,6 +53,7 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
   isCloning,
 }) => {
   const { t } = useTranslation();
+  const { error: showError } = useToast();
 
   if (!isOpen || !itinerary) return null;
 
@@ -82,6 +84,21 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
           }
         : {}),
     });
+  };
+
+  const handleDone = () => {
+    if (itinerary.startDuration && itinerary.endDuration) {
+      if (itinerary.startDuration >= itinerary.endDuration) {
+        showError(
+          t("tour.error.endTimeAfterStart", {
+            day: itinerary.dayNumber,
+            title: itinerary.title || "Item",
+          }),
+        );
+        return;
+      }
+    }
+    onClose();
   };
 
   return (
@@ -118,7 +135,7 @@ export const ItineraryFormModal: React.FC<ItineraryFormModalProps> = ({
             <ActionButton
               type="button"
               variant="primary"
-              onClick={onClose}
+              onClick={handleDone}
               className="gap-2 px-4 py-2"
             >
               <Save className="h-4 w-4" />

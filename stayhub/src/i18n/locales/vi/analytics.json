@@ -14,15 +14,15 @@
     "customers": "Khách hàng"
   },
   "platform": {
-    "eyebrow": "Admin · Phân tích",
-    "title": "Phân tích nền tảng",
+    "eyebrow": "Admin · Thống kê",
+    "title": "Thống kê nền tảng",
     "subtitle": "Tổng quan người dùng, danh mục, khuyến mãi, hoạt động xã hội và sức khỏe hệ thống.",
-    "sectionsAria": "Các mục phân tích nền tảng",
+    "sectionsAria": "Các mục thống kê nền tảng",
     "errorOverview": "Không tải được tổng quan nền tảng.",
-    "errorUsers": "Không tải được phân tích người dùng.",
-    "errorCatalog": "Không tải được phân tích danh mục.",
-    "errorVouchers": "Không tải được phân tích voucher.",
-    "errorSocial": "Không tải được phân tích mạng xã hội.",
+    "errorUsers": "Không tải được thống kê người dùng.",
+    "errorCatalog": "Không tải được thống kê danh mục.",
+    "errorVouchers": "Không tải được thống kê voucher.",
+    "errorSocial": "Không tải được thống kê mạng xã hội.",
     "errorHealth": "Không tải được dữ liệu sức khỏe nền tảng.",
     "totalUsers": "Tổng người dùng",
     "activeHint": "{{count}} hoạt động",
@@ -134,7 +134,8 @@
     "healthPendingCancellationsDesc": "Số lượng yêu cầu hủy tour chưa xử lý"
   },
   "customer": {
-    "title": "Thống kê & Phân tích khách hàng",
+    "eyebrow": "Quản lý · Thống kê",
+    "title": "Thống kê khách hàng & Thông tin chi tiết",
     "subtitle": "Theo dõi hành vi, doanh thu, phân khúc và chỉ số tương tác của khách hàng",
     "errorOverview": "Không tải được dữ liệu tổng quan.",
     "errorDemographics": "Không tải được dữ liệu nhân khẩu.",

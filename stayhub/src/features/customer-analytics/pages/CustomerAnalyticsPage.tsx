@@ -118,7 +118,7 @@ export const CustomerAnalyticsPage: React.FC = () => {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-brand">
-            Manager · {t('analytics.customer.title')}
+            {t('analytics.customer.eyebrow')}
           </span>
           <h1 className="mt-1 text-2xl font-black tracking-tight text-slate-900 md:text-3xl">
             {t('analytics.customer.title')}

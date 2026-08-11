@@ -343,7 +343,7 @@
   "checkInSuccessToast": "Điểm danh thành công!",
   "scanTicketFailed": "Lỗi khi quét vé. Vui lòng thử lại.",
   "statistics": {
-    "eyebrow": "Phân tích dành cho quản lý",
+    "eyebrow": "Thống kê dành cho quản lý",
     "title": "Thống kê đặt chỗ",
     "subtitle": "Tổng quan về đặt chỗ, vé và phân khúc khách hàng",
     "revenueTitle": "Thống kê doanh thu",

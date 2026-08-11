@@ -139,8 +139,8 @@ export const RoleIntroDashboard: React.FC<RoleIntroProps> = ({ role: propRole })
           icon: <Calendar className="h-6 w-6 text-indigo-500" />
         },
         {
-          titleVi: "Chăm sóc & Phân tích Khách hàng",
-          titleEn: "Customer Analytics & Care",
+          titleVi: "Chăm sóc & Thống kê Khách hàng",
+          titleEn: "Customer Statistics & Care",
           descVi: "Theo dõi chân dung du khách, tỷ lệ lấp đầy đoàn, đọc phản hồi đánh giá và xử lý yêu cầu hoàn hủy chuyến.",
           descEn: "Track customer demographics, occupancy rates, traveler reviews, and swiftly handle refund requests.",
           icon: <HeartHandshake className="h-6 w-6 text-blue-500" />
@@ -199,8 +199,8 @@ export const RoleIntroDashboard: React.FC<RoleIntroProps> = ({ role: propRole })
           colorClass: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20"
         },
         {
-          titleVi: "Phân tích Khách hàng (Analytics)",
-          titleEn: "Customer Analytics",
+          titleVi: "Thống kê Khách hàng (Statistics)",
+          titleEn: "Customer Statistics",
           descVi: "Thống kê thói quen, độ tuổi, tỷ lệ quay lại và mức độ hài lòng của du khách trên từng tour.",
           descEn: "Analyze customer demographics, return rates, behaviors, and satisfaction metrics across tours.",
           path: PATH.MANAGER.CUSTOMER_ANALYTICS,
@@ -281,8 +281,8 @@ export const RoleIntroDashboard: React.FC<RoleIntroProps> = ({ role: propRole })
         },
         {
           step: "04",
-          titleVi: "Phân tích Doanh thu & AI",
-          titleEn: "Analyze Revenue & AI Trends",
+          titleVi: "Thống kê Doanh thu & AI",
+          titleEn: "Revenue Statistics & AI Trends",
           descVi: "Đọc báo cáo kinh doanh, đánh giá phản hồi của khách và nhận gợi ý tối ưu từ trợ lý AI.",
           descEn: "Review business reports, traveler ratings, and receive AI optimization tips.",
           icon: <TrendingUp className="h-5 w-5 text-indigo-500" />
@@ -505,8 +505,8 @@ export const RoleIntroDashboard: React.FC<RoleIntroProps> = ({ role: propRole })
       ] as Responsibility[],
       capabilities: [
         {
-          titleVi: "Phân tích Tổng quan Hệ thống",
-          titleEn: "System Analytics",
+          titleVi: "Thống kê Tổng quan Hệ thống",
+          titleEn: "System Statistics",
           descVi: "Biểu đồ trực quan về lưu lượng truy cập, tỷ lệ chuyển đổi booking và chỉ số sức khỏe công ty.",
           descEn: "Visual charts detailing system traffic, booking conversions, and overall operational health.",
           path: PATH.ADMIN.PLATFORM_ANALYTICS,
@@ -516,8 +516,8 @@ export const RoleIntroDashboard: React.FC<RoleIntroProps> = ({ role: propRole })
           colorClass: "bg-blue-500/10 text-blue-600 border-blue-500/20"
         },
         {
-          titleVi: "Phân tích Hành vi Khách hàng",
-          titleEn: "Customer Analytics",
+          titleVi: "Thống kê Hành vi Khách hàng",
+          titleEn: "Customer Statistics",
           descVi: "Thống kê phân khúc khách hàng của công ty, sở thích điểm đến và xu hướng tìm kiếm tour.",
           descEn: "Company-wide customer segmentation, top destination interests, and search query patterns.",
           path: PATH.ADMIN.CUSTOMER_ANALYTICS,

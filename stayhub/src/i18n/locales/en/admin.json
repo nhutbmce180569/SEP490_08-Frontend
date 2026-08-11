@@ -1,7 +1,7 @@
 {
-  "analytics": "Analytics",
-  "platformAnalytics": "Platform analytics",
-  "customerAnalytics": "Customer analytics",
+  "analytics": "Statistics",
+  "platformAnalytics": "Platform statistics",
+  "customerAnalytics": "Customer statistics",
   "bookingStatistics": "Booking statistics",
   "revenueStatistics": "Revenue statistics",
   "systemReports": "System reports",

@@ -14,15 +14,15 @@
     "customers": "Customers"
   },
   "platform": {
-    "eyebrow": "Admin · Analytics",
-    "title": "Platform Analytics",
+    "eyebrow": "Admin · Statistics",
+    "title": "Platform Statistics",
     "subtitle": "Unified view of users, catalog, promotions, social activity, and system health.",
-    "sectionsAria": "Platform analytics sections",
+    "sectionsAria": "Platform statistics sections",
     "errorOverview": "Unable to load platform overview.",
-    "errorUsers": "Unable to load user analytics.",
-    "errorCatalog": "Unable to load catalog analytics.",
-    "errorVouchers": "Unable to load voucher analytics.",
-    "errorSocial": "Unable to load social analytics.",
+    "errorUsers": "Unable to load user statistics.",
+    "errorCatalog": "Unable to load catalog statistics.",
+    "errorVouchers": "Unable to load voucher statistics.",
+    "errorSocial": "Unable to load social statistics.",
     "errorHealth": "Unable to load platform health data.",
     "totalUsers": "Total users",
     "activeHint": "{{count}} active",
@@ -134,7 +134,8 @@
     "healthPendingCancellationsDesc": "Count of unresolved cancellation requests"
   },
   "customer": {
-    "title": "Customer Analytics & Insights",
+    "eyebrow": "Manager · Statistics",
+    "title": "Customer Statistics & Insights",
     "subtitle": "Track customer behavior, revenue trends, segmentations, and engagement metrics",
     "errorOverview": "Unable to load overview data.",
     "errorDemographics": "Unable to load demographics data.",

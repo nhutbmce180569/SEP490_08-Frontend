@@ -948,7 +948,14 @@ export default function PublicTourDetail() {
             </section>
             
             {/* Similar Tours */}
-            {tour && <SimilarToursSection tourId={Number(tour.id)} />}
+            {tour && (
+              <SimilarToursSection
+                tourId={Number(tour.id)}
+                sourceCity={(tour as any).city as string | undefined}
+                sourceDurationDays={(tour as any).durationDays as number | undefined}
+                sourceMinPrice={minPrice ?? undefined}
+              />
+            )}
           </div>
 
           {/* RIGHT: Booking widget */}

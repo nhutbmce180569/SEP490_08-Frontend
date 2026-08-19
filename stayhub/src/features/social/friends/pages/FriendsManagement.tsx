@@ -5,6 +5,7 @@ import {
   useGetPendingRequests, 
   useRespondToRequest, 
   useDeleteFriendship,
+  useCancelRequest,
   useSendFriendRequest,
   useGetSentRequests,
   useGetPaginatedFriendList,
@@ -58,6 +59,8 @@ export const FriendsManagement: React.FC = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [friendToUnfriend, setFriendToUnfriend] = useState<number | null>(null);
+  const [isCancelRequestConfirmOpen, setIsCancelRequestConfirmOpen] = useState(false);
+  const [requestToCancel, setRequestToCancel] = useState<number | null>(null);
   const [hiddenSuggestionIds, setHiddenSuggestionIds] = useState<number[]>([]);
 
   // Phân trang danh sách bạn bè, tìm kiếm, lời mời nhận/gửi
@@ -99,6 +102,7 @@ export const FriendsManagement: React.FC = () => {
   
   const { mutate: respondRequest, isPending: isResponding } = useRespondToRequest();
   const { mutate: deleteFriend, isPending: isDeleting } = useDeleteFriendship();
+  const { mutate: cancelReq, isPending: isCancelling } = useCancelRequest();
   const { mutate: sendRequest, isPending: isSending } = useSendFriendRequest();
   const { mutate: createChat, isPending: isCreatingChat } = useCreateChatRoom();
 
@@ -203,6 +207,28 @@ export const FriendsManagement: React.FC = () => {
           error(t("social.failedToUnfriend"));
           setIsConfirmOpen(false);
           setFriendToUnfriend(null);
+        }
+      });
+    }
+  };
+
+  const handleCancelRequestClick = (requestId: number) => {
+    setRequestToCancel(requestId);
+    setIsCancelRequestConfirmOpen(true);
+  };
+
+  const executeCancelRequest = () => {
+    if (requestToCancel !== null) {
+      cancelReq(requestToCancel, {
+        onSuccess: () => {
+          success(t("social.cancelRequestSuccess"));
+          setIsCancelRequestConfirmOpen(false);
+          setRequestToCancel(null);
+        },
+        onError: () => {
+          error(t("social.failedToCancelRequest"));
+          setIsCancelRequestConfirmOpen(false);
+          setRequestToCancel(null);
         }
       });
     }
@@ -585,8 +611,8 @@ export const FriendsManagement: React.FC = () => {
 
                           <div className="flex flex-col gap-1.5 mt-2">
                             <button 
-                              onClick={() => handleUnfriendClick(req?.id)}
-                              disabled={isDeleting}
+                              onClick={() => handleCancelRequestClick(req?.id)}
+                              disabled={isCancelling}
                               className="flex items-center justify-center gap-1.5 w-full py-2 text-xs font-semibold text-red-600 bg-white border border-red-200 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                             >
                               <UserX className="w-3.5 h-3.5" />
@@ -875,8 +901,20 @@ export const FriendsManagement: React.FC = () => {
           setFriendToUnfriend(null);
         }}
         onConfirm={executeUnfriend}
-        title={t("social.confirmUnfriendTitle") || "Unfriend"}
+        title={t("social.confirmUnfriendTitle") || "Unfriend User"}
         message={t("social.confirmUnfriend") || "Are you sure you want to unfriend this user?"}
+        variant="warning"
+      />
+
+      <ConfirmDialog
+        open={isCancelRequestConfirmOpen}
+        onClose={() => {
+          setIsCancelRequestConfirmOpen(false);
+          setRequestToCancel(null);
+        }}
+        onConfirm={executeCancelRequest}
+        title={t("social.confirmCancelRequestTitle") || "Cancel Friend Request"}
+        message={t("social.confirmCancelRequest") || "Are you sure you want to cancel this friend request?"}
         variant="warning"
       />
     </div>

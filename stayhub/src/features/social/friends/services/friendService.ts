@@ -62,6 +62,11 @@ export const deleteFriendship = async (id: number): Promise<void> => {
   return response.data ?? response;
 };
 
+export const cancelRequest = async (id: number): Promise<void> => {
+  const response = await apiClient.delete<any>(`${FRIEND_API_URL}/${id}/cancel`);
+  return response.data ?? response;
+};
+
 export const getPaginatedFriendList = async (page = 1, pageSize = 10): Promise<{ data: FriendshipResponse[]; total: number }> => {
   const response = await apiClient.get<any>(`${FRIEND_API_URL}/list?page=${page}&pageSize=${pageSize}`);
   const paginationData = response?.data;

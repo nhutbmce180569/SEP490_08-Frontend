@@ -5,6 +5,7 @@ import {
   getPendingRequests,
   respondToRequest,
   deleteFriendship,
+  cancelRequest,
   getPaginatedFriendList,
   getFriendshipStatus,
   getSentRequests,
@@ -59,6 +60,16 @@ export const useDeleteFriendship = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteFriendship,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: friendQueryKeys.all });
+    },
+  });
+};
+
+export const useCancelRequest = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cancelRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: friendQueryKeys.all });
     },

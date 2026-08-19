@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useContext, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Camera, LayoutList, Map, Globe, Users, Lock, Sparkles, Filter } from "lucide-react";
-import { useInfiniteMomentFeed, useToggleReaction, useGetMomentById } from "../hooks/useMoments"; 
+import { useInfiniteMomentFeed, useToggleReaction, useGetMomentById } from "../hooks/useMoments";
 import { useGetEligibleSchedules } from "../hooks/useEligibleSchedules";
 import { CreateMomentForm } from "./CreateMomentForm";
 import { MomentsMapFeed } from "./MomentsMapFeed";
@@ -31,13 +31,13 @@ export const MomentsFeed: React.FC = () => {
   const [scheduleId, setScheduleId] = useState<number | null>(null);
   const { data: schedules } = useGetEligibleSchedules();
 
-  const { 
-    data, 
-    isLoading, 
-    isError, 
-    hasNextPage, 
-    fetchNextPage, 
-    isFetchingNextPage 
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage
   } = useInfiniteMomentFeed(scheduleId);
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -56,13 +56,13 @@ export const MomentsFeed: React.FC = () => {
   const lastElementRef = useCallback((node: HTMLDivElement | null) => {
     if (isLoading || isFetchingNextPage) return;
     if (observerRef.current) observerRef.current.disconnect();
-    
+
     observerRef.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasNextPage) {
         fetchNextPage();
       }
     });
-    
+
     if (node) observerRef.current.observe(node);
   }, [isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
@@ -89,11 +89,11 @@ export const MomentsFeed: React.FC = () => {
 
   // Reaction State Management for selected moment
   const currentUserId = user ? (user.id || (user as any).Id) : null;
-  
+
   const initialIsLiked = useMemo(() => {
     if (!selectedMoment || !currentUserId) return false;
     const reactionList = selectedMoment.reactions || (selectedMoment as any).momentReactions || [];
-    return reactionList.some((r: any) => 
+    return reactionList.some((r: any) =>
       (r.isLike === true || r.IsLike === true) && String(r.userId || r.UserId) === String(currentUserId)
     );
   }, [selectedMoment, currentUserId]);
@@ -119,16 +119,16 @@ export const MomentsFeed: React.FC = () => {
   const handleToggleLike = useCallback(() => {
     if (!selectedMoment) return;
     if (!user || !currentUserId) { warning(t("social.pleaseLogIn")); return; }
-    
+
     const newIsLiked = !isLiked;
     setIsLiked(newIsLiked);
     setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
-    
+
     toggleReaction({ momentId: selectedMoment.id, userId: Number(currentUserId), isLike: newIsLiked }, {
-      onError: () => { 
-        setIsLiked(!newIsLiked); 
-        setLikeCount(initialLikeCount); 
-        error(t("social.failedReactMoment")); 
+      onError: () => {
+        setIsLiked(!newIsLiked);
+        setLikeCount(initialLikeCount);
+        error(t("social.failedReactMoment"));
       }
     });
   }, [selectedMoment, user, currentUserId, isLiked, toggleReaction, initialLikeCount, warning, error, t]);
@@ -161,7 +161,7 @@ export const MomentsFeed: React.FC = () => {
   // Preload next 5 moments (API pre-fetching + image caching)
   useEffect(() => {
     if (currentMomentIndexInFeed === -1 || !filteredMoments || filteredMoments.length === 0) return;
-    
+
     // 1. If we are within 5 items of the end of the currently loaded list, fetch the next page from the backend
     if (currentMomentIndexInFeed >= filteredMoments.length - 5 && hasNextPage && !isFetchingNextPage) {
       void fetchNextPage();
@@ -202,22 +202,20 @@ export const MomentsFeed: React.FC = () => {
         <div className="flex items-center bg-slate-200/60 dark:bg-slate-800/60 backdrop-blur-md p-1 rounded-full border border-white/60 dark:border-slate-700/60 h-9.5 shadow-[inner_0_1px_2px_rgba(0,0,0,0.05)]">
           <button
             onClick={() => setViewMode('feed')}
-            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${
-              viewMode === 'feed'
+            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${viewMode === 'feed'
                 ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-700/50'
-            }`}
+              }`}
           >
             <LayoutList className="h-3 w-3" />
             <span>{t("social.feed")}</span>
           </button>
           <button
             onClick={() => setViewMode('map')}
-            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${
-              viewMode === 'map'
+            className={`flex items-center gap-1.5 rounded-full h-7 px-4 text-[11px] font-black transition-all duration-300 cursor-pointer ${viewMode === 'map'
                 ? 'bg-brand text-white shadow-md shadow-brand/30 scale-102'
                 : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-700/50'
-            }`}
+              }`}
           >
             <Map className="h-3 w-3" />
             <span>{t("social.map")}</span>
@@ -321,7 +319,7 @@ export const MomentsFeed: React.FC = () => {
                     </div>
                   );
                 })}
-                
+
                 {isFetchingNextPage && (
                   <>
                     {[...Array(5)].map((_, i) => (
@@ -336,10 +334,10 @@ export const MomentsFeed: React.FC = () => {
           </div>
         ) : (
           <div className="h-full w-full absolute inset-0">
-            <MomentsMapFeed 
-              scheduleId={scheduleId!} 
-              onMarkerClick={setSelectedMomentId} 
-              onReplayStateChange={setIsReplayActive} 
+            <MomentsMapFeed
+              scheduleId={scheduleId!}
+              onMarkerClick={setSelectedMomentId}
+              onReplayStateChange={setIsReplayActive}
               onPostMomentClick={() => setIsCreateOpen(true)}
             />
           </div>
@@ -349,7 +347,7 @@ export const MomentsFeed: React.FC = () => {
       {/* Immersive Floating Post Camera Button (Only visible in list Feed view - Matching Screenshot) */}
       {viewMode === 'feed' && (
         <div className={`absolute bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 ease-out ${isReplayActive ? 'opacity-0 scale-90 pointer-events-none' : 'opacity-100 scale-100'}`}>
-          <div 
+          <div
             onClick={() => setIsCreateOpen(true)}
             className="group flex flex-col items-center gap-1.5 cursor-pointer select-none transition-transform duration-300 hover:scale-105 active:scale-95"
             title={t("social.postMoment") || "POST MOMENT"}

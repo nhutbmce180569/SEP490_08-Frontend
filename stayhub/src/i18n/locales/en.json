@@ -24,6 +24,34 @@
     "menu": "Menu",
     "account": "Account"
   },
+  "errors": {
+    "emailAddress": "Email Address",
+    "emailPlaceholder": "Enter email address",
+    "fullNamePlaceholder": "Enter full name",
+    "phonePlaceholder": "Enter phone number",
+    "fullNameNoSpecialChars": "Full name cannot contain special characters or numbers.",
+    "phoneNumberExists": "Phone number is already in use by another account.",
+    "emailAlreadyInUse": "Email is already in use by another account.",
+    "cannotEditAdmin": "Cannot edit or block other Admin accounts.",
+    "cannotEditCustomer": "Cannot edit Customer accounts.",
+    "BankNameTooLong": "Bank name cannot exceed 100 characters.",
+    "AccountNumberTooLong": "Account number cannot exceed 50 characters.",
+    "AccountHolderNameTooLong": "Account holder name cannot exceed 100 characters.",
+    "ReasonTooLong": "Reason cannot exceed 2500 characters.",
+    "RejectReasonTooLong": "Reject reason cannot exceed 500 characters.",
+    "EmailRequired": "Email is required.",
+    "EmailTooLong": "Email cannot exceed 255 characters.",
+    "InvalidEmailFormat": "Invalid email format.",
+    "PasswordRequired": "Password is required.",
+    "PasswordTooLong": "Password cannot exceed 100 characters.",
+    "PasswordFormatInvalid": "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+    "FullNameRequired": "Full Name is required.",
+    "FullNameLength": "Full name must be between 2 and 100 characters.",
+    "FullNameCannotContainSpecialCharacters": "Full name cannot contain special characters.",
+    "PhoneNumberRequired": "Phone Number is required.",
+    "PhoneNumberMax15Chars": "Phone number must be between 8 and 15 characters.",
+    "InvalidPhoneNumberFormat": "Invalid phone number format."
+  },
   "header": {
     "searchPlaceholder": "Search destinations, tours, or experiences...",
     "searchLabel": "Search tours",
@@ -242,7 +270,11 @@
     "voucherManagement": "Vouchers",
     "failedLoadBirthdayPreview": "Failed to load birthday preview.",
     "distributeSuccess": "Vouchers distributed successfully.",
-    "distributeFailed": "Failed to distribute vouchers."
+    "distributeFailed": "Failed to distribute vouchers.",
+    "createUserSuccess": "User created successfully!",
+    "createUserError": "Failed to create user. Please check the inputs.",
+    "updateUserSuccess": "User updated successfully!",
+    "updateUserError": "Failed to update user. Please check the inputs."
   },
   "content": {
     "ticketTypeName": "Ticket Type Name",

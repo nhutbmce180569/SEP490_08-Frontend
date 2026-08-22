@@ -196,6 +196,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder={t("errors.fullNamePlaceholder")}
               error={errors.fullName}
+              maxLength={100}
               required
             />
 
@@ -208,6 +209,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder={t("errors.emailPlaceholder")}
               error={errors.email}
+              maxLength={255}
               required
             />
 
@@ -233,6 +235,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder={t("errors.passwordPlaceholder")}
               error={errors.password}
+              maxLength={100}
               showToggle
               showPassword={showPassword}
               onTogglePassword={() => setShowPassword(!showPassword)}
@@ -248,6 +251,7 @@ export default function Register() {
               onChange={handleChange}
               placeholder={t("errors.confirmPasswordPlaceholder")}
               error={errors.confirmPassword}
+              maxLength={100}
               required
             />
 

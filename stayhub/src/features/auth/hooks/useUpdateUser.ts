@@ -47,6 +47,10 @@ export const useUpdateUser = () => {
         const msg = error.response.data.message;
         if (msg === "PhoneNumberExists") {
           setServerErrors({ general: t("errors.phoneNumberExists") });
+        } else if (msg === "Cannot edit Customer accounts.") {
+          setServerErrors({ general: t("errors.cannotEditCustomer") });
+        } else if (msg === "Cannot edit or block other Admin accounts.") {
+          setServerErrors({ general: t("errors.cannotEditAdmin") });
         } else {
           setServerErrors({ general: msg });
         }

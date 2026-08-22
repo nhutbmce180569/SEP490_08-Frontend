@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { userService } from "../services/user.service";
 import { useToast } from "../../../contexts/ToastContext";
+import { useTranslation } from "../../../contexts/LocaleContext";
 
 export const useChangeUserStatus = (refetch?: () => void) => {
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const { success, error: showError } = useToast();
+  const { t } = useTranslation();
 
   const executeStatusChange = async (userId: number, currentStatus: string) => {
     const newStatus = currentStatus === "Active" ? "Blocked" : "Active";
@@ -16,7 +18,12 @@ export const useChangeUserStatus = (refetch?: () => void) => {
       if (refetch) refetch();
       else window.location.reload();
     } catch (err: any) {
-      showError(err.response?.data?.message || "Failed to change user status.");
+      const msg = err.response?.data?.message;
+      if (msg === "Cannot block or change the status of an Admin account.") {
+        showError(t("errors.cannotEditAdmin"));
+      } else {
+        showError(msg || "Failed to change user status.");
+      }
     } finally {
       setUpdatingId(null);
     }

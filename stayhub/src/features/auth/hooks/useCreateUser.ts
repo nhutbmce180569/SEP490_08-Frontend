@@ -39,6 +39,8 @@ export const useCreateUser = () => {
         const msg = error.response.data.message;
         if (msg === "PhoneNumberExists") {
           setServerErrors({ general: t("errors.phoneNumberExists") });
+        } else if (msg === "Email is already in use." || msg === "EmailAlreadyInUse") {
+          setServerErrors({ general: t("errors.emailAlreadyInUse") });
         } else {
           setServerErrors({ general: msg });
         }

@@ -16,8 +16,18 @@ import { categoryService } from "../../content/services/category.service";
 import { MoneyDisplay } from "../../currency/MoneyDisplay";
 import { DynamicText } from "../../../components/DynamicText";
 
-const getErrorMessage = (error: unknown, fallback: string) => {
-  return error instanceof Error && error.message ? error.message : fallback;
+const getErrorMessage = (error: unknown, fallback: string, t?: any) => {
+  const axiosErr = error as { response?: { data?: { message?: string, errors?: Record<string, string[]> } }, message?: string };
+  if (axiosErr.response?.data?.errors) {
+    const firstKey = Object.keys(axiosErr.response.data.errors)[0];
+    const firstVal = axiosErr.response.data.errors[firstKey];
+    const firstErr = Array.isArray(firstVal) ? firstVal[0] : String(firstVal);
+    return t ? t(`errors.${firstErr}`, { defaultValue: firstErr }) : firstErr;
+  }
+  if (axiosErr.response?.data?.message) {
+    return axiosErr.response.data.message;
+  }
+  return axiosErr.message || fallback;
 };
 
 const DetailRow = ({ label, value, vertical = false }: { label: string; value: React.ReactNode; vertical?: boolean }) => (
@@ -105,7 +115,7 @@ export const ProcessCancellationPage: React.FC = () => {
   if (error || !detail)
     return (
       <div className="p-10 text-center text-rose-500">
-        {getErrorMessage(error, t("booking.requestNotFound"))}
+        {getErrorMessage(error, t("booking.requestNotFound"), t)}
       </div>
     );
 
@@ -156,7 +166,7 @@ export const ProcessCancellationPage: React.FC = () => {
       success(t("booking.requestProcessed", { action: action.toLowerCase() }));
       navigate(MANAGER_ROUTES.CANCELLATION_REQUESTS);
     } catch (err: unknown) {
-      showError(getErrorMessage(err, t("booking.processRequestFailed")));
+      showError(getErrorMessage(err, t("booking.processRequestFailed"), t));
     }
   };
 
@@ -268,7 +278,11 @@ export const ProcessCancellationPage: React.FC = () => {
                 placeholder={t("booking.rejectReasonPlaceholder")}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
+                maxLength={500}
               />
+              <div className="text-right text-xs font-normal text-slate-400">
+                {rejectReason.length}/500
+              </div>
             </section>
           )}
 

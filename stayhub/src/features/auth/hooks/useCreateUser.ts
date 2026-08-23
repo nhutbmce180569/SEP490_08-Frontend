@@ -23,7 +23,12 @@ export const useCreateUser = () => {
       setCreatedAccount(result);
     },
     onError: (error: any) => {
-      showError(t("admin.createUserError") || "Failed to create user. Please check the inputs.");
+      const msg = error.response?.data?.message;
+      let displayMsg = msg;
+      if (msg === "PhoneNumberExists") displayMsg = t("errors.phoneNumberExists");
+      else if (msg === "Email is already in use." || msg === "EmailAlreadyInUse") displayMsg = t("errors.emailAlreadyInUse");
+
+      showError(displayMsg || t("admin.createUserError") || "Failed to create user. Please check the inputs.");
       if (error.response?.data?.errors) {
         const translatedErrors: Record<string, string> = {};
         Object.entries(error.response.data.errors).forEach(([key, val]) => {
@@ -35,15 +40,8 @@ export const useCreateUser = () => {
           }
         });
         setServerErrors(translatedErrors);
-      } else if (error.response?.data?.message) {
-        const msg = error.response.data.message;
-        if (msg === "PhoneNumberExists") {
-          setServerErrors({ general: t("errors.phoneNumberExists") });
-        } else if (msg === "Email is already in use." || msg === "EmailAlreadyInUse") {
-          setServerErrors({ general: t("errors.emailAlreadyInUse") });
-        } else {
-          setServerErrors({ general: msg });
-        }
+      } else if (displayMsg) {
+        setServerErrors({ general: displayMsg });
       }
     }
   });

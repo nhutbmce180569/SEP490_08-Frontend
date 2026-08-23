@@ -31,7 +31,13 @@ export const useUpdateUser = () => {
       navigate(PATH.ADMIN.USER_MANAGEMENT);
     },
     onError: (error: any) => {
-      showError(t("admin.updateUserError") || "Failed to update user. Please check the inputs.");
+      const msg = error.response?.data?.message;
+      let displayMsg = msg;
+      if (msg === "PhoneNumberExists") displayMsg = t("errors.phoneNumberExists");
+      else if (msg === "Cannot edit Customer accounts.") displayMsg = t("errors.cannotEditCustomer");
+      else if (msg === "Cannot edit or block other Admin accounts.") displayMsg = t("errors.cannotEditAdmin");
+
+      showError(displayMsg || t("admin.updateUserError") || "Failed to update user. Please check the inputs.");
       if (error.response?.data?.errors) {
         const translatedErrors: Record<string, string> = {};
         Object.entries(error.response.data.errors).forEach(([key, val]) => {
@@ -43,17 +49,8 @@ export const useUpdateUser = () => {
           }
         });
         setServerErrors(translatedErrors);
-      } else if (error.response?.data?.message) {
-        const msg = error.response.data.message;
-        if (msg === "PhoneNumberExists") {
-          setServerErrors({ general: t("errors.phoneNumberExists") });
-        } else if (msg === "Cannot edit Customer accounts.") {
-          setServerErrors({ general: t("errors.cannotEditCustomer") });
-        } else if (msg === "Cannot edit or block other Admin accounts.") {
-          setServerErrors({ general: t("errors.cannotEditAdmin") });
-        } else {
-          setServerErrors({ general: msg });
-        }
+      } else if (displayMsg) {
+        setServerErrors({ general: displayMsg });
       }
     }
   });

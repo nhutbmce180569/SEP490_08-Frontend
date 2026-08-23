@@ -81,9 +81,17 @@ export const Profile: React.FC = () => {
       return;
     }
 
-    const fullNameRegex = /^[a-zA-Z0-9\sÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ]+$/;
-    if (!fullNameRegex.test(formData.fullName.trim())) {
-      showError(t('errors.fullNameNoSpecialChars'));
+    const validateForm = () => {
+      if (!formData.fullName.trim()) return t('auth.fullNameRequired');
+      // Regex for FullName to support Vietnamese (equivalent to ^[\p{L}0-9\s]+$ in C#)
+      const fullNameRegex = /^[\p{L}0-9\s]+$/u;
+      if (!fullNameRegex.test(formData.fullName)) return t('errors.fullNameNoSpecialChars');
+      return null;
+    };
+
+    const validationError = validateForm();
+    if (validationError) {
+      showError(validationError);
       return;
     }
     
@@ -192,6 +200,7 @@ export const Profile: React.FC = () => {
                   onChange={handleChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
                   required
+                  maxLength={100}
                 />
               </div>
             </div>
@@ -221,6 +230,7 @@ export const Profile: React.FC = () => {
                   onChange={handleChange}
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-brand focus:bg-white focus:ring-4 focus:ring-brand/10"
                   required
+                  maxLength={15}
                 />
               </div>
             </div>

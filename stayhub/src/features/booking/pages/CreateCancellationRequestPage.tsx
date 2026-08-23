@@ -35,6 +35,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
   const [isLoadingBanks, setIsLoadingBanks] = useState(true);
   const [bankLoadError, setBankLoadError] = useState("");
   const [bankSearch, setBankSearch] = useState("");
+  const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -106,6 +107,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         options: isLoadingBanks ? [{ label: t("booking.loadingBanks"), value: "" }] : bankOptions,
         colSpan: 2,
         required: true,
+        maxLength: 100,
       },
       {
         name: "accountNumber",
@@ -114,6 +116,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         icon: <CreditCard className="h-4 w-4" />,
         colSpan: 1,
         required: true,
+        maxLength: 50,
       },
       {
         name: "accountHolderName",
@@ -122,6 +125,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         icon: <User className="h-4 w-4" />,
         colSpan: 1,
         required: true,
+        maxLength: 100,
       },
       {
         name: "reason",
@@ -130,6 +134,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         icon: <AlignLeft className="h-4 w-4" />,
         colSpan: 2,
         required: true,
+        maxLength: 2500,
       },
     ],
     [t, isLoadingBanks, bankOptions, bankSearch],
@@ -145,15 +150,26 @@ export const CreateCancellationRequestPage: React.FC = () => {
       success(t("booking.cancellationSubmitted"));
       navigate(CUSTOMER_ROUTES.MY_BOOKINGS);
     } catch (err: unknown) {
-      let message =
-        err && typeof err === "object" && "response" in err
-          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
-          : undefined;
-          
-      if (message === "PendingCancellationExists") {
-        message = t("booking.PendingCancellationExists");
+      const axiosErr = err as { response?: { data?: { message?: string, errors?: Record<string, string[]> } } };
+      const message = axiosErr.response?.data?.message;
+      const validationErrors = axiosErr.response?.data?.errors;
+
+      if (validationErrors) {
+        const mappedErrors: Record<string, string> = {};
+        Object.entries(validationErrors).forEach(([key, val]) => {
+          const firstErr = Array.isArray(val) ? val[0] : String(val);
+          // Translate length errors or map directly
+          mappedErrors[key] = t(`errors.${firstErr}`, { defaultValue: firstErr });
+        });
+        setServerErrors(mappedErrors);
+        error(t("booking.validationFailed") || "Validation failed");
+      } else {
+        let displayMsg = message;
+        if (message === "PendingCancellationExists") {
+          displayMsg = t("booking.PendingCancellationExists");
+        }
+        error(displayMsg || t("booking.cancellationSubmitFailed"));
       }
-      error(message || t("booking.cancellationSubmitFailed"));
     }
   };
 
@@ -171,6 +187,7 @@ export const CreateCancellationRequestPage: React.FC = () => {
         onSubmit={handleSubmit}
         submitText={t("booking.submitRequest")}
         onCancel={() => navigate(-1)}
+        serverErrors={serverErrors}
       /> 
       <LoadingOverlay isOpen={isPending} message={t("booking.submittingRequest")} />
     </div>

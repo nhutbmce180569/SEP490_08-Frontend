@@ -261,6 +261,7 @@
   "customerReason": "Customer Reason",
   "processingResult": "Processing Result",
   "processedBy": "Processed By",
+  "validationFailed": "Validation failed, please check the form inputs.",
   "staffNumber": "Staff #{{id}}",
   "additionalInformation": "Additional Information",
   "approveRequest": "Approve Request",

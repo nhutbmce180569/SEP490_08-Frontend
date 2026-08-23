@@ -37,12 +37,14 @@ export const UpdateUser: React.FC = () => {
       type: "text",
       icon: <UserIcon className="h-4 w-4" />,
       required: true,
+      maxLength: 100,
     },
     {
       name: "phoneNumber",
       label: t("auth.phoneNumber"),
       type: "text",
       icon: <Phone className="h-4 w-4" />,
+      maxLength: 15,
     },
     {
       name: "dateOfBirth",

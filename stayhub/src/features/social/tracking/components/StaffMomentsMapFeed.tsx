@@ -15,6 +15,7 @@ import { getStoredLocale } from "../../../../i18n";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { useToast } from "../../../../contexts/ToastContext";
 import { FogOfWarCanvas } from "../../moments/components/FogOfWarCanvas";
+import { ticketService } from "../../../booking/services/ticket.service";
 
 const SafeImage = ({ src, alt, className, fallbackText, fallbackClassName }: any) => {
   const [hasError, setHasError] = useState(false);
@@ -115,6 +116,42 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
   });
   const [selectedDay, setSelectedDay] = useState<number | 'ALL'>('ALL');
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isMemberListOpen, setIsMemberListOpen] = useState(false);
+  const [scheduleCustomers, setScheduleCustomers] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (scheduleId > 0) {
+      ticketService.getByScheduleId(scheduleId).then((tickets) => {
+        const uniqueCustomers = new globalThis.Map<number, any>();
+        tickets.forEach(t => {
+          if (t.userId) {
+            uniqueCustomers.set(t.userId, {
+              userId: t.userId,
+              fullName: t.attendeeName || "Customer",
+              avatarUrl: null,
+              role: "Customer"
+            });
+          }
+        });
+        setScheduleCustomers(Array.from(uniqueCustomers.values()));
+      }).catch(err => {
+        console.warn("Failed to get tickets for customers list", err);
+      });
+    }
+  }, [scheduleId]);
+
+  const combinedMemberList = useMemo(() => {
+    const list: any[] = [];
+    scheduleMemberLocations.forEach(m => {
+      list.push({ ...m, isOnline: true });
+    });
+    scheduleCustomers.forEach(c => {
+      if (!list.some(m => String(m.userId) === String(c.userId))) {
+        list.push({ ...c, isOnline: false, lat: null, lng: null });
+      }
+    });
+    return list;
+  }, [scheduleMemberLocations, scheduleCustomers]);
 
   // Sliding Day Selector indicator refs and style state
   const daySelectorContainerRef = useRef<HTMLDivElement>(null);
@@ -475,6 +512,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
 
   const handleMapClick = () => {
     if (isLayerMenuOpen) setIsLayerMenuOpen(false);
+    if (isMemberListOpen) setIsMemberListOpen(false);
   };
 
   // --- TIMELINE REPLAY LOGIC ---
@@ -1332,8 +1370,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
             onClick={() => setSelectedDay('ALL')}
             style={{ transition: 'color 300ms ease, transform 300ms ease' }}
             className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${selectedDay === 'ALL'
-                ? 'text-white font-black scale-105 bg-gradient-to-r from-brand to-cyan-500 shadow-sm'
-                : 'text-slate-700 hover:text-brand hover:scale-102'
+              ? 'text-white font-black scale-105 bg-gradient-to-r from-brand to-cyan-500 shadow-sm'
+              : 'text-slate-700 hover:text-brand hover:scale-102'
               }`}
           >
             {locale === 'vi' ? 'Tổng quan' : 'Overview'}
@@ -1345,8 +1383,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
               onClick={() => setSelectedDay(day)}
               style={{ transition: 'color 300ms ease, transform 300ms ease' }}
               className={`px-4 py-1.5 rounded-full text-xs whitespace-nowrap z-10 font-bold active:scale-95 transition-all duration-300 ${selectedDay === day
-                  ? 'text-white font-black scale-105'
-                  : 'text-slate-700 hover:text-brand hover:scale-102'
+                ? 'text-white font-black scale-105'
+                : 'text-slate-700 hover:text-brand hover:scale-102'
                 }`}
             >
               {locale === 'vi' ? `Ngày ${day}` : `Day ${day}`}
@@ -1362,6 +1400,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               if (!isLayerMenuOpen) setIsReplayMode(false);
+              setIsGuideOpen(false);
+              setIsMemberListOpen(false);
               setIsLayerMenuOpen(!isLayerMenuOpen);
             }}
             className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none shadow-md"
@@ -1449,8 +1489,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                         <button
                           onClick={(e) => { e.stopPropagation(); setHeatmapType('online'); }}
                           className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${heatmapType === 'online'
-                              ? 'bg-orange-100 text-orange-600 border border-orange-200'
-                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                            ? 'bg-orange-100 text-orange-600 border border-orange-200'
+                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                             }`}
                         >
                           <Users className="w-3.5 h-3.5" />
@@ -1459,8 +1499,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
                         <button
                           onClick={(e) => { e.stopPropagation(); setHeatmapType('moments'); }}
                           className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1.5 ${heatmapType === 'moments'
-                              ? 'bg-rose-100 text-rose-600 border border-rose-200'
-                              : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                            ? 'bg-rose-100 text-rose-600 border border-rose-200'
+                            : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                             }`}
                         >
                           <Camera className="w-3.5 h-3.5" />
@@ -1496,6 +1536,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
             onClick={(e) => {
               e.stopPropagation();
               setIsLayerMenuOpen(false);
+              setIsMemberListOpen(false);
               setIsReplayMode(!isReplayMode);
               if (isSpecificTour) setIsPlaying(!isReplayMode);
               setCurrentEventIndex(0);
@@ -1522,6 +1563,7 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
           onClick={(e) => {
             e.stopPropagation();
             setIsLayerMenuOpen(false);
+            setIsMemberListOpen(false);
             setIsGuideOpen(true);
           }}
           className="glass-button flex h-12 w-12 items-center justify-center rounded-full text-slate-700 transition-all hover:scale-110 hover:text-brand focus:outline-none"
@@ -1529,6 +1571,72 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
         >
           <HelpCircle className="h-6 w-6" />
         </button>
+
+        {/* Nút Danh sách thành viên (Customer List) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsLayerMenuOpen(false);
+            setIsGuideOpen(false);
+            setIsMemberListOpen(!isMemberListOpen);
+          }}
+          className={`glass-button flex h-12 w-12 items-center justify-center rounded-full transition-all hover:scale-110 focus:outline-none shadow-md ${isMemberListOpen ? 'bg-brand !text-white border-none' : 'text-slate-700 hover:text-brand'}`}
+          title={locale === 'vi' ? "Danh sách thành viên" : "Member List"}
+        >
+          <Users className="h-6 w-6" />
+        </button>
+
+        {isMemberListOpen && (
+          <div className="absolute top-0 right-14 w-[calc(100vw-80px)] sm:w-72 max-w-[288px] origin-top-right rounded-[1.5rem] sm:rounded-[2rem] glass-panel p-2 sm:p-3 shadow-2xl animate-fade-in-down z-50" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-2 px-2 flex justify-between items-center">
+              <h4 className="text-sm font-bold text-slate-800">{locale === 'vi' ? "Danh sách thành viên" : "Member List"}</h4>
+            </div>
+            <div className="flex flex-col gap-1 max-h-60 overflow-y-auto custom-scrollbar">
+              {combinedMemberList.length === 0 ? (
+                <div className="p-3 text-center text-xs text-slate-500">
+                  {locale === 'vi' ? "Không có thành viên nào" : "No members found"}
+                </div>
+              ) : (
+                combinedMemberList.map((member) => (
+                  <div
+                    key={member.userId}
+                    onClick={() => {
+                      if (member.isOnline && member.lng && member.lat && mapRef.current) {
+                        mapRef.current.flyTo({ center: [member.lng, member.lat], zoom: 16, duration: 1000 });
+                        setIsMemberListOpen(false);
+                      } else if (!member.isOnline) {
+                        toastError(locale === 'vi' ? "Khách hàng này đang offline nên không có vị trí" : "This customer is offline, no location available");
+                      }
+                    }}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${member.isOnline ? 'hover:bg-white/50 cursor-pointer' : 'opacity-70 hover:bg-white/30 cursor-pointer'}`}
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 border border-white shrink-0">
+                      <SafeImage
+                        src={member.avatarUrl}
+                        alt={member.fullName}
+                        className={`w-full h-full object-cover ${!member.isOnline ? 'grayscale' : ''}`}
+                        fallbackClassName={`w-full h-full flex items-center justify-center ${member.isOnline ? 'bg-brand' : 'bg-slate-400'} text-white text-xs font-bold`}
+                        fallbackText={member.fullName?.charAt(0) || "U"}
+                      />
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                      <span className="text-sm font-bold text-slate-800 truncate">{member.fullName || "User"}</span>
+                      {member.role === "Staff" && (
+                        <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wide">Staff</span>
+                      )}
+                      {!member.isOnline && (
+                        <span className="text-[10px] font-medium text-slate-400">Offline</span>
+                      )}
+                    </div>
+                    {member.isOnline && (
+                      <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)] shrink-0"></div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Nút Điều hướng Nhanh & Ảnh mới nhất (Góc dưới trái) */}
@@ -1538,8 +1646,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
             onClick={handleJumpToNewest}
             disabled={points.length === 0}
             className={`glass-button flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-bold transition-all shadow-md ${points.length === 0
-                ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70 dark:bg-slate-800/70'
-                : 'text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800'
+              ? 'opacity-40 cursor-not-allowed text-slate-400 bg-white/70 dark:bg-slate-800/70'
+              : 'text-slate-800 dark:text-slate-100 hover:scale-105 active:scale-95 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/80 dark:border-slate-800'
               }`}
           >
             <Navigation className={`h-4 w-4 ${points.length === 0 ? 'text-slate-400' : 'text-brand'}`} />
@@ -1551,8 +1659,8 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
       {/* Floating Location Buttons (Lower Right) */}
       <div
         className={`absolute ${isReplayMode
-            ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[230px]' : 'bottom-[90px]')
-            : 'bottom-6'
+          ? (dockState === 'expanded' || !isSpecificTour ? 'bottom-[230px]' : 'bottom-[90px]')
+          : 'bottom-6'
           } right-4 z-20 flex flex-col gap-2.5 transition-all duration-300`}
       >
         {typeof navigator !== 'undefined' && 'geolocation' in navigator && (

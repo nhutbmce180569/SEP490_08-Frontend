@@ -104,6 +104,7 @@ export const CreateUser: React.FC = () => {
       placeholder: t("errors.fullNamePlaceholder"),
       icon: <UserIcon className="h-4 w-4" />,
       required: true,
+      maxLength: 100,
     },
     {
       name: "phoneNumber",
@@ -111,6 +112,7 @@ export const CreateUser: React.FC = () => {
       type: "text",
       placeholder: t("errors.phonePlaceholder"),
       icon: <Phone className="h-4 w-4" />,
+      maxLength: 15,
     },
     {
       name: "dateOfBirth",

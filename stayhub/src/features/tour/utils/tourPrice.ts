@@ -24,7 +24,7 @@ export const getTicketEffectivePriceInfo = (ticket: any): TourPriceInfo => {
     if (isStarted && isNotEnded && promo.discountValue) {
       let discountAmount = 0;
       if (promo.discountType?.toLowerCase() === "percentage") {
-        discountAmount = basePrice * (promo.discountValue / 100);
+        discountAmount = Math.round(basePrice * (promo.discountValue / 100));
         if (promo.maxDiscountAmount && discountAmount > promo.maxDiscountAmount) {
           discountAmount = promo.maxDiscountAmount;
         }

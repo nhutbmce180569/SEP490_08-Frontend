@@ -251,6 +251,8 @@
   "country": "Quốc gia",
   "city": "Thành phố",
   "customerReason": "Lý do của khách",
+  "searchBankPlaceholder": "Tìm kiếm ngân hàng...",
+  "validationFailed": "Xác thực thất bại, vui lòng kiểm tra lại thông tin.",
   "processingResult": "Kết quả xử lý",
   "processedBy": "Xử lý bởi",
   "staffNumber": "Nhân viên #{{id}}",

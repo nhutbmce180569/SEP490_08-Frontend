@@ -119,11 +119,10 @@ export default function NotificationBell() {
         id="tour-notifications"
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all border-0 shadow-none ${
-          isOpen
+        className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full transition-all border-0 shadow-none ${isOpen
             ? "bg-brand-light/40 text-brand"
             : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 hover:text-brand dark:hover:bg-slate-800"
-        }`}
+          }`}
         aria-label={t("dashboard.notifications")}
         aria-expanded={isOpen}
       >
@@ -171,7 +170,7 @@ export default function NotificationBell() {
                       {!noti.isRead && (
                         <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 rounded-r-md bg-brand shadow-sm shadow-brand/40" />
                       )}
-                      
+
                       <div className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-inner ${!noti.isRead ? "bg-brand/10 text-brand" : "bg-slate-100 text-slate-500"}`}>
                         {n.avatarUrl ? (
                           <img src={getImg(n.avatarUrl)} alt="Avatar" className="h-full w-full object-cover" />
@@ -179,7 +178,7 @@ export default function NotificationBell() {
                           <NotificationIcon type={n.type} />
                         )}
                       </div>
-                      
+
                       <div className="min-w-0 flex-1 pr-6">
                         <div className="mb-1 flex items-start justify-between gap-2">
                           <h4 className={`text-sm leading-snug ${!noti.isRead ? "font-bold text-slate-900" : "font-semibold text-slate-700"}`}>
@@ -190,8 +189,8 @@ export default function NotificationBell() {
                           <DynamicText text={noti.content} />
                         </p>
                         <span className="mt-1.5 block text-[11px] font-medium text-slate-400">
-                          {new Date(noti.createdAt).toLocaleString(undefined, { 
-                            hour: '2-digit', 
+                          {new Date(noti.createdAt).toLocaleString(undefined, {
+                            hour: '2-digit',
                             minute: '2-digit',
                             day: '2-digit',
                             month: '2-digit',
@@ -199,7 +198,7 @@ export default function NotificationBell() {
                           })}
                         </span>
                       </div>
-                      
+
                       <button
                         type="button"
                         onClick={(e) => {
@@ -218,12 +217,12 @@ export default function NotificationBell() {
                     </div>
                   );
                 })}
-                
+
                 {hasMore && (
                   <div className="mt-2 text-center pb-2">
-                    <button 
-                      type="button" 
-                      onClick={loadMore} 
+                    <button
+                      type="button"
+                      onClick={loadMore}
                       disabled={isLoading}
                       className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2 text-xs font-bold text-brand shadow-sm ring-1 ring-slate-100 transition-all hover:bg-brand hover:text-white hover:shadow-md hover:ring-brand disabled:opacity-50"
                     >

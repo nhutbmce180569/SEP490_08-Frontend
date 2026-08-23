@@ -64,6 +64,7 @@
   "noDescription": "No description",
   "noDescriptionProvided": "No description provided.",
   "address": "Address",
+  "city": "City",
   "cityCountry": "City / Country",
   "coordinates": "Coordinates",
   "notSet": "Not set",

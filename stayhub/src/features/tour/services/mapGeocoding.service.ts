@@ -491,11 +491,109 @@ const enrichPlaceAddress = (place: MapPlace): MapPlace => {
   };
 };
 
+const MAPBOX_SEARCHBOX_URL = "https://api.mapbox.com/search/searchbox/v1";
+const sessionToken = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+
+const fetchMapboxSuggestions = async (
+  query: string,
+  limit = 5,
+): Promise<any[]> => {
+  if (!MAPBOX_TOKEN) {
+    throw new Error("VITE_MAPBOX_TOKEN is missing.");
+  }
+
+  const url = new URL(`${MAPBOX_SEARCHBOX_URL}/suggest`);
+  url.searchParams.set("q", query);
+  url.searchParams.set("access_token", MAPBOX_TOKEN);
+  url.searchParams.set("session_token", sessionToken);
+  url.searchParams.set("language", "en");
+  url.searchParams.set("country", "vn");
+  url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 10)));
+
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    GEOCODING_TIMEOUT_MS,
+  );
+
+  try {
+    const response = await fetch(url.toString(), {
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Mapbox suggest request failed (${response.status}).`);
+    }
+    const data = await response.json();
+    return data.suggestions || [];
+  } finally {
+    window.clearTimeout(timeout);
+  }
+};
+
+const fetchMapboxRetrieve = async (
+  mapboxId: string,
+): Promise<MapPlace> => {
+  if (!MAPBOX_TOKEN) {
+    throw new Error("VITE_MAPBOX_TOKEN is missing.");
+  }
+
+  const url = new URL(`${MAPBOX_SEARCHBOX_URL}/retrieve/${mapboxId}`);
+  url.searchParams.set("access_token", MAPBOX_TOKEN);
+  url.searchParams.set("session_token", sessionToken);
+  url.searchParams.set("language", "en");
+
+  const controller = new AbortController();
+  const timeout = window.setTimeout(
+    () => controller.abort(),
+    GEOCODING_TIMEOUT_MS,
+  );
+
+  try {
+    const response = await fetch(url.toString(), {
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`Mapbox retrieve request failed (${response.status}).`);
+    }
+    const data = await response.json();
+    const feature = data.features?.[0];
+    if (!feature) {
+      throw new Error("No feature found in retrieve response.");
+    }
+    const place = createPlaceFromMapboxFeature(feature);
+    if (!place) {
+      throw new Error("Failed to map retrieved feature to MapPlace.");
+    }
+    return enrichPlaceAddress(place);
+  } finally {
+    window.clearTimeout(timeout);
+  }
+};
+
 export const searchPlaces = async (query: string, limit = 5): Promise<MapPlace[]> => {
   const trimmed = query.trim();
   if (!trimmed) return [];
 
-  return (await searchWithMapbox(trimmed, limit)).map(enrichPlaceAddress);
+  try {
+    const suggestions = await fetchMapboxSuggestions(trimmed, limit);
+    if (suggestions.length === 0) return [];
+
+    const places = await Promise.all(
+      suggestions.map(async (s) => {
+        try {
+          return await fetchMapboxRetrieve(s.mapbox_id);
+        } catch (e) {
+          console.warn("Retrieve failed for ID:", s.mapbox_id, e);
+          return null;
+        }
+      })
+    );
+
+    return places.filter(Boolean) as MapPlace[];
+  } catch (error) {
+    console.error("Mapbox Search Box search failed, falling back to geocoding...", error);
+    return (await searchWithMapbox(trimmed, limit)).map(enrichPlaceAddress);
+  }
 };
 
 export const reverseGeocodePlace = async (coordinates: Coordinates): Promise<MapPlace> => {

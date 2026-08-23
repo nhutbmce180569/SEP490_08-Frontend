@@ -19,11 +19,10 @@ export const useChangeUserStatus = (refetch?: () => void) => {
       else window.location.reload();
     } catch (err: any) {
       const msg = err.response?.data?.message;
-      if (msg === "Cannot block or change the status of an Admin account.") {
-        showError(t("errors.cannotEditAdmin"));
-      } else {
-        showError(msg || "Failed to change user status.");
-      }
+      let displayMsg = msg;
+      if (msg === "Cannot block or change the status of an Admin account.") displayMsg = t("errors.cannotEditAdmin");
+
+      showError(displayMsg || t("admin.changeStatusError") || "Failed to change user status.");
     } finally {
       setUpdatingId(null);
     }

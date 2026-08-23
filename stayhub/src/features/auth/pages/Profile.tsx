@@ -151,7 +151,7 @@ export const Profile: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-10 md:flex-row">
-        <div className="flex flex-col items-center gap-5 md:w-1/3">
+        <div className="flex flex-col items-center gap-5 md:w-1/3 md:shrink-0 min-w-0">
           <div className="group relative cursor-pointer">
             <div className="h-44 w-44 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-xl transition-transform duration-300 group-hover:scale-105">
               <img
@@ -181,13 +181,13 @@ export const Profile: React.FC = () => {
               onChange={handleFileChange} 
             />
           </div>
-          <div className="text-center">
-            <h3 className="text-xl font-bold text-slate-900">{formData.fullName}</h3>
-            <p className="mt-1 text-sm font-medium text-slate-500">{formData.email}</p>
+          <div className="text-center w-full px-4 overflow-hidden">
+            <h3 className="text-xl font-bold text-slate-900 break-words line-clamp-2" title={formData.fullName}>{formData.fullName}</h3>
+            <p className="mt-1 text-sm font-medium text-slate-500 truncate" title={formData.email}>{formData.email}</p>
           </div>
         </div>
 
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-6 min-w-0">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:col-span-2">
               <label className="mb-2 block text-sm font-bold text-slate-700">{t('auth.fullName')}</label>

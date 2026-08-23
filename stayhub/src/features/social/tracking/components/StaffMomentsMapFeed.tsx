@@ -172,10 +172,6 @@ export const StaffMomentsMapFeed: React.FC<StaffMomentsMapFeedProps> = ({
     if (footprints && Array.isArray(footprints)) {
       setDynamicFootprints(footprints);
     }
-
-    // Auto Day/Night theme based on time
-    const hour = new Date().getHours();
-    setIsNightMode(hour < 6 || hour > 18);
   }, [footprints]);
 
   // Trích xuất dữ liệu lộ trình
